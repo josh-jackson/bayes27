@@ -8,3 +8,17 @@ Homework is posted Thursday after class and due the following Thursday at 2:30 p
 2.  [HW 2: Your first brms model](hw-2.qmd) (due Feb 4)
 3.  [HW 3: Lines, bands, priors, and groups](hw-3.qmd) (due Feb 11)
 4.  [HW 4: Factorial models and interactions](hw-4.qmd) (due Feb 18)
+
+## Publication-ready figures {#figures}
+
+A model you can't show is a model nobody will understand, so from HW 3 on, most homeworks have a question that asks for a **publication-ready figure**. That means a figure you could drop into a manuscript without apologizing for it. It's graded against this checklist:
+
+1.  **It shows the model, with uncertainty.** Plot model estimates (posterior means/medians with intervals, or lines with ribbons), not just raw data, and say which interval it is (e.g., "97% interval for the mean" vs. "97% prediction interval").
+2.  **Raw data, when it helps.** Show the data behind the estimates (jittered, transparent points) unless there are so many points they hide everything.
+3.  **Labels in words, with units.** "SAT quantitative score," not `SATQ`; "Condition" with levels "Control" and "Treatment," not `a` with `0` and `1`. Recode factors and set `labs()` before plotting.
+4.  **Readable and clean.** A clean theme (`theme_classic()`, `theme_minimal()`, or similar), text that's readable at the final size (base size around 12), no clutter.
+5.  **Color that works for everyone.** Use a colorblind-safe palette (e.g., `scale_color_viridis_d()` or the Okabe–Ito colors) *and* a second cue (linetype or shape) so it still works in grayscale.
+6.  **A caption that stands alone.** Use `#| fig-cap:` in the chunk. A reader should know what's plotted, which interval, and the n without reading your text.
+7.  **Saved at publication size.** Save it with `ggsave("fig-hwX.png", width = 6.5, height = 4, dpi = 300)` (6.5 inches is a journal page width) and check that it still looks right at that size.
+
+Useful tools: {tidybayes} (`stat_lineribbon()`, `stat_pointinterval()`, `stat_halfeye()`), {marginaleffects} (`plot_predictions()`, `plot_slopes()`, or `draw = FALSE` to get the data and build the plot yourself in ggplot), and {patchwork} to put panels together.

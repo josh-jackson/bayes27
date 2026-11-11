@@ -17,6 +17,8 @@ Make one plot with:
 - a 95% band for the **expected value** (the "confidence" band), and
 - a 95% band for **new observations** (the "prediction" band, `add_predicted_draws()`).
 
+This is your first **publication-ready figure**: make it meet the [checklist](homeworks.qmd#figures) (labels in words with units, a clean theme, a caption that says which band is which, saved with `ggsave()` at 6.5 inches wide).
+
 Then in two or three sentences: why is the prediction band so much wider? Which band would you use to answer "what's the average score for people with X = 30?" and which for "what score will *this* person with X = 30 get?"
 
 ## Q2. How much does the prior matter?

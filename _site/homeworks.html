@@ -109,7 +109,13 @@ ul.task-list li input[type="checkbox"] {
 <!-- sidebar -->
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#figures" id="toc-figures" class="nav-link active" data-scroll-target="#figures">Publication-ready figures</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -138,8 +144,22 @@ ul.task-list li input[type="checkbox"] {
 <li><a href="./hw-3.html">HW 3: Lines, bands, priors, and groups</a> (due Feb 11)</li>
 <li><a href="./hw-4.html">HW 4: Factorial models and interactions</a> (due Feb 18)</li>
 </ol>
+<section id="figures" class="level2">
+<h2 class="anchored" data-anchor-id="figures">Publication-ready figures</h2>
+<p>A model you can’t show is a model nobody will understand, so from HW 3 on, most homeworks have a question that asks for a <strong>publication-ready figure</strong>. That means a figure you could drop into a manuscript without apologizing for it. It’s graded against this checklist:</p>
+<ol type="1">
+<li><strong>It shows the model, with uncertainty.</strong> Plot model estimates (posterior means/medians with intervals, or lines with ribbons), not just raw data, and say which interval it is (e.g., “97% interval for the mean” vs.&nbsp;“97% prediction interval”).</li>
+<li><strong>Raw data, when it helps.</strong> Show the data behind the estimates (jittered, transparent points) unless there are so many points they hide everything.</li>
+<li><strong>Labels in words, with units.</strong> “SAT quantitative score,” not <code>SATQ</code>; “Condition” with levels “Control” and “Treatment,” not <code>a</code> with <code>0</code> and <code>1</code>. Recode factors and set <code>labs()</code> before plotting.</li>
+<li><strong>Readable and clean.</strong> A clean theme (<code>theme_classic()</code>, <code>theme_minimal()</code>, or similar), text that’s readable at the final size (base size around 12), no clutter.</li>
+<li><strong>Color that works for everyone.</strong> Use a colorblind-safe palette (e.g., <code>scale_color_viridis_d()</code> or the Okabe–Ito colors) <em>and</em> a second cue (linetype or shape) so it still works in grayscale.</li>
+<li><strong>A caption that stands alone.</strong> Use <code>#| fig-cap:</code> in the chunk. A reader should know what’s plotted, which interval, and the n without reading your text.</li>
+<li><strong>Saved at publication size.</strong> Save it with <code>ggsave("fig-hwX.png", width = 6.5, height = 4, dpi = 300)</code> (6.5 inches is a journal page width) and check that it still looks right at that size.</li>
+</ol>
+<p>Useful tools: {tidybayes} (<code>stat_lineribbon()</code>, <code>stat_pointinterval()</code>, <code>stat_halfeye()</code>), {marginaleffects} (<code>plot_predictions()</code>, <code>plot_slopes()</code>, or <code>draw = FALSE</code> to get the data and build the plot yourself in ggplot), and {patchwork} to put panels together.</p>
 
 
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">

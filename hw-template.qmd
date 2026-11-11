@@ -23,6 +23,9 @@ How to use this template
 5. Render, then turn in BOTH the .qmd and the .html on Canvas.
 
 Long brms models: save them with  file = "fits/hw-X-q3"  so re-rendering doesn't refit.
+Publication-ready figure questions are graded against the checklist on the course site's Homework page
+(model + uncertainty, raw data, labels in words with units, clean theme, colorblind-safe, stand-alone caption, ggsave at 6.5 in).
+Give figure chunks a caption with   #| fig-cap: "..."
 Using your own data? You don't need to upload it, but describe it in Setup.
 AI tools: note what you used and how in the "AI use" section at the bottom (see syllabus).
 -->

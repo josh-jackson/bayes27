@@ -154,6 +154,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#part-b-a-continuous-interaction-q4q5" id="toc-part-b-a-continuous-interaction-q4q5" class="nav-link" data-scroll-target="#part-b-a-continuous-interaction-q4q5">Part B: a continuous interaction (Q4–Q5)</a></li>
   <li><a href="#q4.-slopes-that-depend-on-something-5-points" id="toc-q4.-slopes-that-depend-on-something-5-points" class="nav-link" data-scroll-target="#q4.-slopes-that-depend-on-something-5-points">Q4. Slopes that depend on something (5 points)</a></li>
   <li><a href="#q5.-how-much-does-the-model-explain-3-points" id="toc-q5.-how-much-does-the-model-explain-3-points" class="nav-link" data-scroll-target="#q5.-how-much-does-the-model-explain-3-points">Q5. How much does the model explain? (3 points)</a></li>
+  <li><a href="#q6.-publication-ready-interaction-figures-5-points" id="toc-q6.-publication-ready-interaction-figures-5-points" class="nav-link" data-scroll-target="#q6.-publication-ready-interaction-figures-5-points">Q6. Publication-ready interaction figures (5 points)</a></li>
   </ul>
 </nav>
     </div>
@@ -177,8 +178,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </header>
 
-<p><strong>Due:</strong> Thursday, Feb 18 at 2:30 pm on Canvas · <strong>Size:</strong> full analysis · <strong>Points:</strong> 20 · <strong>Covers:</strong> <a href="./mr-4.html">Multiple regression</a></p>
-<p>Start from the <a href="hw-template.qmd" download="hw-template.qmd">homework template</a>, use <code>## Q1</code> to <code>## Q5</code> headings, and turn in both the <code>.qmd</code> and the rendered <code>.html</code>. Save brms fits with <code>file =</code>. <strong>Use 97% intervals throughout</strong> (a nod to McElreath: there’s nothing magic about 95%).</p>
+<p><strong>Due:</strong> Thursday, Feb 18 at 2:30 pm on Canvas · <strong>Size:</strong> full analysis · <strong>Points:</strong> 25 · <strong>Covers:</strong> <a href="./mr-4.html">Multiple regression</a></p>
+<p>Start from the <a href="hw-template.qmd" download="hw-template.qmd">homework template</a>, use <code>## Q1</code> to <code>## Q6</code> headings, and turn in both the <code>.qmd</code> and the rendered <code>.html</code>. Save brms fits with <code>file =</code>. <strong>Use 97% intervals throughout</strong> (a nod to McElreath: there’s nothing magic about 95%).</p>
 <section id="part-a-a-2-3-factorial-q1q3" class="level2">
 <h2 class="anchored" data-anchor-id="part-a-a-2-3-factorial-q1q3">Part A: a 2 × 3 factorial (Q1–Q3)</h2>
 <p>Here are simulated data with two categorical predictors: <code>a</code> has 2 levels and <code>b</code> has 3, for 6 cells and 50 people per cell.</p>
@@ -218,7 +219,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="part-b-a-continuous-interaction-q4q5" class="level2">
 <h2 class="anchored" data-anchor-id="part-b-a-continuous-interaction-q4q5">Part B: a continuous interaction (Q4–Q5)</h2>
-<p>Use your own data with a continuous outcome, a continuous predictor, and a continuous (or many-valued) moderator. If you don’t have such data, use <code>sat.act</code> from {psych} with <code>SATQ ~ ACT * education</code> (center both predictors), and say so.</p>
+<p>Use your own data with a continuous outcome, a continuous predictor, and a continuous (or many-valued) moderator. If you don’t have such data, use <code>sat.act</code> from {psych} with <code>SATQ ~ ACT * education</code> (center both predictors), and say so. (Heads-up: loading {psych} masks ggplot2’s <code>alpha()</code> with its own reliability function, so call <code>scales::alpha()</code> if you need transparent colors.)</p>
 </section>
 <section id="q4.-slopes-that-depend-on-something-5-points" class="level2">
 <h2 class="anchored" data-anchor-id="q4.-slopes-that-depend-on-something-5-points">Q4. Slopes that depend on something (5 points)</h2>
@@ -234,6 +235,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <ol type="a">
 <li>Compute the Bayesian R² (<code>bayes_R2()</code>) for your Part B model and for the same model <em>without</em> the interaction. Report both with 97% intervals.</li>
 <li>Why does Bayesian R² come with an interval, and what does the comparison tell you about the interaction?</li>
+</ol>
+</section>
+<section id="q6.-publication-ready-interaction-figures-5-points" class="level2">
+<h2 class="anchored" data-anchor-id="q6.-publication-ready-interaction-figures-5-points">Q6. Publication-ready interaction figures (5 points)</h2>
+<p>The plots you made in Q2 and Q4 were for you. Now make them for a reader. Make <strong>two</strong> figures that meet the <a href="./homeworks.html#figures">publication-ready figure checklist</a>:</p>
+<ol type="a">
+<li><strong>Part A:</strong> a figure of the 2 × 3 interaction. Show the six cell means with 97% intervals and the raw data, and make the interaction pattern obvious at a glance (think about what goes on the x-axis and what gets color/linetype). Give <code>a</code> and <code>b</code> real-sounding labels, as if this were your study (e.g., “Feedback: none / positive” and “Task difficulty: easy / medium / hard”), and say so in the caption.</li>
+<li><strong>Part B:</strong> a figure of your continuous interaction. Show predicted lines with 97% ribbons at three meaningful values of the moderator (e.g., −1 SD, mean, +1 SD, labeled in the moderator’s units), with the raw data behind them. Put the x-axis in the original (uncentered) units.</li>
+<li>Save both with <code>ggsave()</code> at 6.5 inches wide and include the saved files in your <code>.html</code> (e.g., <code>knitr::include_graphics()</code> or a Markdown image), so you can see what they look like at journal size.</li>
+<li>Under each figure, write the one or two sentences you’d put in a Results section describing it.</li>
 </ol>
 
 
