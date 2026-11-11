@@ -4,9 +4,9 @@ title: "HW 11: When the data are uncertain too"
 
 **Due:** Thursday, Apr 15 at 2:30 pm on Canvas · **Size:** light · **Covers:** [Advanced models](adv-9.qmd) (missing data and measurement error)
 
-Start from the [homework template](hw-template.qmd){download="hw-template.qmd"}, use `## Q1` to `## Q3` headings, and turn in both the `.qmd` and the rendered `.html`. Each question is graded 0 / 1 / 2 (missing / attempted / solid); answers in words count.
+Start from the [homework template](hw-template.qmd){download="hw-template.qmd"}, use `## Q1` to `## Q4` headings, and turn in both the `.qmd` and the rendered `.html`. Each question is graded 0 / 1 / 2 (missing / attempted / solid); answers in words count.
 
-**The big idea.** In a Bayesian model, *anything you don't know is a parameter*: a regression slope, but also a value someone skipped, or a person's true score hiding behind a noisy questionnaire. The model gives each unknown a posterior, and the uncertainty flows into everything else. This homework uses simulated data so you can check each approach against the truth.
+**The big idea.** In a Bayesian model, *anything you don't know is a parameter*: a regression slope, but also a value someone skipped, or a person's true score hiding behind a noisy questionnaire. The model gives each unknown a posterior, and the uncertainty flows into everything else. This homework uses simulated data so you can check each approach against the truth. The brms author's vignette, [Handle Missing Values with brms](https://paulbuerkner.com/brms/articles/brms_missings.html), is a good companion.
 
 ```{r, eval = FALSE}
 library(tidyverse)
@@ -21,10 +21,27 @@ d <- tibble(anx_true = rnorm(n, 3, .8),                                  # true 
 
 The **true** effect: each point of true anxiety costs 0.6 hours of sleep. In the data, `anx` is the observed anxiety score (reliability α = .60), and `anx_missing` is the same score with about 28% missing. People who slept badly were more likely to skip the anxiety questionnaire.
 
-## Q1. Missing data: impute inside the model
+For Q1–Q2, pretend you only have `sleep`, `stress`, and `anx_missing`. Don't let `anx_true` or `anx` anywhere near your imputation!
 
-a) Fit `sleep ~ anx_missing` in brms. brms will drop the incomplete rows (listwise deletion). How many people are left?
-b) Now let the model impute the missing anxiety scores, using `stress` to help predict them:
+## Q1. Missing data, option 1: impute *before* fitting
+
+The standard approach is multiple imputation: fill in the missing values several times, fit the model to each completed dataset, and combine.
+
+a) Fit `sleep ~ anx_missing` in brms. brms drops the incomplete rows (listwise deletion). How many people are left?
+b) Use {mice} to create **20** imputed datasets from `sleep`, `stress`, and `anx_missing` only. Then fit the same model to all of them with `brm_multiple()`:
+
+```{r, eval = FALSE}
+library(mice)
+imp <- mice(select(d, sleep, stress, anx_missing), m = 20, seed = 11, print = FALSE)
+fit_mi_before <- brm_multiple(sleep ~ anx_missing, data = imp, chains = 2)
+```
+
+c) How are the 20 fits combined into one posterior? Compare that with the frequentist approach of pooling with Rubin's rules: why is pooling "free" in a Bayesian framework?
+d) The summary may show R-hat > 1.01 or a warning that overall R-hat isn't informative. Why can R-hat look bad here even if every model converged? Check R-hat **within** each imputed dataset (the vignette shows how with {posterior}) and report what you find.
+
+## Q2. Missing data, option 2: impute *while* fitting
+
+a) Now let the model impute the missing anxiety scores itself, in one step, using `stress` to help predict them:
 
 ```{r, eval = FALSE}
 f <- bf(sleep ~ mi(anx_missing)) +
@@ -33,18 +50,30 @@ f <- bf(sleep ~ mi(anx_missing)) +
 ```
 
 Write this two-part model in likelihood notation. What is each part doing?
-c) Compare the slope and its 95% interval from (a), from (b), and from the same model fit to the **complete** observed scores (`sleep ~ anx`). What did imputation buy you?
-d) Each missing value now has a posterior (`spread_draws(Ymi_anxmissing[row])`). Plot the imputed values for 10 people. Why are these distributions so wide, and why is that a *good* thing compared with plugging in a single guess (like the mean)?
+b) Compare the slope and its 95% interval from listwise deletion, imputation before fitting, imputation while fitting, and the same model fit to the **complete** observed scores (`sleep ~ anx`). What did imputation (either kind) buy you?
+c) Each missing value now has a posterior (`spread_draws(Ymi_anxmissing[row])`). Plot the imputed values for 10 people. Why are these distributions so wide, and why is that a *good* thing compared with plugging in a single guess (like the mean)?
+d) In two or three sentences: when would you choose imputing before fitting, and when imputing while fitting? (Think about which variables each approach imputes, what kinds of variables Stan can impute, multilevel structure, and fitting time.)
 
-## Q2. Measurement error: model the true score
+## Q3. Measurement error: model the true score
+
+The same `mi()` trick handles noisy values: tell brms how uncertain each observed value is, and it estimates each person's true score.
 
 a) Using the complete observed scores (`anx`), compute the standard error of measurement: SEM = SD(anx) × √(1 − reliability), with reliability = .60.
-b) Fit `sleep ~ me(anx, sem)` (put the SEM in a column of the data first) and compare its slope with the naive `sleep ~ anx` slope and with the truth (−0.6). Which is closer, and why is the naive slope too small? (The classic name for this is **attenuation**.)
+b) Put the SEM in a column of the data, then fit a model where anxiety is measured with error:
+
+```{r, eval = FALSE}
+f_me <- bf(sleep ~ mi(anx)) +
+        bf(anx | mi(sem) ~ 1) +
+        set_rescor(FALSE)
+```
+
+(Older code and slides use `me(anx, sem)`, which does the same thing but is now soft-deprecated in brms.)
+Compare its slope with the naive `sleep ~ anx` slope and with the truth (−0.6). Which is closer, and why is the naive slope too small? (The classic name for this is **attenuation**.)
 c) The corrected slope's interval is wider than the naive one. Explain why that's honest, not a weakness.
 
-## Q3. A publication-ready comparison
+## Q4. A publication-ready comparison
 
-Make one figure that meets the [checklist](homeworks.qmd#figures) comparing the slope estimate (with 95% intervals) from every model you fit: listwise, imputed, complete observed scores, and measurement-error corrected. Include a reference line at the true value (−0.6).
+Make one figure that meets the [checklist](homeworks.qmd#figures) comparing the slope estimate (with 95% intervals) from every model you fit: listwise, imputed before fitting, imputed while fitting, complete observed scores, and measurement-error corrected. Include a reference line at the true value (−0.6).
 
 - Order the methods sensibly, and label them in words a reader would understand (not `mi(anx_missing)`).
 - Label the x-axis in units (hours of sleep per point of anxiety).

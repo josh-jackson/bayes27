@@ -147,9 +147,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#q1.-missing-data-impute-inside-the-model" id="toc-q1.-missing-data-impute-inside-the-model" class="nav-link active" data-scroll-target="#q1.-missing-data-impute-inside-the-model">Q1. Missing data: impute inside the model</a></li>
-  <li><a href="#q2.-measurement-error-model-the-true-score" id="toc-q2.-measurement-error-model-the-true-score" class="nav-link" data-scroll-target="#q2.-measurement-error-model-the-true-score">Q2. Measurement error: model the true score</a></li>
-  <li><a href="#q3.-a-publication-ready-comparison" id="toc-q3.-a-publication-ready-comparison" class="nav-link" data-scroll-target="#q3.-a-publication-ready-comparison">Q3. A publication-ready comparison</a></li>
+  <li><a href="#q1.-missing-data-option-1-impute-before-fitting" id="toc-q1.-missing-data-option-1-impute-before-fitting" class="nav-link active" data-scroll-target="#q1.-missing-data-option-1-impute-before-fitting">Q1. Missing data, option 1: impute <em>before</em> fitting</a></li>
+  <li><a href="#q2.-missing-data-option-2-impute-while-fitting" id="toc-q2.-missing-data-option-2-impute-while-fitting" class="nav-link" data-scroll-target="#q2.-missing-data-option-2-impute-while-fitting">Q2. Missing data, option 2: impute <em>while</em> fitting</a></li>
+  <li><a href="#q3.-measurement-error-model-the-true-score" id="toc-q3.-measurement-error-model-the-true-score" class="nav-link" data-scroll-target="#q3.-measurement-error-model-the-true-score">Q3. Measurement error: model the true score</a></li>
+  <li><a href="#q4.-a-publication-ready-comparison" id="toc-q4.-a-publication-ready-comparison" class="nav-link" data-scroll-target="#q4.-a-publication-ready-comparison">Q4. A publication-ready comparison</a></li>
   </ul>
 </nav>
     </div>
@@ -174,8 +175,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 <p><strong>Due:</strong> Thursday, Apr 15 at 2:30 pm on Canvas · <strong>Size:</strong> light · <strong>Covers:</strong> <a href="./adv-9.html">Advanced models</a> (missing data and measurement error)</p>
-<p>Start from the <a href="hw-template.qmd" download="hw-template.qmd">homework template</a>, use <code>## Q1</code> to <code>## Q3</code> headings, and turn in both the <code>.qmd</code> and the rendered <code>.html</code>. Each question is graded 0 / 1 / 2 (missing / attempted / solid); answers in words count.</p>
-<p><strong>The big idea.</strong> In a Bayesian model, <em>anything you don’t know is a parameter</em>: a regression slope, but also a value someone skipped, or a person’s true score hiding behind a noisy questionnaire. The model gives each unknown a posterior, and the uncertainty flows into everything else. This homework uses simulated data so you can check each approach against the truth.</p>
+<p>Start from the <a href="hw-template.qmd" download="hw-template.qmd">homework template</a>, use <code>## Q1</code> to <code>## Q4</code> headings, and turn in both the <code>.qmd</code> and the rendered <code>.html</code>. Each question is graded 0 / 1 / 2 (missing / attempted / solid); answers in words count.</p>
+<p><strong>The big idea.</strong> In a Bayesian model, <em>anything you don’t know is a parameter</em>: a regression slope, but also a value someone skipped, or a person’s true score hiding behind a noisy questionnaire. The model gives each unknown a posterior, and the uncertainty flows into everything else. This homework uses simulated data so you can check each approach against the truth. The brms author’s vignette, <a href="https://paulbuerkner.com/brms/articles/brms_missings.html">Handle Missing Values with brms</a>, is a good companion.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">11</span>)</span>
@@ -187,30 +188,53 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">anx_missing =</span> <span class="fu">ifelse</span>(<span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="fu">plogis</span>(<span class="sc">-</span><span class="fl">1.3</span> <span class="sc">-</span> <span class="fl">1.5</span> <span class="sc">*</span> (sleep <span class="sc">-</span> <span class="dv">7</span>))) <span class="sc">==</span> <span class="dv">1</span>, <span class="cn">NA</span>, anx))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>The <strong>true</strong> effect: each point of true anxiety costs 0.6 hours of sleep. In the data, <code>anx</code> is the observed anxiety score (reliability α = .60), and <code>anx_missing</code> is the same score with about 28% missing. People who slept badly were more likely to skip the anxiety questionnaire.</p>
-<section id="q1.-missing-data-impute-inside-the-model" class="level2">
-<h2 class="anchored" data-anchor-id="q1.-missing-data-impute-inside-the-model">Q1. Missing data: impute inside the model</h2>
+<p>For Q1–Q2, pretend you only have <code>sleep</code>, <code>stress</code>, and <code>anx_missing</code>. Don’t let <code>anx_true</code> or <code>anx</code> anywhere near your imputation!</p>
+<section id="q1.-missing-data-option-1-impute-before-fitting" class="level2">
+<h2 class="anchored" data-anchor-id="q1.-missing-data-option-1-impute-before-fitting">Q1. Missing data, option 1: impute <em>before</em> fitting</h2>
+<p>The standard approach is multiple imputation: fill in the missing values several times, fit the model to each completed dataset, and combine.</p>
 <ol type="a">
-<li>Fit <code>sleep ~ anx_missing</code> in brms. brms will drop the incomplete rows (listwise deletion). How many people are left?</li>
-<li>Now let the model impute the missing anxiety scores, using <code>stress</code> to help predict them:</li>
+<li>Fit <code>sleep ~ anx_missing</code> in brms. brms drops the incomplete rows (listwise deletion). How many people are left?</li>
+<li>Use {mice} to create <strong>20</strong> imputed datasets from <code>sleep</code>, <code>stress</code>, and <code>anx_missing</code> only. Then fit the same model to all of them with <code>brm_multiple()</code>:</li>
 </ol>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>f <span class="ot">&lt;-</span> <span class="fu">bf</span>(sleep <span class="sc">~</span> <span class="fu">mi</span>(anx_missing)) <span class="sc">+</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>     <span class="fu">bf</span>(anx_missing <span class="sc">|</span> <span class="fu">mi</span>() <span class="sc">~</span> stress) <span class="sc">+</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>     <span class="fu">set_rescor</span>(<span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mice)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>imp <span class="ot">&lt;-</span> <span class="fu">mice</span>(<span class="fu">select</span>(d, sleep, stress, anx_missing), <span class="at">m =</span> <span class="dv">20</span>, <span class="at">seed =</span> <span class="dv">11</span>, <span class="at">print =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>fit_mi_before <span class="ot">&lt;-</span> <span class="fu">brm_multiple</span>(sleep <span class="sc">~</span> anx_missing, <span class="at">data =</span> imp, <span class="at">chains =</span> <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Write this two-part model in likelihood notation. What is each part doing? c) Compare the slope and its 95% interval from (a), from (b), and from the same model fit to the <strong>complete</strong> observed scores (<code>sleep ~ anx</code>). What did imputation buy you? d) Each missing value now has a posterior (<code>spread_draws(Ymi_anxmissing[row])</code>). Plot the imputed values for 10 people. Why are these distributions so wide, and why is that a <em>good</em> thing compared with plugging in a single guess (like the mean)?</p>
-</section>
-<section id="q2.-measurement-error-model-the-true-score" class="level2">
-<h2 class="anchored" data-anchor-id="q2.-measurement-error-model-the-true-score">Q2. Measurement error: model the true score</h2>
-<ol type="a">
-<li>Using the complete observed scores (<code>anx</code>), compute the standard error of measurement: SEM = SD(anx) × √(1 − reliability), with reliability = .60.</li>
-<li>Fit <code>sleep ~ me(anx, sem)</code> (put the SEM in a column of the data first) and compare its slope with the naive <code>sleep ~ anx</code> slope and with the truth (−0.6). Which is closer, and why is the naive slope too small? (The classic name for this is <strong>attenuation</strong>.)</li>
-<li>The corrected slope’s interval is wider than the naive one. Explain why that’s honest, not a weakness.</li>
+<ol start="3" type="a">
+<li>How are the 20 fits combined into one posterior? Compare that with the frequentist approach of pooling with Rubin’s rules: why is pooling “free” in a Bayesian framework?</li>
+<li>The summary may show R-hat &gt; 1.01 or a warning that overall R-hat isn’t informative. Why can R-hat look bad here even if every model converged? Check R-hat <strong>within</strong> each imputed dataset (the vignette shows how with {posterior}) and report what you find.</li>
 </ol>
 </section>
-<section id="q3.-a-publication-ready-comparison" class="level2">
-<h2 class="anchored" data-anchor-id="q3.-a-publication-ready-comparison">Q3. A publication-ready comparison</h2>
-<p>Make one figure that meets the <a href="./homeworks.html#figures">checklist</a> comparing the slope estimate (with 95% intervals) from every model you fit: listwise, imputed, complete observed scores, and measurement-error corrected. Include a reference line at the true value (−0.6).</p>
+<section id="q2.-missing-data-option-2-impute-while-fitting" class="level2">
+<h2 class="anchored" data-anchor-id="q2.-missing-data-option-2-impute-while-fitting">Q2. Missing data, option 2: impute <em>while</em> fitting</h2>
+<ol type="a">
+<li>Now let the model impute the missing anxiety scores itself, in one step, using <code>stress</code> to help predict them:</li>
+</ol>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>f <span class="ot">&lt;-</span> <span class="fu">bf</span>(sleep <span class="sc">~</span> <span class="fu">mi</span>(anx_missing)) <span class="sc">+</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>     <span class="fu">bf</span>(anx_missing <span class="sc">|</span> <span class="fu">mi</span>() <span class="sc">~</span> stress) <span class="sc">+</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>     <span class="fu">set_rescor</span>(<span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Write this two-part model in likelihood notation. What is each part doing? b) Compare the slope and its 95% interval from listwise deletion, imputation before fitting, imputation while fitting, and the same model fit to the <strong>complete</strong> observed scores (<code>sleep ~ anx</code>). What did imputation (either kind) buy you? c) Each missing value now has a posterior (<code>spread_draws(Ymi_anxmissing[row])</code>). Plot the imputed values for 10 people. Why are these distributions so wide, and why is that a <em>good</em> thing compared with plugging in a single guess (like the mean)? d) In two or three sentences: when would you choose imputing before fitting, and when imputing while fitting? (Think about which variables each approach imputes, what kinds of variables Stan can impute, multilevel structure, and fitting time.)</p>
+</section>
+<section id="q3.-measurement-error-model-the-true-score" class="level2">
+<h2 class="anchored" data-anchor-id="q3.-measurement-error-model-the-true-score">Q3. Measurement error: model the true score</h2>
+<p>The same <code>mi()</code> trick handles noisy values: tell brms how uncertain each observed value is, and it estimates each person’s true score.</p>
+<ol type="a">
+<li>Using the complete observed scores (<code>anx</code>), compute the standard error of measurement: SEM = SD(anx) × √(1 − reliability), with reliability = .60.</li>
+<li>Put the SEM in a column of the data, then fit a model where anxiety is measured with error:</li>
+</ol>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>f_me <span class="ot">&lt;-</span> <span class="fu">bf</span>(sleep <span class="sc">~</span> <span class="fu">mi</span>(anx)) <span class="sc">+</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>        <span class="fu">bf</span>(anx <span class="sc">|</span> <span class="fu">mi</span>(sem) <span class="sc">~</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>        <span class="fu">set_rescor</span>(<span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>(Older code and slides use <code>me(anx, sem)</code>, which does the same thing but is now soft-deprecated in brms.) Compare its slope with the naive <code>sleep ~ anx</code> slope and with the truth (−0.6). Which is closer, and why is the naive slope too small? (The classic name for this is <strong>attenuation</strong>.) c) The corrected slope’s interval is wider than the naive one. Explain why that’s honest, not a weakness.</p>
+</section>
+<section id="q4.-a-publication-ready-comparison" class="level2">
+<h2 class="anchored" data-anchor-id="q4.-a-publication-ready-comparison">Q4. A publication-ready comparison</h2>
+<p>Make one figure that meets the <a href="./homeworks.html#figures">checklist</a> comparing the slope estimate (with 95% intervals) from every model you fit: listwise, imputed before fitting, imputed while fitting, complete observed scores, and measurement-error corrected. Include a reference line at the true value (−0.6).</p>
 <ul>
 <li>Order the methods sensibly, and label them in words a reader would understand (not <code>mi(anx_missing)</code>).</li>
 <li>Label the x-axis in units (hours of sleep per point of anxiety).</li>
