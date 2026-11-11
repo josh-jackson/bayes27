@@ -27,6 +27,13 @@ Refit your HW 2 model with a **deliberately bad** prior on the slope: strong and
 
 a) Plot the slope's posterior from HW 2 and from this new model on the same plot.
 b) Did the bad prior move the posterior much? Using your sample size and the prior's width, explain why or why not. What would have to be true about a study for the prior to really matter?
+c) **Sequential updating in brms.** In HW 1 you saw that "today's posterior is tomorrow's prior" works exactly on a grid. Try it with your HW 2 model:
+   - randomly split your data into two halves (`set.seed()` first);
+   - fit your HW 2 model (with its original priors) to the first half;
+   - turn the posterior for the intercept and slope into **normal priors** (posterior mean and SD) and fit the second half with them;
+   - compare the slope from this two-step fit with the slope from fitting all the data at once.
+
+   How close are they? Why is the brms version only *approximately* the same, when the grid version in HW 1 was exact? (Hint: what information about the first-half posterior did you throw away by summarizing it with a mean and an SD? What did you do about σ?)
 
 ## Q3. Groups
 

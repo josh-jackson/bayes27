@@ -221,6 +221,28 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><strong>Make a supplement-ready diagnostics figure</strong> for your fixed model: trace plots and rank plots for the intercept, slope(s), and σ, combined into one figure with {patchwork}. Journals increasingly ask for these in supplementary materials. Apply the <a href="./homeworks.html#figures">figure checklist</a> where it makes sense: readable parameter labels (e.g., “Slope: stress” instead of <code>b_stress</code>), a clean theme, colorblind-safe chain colors (bayesplot’s <code>color_scheme_set("viridis")</code> helps), a caption, and <code>ggsave()</code> at 6.5 inches wide.</li>
 <li>One sentence: what does your fixed model say about stress and sleep?</li>
 </ol>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Under the hood: where are the priors? (optional, not graded)
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Run <code>stancode(m_wild)</code> and look at the <code>transformed parameters</code> block, where brms lists every prior as <code>lprior += ...</code>.</p>
+<ol type="1">
+<li>Which parameters get a prior line? (brms picked default priors for the intercept and σ based on your data.)</li>
+<li>Which parameters <strong>don’t</strong> have a line at all? A parameter with no prior statement has a <em>flat</em>, improper prior: every value from −∞ to ∞ is equally plausible. Connect that to what you saw in Q1–Q2.</li>
+<li>Now run <code>stancode()</code> on your fixed model from Q3 (or add <code>prior(normal(0, 1), class = b)</code> to the wild one) and find the new line.</li>
+</ol>
+<p>Nothing to turn in.</p>
+</div>
+</div>
+</div>
 
 
 </section>

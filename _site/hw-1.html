@@ -213,6 +213,7 @@ k &amp;\sim \text{Binomial}(n, \theta) \\
 <li>Compute and plot the prior, likelihood, and posterior with a <strong>flat prior</strong> on θ.</li>
 <li>Do it again with a <strong>skeptical prior</strong>: you think the effect is probably small, so θ is likely near .5. Use <code>dbeta(theta, 20, 20)</code> as the prior. Plot all three again.</li>
 <li>Now suppose the study had 200 participants and 140 showed the effect (same proportion). Redo (b). What changed about the posterior, and why does the prior matter less now?</li>
+<li><strong>Today’s posterior is tomorrow’s prior.</strong> Suppose the 200 participants came in two waves: the 20 from (b), then 180 more, of whom 126 showed the effect. Take your posterior from (b), the whole grid column, and use it as the <strong>prior</strong> for the second wave (likelihood <code>dbinom(126, 180, theta)</code>). Plot the result on top of your posterior from (c). What do you notice, and why does it happen? What does that mean for how a lab could accumulate evidence across studies?</li>
 </ol>
 </section>
 <section id="q3.-priors-for-your-own-research" class="level2">

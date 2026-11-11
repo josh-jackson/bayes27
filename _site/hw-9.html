@@ -248,6 +248,31 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>the number of observations per person shown somehow (point size, labels, or sorting), so a reader can see that people with fewer observations shrink more;</li>
 <li>labels in words and units, a stand-alone caption, <code>ggsave()</code> at 6.5 inches wide, and the one or two sentences you’d put in a paper to explain it.</li>
 </ul>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Under the hood: how brms builds the person effects (optional, not graded)
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Run <code>stancode()</code> on your Q2 model and find these lines:</p>
+<pre><code>array[M_1] vector[N_1] z_1;            // in parameters
+r_1_1 = (sd_1[1] * (z_1[1]));          // in transformed parameters
+target += std_normal_lpdf(z_1[1]);     // in model</code></pre>
+<p>brms doesn’t sample each person’s deviation <code>r</code> directly. It samples a <strong>standardized</strong> version <code>z ~ Normal(0, 1)</code> and multiplies by the between-person SD: r = τ × z. This is called the <strong>non-centered parameterization</strong>.</p>
+<ol type="1">
+<li>Mathematically, why is r = τ × z with z ~ Normal(0, 1) the same as r ~ Normal(0, τ)?</li>
+<li>Why might it sample better? (Think back to HW 5: when τ is near 0, all the r’s are squeezed near 0, and the posterior gets a narrow “funnel” shape that is hard for HMC to explore. Does z have that problem?)</li>
+</ol>
+<p>Nothing to turn in. If you’re curious, SR 13.4 covers this in detail.</p>
+</div>
+</div>
+</div>
 
 
 </section>

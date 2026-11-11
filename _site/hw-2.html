@@ -240,6 +240,29 @@ y_i &amp;\sim \text{Normal}(\mu_i, \sigma) \\
 <li>Run <code>pp_check()</code> on your brms model (try a couple of <code>type =</code> options, e.g., <code>"dens_overlay"</code> and <code>"stat"</code>).</li>
 <li>Describe where the simulated data match your observed data and where they don’t. What feature of your data is the model missing, if any? (Bounded scales, skew, and ceiling effects are common culprits.) You don’t need to fix it, just diagnose it.</li>
 </ol>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Under the hood: your model in Stan (optional, not graded)
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>brms doesn’t fit models itself: it writes a program in <strong>Stan</strong>, the language that does the sampling, and runs it. You can see that program with <code>stancode(your_model)</code>. Take five minutes and find:</p>
+<ol type="1">
+<li>The blocks: <code>data</code>, <code>parameters</code>, <code>transformed parameters</code>, <code>model</code>, and <code>generated quantities</code>. What goes in each one?</li>
+<li><strong>Your three priors.</strong> brms collects them as lines like <code>lprior += normal_lpdf(b | 0, 20);</code>. Do they match what you chose in Q2?</li>
+<li><strong>Your likelihood.</strong> It’s in the <code>model</code> block, behind <code>if (!prior_only)</code> (that switch is how <code>sample_prior = "only"</code> works!).</li>
+<li>The <code>transformed data</code> block quietly centers your predictor, and <code>generated quantities</code> converts the intercept back. That’s why the summary says <code>Intercept</code> but the draws are called <code>b_Intercept</code>.</li>
+</ol>
+<p>Nothing to turn in. Later in the semester you’ll write a small Stan program yourself, and this will look familiar.</p>
+</div>
+</div>
+</div>
 
 
 </section>

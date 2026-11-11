@@ -49,3 +49,16 @@ a) Fix the model. You choose how (drop the redundant predictor, combine them, or
 b) Show the fixed model's R-hat, ESS, and that there are no warnings.
 c) **Make a supplement-ready diagnostics figure** for your fixed model: trace plots and rank plots for the intercept, slope(s), and σ, combined into one figure with {patchwork}. Journals increasingly ask for these in supplementary materials. Apply the [figure checklist](homeworks.qmd#figures) where it makes sense: readable parameter labels (e.g., "Slope: stress" instead of `b_stress`), a clean theme, colorblind-safe chain colors (bayesplot's `color_scheme_set("viridis")` helps), a caption, and `ggsave()` at 6.5 inches wide.
 d) One sentence: what does your fixed model say about stress and sleep?
+
+
+::: {.callout-tip collapse="true"}
+## Under the hood: where are the priors? (optional, not graded)
+
+Run `stancode(m_wild)` and look at the `transformed parameters` block, where brms lists every prior as `lprior += ...`.
+
+1. Which parameters get a prior line? (brms picked default priors for the intercept and σ based on your data.)
+2. Which parameters **don't** have a line at all? A parameter with no prior statement has a *flat*, improper prior: every value from −∞ to ∞ is equally plausible. Connect that to what you saw in Q1–Q2.
+3. Now run `stancode()` on your fixed model from Q3 (or add `prior(normal(0, 1), class = b)` to the wild one) and find the new line.
+
+Nothing to turn in.
+:::

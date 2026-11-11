@@ -57,3 +57,17 @@ b) Refit with four times as many draws. What changes in your Q4 summaries, and w
 
 a) Run `pp_check()` on your brms model (try a couple of `type =` options, e.g., `"dens_overlay"` and `"stat"`).
 b) Describe where the simulated data match your observed data and where they don't. What feature of your data is the model missing, if any? (Bounded scales, skew, and ceiling effects are common culprits.) You don't need to fix it, just diagnose it.
+
+
+::: {.callout-tip collapse="true"}
+## Under the hood: your model in Stan (optional, not graded)
+
+brms doesn't fit models itself: it writes a program in **Stan**, the language that does the sampling, and runs it. You can see that program with `stancode(your_model)`. Take five minutes and find:
+
+1. The blocks: `data`, `parameters`, `transformed parameters`, `model`, and `generated quantities`. What goes in each one?
+2. **Your three priors.** brms collects them as lines like `lprior += normal_lpdf(b | 0, 20);`. Do they match what you chose in Q2?
+3. **Your likelihood.** It's in the `model` block, behind `if (!prior_only)` (that switch is how `sample_prior = "only"` works!).
+4. The `transformed data` block quietly centers your predictor, and `generated quantities` converts the intercept back. That's why the summary says `Intercept` but the draws are called `b_Intercept`.
+
+Nothing to turn in. Later in the semester you'll write a small Stan program yourself, and this will look familiar.
+:::

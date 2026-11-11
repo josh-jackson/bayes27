@@ -46,6 +46,7 @@ Use grid approximation like we did in class (a grid of θ values from 0 to 1, a 
 a) Compute and plot the prior, likelihood, and posterior with a **flat prior** on θ.
 b) Do it again with a **skeptical prior**: you think the effect is probably small, so θ is likely near .5. Use `dbeta(theta, 20, 20)` as the prior. Plot all three again.
 c) Now suppose the study had 200 participants and 140 showed the effect (same proportion). Redo (b). What changed about the posterior, and why does the prior matter less now?
+d) **Today's posterior is tomorrow's prior.** Suppose the 200 participants came in two waves: the 20 from (b), then 180 more, of whom 126 showed the effect. Take your posterior from (b), the whole grid column, and use it as the **prior** for the second wave (likelihood `dbinom(126, 180, theta)`). Plot the result on top of your posterior from (c). What do you notice, and why does it happen? What does that mean for how a lab could accumulate evidence across studies?
 
 ## Q3. Priors for your own research
 
