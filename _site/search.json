@@ -1292,7 +1292,7 @@
     "href": "homeworks.html",
     "title": "homeworks",
     "section": "",
-    "text": "Homework is posted Thursday after class and due the following Thursday at 2:30 pm on Canvas. Turn in your .qmd and the rendered .html, starting from the homework template. See the syllabus for grading and late policy.\n\nHW 1: Distributions, priors, and counting (due Jan 28)\nHW 2: Your first brms model (due Feb 4)\nHW 3: Lines, bands, priors, and groups (due Feb 11)"
+    "text": "Homework is posted Thursday after class and due the following Thursday at 2:30 pm on Canvas. Turn in your .qmd and the rendered .html, starting from the homework template. See the syllabus for grading and late policy.\n\nHW 1: Distributions, priors, and counting (due Jan 28)\nHW 2: Your first brms model (due Feb 4)\nHW 3: Lines, bands, priors, and groups (due Feb 11)\nHW 4: Factorial models and interactions (due Feb 18)"
   },
   {
     "objectID": "mr-4.html",
@@ -2987,5 +2987,61 @@
     "title": "HW 3: Lines, bands, priors, and groups",
     "section": "Q3. Groups",
     "text": "Q3. Groups\nFit a model with your outcome predicted by a categorical variable using index coding (y ~ 0 + group), with one prior for all the group means.\n\nWrite the model in likelihood notation.\nGet the posterior of the difference between two groups, either with {marginaleffects} (avg_predictions() with by = and a hypothesis) or from the draws with {tidybayes}. Report it with a 95% interval.\nConvert the difference into a standardized effect (divide the difference by σ, draw by draw) and report its posterior.\nWhat is the posterior probability that the difference is greater than 0? (Count the share of draws where it is, or use hypothesis() with &gt; as in class and read Post.Prob.) In one sentence, how is that different from a p-value? We’ll come back to this “probability of direction” in week 6."
+  },
+  {
+    "objectID": "hw-4.html",
+    "href": "hw-4.html",
+    "title": "HW 4: Factorial models and interactions",
+    "section": "",
+    "text": "Due: Thursday, Feb 18 at 2:30 pm on Canvas · Size: full analysis · Points: 20 · Covers: Multiple regression\nStart from the homework template, use ## Q1 to ## Q5 headings, and turn in both the .qmd and the rendered .html. Save brms fits with file =. Use 97% intervals throughout (a nod to McElreath: there’s nothing magic about 95%)."
+  },
+  {
+    "objectID": "hw-4.html#part-a-a-2-3-factorial-q1q3",
+    "href": "hw-4.html#part-a-a-2-3-factorial-q1q3",
+    "title": "HW 4: Factorial models and interactions",
+    "section": "Part A: a 2 × 3 factorial (Q1–Q3)",
+    "text": "Part A: a 2 × 3 factorial (Q1–Q3)\nHere are simulated data with two categorical predictors: a has 2 levels and b has 3, for 6 cells and 50 people per cell.\n\nlibrary(tidyverse)\nset.seed(74)\ndat &lt;- expand_grid(rep = 1:50, a = 0:1, b = 0:2) |&gt;\n  mutate(a = factor(a), b = factor(b),\n         mu = 2 + .7 * (a == \"1\") + .9 * (b == \"1\") - .8 * (b == \"2\") +\n              .1 * (a == \"1\") * (b == \"1\") + .6 * (a == \"1\") * (b == \"2\"),\n         y = rnorm(n(), mu, .7)) |&gt;\n  select(-rep, -mu)"
+  },
+  {
+    "objectID": "hw-4.html#q1.-fit-and-interpret-4-points",
+    "href": "hw-4.html#q1.-fit-and-interpret-4-points",
+    "title": "HW 4: Factorial models and interactions",
+    "section": "Q1. Fit and interpret (4 points)",
+    "text": "Q1. Fit and interpret (4 points)\n\nFit the full factorial model y ~ a * b in brms with priors you choose and justify briefly (y is roughly on a 0–5 scale).\nWrite the model in likelihood notation.\nInterpret each coefficient in the summary output in plain words. What does the intercept represent? What does a1 represent, and why is it not “the effect of a”? What do the two interaction terms represent?"
+  },
+  {
+    "objectID": "hw-4.html#q2.-cells-4-points",
+    "href": "hw-4.html#q2.-cells-4-points",
+    "title": "HW 4: Factorial models and interactions",
+    "section": "Q2. Cells (4 points)",
+    "text": "Q2. Cells (4 points)\n\nGet the posterior mean and 97% interval for each of the six cell means (e.g., avg_predictions() with by = c(\"a\", \"b\"), or add_epred_draws() on a grid of the six cells), and plot them in a way that shows the interaction.\nAdd a 97% prediction interval for each cell (where would a new person in that cell fall?) to the plot or a second plot. Why is it so much wider than the interval in (a)?"
+  },
+  {
+    "objectID": "hw-4.html#q3.-contrasts-4-points",
+    "href": "hw-4.html#q3.-contrasts-4-points",
+    "title": "HW 4: Factorial models and interactions",
+    "section": "Q3. Contrasts (4 points)",
+    "text": "Q3. Contrasts (4 points)\n\nThe effect of a within each level of b (three “simple effects”): report each with a 97% interval and plot them. avg_comparisons(model, variables = \"a\", by = \"b\") does this, or compute it from the draws.\nIs the effect of a different across levels of b? Compute the differences between those simple effects (that’s the interaction, expressed as contrasts) with 97% intervals. Which differences are credibly different from zero, and which aren’t?\nPick one pairwise comparison between two cells that you think is interesting, and report it with a 97% interval."
+  },
+  {
+    "objectID": "hw-4.html#part-b-a-continuous-interaction-q4q5",
+    "href": "hw-4.html#part-b-a-continuous-interaction-q4q5",
+    "title": "HW 4: Factorial models and interactions",
+    "section": "Part B: a continuous interaction (Q4–Q5)",
+    "text": "Part B: a continuous interaction (Q4–Q5)\nUse your own data with a continuous outcome, a continuous predictor, and a continuous (or many-valued) moderator. If you don’t have such data, use sat.act from {psych} with SATQ ~ ACT * education (center both predictors), and say so."
+  },
+  {
+    "objectID": "hw-4.html#q4.-slopes-that-depend-on-something-5-points",
+    "href": "hw-4.html#q4.-slopes-that-depend-on-something-5-points",
+    "title": "HW 4: Factorial models and interactions",
+    "section": "Q4. Slopes that depend on something (5 points)",
+    "text": "Q4. Slopes that depend on something (5 points)\n\nFit y ~ x * z with centered predictors and justified priors. Write the model in likelihood notation.\nWhat does the coefficient on x mean in this model, given that z is centered? Why does centering matter for interpreting it?\nEstimate the slope of x at low, middle, and high values of z (e.g., slopes(model, variables = \"x\", newdata = datagrid(z = fivenum)), as in class) and plot the predicted lines for those values of z.\nIn two or three sentences for a reader: does the effect of x depend on z, and how much? If the interaction is small, say so. A credible “the slope barely changes” is a finding too."
+  },
+  {
+    "objectID": "hw-4.html#q5.-how-much-does-the-model-explain-3-points",
+    "href": "hw-4.html#q5.-how-much-does-the-model-explain-3-points",
+    "title": "HW 4: Factorial models and interactions",
+    "section": "Q5. How much does the model explain? (3 points)",
+    "text": "Q5. How much does the model explain? (3 points)\n\nCompute the Bayesian R² (bayes_R2()) for your Part B model and for the same model without the interaction. Report both with 97% intervals.\nWhy does Bayesian R² come with an interval, and what does the comparison tell you about the interaction?"
   }
 ]

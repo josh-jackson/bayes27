@@ -1,0 +1,55 @@
+---
+title: "HW 4: Factorial models and interactions"
+---
+
+**Due:** Thursday, Feb 18 at 2:30 pm on Canvas · **Size:** full analysis · **Points:** 20 · **Covers:** [Multiple regression](mr-4.qmd)
+
+Start from the [homework template](hw-template.qmd){download="hw-template.qmd"}, use `## Q1` to `## Q5` headings, and turn in both the `.qmd` and the rendered `.html`. Save brms fits with `file =`. **Use 97% intervals throughout** (a nod to McElreath: there's nothing magic about 95%).
+
+## Part A: a 2 × 3 factorial (Q1–Q3)
+
+Here are simulated data with two categorical predictors: `a` has 2 levels and `b` has 3, for 6 cells and 50 people per cell.
+
+```{r, eval = FALSE}
+library(tidyverse)
+set.seed(74)
+dat <- expand_grid(rep = 1:50, a = 0:1, b = 0:2) |>
+  mutate(a = factor(a), b = factor(b),
+         mu = 2 + .7 * (a == "1") + .9 * (b == "1") - .8 * (b == "2") +
+              .1 * (a == "1") * (b == "1") + .6 * (a == "1") * (b == "2"),
+         y = rnorm(n(), mu, .7)) |>
+  select(-rep, -mu)
+```
+
+## Q1. Fit and interpret (4 points)
+
+a) Fit the full factorial model `y ~ a * b` in brms with priors you choose and justify briefly (y is roughly on a 0–5 scale).
+b) Write the model in likelihood notation.
+c) Interpret **each** coefficient in the summary output in plain words. What does the intercept represent? What does `a1` represent, and why is it *not* "the effect of a"? What do the two interaction terms represent?
+
+## Q2. Cells (4 points)
+
+a) Get the posterior mean and 97% interval for each of the six cell means (e.g., `avg_predictions()` with `by = c("a", "b")`, or `add_epred_draws()` on a grid of the six cells), and plot them in a way that shows the interaction.
+b) Add a 97% **prediction** interval for each cell (where would a new person in that cell fall?) to the plot or a second plot. Why is it so much wider than the interval in (a)?
+
+## Q3. Contrasts (4 points)
+
+a) **The effect of `a` within each level of `b`** (three "simple effects"): report each with a 97% interval and plot them. `avg_comparisons(model, variables = "a", by = "b")` does this, or compute it from the draws.
+b) **Is the effect of `a` different across levels of `b`?** Compute the differences between those simple effects (that's the interaction, expressed as contrasts) with 97% intervals. Which differences are credibly different from zero, and which aren't?
+c) Pick **one** pairwise comparison between two cells that you think is interesting, and report it with a 97% interval.
+
+## Part B: a continuous interaction (Q4–Q5)
+
+Use your own data with a continuous outcome, a continuous predictor, and a continuous (or many-valued) moderator. If you don't have such data, use `sat.act` from {psych} with `SATQ ~ ACT * education` (center both predictors), and say so.
+
+## Q4. Slopes that depend on something (5 points)
+
+a) Fit `y ~ x * z` with centered predictors and justified priors. Write the model in likelihood notation.
+b) What does the coefficient on `x` mean in this model, given that `z` is centered? Why does centering matter for interpreting it?
+c) Estimate the slope of `x` at low, middle, and high values of `z` (e.g., `slopes(model, variables = "x", newdata = datagrid(z = fivenum))`, as in class) and plot the predicted lines for those values of `z`.
+d) In two or three sentences for a reader: does the effect of `x` depend on `z`, and how much? If the interaction is small, say so. A credible "the slope barely changes" is a finding too.
+
+## Q5. How much does the model explain? (3 points)
+
+a) Compute the Bayesian R² (`bayes_R2()`) for your Part B model and for the same model *without* the interaction. Report both with 97% intervals.
+b) Why does Bayesian R² come with an interval, and what does the comparison tell you about the interaction?
