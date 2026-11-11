@@ -92,8 +92,11 @@ $$\mu_i = \beta_0 + \beta_1  parent_i $$
 #| code-fold: true
 library(brms)
 fit.1.bayesian <- brm(child ~ parent, data = galton.data,
+                      prior = c(prior(normal(66, 5), class = Intercept),  # brms puts this on the intercept at the mean parent height
+                                prior(normal(0, .5), class = b),
+                                prior(exponential(.5), class = sigma)),
                       backend = "cmdstanr",
-                      file = "fit.1.b")
+                      file = "fit.1.c")
 ```
 
 ```{r}
@@ -368,7 +371,7 @@ It means, *BEFORE WE SEE THE DATA* we are comfortable with different regression 
 
 pp <-
   tibble(n = 1:100,
-         a = rnorm(100, mean = 68, sd = 5),
+         a = rnorm(100, mean = 66, sd = 5),
          b = rnorm(100, mean = 0,   sd = 5)) %>% 
   expand(nesting(n, a, b), height = range(galton.data$parent)) %>%   
   mutate(c.height = a + b * (height - mean(galton.data$parent))) 
@@ -385,11 +388,14 @@ g.pp
 
 ## Okay so why is this important?
 
+-   Those N(0, 5) lines say a 1-inch taller parent could mean a child 10+ inches taller (or shorter). That's absurd, so we'll use N(0, 0.5) instead: still centered on "no association," but only entertaining plausible slopes.
+
+
 -   A model that makes impossible predictions prior to seeing the data isn't too useful. Why waste the effort? We often know what values are likely, given what we know about effect sizes
 
 -   We entertain impossible values with standard "frequentist" methods. They have implicit priors such that all values, from negative infinity to positive infinity are equally likely.
 
--   If we use priors from a uniform distribution we will get the EXACT same results as a frequentist method.
+-   If we use flat (uniform) priors we get essentially the same results as a frequentist method: the posterior mode equals the maximum likelihood estimate, and the intervals are usually very close (though we interpret them differently).
 
 ## model
 
@@ -397,8 +403,10 @@ $$ child_i \sim Normal( \mu_i , \sigma )\ $$
 
 $$\mu_i = \beta_0 + \beta_1  (parent_i - \bar{parent_i} ) $$
 $$\beta_0 \sim Normal(66, 5)\ $$ 
-$$\beta_1 \sim Normal(0, 5)\ $$ 
-$$\sigma \sim HalfCauchy(0,10) $$
+$$\beta_1 \sim Normal(0, 0.5)\ $$ 
+$$\sigma \sim Exponential(0.5) $$
+
+(These are the priors in the `brm()` call we fit at the start.)
 
 ## Tying it together
 
@@ -547,6 +555,40 @@ l <- tibble(theta =   seq(from = 0,     to = 1, by = .001),
 (small | large)
 ```
 
+## Today's posterior is tomorrow's prior
+
+Collect data in waves: the posterior after wave 1 becomes the prior for wave 2. You end up exactly where you'd be with all the data at once.
+
+```{r}
+#| code-fold: true
+#| fig-width: 8
+#| fig-height: 3
+#| out-width: "100%"
+grid <- tibble(theta = seq(0, 1, length.out = 1000))
+norm1 <- function(x) x / sum(x)
+
+waves <- grid %>% 
+  mutate(prior        = norm1(dbeta(theta, 2, 2)),
+         after_wave_1 = norm1(prior * dbinom(3, 10, theta)),             # 3 of 10
+         after_wave_2 = norm1(after_wave_1 * dbinom(9, 30, theta)),      # 9 of 30 more
+         all_at_once  = norm1(prior * dbinom(12, 40, theta)))            # 12 of 40
+
+waves %>% 
+  pivot_longer(-theta) %>% 
+  mutate(name = factor(name, levels = c("prior", "after_wave_1", "after_wave_2", "all_at_once"),
+                       labels = c("Prior", "After wave 1 (3/10)", "After wave 2 (+9/30)", "All 40 at once (12/40)"))) %>% 
+  ggplot(aes(theta, value, color = name, linetype = name, linewidth = name)) +
+  geom_line() +
+  scale_color_manual(values = c("grey60", "#E69F00", "#0072B2", "black")) +
+  scale_linetype_manual(values = c(1, 1, 1, 2)) +
+  scale_linewidth_manual(values = c(.8, .8, 2, .8)) +
+  labs(x = expression(theta), y = NULL, color = NULL, linetype = NULL, linewidth = NULL) +
+  scale_y_continuous(breaks = NULL) +
+  guides(color = guide_legend(ncol = 1)) +
+  theme_classic(base_size = 13) +
+  theme(legend.position = "right", legend.key.width = unit(1, "cm"))
+```
+
 ## Going from prior to posterior
 
 What is our regression estimate again?
@@ -580,7 +622,7 @@ spread_draws(b_Intercept, b_parent) %>%
 library(modelr)
 pp <-
   tibble(n = 1:100,
-         a = rnorm(100, mean = 68, sd = 5),
+         a = rnorm(100, mean = 66, sd = 5),
          b = rnorm(100, mean = 0,   sd = .5)) %>% 
   expand(nesting(n, a, b), height = range(galton.data$parent)) %>%   
   mutate(c.height = a + b * (height - mean(galton.data$parent))) 
