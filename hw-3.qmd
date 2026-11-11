@@ -33,4 +33,4 @@ Fit a model with your outcome predicted by a categorical variable using **index 
 a) Write the model in likelihood notation.
 b) Get the posterior of the difference between two groups, either with {marginaleffects} (`avg_predictions()` with `by =` and a `hypothesis`) or from the draws with {tidybayes}. Report it with a 95% interval.
 c) Convert the difference into a standardized effect (divide the difference by σ, draw by draw) and report its posterior.
-d) What is the posterior probability that the difference is greater than 0? In one sentence, how is that different from a *p*-value?
+d) What is the posterior probability that the difference is greater than 0? (Count the share of draws where it is, or use `hypothesis()` with `>` as in class and read `Post.Prob`.) In one sentence, how is that different from a *p*-value? We'll come back to this "probability of direction" in week 6.
