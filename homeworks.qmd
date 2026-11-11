@@ -14,6 +14,7 @@ Homework is posted Thursday after class and due the following Thursday at 2:30 p
 8.  [HW 8: Counts and ordered categories](hw-8.qmd) (due Mar 25, after spring break)
 9.  [HW 9: Varying intercepts and partial pooling](hw-9.qmd) (due Apr 1)
 10. [HW 10: Varying slopes](hw-10.qmd) (due Apr 8)
+11. [HW 11: When the data are uncertain too](hw-11.qmd) (due Apr 15)
 
 ## Publication-ready figures {#figures}
 

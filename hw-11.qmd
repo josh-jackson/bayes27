@@ -1,0 +1,51 @@
+---
+title: "HW 11: When the data are uncertain too"
+---
+
+**Due:** Thursday, Apr 15 at 2:30 pm on Canvas · **Size:** light · **Covers:** [Advanced models](adv-9.qmd) (missing data and measurement error)
+
+Start from the [homework template](hw-template.qmd){download="hw-template.qmd"}, use `## Q1` to `## Q3` headings, and turn in both the `.qmd` and the rendered `.html`. Each question is graded 0 / 1 / 2 (missing / attempted / solid); answers in words count.
+
+**The big idea.** In a Bayesian model, *anything you don't know is a parameter*: a regression slope, but also a value someone skipped, or a person's true score hiding behind a noisy questionnaire. The model gives each unknown a posterior, and the uncertainty flows into everything else. This homework uses simulated data so you can check each approach against the truth.
+
+```{r, eval = FALSE}
+library(tidyverse)
+set.seed(11)
+n <- 200
+d <- tibble(anx_true = rnorm(n, 3, .8),                                  # true anxiety (you never get this in real life!)
+            stress   = .6 * (anx_true - 3) / .8 + rnorm(n, 0, .8),      # a related measure, fully observed
+            sleep    = 7 - .6 * (anx_true - 3) + rnorm(n, 0, .8),       # hours of sleep
+            anx      = anx_true + rnorm(n, 0, .653)) |>                 # observed anxiety score (alpha = .60)
+  mutate(anx_missing = ifelse(rbinom(n, 1, plogis(-1.3 - 1.5 * (sleep - 7))) == 1, NA, anx))
+```
+
+The **true** effect: each point of true anxiety costs 0.6 hours of sleep. In the data, `anx` is the observed anxiety score (reliability α = .60), and `anx_missing` is the same score with about 28% missing. People who slept badly were more likely to skip the anxiety questionnaire.
+
+## Q1. Missing data: impute inside the model
+
+a) Fit `sleep ~ anx_missing` in brms. brms will drop the incomplete rows (listwise deletion). How many people are left?
+b) Now let the model impute the missing anxiety scores, using `stress` to help predict them:
+
+```{r, eval = FALSE}
+f <- bf(sleep ~ mi(anx_missing)) +
+     bf(anx_missing | mi() ~ stress) +
+     set_rescor(FALSE)
+```
+
+Write this two-part model in likelihood notation. What is each part doing?
+c) Compare the slope and its 95% interval from (a), from (b), and from the same model fit to the **complete** observed scores (`sleep ~ anx`). What did imputation buy you?
+d) Each missing value now has a posterior (`spread_draws(Ymi_anxmissing[row])`). Plot the imputed values for 10 people. Why are these distributions so wide, and why is that a *good* thing compared with plugging in a single guess (like the mean)?
+
+## Q2. Measurement error: model the true score
+
+a) Using the complete observed scores (`anx`), compute the standard error of measurement: SEM = SD(anx) × √(1 − reliability), with reliability = .60.
+b) Fit `sleep ~ me(anx, sem)` (put the SEM in a column of the data first) and compare its slope with the naive `sleep ~ anx` slope and with the truth (−0.6). Which is closer, and why is the naive slope too small? (The classic name for this is **attenuation**.)
+c) The corrected slope's interval is wider than the naive one. Explain why that's honest, not a weakness.
+
+## Q3. A publication-ready comparison
+
+Make one figure that meets the [checklist](homeworks.qmd#figures) comparing the slope estimate (with 95% intervals) from every model you fit: listwise, imputed, complete observed scores, and measurement-error corrected. Include a reference line at the true value (−0.6).
+
+- Order the methods sensibly, and label them in words a reader would understand (not `mi(anx_missing)`).
+- Label the x-axis in units (hours of sleep per point of anxiety).
+- Add a stand-alone caption, use `ggsave()` at 6.5 inches wide, and write two or three sentences on what a researcher with real data (no `anx_true`!) should take from this.
