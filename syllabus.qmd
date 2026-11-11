@@ -1,0 +1,129 @@
+---
+title: "Syllabus"
+---
+
+
+**Instructor**: Joshua Jackson  
+**Office**: 315b Somers  
+**Office hours**: By appointment. I'm usually around so please let me know.    
+
+
+#### Course Description#### 
+
+Bayesian parameter estimation and hypothesis testing offer a useful alternative to the classic frequentist paradigm within psychological science. This class will cover the foundations of Bayesian inference and hypothesis testing with the primary emphasis on fitting multiple regression and multi-level models common within psychology. A variety of response distributions will be discussed: Gaussian, binary and count, ordinal, survival, probability, and zero-inflated models, among others. Topics include: model calibration, regularization, prior and posterior predictions, Bayes factors, missing data, Bayesian power, cross-validation, Bayesian meta-analysis, distributional models, and multivariate response models.  
+
+<br>  
+
+### Course learing objectives
+
+1.  Take what you know (regression) and do it Bayesian (and more!)
+
+2.  Know the advantages of Bayesian data analysis
+
+3.  Rethink your approach to statistical modeling and inference
+
+
+#### Class textbook
+
+-McElreath, R. (2020). Statistical Rethinking: A Bayesian Course with Examples in R. SECOND EDITION CRC Press. 
+
+Note that McElreath also has lectures from his book posted on his youtube. They are excellent. While some bits of the class materials are covered in his lectures I believe the content of this course and his course compliment one another. His focus is making the content digestible, viewing the broader picture, and delving into philosophy of science more so. We will focus more on the applied aspects, using specific programs and making sure we are comfortable "doing" the work rather than just understanding it at the high level. 
+
+Please check them out, especially if you are lost: 
+https://tinyurl.com/yckrrzjy
+
+Solomon Kurz has also created a book that does all of the examples in brms. https://bookdown.org/content/4857/ It is extremely helpful. He focuses on brms helper functions, some of which are depreciated, and we will mainly focus on tidybayes, and marginaleffects, but to get an idea of how to apply the content this book is extremely useful. *I highly recommend you read this along with the corresponding chapter from SR.*  
+
+We will also read some chapters from Model to Meaning (M2M) by Vincent Arel-Bundock, who created the marginaleffects package:
+https://marginaleffects.com
+
+Andrew Heiss has some nice blog posts that cover marginal effects package and walk through in great detail some difficult topics. 
+
+AH #1: https://www.andrewheiss.com/blog/2022/09/26/guide-visualizing-types-posteriors/  
+AH #2: https://www.andrewheiss.com/blog/2022/05/20/marginalia/  
+AH #3: https://www.andrewheiss.com/blog/2022/11/29/conditional-marginal-marginaleffects/  
+
+
+*Recommended text (not required)*
+
+- Kruschke, J. (2015). Doing Bayesian Data Analysis. SECOND EDITION. 
+
+(This is more of a traditional stats textbook from a psychologist. It is more comprehensive but less readable. Some practices are no longer standard, the structure of the book isn't how I would present everything and it misses some important details developed in the past 7 or so years. Yes a 7 year old book is now wildly out of date. That said I still use it often as a reference).
+
+Solomon also has a brms-based walkthrough of Kruschke: https://bookdown.org/content/3686/
+
+- Farrell, S., & Lewandowsky, S. (2018). Computational modeling of cognition and behavior. Cambridge University Press
+
+(Very good for those who predominantly do cognitive models/behavioral tasks. These are more advanced models that we will touch on at the end of the semester, however, go ahead and read this earlier if you are inclined.)
+
+- Gelman, A., Hill, J., & Vehtari, A. (2020). Regression and other stories. Cambridge University Press. 
+
+(A practical compendium of how to approach GLMs. If you feel like you need a refresher on GLM or are lost at any point in the semester with concepts you feel like "should have" learned prior this book will help. Very readable. It is bayesian but also not, focusing more on regression basics.)
+
+- Lee, M. D., & Wagenmakers, E. J. (2014). Bayesian cognitive modeling: A practical course. Cambridge university press 
+
+(Terse but technically correct intro of Bayesian stats, best for completing your collection of Bayesian books by psychologists. I would not recommend as an intro book)
+
+<br>  
+
+#### Grading
+
+Grades consist of two components: Four "exams" and a take home project. Each will count for 20% of your grade. 
+
+Exams will be given at non class hours so as to maximize our time together to discuss bayesian stats. 
+
+There will be homework that consists of mainly applied computations. Homework may be worked on together in groups. 
+
+The takehome project is a series of models and visualizations using your own data. We (you and Josh) will work together to go over what your data are, and what sort of analyses, checks and visualizations you should do. The sooner in the semester you have these conversations with me, the better. By week 6 you need to have a plan approved.  
+
+**Grades**:   
+100%   - A+  
+99-92 - A  
+90-91 - A-  
+89    - B+  
+88-81 - B  
+80    - B-  
+79-70 - C  
+69-60 - D  
+<60   - F  
+  
+  <br>  
+  
+#### Class procedure
+
+I prepare slides and code. We then walk through them together. If you have questions, ask! 
+  
+#### Schedule####  
+
+Note that dates and readings are tentative. Topics will likely shift; all changes will be updated on the homepage, not necessarily in the syllabus below. 
+
+| Week | Topic                                 |Readings        |
+-------|----------------------------------------|-----------------|
+| 1    | Basics of Bayes  | SR 1 & 2  |
+| 2    | Linear model basics |SR 3  M2M 3 - 3.3 & 3.6|
+| 3    | Linear Models continued |  SR 4      |
+| 4    | Multiple regression and interactions  |  SR 5 & 9                |
+| | Exam 1 |  | 
+| 5    | Markov Chain Monte Carlo Estimation (MCMC)  |          |
+| 6    | Information, NHST and model fit              |  SR 7 & 10                     |
+| 7    | Generalized Linear Models    | SR 11  M2M 5 AH1 |
+| 8    | Generalized Linear Models    | SR 12    AH2|
+|| Exam 2 | | 
+| 9    | Multilevel Models   |  SR 13   M2M 19           |
+| 10   | Multilevel Models         |  SR 14  AH3                        |
+| 11   | Multilevel Models, meta-analysis and missing data        |  SR 15|
+|| Exam 3 | | 
+| 12   | Multivariate and Distributional Models       | Williams et al 2021 psych methods        |
+| 13   | Cognitive and IRT models (e.g., DDM)         |      F&L 14, Burkner, 2019            |
+| 14   | GAMs |              |
+|| Exam 4 | | 
+
+## Chat-GPT and other AI overlord helpers
+
+New Artificial Intelligence tools like Chat-GPT are rapidly changing the landscape of how we write code. These tools are truly wonderful for writing code quickly (rather than going down crazy rabbit holes). It is used frequently outside of the classroom for writing code in a variety of languages, including R. It would be CRAZY not to incorporate this tool into your learning.
+
+That said, Chat-GPT very, very often gives you the wrong code. My goal is to get you to a place where you can use Chat-GPT and be able to understand if the code it provides will give you the right answer or the wrong one. Here is my policy for this class:
+
+You are allowed to use Chat-GPT. If you do, in your take home assignment, please say “I used Chat-GPT and here is the prompt that I used to generate this code: ____” and provide the prompt. There is also a more efficient link option in chat GPT, which may be more helpful if you had a back and forth conversation. Regardless, including this information can help make sure you understand why the code works or does not work. Also, it allows me to better learn what does and does not work when communicating with our AI overlords. 
+
+

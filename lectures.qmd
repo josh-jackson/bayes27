@@ -1,0 +1,13 @@
+---
+title: "Lectures"
+---
+
+1.  [Background and introduction](bayes-1.qmd)
+2.  [Regression part 1](regression-2.qmd)
+3.  [Regression part 2](regression-3.qmd)
+4.  [Multiple Regression](mr-4.qmd)
+5.  [MCMC](mcmc-5.qmd)
+6.  [information](info-6.qmd)
+7.  [glm](glm-7.qmd)
+8.  [mlm](mlm-8.qmd)
+9.  [advanced mlm](adv-9.qmd)

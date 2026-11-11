@@ -1,0 +1,46 @@
+---
+title: "Untitled"
+---
+
+
+
+## GAMs
+
+- We often want to fit flexible (non-linear) curves. What are options? 
+
+- polynomial, but they make bad predictions at the ends
+- Localized regression such as lowess, but those are non-parameteric 
+- Piecewise fit segments to different parts of the data, with breakpoints (knots) at pre-determined places. But what if you don't know pre-defined. What if you want segments to touch? 
+- "Continuous piecewise" = splines. 
+
+--------
+
+
+
+```{r}
+library(MultiKink) 
+library(ggplot2)  
+data("triceps")
+ tri.age.plot <- ggplot(triceps, aes(x=age, y=triceps)) +
+                 geom_point(alpha=0.55, color="black") + 
+                 theme_minimal() 
+ tri.age.plot
+```
+
+
+--------
+
+Basis function
+
+$$y = \beta_0 + \beta_1 x +  \beta_2 (x-k_1)_{+}  + \beta_3 (x-k_2)_{+} + ... + \beta_6 (x-k_p)_{+} + \varepsilon$$4
+
+$$(x-k)_{+} =  \begin{cases}
+                  0, & \text{ if  } x < k \\
+                  x-k, & \text{ if  } x \geq k\\
+                 \end{cases}$$
+                 
+regression model is written as a linear combination of these basis functions 
+
+------
+
+GAMs offer a middle ground: they can be fit to complex, nonlinear relationships and make good predictions in these cases, but we are still able to do inferential statistics and understand and explain the underlying structure of our models

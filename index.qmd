@@ -1,0 +1,9 @@
+---
+title: "Bayes Spring 2027"
+---
+
+Welcome to Bayes! Class meets Tuesdays and Thursdays, 2:30–3:50. First class is Tuesday, January 19.
+
+Github includes all of the slides, code, and data. https://github.com/josh-jackson/bayes27
+
+Please check the homepage regularly for class updates and announcements.

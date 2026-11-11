@@ -1,0 +1,12 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+/.quarto/
+.DS_Store
+.Rapp.history
+
+# Cached model fits: kept locally (needed to render), not in git.
+# 2025 originals are also in Box: Bayesian Statistics/BayesSpring25
+*.rds

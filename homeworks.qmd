@@ -1,0 +1,7 @@
+---
+title: "homeworks"
+---
+
+1.  [Homework #1](hw-1.qmd)
+2.  [Homework #2](hw-2.qmd)
+3.  [Homework #3](hw-3.qmd)
