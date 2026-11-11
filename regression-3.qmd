@@ -27,7 +27,7 @@ week3 <- read.csv("week3.csv") %>%
 week3
 ```
 
-------------------------------------------------------------------------
+## Everything plotted against everything
 
 ```{r}
 #| code-fold: true
@@ -50,7 +50,7 @@ What do these priors mean? How did we come up with them?
 
 
 
-------------------------------------------------------------------------
+## Visualizing the priors
 
 ```{r}
 #| code-fold: true
@@ -102,7 +102,7 @@ pp_check(h.1p) + xlim(-35,35)
 
 This graphs 10 simulated datasets from the **prior** predictive distribution, compared to our actual data's density
 
-------------------------------------------------------------------------
+## Prior predictive: intervals by person
 
 ```{r}
 pp_check(h.1p,
@@ -123,7 +123,7 @@ data_grid(happy_c = seq_range(happy_c, n = 101)) %>%
   xlab("happy")
 ```
 
-------------------------------------------------------------------------
+## What if we try strange priors?
 
 What happens if we try strange priors?
 
@@ -143,7 +143,7 @@ h.1p2 <-
       file = "h.1p2")
 ```
 
-------------------------------------------------------------------------
+## The strange priors
 
 ```{r}
 #| code-fold: true
@@ -170,6 +170,8 @@ data_grid(happy_c = seq_range(happy_c, n = 101)) %>%
 
 ## Fit model
 
+We just saw that Normal(0, 5) priors allow impossible health values. We'll fit with them anyway, on purpose: with 200 people the data swamp them (compare the strange-prior fit a few slides from now). With smaller samples or more complex models, you would tighten them.
+
 ```{r}
 #| code-fold: true
 h.1 <- 
@@ -184,13 +186,13 @@ h.1 <-
       file = "h.1")
 ```
 
-------------------------------------------------------------------------
+## Results with our priors (99% intervals)
 
 ```{r}
 summary(h.1, prob = .99)
 ```
 
-------------------------------------------------------------------------
+## Refit with the strange priors
 
 ```{r}
 #| code-fold: true
@@ -204,7 +206,7 @@ h.1b <-
       file = "h.1b")
 ```
 
-------------------------------------------------------------------------
+## Results with the strange priors
 
 ```{r}
 summary(h.1b, prob = .99)
@@ -225,7 +227,7 @@ h.1 %>%
 spread_draws(b_Intercept, b_happy_c, sigma)
 ```
 
-------------------------------------------------------------------------
+## gather_draws(): long format
 
 ```{r}
 library(tidybayes)
@@ -233,7 +235,7 @@ h.1 %>%
 gather_draws(b_Intercept, b_happy_c, sigma)
 ```
 
-------------------------------------------------------------------------
+## Summarizing the draws
 
 ```{r}
 h.1 %>% 
@@ -241,7 +243,7 @@ spread_draws(b_Intercept, b_happy_c, sigma) %>%
     mean_qi()
 ```
 
-------------------------------------------------------------------------
+## Plotting all three posteriors
 
 ```{r}
 #| code-fold: true
@@ -251,10 +253,11 @@ ggplot(aes(y = .variable, x = .value)) +
     stat_halfeye()
 ```
 
-## samples imply multiple possible regression lines
+## samples imply multiple possible regression lines {.smaller}
 
 ```{r}
 #| code-fold: true
+#| fig-height: 4.5
 library(gganimate)
 
 p.lines<- week3 %>% 
@@ -283,7 +286,7 @@ pp_check(h.1)
 
 -   How can we evaluate our model like we normally do? R2 is most common, however, we will have additional tricks up our sleeve (eg waic, loo -- similar to AIC/BIC, likelihood ratio tests etc).
 
-------------------------------------------------------------------------
+## One R² per draw {.smaller}
 
 Every sample implies a different set of regression coefficients. Every regression coefficient has an R2 associated with it.
 
@@ -303,13 +306,15 @@ This is a summary of our 1000 R2 values. Like other parameters it has a distribu
 bayes_R2(h.1, summary = T) # summary = TRUE gives a summary
 ```
 
-## Bayesian R2
+## Bayesian R², precisely {.smaller}
 
--   R2 = (Predicted) explained variance over (predicted) explained variance + unexplained variance.
+For **each posterior draw** *s*, brms computes
 
--   But what is (un)explained variance? In frequentist land it was specific to our sample. But we know our sample estimates are subject to sampling variability.
+$$R^2_s = \frac{\text{Var}(\hat{y}^{(s)})}{\text{Var}(\hat{y}^{(s)}) + \text{Var}(e^{(s)})}$$
 
--   We use: posterior predictive distribution & sigma. This incorporates uncertainty about our estimate.
+-   $\hat{y}^{(s)}$: the expected values (epred) for every person under draw *s*; $e^{(s)} = y - \hat{y}^{(s)}$: the residuals under that draw
+-   Explained variance over explained + residual variance, like the usual R², but computed once per draw, so R² gets its own posterior distribution (and interval)
+-   Unlike the classical formula, it can never exceed 1, and it reflects our uncertainty about the coefficients (Gelman, Goodrich, Gabry & Vehtari, 2019)
 
 ## Categorical Variable coding
 
@@ -335,7 +340,7 @@ table(week3$mood.group.d)
 
 ```
 
-------------------------------------------------------------------------
+## Dummy-coded model
 
 ```{r}
 h.2 <- 
@@ -350,7 +355,7 @@ h.2 <-
       file = "h.2")
 ```
 
-------------------------------------------------------------------------
+## Its priors
 
 ```{r}
 #| code-fold: true
@@ -362,13 +367,13 @@ data.frame(prior = c("normal(0, 10)",
   scale_x_continuous( limits = c(-50, 50)) 
 ```
 
-------------------------------------------------------------------------
+## Dummy-coded results
 
 ```{r}
 summary(h.2)
 ```
 
-------------------------------------------------------------------------
+## Raw group means (for comparison)
 
 ```{r}
 #| code-fold: true
@@ -379,7 +384,7 @@ week3 %>%
 
 ```
 
-------------------------------------------------------------------------
+## Group means from the draws {.smaller}
 
 ```{r}
 #| code-fold: true
@@ -404,7 +409,7 @@ h.2 %>%
   mean_qi()
 ```
 
-------------------------------------------------------------------------
+## Plotting the group means
 
 ```{r}
 #| code-fold: true
@@ -419,7 +424,7 @@ h.2 %>%
 
 ```
 
-------------------------------------------------------------------------
+## Group means, overlaid
 
 ```{r}
 #| code-fold: true
@@ -435,7 +440,7 @@ h.2 %>%
 
 ```
 
-------------------------------------------------------------------------
+## Same thing with marginaleffects
 
 Predictions are equal to manipulating posterior
 ```{r}
@@ -449,7 +454,7 @@ predictions(h.2,
   
 ```
 
-------------------------------------------------------------------------
+## avg_predictions() by group
 
 
 
@@ -457,7 +462,7 @@ predictions(h.2,
 avg_predictions(h.2, by = "mood.group.d")
 ```
 
--------------
+## Group means: gradient intervals
 
 
 ```{r}
@@ -468,7 +473,7 @@ avg_predictions(h.2, by = "mood.group.d") %>%  get_draws() %>%
 ```
 
 
------------
+## Group means: eye plots
 
 
 ```{r}
@@ -497,7 +502,7 @@ h.2 %>%
   stat_dotsinterval() 
 ```
 
-------------------------------------------------------------------------
+## Difference and standardized difference, summarized
 
 ```{r}
 #| code-fold: true
@@ -521,7 +526,7 @@ h.2 %>%
 
 -   If you have 20 groups, that is a lot of priors (one for each dummy!), but with this approach there is a single prior for all levels/factors
 
-------------------------------------------------------------------------
+## Index-coded model
 
 ```{r}
 h.3 <- 
@@ -538,7 +543,7 @@ h.3 <-
 
 We suppress the intercept by putting in a 0. This "no intercept" model is a general strategy for working with categorical data within Bayes.
 
-------------------------------------------------------------------------
+## Why lm's R² breaks without an intercept {.smaller}
 
 Note the ridiculous R2. Formula doesn't work without an intercept. Changes the F too.
 
@@ -547,13 +552,13 @@ test2 <- lm(health ~ 0 + mood.group.d, data = week3)
 summary(test2)
 ```
 
-------------------------------------------------------------------------
+## Index-coded results
 
 ```{r}
 summary(h.3)
 ```
 
-------------------------------------------------------------------------
+## Same posterior, different parameterization
 
 -   All info you need is in the posterior.
 -   It is the same posterior distribution as before
@@ -567,29 +572,32 @@ h.3 %>%
   
 ```
 
-## Index variables
+## Index variables: fewer priors
 
 -   In addition to getting everything you want from a categorical variables, an additional benefit is fewer priors!
 
 -   Think about a prior for 4 group/level variable where you have to have a new dummy for each of them. Each dummy would be a new parameter where you have to add a prior. With index coding there is one prior for all groups AND they are on the mean of the category rather than the difference.
 
+## Dummy or index coding? {.smaller}
+
+| | Dummy coding `y ~ 1 + group` | Index coding `y ~ 0 + group` |
+|---|---|---|
+| Parameters | reference-group mean + differences from it | one mean per group |
+| Priors | reference mean + one per difference (different scales!) | one prior on the group-mean scale, for all groups |
+| Group means | intercept + difference, per draw | read directly |
+| Differences | read directly (vs. reference only) | subtract per draw (any pair) |
+| Best when | differences from one baseline matter, or other predictors | group means matter, or many groups |
+
+Same model, same group-mean posteriors (with comparable priors): the choice is about priors and readability.
+
 ## post hoc tests
 
--   "by hand" directly manipulating posterior
--   hypothesis function from {brms}
--   {emmeans}
--   {marginaleffects}
+Two ways we'll use all semester:
 
-## Hypothesis function {.smaller}
+-   **"By hand":** compute the difference from the draws (what we did for the dummy-coded model)
+-   **{marginaleffects}:** `avg_predictions(..., by = , hypothesis = )`, which does the same thing for you
 
-```{r, message=FALSE}
-hypothesis(h.3, "mood.group.dtx = mood.group.dcontrol")
-
-```
-
-```{r}
-hypothesis(h.3, "mood.group.dtx - mood.group.dcontrol = 0")
-```
+brms's `hypothesis()` is handy for one thing below: one-sided questions. ({emmeans} also works with brms models, e.g. `emmeans(h.3, "mood.group.d") |> pairs()`, but we'll stick with marginaleffects.)
 
 ## One-sided hypotheses and Post.Prob {.smaller}
 
@@ -600,29 +608,11 @@ hyp.3
 
 `Post.Prob` is the share of posterior draws in which tx > control: the **posterior probability that the difference is positive**. You can get the same number by hand with `mean(diff > 0)` on the draws. Unlike a *p*-value, it's a probability about the effect, not about the data. (Week 6 calls this the "probability of direction.")
 
+## Hypotheses about a specific value {.smaller}
+
 ```{r, message=FALSE}
 hypothesis(h.3, "mood.group.dtx < 9")
 
-```
-
-## emmeans
-
-```{r}
-library(emmeans)
-h.3.em <- emmeans(h.3, "mood.group.d") 
-pairs(h.3.em)
-```
-
-## emmeans
-
-```{r}
-#| code-fold: true
-h.3 %>%
-  emmeans( ~ mood.group.d) %>%
-  gather_emmeans_draws() %>%
-  ggplot(aes(x = mood.group.d, y = .value)) +
-  stat_eye() +
-  stat_summary(aes(group = NA), fun = mean, geom = "line")
 ```
 
 ## marginaleffects
@@ -633,7 +623,7 @@ avg_predictions(h.3, by = "mood.group.d", hypothesis = "pairwise")
 
 ```
 
-------------------------------------------------------------------------
+## Testing specific differences
 
 ```{r}
 avg_predictions(h.3, by = "mood.group.d", hypothesis = "b2 - b1 = 0")
@@ -645,7 +635,7 @@ avg_predictions(h.3, by = "mood.group.d", hypothesis = "b2 - b1 = .5")
 
 
 
-## multiple comparison corrections
+## multiple comparison corrections {.smaller}
 
 -   On the one hand, multiple comparisons are about error rates, which reference NHST and dichotomous decisions, and we don't have a null distribution in Bayes land
 
@@ -665,14 +655,14 @@ To evaluate our model we want to take our posteriors we estimated and plug them 
 pp_check(h.3)
 ```
 
-------------------------------------------------------------------------
+## PPC by group
 
 ```{r}
 pp_check(h.3,"violin_grouped", group = "mood.group.d")
 
 ```
 
-------------------------------------------------------------------------
+## PPC by hand
 
 ```{r}
 #| code-fold: true
@@ -728,7 +718,7 @@ prior(gamma(1, .1), class = nu) %>%
 
 ```
 
-------------------------------------------------------------------------
+## The t distribution at different df
 
 ```{r}
 #| code-fold: true
@@ -741,7 +731,7 @@ expand.grid(
   facet_grid( ~ scale)+ xlim(-6,6)
 ```
 
-------------------------------------------------------------------------
+## Robust model
 
 ```{r}
 h.4R <- 
@@ -755,7 +745,7 @@ h.4R <-
       data = week3)
 ```
 
-------------------------------------------------------------------------
+## Robust results
 
 ```{r}
 #| code-fold: true
@@ -778,13 +768,13 @@ h.5R <-
       data = week3)
 ```
 
-------------------------------------------------------------------------
+## Fixed-ν results
 
 ```{r}
 summary(h.5R)
 ```
 
-------------------------------------------------------------------------
+## Robust vs. non-robust group means
 
 ::::: columns
 ::: {.column width="50%"}
@@ -792,13 +782,12 @@ Robust
 
 ```{r}
 #| code-fold: true
-h.5R %>%
-  emmeans( ~ mood.group.d) %>%
-  gather_emmeans_draws() %>%
-  ggplot(aes(x = mood.group.d, y = .value)) +
+avg_predictions(h.5R, by = "mood.group.d") %>% 
+  get_draws() %>% 
+  ggplot(aes(x = mood.group.d, y = draw)) +
   stat_eye() +
-  stat_summary(aes(group = NA), fun = mean, geom = "line") +
-  geom_point(aes(y = health), data = week3)
+  geom_point(aes(y = health), data = week3, alpha = .3) +
+  labs(y = "health")
 
   
 ```
@@ -809,12 +798,12 @@ non-robust
 
 ```{r}
 #| code-fold: true
-h.3 %>%
-  emmeans( ~ mood.group.d) %>%
-  gather_emmeans_draws() %>%
-  ggplot(aes(x = mood.group.d, y = .value)) +
+avg_predictions(h.3, by = "mood.group.d") %>% 
+  get_draws() %>% 
+  ggplot(aes(x = mood.group.d, y = draw)) +
   stat_eye() +
-  stat_summary(aes(group = NA), fun = mean, geom = "line") + geom_point(aes(y = health), data = week3)
+  geom_point(aes(y = health), data = week3, alpha = .3) +
+  labs(y = "health")
 ```
 :::
 :::::
@@ -825,7 +814,7 @@ One assumption that often gets relaxed in ANOVA and other group models is the as
 
 We could run a model that is both robust and has no equal variance assumption.
 
-------------------------------------------------------------------------
+## Two ways to relax equal variances
 
 ::::: columns
 ::: {.column width="50%"}
@@ -858,7 +847,7 @@ $\gamma_1$ \~ Normal(0, 3)
 :::
 :::::
 
-------------------------------------------------------------------------
+## Index version
 
 Index variable for robust and unequal variances
 
@@ -871,7 +860,7 @@ $\nu$ \~ Gamma(2,.1)\
 $\alpha_j$ \~ Normal(0, 3)\
 $\gamma_j$ \~ Normal(0, 3)
 
-------------------------------------------------------------------------
+## Robust, unequal variances: dummy coding
 
 ```{r}
 h.6 <- 
@@ -889,13 +878,13 @@ h.6 <-
 
 ```
 
-------------------------------------------------------------------------
+## Results (dummy coding)
 
 ```{r}
 summary(h.6)
 ```
 
-------------------------------------------------------------------------
+## Robust, unequal variances: index coding
 
 ```{r}
 h.7 <- 
@@ -910,13 +899,13 @@ h.7 <-
      data = week3)
 ```
 
-------------------------------------------------------------------------
+## Results (index coding)
 
 ```{r}
 summary(h.7)
 ```
 
-------------------------------------------------------------------------
+## Back to the SD scale {.smaller}
 
 The sigmas are modeled through a (natural) log link (to constrain them to be positive). Convert log values (which range from −∞ to ∞) back to the original scale with `exp()`.
 
@@ -937,7 +926,7 @@ post.h7
 
 ```
 
-------------------------------------------------------------------------
+## Means, SDs, and effect size
 
 ```{r}
 #| code-fold: true
@@ -947,7 +936,7 @@ post.h7 %>%
   stat_halfeye()
 ```
 
-## Extending the basic model
+## Same recipe, any model {.smaller}
 
 -   We will now be able to "tweak" this basic model into any model we want. All are still modeled the same, with a linear model.
 
@@ -1000,7 +989,7 @@ a.1 <-
 
 ```
 
-------------------------------------------------------------------------
+## Prior draws
 
 ```{r}
 #| code-fold: true
@@ -1008,7 +997,7 @@ prior.a.1<- prior_draws(a.1)
 prior.a.1
 ```
 
-------------------------------------------------------------------------
+## The group-mean prior
 
 ```{r}
 #| code-fold: true
@@ -1019,7 +1008,7 @@ prior.a.1 %>%
   theme(panel.grid = element_blank())
 ```
 
-------------------------------------------------------------------------
+## A parameter per group
 
 ```{r}
 get_variables(a.1)
@@ -1027,14 +1016,14 @@ get_variables(a.1)
 
 Notice that we have a parameter for each group mean
 
-------------------------------------------------------------------------
+## Group-mean draws
 
 ```{r}
 a.1 %>% 
  gather_draws(b_iv1, b_iv2,b_iv3)
 ```
 
-------------------------------------------------------------------------
+## Group-mean posteriors
 
 ```{r}
 #| code-fold: true
@@ -1059,13 +1048,13 @@ post.a.1 <- a.1 %>%
           `E_2-3` = ((`D_2-3`) / `sigma`))
 ```
 
-------------------------------------------------------------------------
+## The differences, draw by draw
 
 ```{r}
 post.a.1 
 ```
 
-------------------------------------------------------------------------
+## Plotting the differences
 
 ```{r}
 post.a.1 %>% 
@@ -1074,7 +1063,7 @@ post.a.1 %>%
   stat_halfeye()
 ```
 
-------------------------------------------------------------------------
+## Summarizing the differences
 
 ```{r}
 post.a.1 %>% 
@@ -1082,103 +1071,21 @@ post.a.1 %>%
   mean_qi()
 ```
 
-------------------------------------------------------------------------
+## Pairwise differences with marginaleffects
 
-Hypothesis function makes post hoc comparisons easy! Just tell the function which model you want and put in the variable names (not the posterior labels, the variable names from the summary output)
-
-```{r}
-hypothesis(a.1, "iv1 =iv3")
-```
-
-------------------------------------------------------------------------
+The same comparisons with marginaleffects (each row is a pairwise difference, summarized from the draws):
 
 ```{r}
-library(emmeans)
-a.1.em <- emmeans(a.1, "iv")
-pairs(a.1.em)
+avg_predictions(a.1, by = "iv", hypothesis = "pairwise")
 ```
 
-## marginaleffects
+## Contrasts with avg_slopes()
 
-The marginal effects package really shines when you have multiple predictors. The slopes function provides tests of contrasts
+For a categorical predictor, `avg_slopes()` gives each group's contrast with the reference group:
 
 ```{r}
 library(marginaleffects)
 avg_slopes(a.1)
 ```
 
-------------------------------------------------------------------------
-
-```{r}
-a.4 <- 
-  brm(family = gaussian,
-      happiness ~ 1 + iv*SES,
-      prior = c(prior(normal(5, 5), class = b),
-                prior(exponential(1), class = sigma)),
-      iter = 2000, warmup = 1000, chains = 2, cores = 2,
-      data = MR,
-      sample_prior = "yes",
-      backend = "cmdstanr",
-      file = "a.4")
-
-```
-
-------------------------------------------------------------------------
-
-```{r}
-summary(a.4)
-```
-
--------
-
-```{r}
-plot_predictions(a.4, condition = "iv")
-```
-
-
----------
-
-```{r}
-plot_predictions(a.4, condition = c("iv", "SES"))
-```
-
-
-
---------------
-
-```{r}
-plot_predictions(a.4, condition = c("SES", "iv"))
-```
-
-
-------------------------------------------------------------------------
-
-```{r}
-slopes(a.4, datagrid(iv = unique))
-```
-
-
----------
-
-```{r}
-avg_slopes(a.4)
-```
-
-------------------------------------------------------------------------
-
-```{r}
-slopes(a.4,
-  newdata = datagrid(
-    SES = 3))
-```
-
-
-```{r}
-slopes(a.4,
-  newdata = datagrid(
-    SES = 0))
-```
-
--------
-
-
+With more predictors (e.g., group × a continuous variable) this is where marginaleffects really shines; we'll pick that up in the next lecture on interactions.
