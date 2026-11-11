@@ -10,3 +10,8 @@
 # Cached model fits: kept locally (needed to render), not in git.
 # 2025 originals are also in Box: Bayesian Statistics/BayesSpring25
 *.rds
+
+# Machine-specific Quarto settings (points renders at CRAN R, not Homebrew R)
+_environment.local
+
+/_*.local
