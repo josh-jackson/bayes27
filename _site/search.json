@@ -1283,16 +1283,16 @@
   {
     "objectID": "hw-2.html",
     "href": "hw-2.html",
-    "title": "hw-2",
+    "title": "HW 2: Your first brms model",
     "section": "",
-    "text": "Homework #2 can be turned in via email to: Homewor.mmer3tjidtcmhsc3@u.box.com\nWe will be working with factorial model for this homework set. Below is some code to simulate some data that have two variables: “a” and “b”. “a” has two levels, while “b” has 3 for a total of 6 cells in a 2x3 model.\n\nlibrary(tidyverse)\n\nWarning: package 'ggplot2' was built under R version 4.4.3\n\n\nWarning: package 'tibble' was built under R version 4.4.3\n\n\nWarning: package 'tidyr' was built under R version 4.4.3\n\n\nWarning: package 'purrr' was built under R version 4.4.3\n\n\n-- Attaching core tidyverse packages ------------------------ tidyverse 2.0.0 --\nv dplyr     1.1.4     v readr     2.1.5\nv forcats   1.0.0     v stringr   1.6.0\nv ggplot2   4.0.1     v tibble    3.3.1\nv lubridate 1.9.4     v tidyr     1.3.2\nv purrr     1.2.1     \n-- Conflicts ------------------------------------------ tidyverse_conflicts() --\nx dplyr::filter() masks stats::filter()\nx dplyr::lag()    masks stats::lag()\ni Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors\n\nlibrary(modeldb)\n\nset.seed(74)\ndat &lt;- tibble(\n  a = rep(0:1, each=150),\n  b = as.factor(rep(rep(0:2, each=1), 100)))\n\ndat &lt;- dat %&gt;% \n  add_dummy_variables(b, values = c(0,1,2), remove_original = F)\n\ny = 2 + rnorm(300,.7,.5)*dat$a + rnorm(300,.9,.5)*dat$b_1 +  rnorm(300,-.8,.5)*dat$b_2 + rnorm(300,.1,.5)*dat$a*dat$b_1 + rnorm(300,.19,.5)*dat$a*dat$b_2 + rnorm(300,0,.5)\n\ndat &lt;- dat %&gt;% \nadd_column(y)\n\n\nRun a full factorial interaction model using brms with the above ‘dat’ dataset. Interpret the summary output.\nGraph\n\n\nThe two simple main effects (i.e marginal effects)\nA figure(s) to demonstrate the interaction effects\nThe differences/contrasts between the simple main effects\nThe differences/contrasts between each cell\nA prediction interval (95%?) for each cell\nA plot (your choice) but with standardized, not raw, values\n\n\nTest. Use a 97% CI\n\n\nWhat are the medians and a 97% CI for the simple main effect estimates\nWhat are the medians and a 97% CI for each of the cell estimates\nAre and of the simple effects significantly different from one another?\nAre any of the cell comparisons significantly different from one another?\nInterpret the R2"
+    "text": "Due: Thursday, Feb 4 at 2:30 pm on Canvas · Size: full analysis · Points: 20 · Covers: Regression part 1\nStart from the homework template, use ## Q1 to ## Q6 headings, and turn in both the .qmd and the rendered .html. Save your brms fits with file = so re-rendering doesn’t refit every time.\nData. Use your own data: one continuous outcome and one continuous predictor. If you don’t have data you can use yet, use sat.act from the {psych} package (verbal SAT, SATV, predicted by ACT) and say so.\nlibrary(psych)\nd &lt;- sat.act"
   },
   {
     "objectID": "homeworks.html",
     "href": "homeworks.html",
     "title": "homeworks",
     "section": "",
-    "text": "Homework is posted Thursday after class and due the following Thursday at 2:30 pm on Canvas. Turn in your .qmd and the rendered .html, starting from the homework template. See the syllabus for grading and late policy.\n\nHW 1: Distributions, priors, and counting (due Jan 28)\nHomework #2\nHomework #3"
+    "text": "Homework is posted Thursday after class and due the following Thursday at 2:30 pm on Canvas. Turn in your .qmd and the rendered .html, starting from the homework template. See the syllabus for grading and late policy.\n\nHW 1: Distributions, priors, and counting (due Jan 28)\nHW 2: Your first brms model (due Feb 4)\nHomework #3"
   },
   {
     "objectID": "mr-4.html",
@@ -2924,5 +2924,47 @@
     "title": "HW 1: Distributions, priors, and counting",
     "section": "Q3. Priors for your own research",
     "text": "Q3. Priors for your own research\nPick one of your own recent analyses (or one you’re planning). Briefly describe the parameter you care about (e.g., a regression coefficient comparing two groups) and the effect size you found or expect (e.g., d = .3). Then:\n\nDescribe and plot an informed prior: your best guess for this parameter if you replicated the study. Say where the guess comes from (your past results, a meta-analysis, the literature).\nDescribe and plot a weakly informative prior: one that rules out absurd values but otherwise lets the data speak.\nPut both on the same plot. In two or three sentences: which would you use for your next paper, and how would you defend it to a skeptical reviewer?\n\nIf you don’t have your own data yet, borrow an effect from a paper in your area and say which one."
+  },
+  {
+    "objectID": "hw-2.html#q1.-set-up-the-model-2-points",
+    "href": "hw-2.html#q1.-set-up-the-model-2-points",
+    "title": "HW 2: Your first brms model",
+    "section": "Q1. Set up the model (2 points)",
+    "text": "Q1. Set up the model (2 points)\n\nDescribe your outcome and predictor in a sentence each: what they measure, their units, and their range.\nCenter your predictor, so the intercept means something.\nWrite the model in likelihood notation, including priors, like we did in class. (Fill in the priors after Q2.)\n\n\\[\n\\begin{aligned}\ny_i &\\sim \\text{Normal}(\\mu_i, \\sigma) \\\\\n\\mu_i &= \\beta_0 + \\beta_1 (x_i - \\bar{x}) \\\\\n\\beta_0 &\\sim \\ ? \\\\\n\\beta_1 &\\sim \\ ? \\\\\n\\sigma &\\sim \\ ?\n\\end{aligned}\n\\]"
+  },
+  {
+    "objectID": "hw-2.html#q2.-priors-and-the-prior-predictive-4-points",
+    "href": "hw-2.html#q2.-priors-and-the-prior-predictive-4-points",
+    "title": "HW 2: Your first brms model",
+    "section": "Q2. Priors and the prior predictive (4 points)",
+    "text": "Q2. Priors and the prior predictive (4 points)\n\nChoose a prior for the intercept, the slope, and σ. For each, give one sentence of justification in the units of your variables. For example, “the average SAT verbal score is surely between 400 and 800” is a justification; “normal(0, 10) is weakly informative” is not.\nSimulate 100 regression lines from your priors (by hand like in class, or with sample_prior = \"only\" in brm()) and plot them over the range of your predictor.\nDo the lines make predictions that are impossible or absurd for your outcome? If so, revise your priors, show the new prior predictive, and say what you changed. If not, say how you know."
+  },
+  {
+    "objectID": "hw-2.html#q3.-fit-it-two-ways-3-points",
+    "href": "hw-2.html#q3.-fit-it-two-ways-3-points",
+    "title": "HW 2: Your first brms model",
+    "section": "Q3. Fit it two ways (3 points)",
+    "text": "Q3. Fit it two ways (3 points)\n\nFit the model with lm().\nFit the model with brm() using your priors from Q2.\nPut the intercept and slope estimates (and their uncertainty: SE and CI from lm, posterior SD and 95% interval from brms) side by side in a small table. Are they similar? Why would you expect them to be (or not to be) with your data?"
+  },
+  {
+    "objectID": "hw-2.html#q4.-the-posterior-of-your-slope-4-points",
+    "href": "hw-2.html#q4.-the-posterior-of-your-slope-4-points",
+    "title": "HW 2: Your first brms model",
+    "section": "Q4. The posterior of your slope (4 points)",
+    "text": "Q4. The posterior of your slope (4 points)\n\nPlot the posterior distribution of the slope with {tidybayes} (e.g., spread_draws() and stat_halfeye()).\nAdd your prior for the slope to the same plot. How much did the data move you?\nSummarize the slope with mean_qi(), median_qi(), and mode_hdi(), at both 89% and 95%. Do the point estimates or intervals differ? Why or why not? (Hint: what would make them differ?)\nIn one or two sentences that a reader of your paper would understand, what does the slope tell you?"
+  },
+  {
+    "objectID": "hw-2.html#q5.-draws-3-points",
+    "href": "hw-2.html#q5.-draws-3-points",
+    "title": "HW 2: Your first brms model",
+    "section": "Q5. Draws (3 points)",
+    "text": "Q5. Draws (3 points)\n\nHow many posterior draws does your brms model have? Where does that number come from? (Look at chains, iter, and warmup.)\nRefit with four times as many draws. What changes in your Q4 summaries, and what doesn’t? Does asking for more draws give you more information about the slope?"
+  },
+  {
+    "objectID": "hw-2.html#q6.-does-the-model-reproduce-your-data-4-points",
+    "href": "hw-2.html#q6.-does-the-model-reproduce-your-data-4-points",
+    "title": "HW 2: Your first brms model",
+    "section": "Q6. Does the model reproduce your data? (4 points)",
+    "text": "Q6. Does the model reproduce your data? (4 points)\n\nRun pp_check() on your brms model (try a couple of type = options, e.g., \"dens_overlay\" and \"stat\").\nDescribe where the simulated data match your observed data and where they don’t. What feature of your data is the model missing, if any? (Bounded scales, skew, and ceiling effects are common culprits.) You don’t need to fix it, just diagnose it."
   }
 ]

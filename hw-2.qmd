@@ -1,48 +1,59 @@
 ---
-title: "hw-2"
+title: "HW 2: Your first brms model"
 ---
 
+**Due:** Thursday, Feb 4 at 2:30 pm on Canvas · **Size:** full analysis · **Points:** 20 · **Covers:** [Regression part 1](regression-2.qmd)
 
-Homework #2 can be turned in via email to: 
-Homewor.mmer3tjidtcmhsc3@u.box.com
+Start from the [homework template](hw-template.qmd){download="hw-template.qmd"}, use `## Q1` to `## Q6` headings, and turn in both the `.qmd` and the rendered `.html`. Save your brms fits with `file =` so re-rendering doesn't refit every time.
 
+**Data.** Use your own data: one continuous outcome and one continuous predictor. If you don't have data you can use yet, use `sat.act` from the {psych} package (verbal SAT, `SATV`, predicted by `ACT`) and say so.
 
-We will be working with factorial model for this homework set. Below is some code to simulate some data that have two variables: "a" and "b". "a" has two levels, while "b" has 3 for a total of 6 cells in a 2x3 model. 
-
-```{r}
-library(tidyverse)
-library(modeldb)
-
-set.seed(74)
-dat <- tibble(
-  a = rep(0:1, each=150),
-  b = as.factor(rep(rep(0:2, each=1), 100)))
-
-dat <- dat %>% 
-  add_dummy_variables(b, values = c(0,1,2), remove_original = F)
-
-y = 2 + rnorm(300,.7,.5)*dat$a + rnorm(300,.9,.5)*dat$b_1 +  rnorm(300,-.8,.5)*dat$b_2 + rnorm(300,.1,.5)*dat$a*dat$b_1 + rnorm(300,.19,.5)*dat$a*dat$b_2 + rnorm(300,0,.5)
-
-dat <- dat %>% 
-add_column(y)
-
+```{r, eval = FALSE}
+library(psych)
+d <- sat.act
 ```
 
+## Q1. Set up the model (2 points)
 
-1. Run a full factorial interaction model using brms with the above 'dat' dataset. Interpret the summary output. 
+a) Describe your outcome and predictor in a sentence each: what they measure, their units, and their range.
+b) Center your predictor, so the intercept means something.
+c) Write the model in likelihood notation, including priors, like we did in class. (Fill in the priors after Q2.)
 
-2. Graph 
-  a. The two simple main effects (i.e marginal effects)
-  b. A figure(s) to demonstrate the interaction effects 
-  c. The differences/contrasts between the simple main effects 
-  d. The differences/contrasts between each cell 
-  e. A prediction interval (95%?) for each cell
-  f. A plot (your choice) but with standardized, not raw, values
-  
-3. Test. Use a 97% CI
-  a. What are the medians and a 97% CI for the simple main effect estimates
-  b. What are the medians and a 97% CI for each of the cell estimates
-  c. Are and of the simple effects significantly different from one another? 
-  d. Are any of the cell comparisons significantly different from one another? 
-  e. Interpret the R2
-  
+$$
+\begin{aligned}
+y_i &\sim \text{Normal}(\mu_i, \sigma) \\
+\mu_i &= \beta_0 + \beta_1 (x_i - \bar{x}) \\
+\beta_0 &\sim \ ? \\
+\beta_1 &\sim \ ? \\
+\sigma &\sim \ ?
+\end{aligned}
+$$
+
+## Q2. Priors and the prior predictive (4 points)
+
+a) Choose a prior for the intercept, the slope, and σ. For **each**, give one sentence of justification **in the units of your variables**. For example, "the average SAT verbal score is surely between 400 and 800" is a justification; "normal(0, 10) is weakly informative" is not.
+b) Simulate 100 regression lines from your priors (by hand like in class, or with `sample_prior = "only"` in `brm()`) and plot them over the range of your predictor.
+c) Do the lines make predictions that are impossible or absurd for your outcome? If so, revise your priors, show the new prior predictive, and say what you changed. If not, say how you know.
+
+## Q3. Fit it two ways (3 points)
+
+a) Fit the model with `lm()`.
+b) Fit the model with `brm()` using your priors from Q2.
+c) Put the intercept and slope estimates (and their uncertainty: SE and CI from `lm`, posterior SD and 95% interval from brms) side by side in a small table. Are they similar? Why would you expect them to be (or not to be) with your data?
+
+## Q4. The posterior of your slope (4 points)
+
+a) Plot the posterior distribution of the slope with {tidybayes} (e.g., `spread_draws()` and `stat_halfeye()`).
+b) Add your prior for the slope to the same plot. How much did the data move you?
+c) Summarize the slope with `mean_qi()`, `median_qi()`, and `mode_hdi()`, at both 89% and 95%. Do the point estimates or intervals differ? Why or why not? (Hint: what would make them differ?)
+d) In one or two sentences that a reader of your paper would understand, what does the slope tell you?
+
+## Q5. Draws (3 points)
+
+a) How many posterior draws does your brms model have? Where does that number come from? (Look at `chains`, `iter`, and `warmup`.)
+b) Refit with four times as many draws. What changes in your Q4 summaries, and what doesn't? Does asking for more draws give you more *information* about the slope?
+
+## Q6. Does the model reproduce your data? (4 points)
+
+a) Run `pp_check()` on your brms model (try a couple of `type =` options, e.g., `"dens_overlay"` and `"stat"`).
+b) Describe where the simulated data match your observed data and where they don't. What feature of your data is the model missing, if any? (Bounded scales, skew, and ceiling effects are common culprits.) You don't need to fix it, just diagnose it.
