@@ -1,0 +1,69 @@
+---
+title: "HW 12: Modeling variability"
+---
+
+**Due:** Thursday, Apr 22 at 2:30 pm on Canvas · **Size:** full analysis · **Points:** 25 · **Covers:** [Advanced models](adv-9.qmd) (distributional models and MELSM); Williams et al. (2021)
+
+Start from the [homework template](hw-template.qmd){download="hw-template.qmd"}, use `## Q1` to `## Q5` headings, and turn in both the `.qmd` and the rendered `.html`. Save brms fits with `file =`.
+
+**The big idea.** Every model so far predicted the *mean* and treated the spread (σ) as one number for everyone. But variability is often the interesting part: some groups are more heterogeneous than others, some people are more consistent than others. A **distributional model** puts predictors on σ too. With brms that's one extra line: `bf(y ~ ..., sigma ~ ...)`.
+
+## Part A: Do groups differ in spread? (Q1–Q2)
+
+`sat.act` from {psych}: SAT verbal scores (`SATV`) and education level (`education`: 0 = high school through 5 = graduate degree) for 700 people.
+
+```{r, eval = FALSE}
+library(psych)
+sat <- sat.act |> mutate(ed_c = education - 3)
+```
+
+## Q1. Let σ depend on education (5 points)
+
+a) Fit two models: a standard one, `SATV ~ ed_c`, and a distributional one, `bf(SATV ~ ed_c, sigma ~ ed_c)`.
+b) Write the distributional model in likelihood notation. brms models σ on the **log** scale; write that link explicitly, and explain why a log link makes sense for an SD.
+c) Interpret the `sigma_ed_c` coefficient: exponentiate the draws to turn it into a **ratio of SDs** per education level, with a 95% interval. Then report the implied SD of SAT verbal scores at education = 0 and at education = 5, with intervals.
+d) Did the mean slope change between the two models? Why might it, or why not?
+
+## Q2. Does it matter? (5 points)
+
+a) Compare the two models with LOO.
+b) Make a posterior predictive check **by education level** for both models. Because the model uses `ed_c`, not `education`, call bayesplot directly:
+
+```{r, eval = FALSE}
+bayesplot::ppc_dens_overlay_grouped(sat$SATV, posterior_predict(m_std, ndraws = 50),
+                                    group = factor(sat$education))
+```
+
+Where does the standard model miss?
+c) Use both models to predict the share of people scoring **below 400** at education = 0 and at education = 5 (use `add_predicted_draws()`). How different are the answers, and why? In one or two sentences: what kind of research question would get the *wrong* answer if you ignored differences in variability? (Think about tails, extremes, and "who's at risk.")
+
+## Part B: Do people differ in consistency? (Q3–Q4)
+
+The full sleep-deprivation data (`data(sleepstudy, package = "lme4")`) from HW 10. Each person has 10 days, so we can ask whether some people are more *erratic* from day to day than others. This is a **mixed-effects location scale model (MELSM)**.
+
+## Q3. A MELSM (5 points)
+
+a) Fit:
+
+```{r, eval = FALSE}
+f <- bf(Reaction ~ 1 + Days + (1 + Days | p | Subject),
+        sigma ~ 1 + (1 | p | Subject))
+```
+
+The `| p |` tells brms to estimate correlations among *all* the person-level effects, including the one on σ. Write the model in likelihood notation (it's fine to describe the multivariate normal in words if the matrix gets unwieldy).
+b) Interpret `sd(sigma_Intercept)`. It's on the log scale, so convert it: what range of residual SDs (in ms) would you expect for the middle 95% of people?
+c) Interpret the correlations between the σ random effect and the intercept and slope random effects. Do people who start slower, or who slow down more, also have more erratic days? How certain can you be with 18 people?
+
+## Q4. Who's consistent, and is it worth it? (5 points)
+
+a) Compare the MELSM with the HW 10 model (constant σ) using LOO.
+b) Extract each person's residual SD (σ for that person, in ms, draw by draw: `exp(b_sigma_Intercept + r_Subject__sigma[...])`) with a 95% interval. Who is the most consistent, and who is the least?
+c) Plot the raw data for the most and least consistent person. Does the model's verdict match what you see? What could make someone's days erratic in a sleep-deprivation study?
+
+## Q5. Publication-ready figure (5 points)
+
+Make a figure that meets the [checklist](homeworks.qmd#figures) showing **person-to-person differences in consistency** from the MELSM:
+
+- each person's residual SD (ms) with a 95% interval, sorted, with the population-typical SD as a reference line (a "caterpillar plot");
+- *or* a figure that shows the location and scale together, e.g., a few people's predicted trajectories with 95% prediction bands whose widths differ;
+- labels in words with units, a stand-alone caption, `ggsave()` at 6.5 inches wide, and the one or two sentences you'd put in a Results section.

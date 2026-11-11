@@ -3365,5 +3365,61 @@
     "title": "HW 11: When the data are uncertain too",
     "section": "Q4. A publication-ready comparison",
     "text": "Q4. A publication-ready comparison\nMake one figure that meets the checklist comparing the slope estimate (with 95% intervals) from every model you fit: listwise, imputed before fitting, imputed while fitting, complete observed scores, and measurement-error corrected. Include a reference line at the true value (−0.6).\n\nOrder the methods sensibly, and label them in words a reader would understand (not mi(anx_missing)).\nLabel the x-axis in units (hours of sleep per point of anxiety).\nAdd a stand-alone caption, use ggsave() at 6.5 inches wide, and write two or three sentences on what a researcher with real data (no anx_true!) should take from this."
+  },
+  {
+    "objectID": "hw-12.html",
+    "href": "hw-12.html",
+    "title": "HW 12: Modeling variability",
+    "section": "",
+    "text": "Due: Thursday, Apr 22 at 2:30 pm on Canvas · Size: full analysis · Points: 25 · Covers: Advanced models (distributional models and MELSM); Williams et al. (2021)\nStart from the homework template, use ## Q1 to ## Q5 headings, and turn in both the .qmd and the rendered .html. Save brms fits with file =.\nThe big idea. Every model so far predicted the mean and treated the spread (σ) as one number for everyone. But variability is often the interesting part: some groups are more heterogeneous than others, some people are more consistent than others. A distributional model puts predictors on σ too. With brms that’s one extra line: bf(y ~ ..., sigma ~ ...)."
+  },
+  {
+    "objectID": "hw-12.html#part-a-do-groups-differ-in-spread-q1q2",
+    "href": "hw-12.html#part-a-do-groups-differ-in-spread-q1q2",
+    "title": "HW 12: Modeling variability",
+    "section": "Part A: Do groups differ in spread? (Q1–Q2)",
+    "text": "Part A: Do groups differ in spread? (Q1–Q2)\nsat.act from {psych}: SAT verbal scores (SATV) and education level (education: 0 = high school through 5 = graduate degree) for 700 people.\n\nlibrary(psych)\nsat &lt;- sat.act |&gt; mutate(ed_c = education - 3)"
+  },
+  {
+    "objectID": "hw-12.html#q1.-let-σ-depend-on-education-5-points",
+    "href": "hw-12.html#q1.-let-σ-depend-on-education-5-points",
+    "title": "HW 12: Modeling variability",
+    "section": "Q1. Let σ depend on education (5 points)",
+    "text": "Q1. Let σ depend on education (5 points)\n\nFit two models: a standard one, SATV ~ ed_c, and a distributional one, bf(SATV ~ ed_c, sigma ~ ed_c).\nWrite the distributional model in likelihood notation. brms models σ on the log scale; write that link explicitly, and explain why a log link makes sense for an SD.\nInterpret the sigma_ed_c coefficient: exponentiate the draws to turn it into a ratio of SDs per education level, with a 95% interval. Then report the implied SD of SAT verbal scores at education = 0 and at education = 5, with intervals.\nDid the mean slope change between the two models? Why might it, or why not?"
+  },
+  {
+    "objectID": "hw-12.html#q2.-does-it-matter-5-points",
+    "href": "hw-12.html#q2.-does-it-matter-5-points",
+    "title": "HW 12: Modeling variability",
+    "section": "Q2. Does it matter? (5 points)",
+    "text": "Q2. Does it matter? (5 points)\n\nCompare the two models with LOO.\nMake a posterior predictive check by education level for both models. Because the model uses ed_c, not education, call bayesplot directly:\n\n\nbayesplot::ppc_dens_overlay_grouped(sat$SATV, posterior_predict(m_std, ndraws = 50),\n                                    group = factor(sat$education))\n\nWhere does the standard model miss? c) Use both models to predict the share of people scoring below 400 at education = 0 and at education = 5 (use add_predicted_draws()). How different are the answers, and why? In one or two sentences: what kind of research question would get the wrong answer if you ignored differences in variability? (Think about tails, extremes, and “who’s at risk.”)"
+  },
+  {
+    "objectID": "hw-12.html#part-b-do-people-differ-in-consistency-q3q4",
+    "href": "hw-12.html#part-b-do-people-differ-in-consistency-q3q4",
+    "title": "HW 12: Modeling variability",
+    "section": "Part B: Do people differ in consistency? (Q3–Q4)",
+    "text": "Part B: Do people differ in consistency? (Q3–Q4)\nThe full sleep-deprivation data (data(sleepstudy, package = \"lme4\")) from HW 10. Each person has 10 days, so we can ask whether some people are more erratic from day to day than others. This is a mixed-effects location scale model (MELSM)."
+  },
+  {
+    "objectID": "hw-12.html#q3.-a-melsm-5-points",
+    "href": "hw-12.html#q3.-a-melsm-5-points",
+    "title": "HW 12: Modeling variability",
+    "section": "Q3. A MELSM (5 points)",
+    "text": "Q3. A MELSM (5 points)\n\nFit:\n\n\nf &lt;- bf(Reaction ~ 1 + Days + (1 + Days | p | Subject),\n        sigma ~ 1 + (1 | p | Subject))\n\nThe | p | tells brms to estimate correlations among all the person-level effects, including the one on σ. Write the model in likelihood notation (it’s fine to describe the multivariate normal in words if the matrix gets unwieldy). b) Interpret sd(sigma_Intercept). It’s on the log scale, so convert it: what range of residual SDs (in ms) would you expect for the middle 95% of people? c) Interpret the correlations between the σ random effect and the intercept and slope random effects. Do people who start slower, or who slow down more, also have more erratic days? How certain can you be with 18 people?"
+  },
+  {
+    "objectID": "hw-12.html#q4.-whos-consistent-and-is-it-worth-it-5-points",
+    "href": "hw-12.html#q4.-whos-consistent-and-is-it-worth-it-5-points",
+    "title": "HW 12: Modeling variability",
+    "section": "Q4. Who’s consistent, and is it worth it? (5 points)",
+    "text": "Q4. Who’s consistent, and is it worth it? (5 points)\n\nCompare the MELSM with the HW 10 model (constant σ) using LOO.\nExtract each person’s residual SD (σ for that person, in ms, draw by draw: exp(b_sigma_Intercept + r_Subject__sigma[...])) with a 95% interval. Who is the most consistent, and who is the least?\nPlot the raw data for the most and least consistent person. Does the model’s verdict match what you see? What could make someone’s days erratic in a sleep-deprivation study?"
+  },
+  {
+    "objectID": "hw-12.html#q5.-publication-ready-figure-5-points",
+    "href": "hw-12.html#q5.-publication-ready-figure-5-points",
+    "title": "HW 12: Modeling variability",
+    "section": "Q5. Publication-ready figure (5 points)",
+    "text": "Q5. Publication-ready figure (5 points)\nMake a figure that meets the checklist showing person-to-person differences in consistency from the MELSM:\n\neach person’s residual SD (ms) with a 95% interval, sorted, with the population-typical SD as a reference line (a “caterpillar plot”);\nor a figure that shows the location and scale together, e.g., a few people’s predicted trajectories with 95% prediction bands whose widths differ;\nlabels in words with units, a stand-alone caption, ggsave() at 6.5 inches wide, and the one or two sentences you’d put in a Results section."
   }
 ]
