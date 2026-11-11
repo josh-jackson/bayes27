@@ -68,13 +68,28 @@ Solomon also has a brms-based walkthrough of Kruschke: https://bookdown.org/cont
 
 ## Grading
 
-Grades consist of two components: Four "exams" and a take home project. Each will count for 20% of your grade. 
+No exams this year. Your grade has two parts:
 
-Exams will be given at non class hours so as to maximize our time together to discuss Bayesian stats. 
+| Component | Weight |
+|-----------|--------|
+| Weekly homework (13 assignments, lowest one dropped) | 70% |
+| Final project | 30% |
 
-There will be homework that consists of mainly applied computations. Homework may be worked on together in groups. Homework isn't graded; it's practice for the exams (which look a lot like the homework), so do it.
+### Homework
 
-The take-home project is a series of models and visualizations using your own data. We (you and Josh) will work together to go over what your data are, and what sort of analyses, checks and visualizations you should do. The sooner in the semester you have these conversations with me, the better. By week 6 (Feb 23) you need to have a plan approved.
+There is homework (almost) every week, just to keep you doing something with the material every week. Some weeks it's a quick check that takes under an hour; other weeks it's a full analysis. Each homework counts equally, and your lowest homework score is dropped. A homework you skip counts as a zero, so that's the one that gets dropped.
+
+Homework is mostly applied computation, often with your own data. You may work on homework together in groups, but everyone turns in their own write-up.
+
+- **Posted** Thursday after class; **due** the following Thursday at 2:30 pm (start of class) on Canvas. The homework spanning spring break is due the Thursday after break.
+- **Turn in two files:** your `.qmd` and the rendered `.html`. Start from the [homework template](hw-template.qmd){download="hw-template.qmd"}, which sets things up so the `.html` is one self-contained file with your code showing.
+- **Late homework** loses 10% of its points for each day (or part of a day) it's late, counted from the original due date. One day late, the best you can get is 90%; five days late, 50%; ten days late, nothing.
+
+I use AI (in line with the policy below) to help with a first pass at grading: checking that code runs, that models match the question, and drafting feedback. I review everything and assign every grade myself.
+
+### Final project
+
+The final project is a series of models and visualizations using your own data. We (you and Josh) will work together to go over what your data are, and what sort of analyses, checks and visualizations you should do. The sooner in the semester you have these conversations with me, the better. By week 6 (Feb 23) you need to have a plan approved. The project is due during finals week.
 
 **Grades**:
 
@@ -100,27 +115,24 @@ I prepare slides and code. We then walk through them together. If you have quest
 
 Note that dates and readings are tentative. Topics will likely shift; all changes will be updated on the homepage, not necessarily in the syllabus below. 
 
-| Week | Dates | Topic | Readings |
-|------|-------|-------|----------|
-| 1  | Jan 19, 21 | Basics of Bayes | SR 1 & 2 |
-| 2  | Jan 26, 28 | Linear model basics | SR 3, M2M 3–3.3 & 3.6 |
-| 3  | Feb 2, 4 | Linear models continued | SR 4 |
-| 4  | Feb 9, 11 | Multiple regression and interactions | SR 5 & 9 |
-|    | | **Exam 1** | |
-| 5  | Feb 16, 18 | Markov Chain Monte Carlo estimation (MCMC) | |
-| 6  | Feb 23, 25 | Information, NHST and model fit (project plan due) | SR 7 & 10 |
-| 7  | Mar 2, 4 | Generalized linear models | SR 11, M2M 5, AH1 |
-| 8  | Mar 9, 11 | Generalized linear models | SR 12, AH2 |
-|    | | **Exam 2** | |
-|    | Mar 16, 18 | *Spring break — no class* | |
-| 9  | Mar 23, 25 | Multilevel models | SR 13, M2M 19 |
-| 10 | Mar 30, Apr 1 | Multilevel models | SR 14, AH3 |
-| 11 | Apr 6, 8 | Multilevel models, meta-analysis and missing data | SR 15 |
-|    | | **Exam 3** | |
-| 12 | Apr 13, 15 | Multivariate and distributional models | Williams et al. 2021 *Psych Methods* |
-| 13 | Apr 20, 22 | Cognitive and IRT models (e.g., DDM) | F&L 14, Bürkner 2019 |
-| 14 | Apr 27, 29 | GAMs | |
-|    | | **Exam 4** | |
+| Week | Dates | Topic | Readings | Homework due |
+|------|-------|-------|----------|--------------|
+| 1  | Jan 19, 21 | Basics of Bayes | SR 1 & 2 | |
+| 2  | Jan 26, 28 | Linear model basics | SR 3, M2M 3–3.3 & 3.6 | HW 1 (Jan 28) |
+| 3  | Feb 2, 4 | Linear models continued | SR 4 | HW 2 (Feb 4) |
+| 4  | Feb 9, 11 | Multiple regression and interactions | SR 5 & 9 | HW 3 (Feb 11) |
+| 5  | Feb 16, 18 | Markov Chain Monte Carlo estimation (MCMC) | | HW 4 (Feb 18) |
+| 6  | Feb 23, 25 | Information, NHST and model fit | SR 7 & 10 | HW 5 (Feb 25); **project plan approved by Feb 23** |
+| 7  | Mar 2, 4 | Generalized linear models | SR 11, M2M 5, AH1 | HW 6 (Mar 4) |
+| 8  | Mar 9, 11 | Generalized linear models | SR 12, AH2 | HW 7 (Mar 11) |
+|    | Mar 16, 18 | *Spring break — no class* | | |
+| 9  | Mar 23, 25 | Multilevel models | SR 13, M2M 19 | HW 8 (Mar 25) |
+| 10 | Mar 30, Apr 1 | Multilevel models | SR 14, AH3 | HW 9 (Apr 1) |
+| 11 | Apr 6, 8 | Multilevel models, meta-analysis and missing data | SR 15 | HW 10 (Apr 8) |
+| 12 | Apr 13, 15 | Multivariate and distributional models | Williams et al. 2021 *Psych Methods* | HW 11 (Apr 15) |
+| 13 | Apr 20, 22 | Cognitive and IRT models (e.g., DDM) | F&L 14, Bürkner 2019 | HW 12 (Apr 22) |
+| 14 | Apr 27, 29 | GAMs | | HW 13 (Apr 29) |
+| Finals | TBA | | | **Final project** |
 
 ## AI overlord helpers
 

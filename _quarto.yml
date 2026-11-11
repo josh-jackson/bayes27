@@ -1,5 +1,10 @@
 project:
   type: website
+  render:
+    - "*.qmd"
+    - "!hw-template.qmd"
+  resources:
+    - hw-template.qmd
 
 website:
   title: "Bayesian Statistics Spring 2027"

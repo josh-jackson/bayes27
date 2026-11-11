@@ -1,0 +1,73 @@
+---
+title: "HW X"
+author: "Your Name"
+date: today
+format:
+  html:
+    embed-resources: true   # one self-contained .html file: turn this in along with the .qmd
+    toc: true
+    code-fold: false
+execute:
+  echo: true      # show your code
+  warning: false
+  message: false
+---
+
+<!--
+How to use this template
+1. Save a copy as  hw-X-lastname.qmd  (X = homework number).
+2. Fill in the title and author above.
+3. Keep one "## Q" heading per question, numbered to match the assignment
+   (## Q1, ## Q2, ...; use ### Q2a etc. for parts). This is how your answers get matched to the rubric.
+4. Answer in words under each question, not just code. Interpretation counts.
+5. Render, then turn in BOTH the .qmd and the .html on Canvas.
+
+Long brms models: save them with  file = "fits/hw-X-q3"  so re-rendering doesn't refit.
+Using your own data? You don't need to upload it, but describe it in Setup.
+AI tools: note what you used and how in the "AI use" section at the bottom (see syllabus).
+-->
+
+## Setup
+
+```{r}
+library(tidyverse)
+library(brms)
+library(tidybayes)
+library(marginaleffects)
+library(patchwork)
+```
+
+Data: *(what data you're using and where it comes from; if it's your own, a sentence on the variables)*
+
+```{r}
+# load data here
+```
+
+## Q1
+
+*(Model in likelihood notation, if the question involves a model:)*
+
+$$
+\begin{aligned}
+y_i &\sim \text{Normal}(\mu_i, \sigma) \\
+\mu_i &= \beta_0 + \beta_1 x_i
+\end{aligned}
+$$
+
+```{r}
+
+```
+
+Answer:
+
+## Q2
+
+```{r}
+
+```
+
+Answer:
+
+## AI use
+
+*(Which tool(s), what you used them for, and the prompt or a link to the shared chat. Write "None" if none.)*

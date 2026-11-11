@@ -2,6 +2,8 @@
 title: "homeworks"
 ---
 
+Homework is posted Thursday after class and due the following Thursday at 2:30 pm on Canvas. Turn in your `.qmd` and the rendered `.html`, starting from the [homework template](hw-template.qmd){download="hw-template.qmd"}. See the [syllabus](syllabus.qmd#homework) for grading and late policy.
+
 1.  [Homework #1](hw-1.qmd)
 2.  [Homework #2](hw-2.qmd)
 3.  [Homework #3](hw-3.qmd)

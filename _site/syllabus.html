@@ -116,7 +116,11 @@ ul.task-list li input[type="checkbox"] {
   <li><a href="#course-description" id="toc-course-description" class="nav-link active" data-scroll-target="#course-description">Course description</a></li>
   <li><a href="#course-learning-objectives" id="toc-course-learning-objectives" class="nav-link" data-scroll-target="#course-learning-objectives">Course learning objectives</a></li>
   <li><a href="#class-textbook" id="toc-class-textbook" class="nav-link" data-scroll-target="#class-textbook">Class textbook</a></li>
-  <li><a href="#grading" id="toc-grading" class="nav-link" data-scroll-target="#grading">Grading</a></li>
+  <li><a href="#grading" id="toc-grading" class="nav-link" data-scroll-target="#grading">Grading</a>
+  <ul class="collapse">
+  <li><a href="#homework" id="toc-homework" class="nav-link" data-scroll-target="#homework">Homework</a></li>
+  <li><a href="#final-project" id="toc-final-project" class="nav-link" data-scroll-target="#final-project">Final project</a></li>
+  </ul></li>
   <li><a href="#class-procedure" id="toc-class-procedure" class="nav-link" data-scroll-target="#class-procedure">Class procedure</a></li>
   <li><a href="#schedule" id="toc-schedule" class="nav-link" data-scroll-target="#schedule">Schedule</a></li>
   <li><a href="#ai-overlord-helpers" id="toc-ai-overlord-helpers" class="nav-link" data-scroll-target="#ai-overlord-helpers">AI overlord helpers</a></li>
@@ -194,10 +198,39 @@ AH #3: https://www.andrewheiss.com/blog/2022/11/29/conditional-marginal-marginal
 </section>
 <section id="grading" class="level2">
 <h2 class="anchored" data-anchor-id="grading">Grading</h2>
-<p>Grades consist of two components: Four “exams” and a take home project. Each will count for 20% of your grade.</p>
-<p>Exams will be given at non class hours so as to maximize our time together to discuss Bayesian stats.</p>
-<p>There will be homework that consists of mainly applied computations. Homework may be worked on together in groups. Homework isn’t graded; it’s practice for the exams (which look a lot like the homework), so do it.</p>
-<p>The take-home project is a series of models and visualizations using your own data. We (you and Josh) will work together to go over what your data are, and what sort of analyses, checks and visualizations you should do. The sooner in the semester you have these conversations with me, the better. By week 6 (Feb 23) you need to have a plan approved.</p>
+<p>No exams this year. Your grade has two parts:</p>
+<table class="table">
+<thead>
+<tr class="header">
+<th>Component</th>
+<th>Weight</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Weekly homework (13 assignments, lowest one dropped)</td>
+<td>70%</td>
+</tr>
+<tr class="even">
+<td>Final project</td>
+<td>30%</td>
+</tr>
+</tbody>
+</table>
+<section id="homework" class="level3">
+<h3 class="anchored" data-anchor-id="homework">Homework</h3>
+<p>There is homework (almost) every week, just to keep you doing something with the material every week. Some weeks it’s a quick check that takes under an hour; other weeks it’s a full analysis. Each homework counts equally, and your lowest homework score is dropped. A homework you skip counts as a zero, so that’s the one that gets dropped.</p>
+<p>Homework is mostly applied computation, often with your own data. You may work on homework together in groups, but everyone turns in their own write-up.</p>
+<ul>
+<li><strong>Posted</strong> Thursday after class; <strong>due</strong> the following Thursday at 2:30 pm (start of class) on Canvas. The homework spanning spring break is due the Thursday after break.</li>
+<li><strong>Turn in two files:</strong> your <code>.qmd</code> and the rendered <code>.html</code>. Start from the <a href="hw-template.qmd" download="hw-template.qmd">homework template</a>, which sets things up so the <code>.html</code> is one self-contained file with your code showing.</li>
+<li><strong>Late homework</strong> loses 10% of its points for each day (or part of a day) it’s late, counted from the original due date. One day late, the best you can get is 90%; five days late, 50%; ten days late, nothing.</li>
+</ul>
+<p>I use AI (in line with the policy below) to help with a first pass at grading: checking that code runs, that models match the question, and drafting feedback. I review everything and assign every grade myself.</p>
+</section>
+<section id="final-project" class="level3">
+<h3 class="anchored" data-anchor-id="final-project">Final project</h3>
+<p>The final project is a series of models and visualizations using your own data. We (you and Josh) will work together to go over what your data are, and what sort of analyses, checks and visualizations you should do. The sooner in the semester you have these conversations with me, the better. By week 6 (Feb 23) you need to have a plan approved. The project is due during finals week.</p>
 <p><strong>Grades</strong>:</p>
 <table class="table">
 <thead>
@@ -247,6 +280,7 @@ AH #3: https://www.andrewheiss.com/blog/2022/11/29/conditional-marginal-marginal
 </table>
 <p><br></p>
 </section>
+</section>
 <section id="class-procedure" class="level2">
 <h2 class="anchored" data-anchor-id="class-procedure">Class procedure</h2>
 <p>I prepare slides and code. We then walk through them together. If you have questions, ask!</p>
@@ -256,10 +290,11 @@ AH #3: https://www.andrewheiss.com/blog/2022/11/29/conditional-marginal-marginal
 <p>Note that dates and readings are tentative. Topics will likely shift; all changes will be updated on the homepage, not necessarily in the syllabus below.</p>
 <table class="table">
 <colgroup>
-<col style="width: 20%">
-<col style="width: 23%">
-<col style="width: 23%">
-<col style="width: 33%">
+<col style="width: 13%">
+<col style="width: 15%">
+<col style="width: 15%">
+<col style="width: 22%">
+<col style="width: 31%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -267,6 +302,7 @@ AH #3: https://www.andrewheiss.com/blog/2022/11/29/conditional-marginal-marginal
 <th>Dates</th>
 <th>Topic</th>
 <th>Readings</th>
+<th>Homework due</th>
 </tr>
 </thead>
 <tbody>
@@ -275,65 +311,62 @@ AH #3: https://www.andrewheiss.com/blog/2022/11/29/conditional-marginal-marginal
 <td>Jan 19, 21</td>
 <td>Basics of Bayes</td>
 <td>SR 1 &amp; 2</td>
+<td></td>
 </tr>
 <tr class="even">
 <td>2</td>
 <td>Jan 26, 28</td>
 <td>Linear model basics</td>
 <td>SR 3, M2M 3–3.3 &amp; 3.6</td>
+<td>HW 1 (Jan 28)</td>
 </tr>
 <tr class="odd">
 <td>3</td>
 <td>Feb 2, 4</td>
 <td>Linear models continued</td>
 <td>SR 4</td>
+<td>HW 2 (Feb 4)</td>
 </tr>
 <tr class="even">
 <td>4</td>
 <td>Feb 9, 11</td>
 <td>Multiple regression and interactions</td>
 <td>SR 5 &amp; 9</td>
+<td>HW 3 (Feb 11)</td>
 </tr>
 <tr class="odd">
-<td></td>
-<td></td>
-<td><strong>Exam 1</strong></td>
-<td></td>
-</tr>
-<tr class="even">
 <td>5</td>
 <td>Feb 16, 18</td>
 <td>Markov Chain Monte Carlo estimation (MCMC)</td>
 <td></td>
-</tr>
-<tr class="odd">
-<td>6</td>
-<td>Feb 23, 25</td>
-<td>Information, NHST and model fit (project plan due)</td>
-<td>SR 7 &amp; 10</td>
+<td>HW 4 (Feb 18)</td>
 </tr>
 <tr class="even">
+<td>6</td>
+<td>Feb 23, 25</td>
+<td>Information, NHST and model fit</td>
+<td>SR 7 &amp; 10</td>
+<td>HW 5 (Feb 25); <strong>project plan approved by Feb 23</strong></td>
+</tr>
+<tr class="odd">
 <td>7</td>
 <td>Mar 2, 4</td>
 <td>Generalized linear models</td>
 <td>SR 11, M2M 5, AH1</td>
+<td>HW 6 (Mar 4)</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>8</td>
 <td>Mar 9, 11</td>
 <td>Generalized linear models</td>
 <td>SR 12, AH2</td>
-</tr>
-<tr class="even">
-<td></td>
-<td></td>
-<td><strong>Exam 2</strong></td>
-<td></td>
+<td>HW 7 (Mar 11)</td>
 </tr>
 <tr class="odd">
 <td></td>
 <td>Mar 16, 18</td>
 <td><em>Spring break — no class</em></td>
+<td></td>
 <td></td>
 </tr>
 <tr class="even">
@@ -341,48 +374,49 @@ AH #3: https://www.andrewheiss.com/blog/2022/11/29/conditional-marginal-marginal
 <td>Mar 23, 25</td>
 <td>Multilevel models</td>
 <td>SR 13, M2M 19</td>
+<td>HW 8 (Mar 25)</td>
 </tr>
 <tr class="odd">
 <td>10</td>
 <td>Mar 30, Apr 1</td>
 <td>Multilevel models</td>
 <td>SR 14, AH3</td>
+<td>HW 9 (Apr 1)</td>
 </tr>
 <tr class="even">
 <td>11</td>
 <td>Apr 6, 8</td>
 <td>Multilevel models, meta-analysis and missing data</td>
 <td>SR 15</td>
+<td>HW 10 (Apr 8)</td>
 </tr>
 <tr class="odd">
-<td></td>
-<td></td>
-<td><strong>Exam 3</strong></td>
-<td></td>
-</tr>
-<tr class="even">
 <td>12</td>
 <td>Apr 13, 15</td>
 <td>Multivariate and distributional models</td>
 <td>Williams et al.&nbsp;2021 <em>Psych Methods</em></td>
+<td>HW 11 (Apr 15)</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>13</td>
 <td>Apr 20, 22</td>
 <td>Cognitive and IRT models (e.g., DDM)</td>
 <td>F&amp;L 14, Bürkner 2019</td>
+<td>HW 12 (Apr 22)</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>14</td>
 <td>Apr 27, 29</td>
 <td>GAMs</td>
 <td></td>
+<td>HW 13 (Apr 29)</td>
 </tr>
-<tr class="odd">
+<tr class="even">
+<td>Finals</td>
+<td>TBA</td>
 <td></td>
 <td></td>
-<td><strong>Exam 4</strong></td>
-<td></td>
+<td><strong>Final project</strong></td>
 </tr>
 </tbody>
 </table>
