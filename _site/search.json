@@ -3421,5 +3421,61 @@
     "title": "HW 12: Modeling variability",
     "section": "Q5. Publication-ready figure (5 points)",
     "text": "Q5. Publication-ready figure (5 points)\nMake a figure that meets the checklist showing person-to-person differences in consistency from the MELSM:\n\neach person’s residual SD (ms) with a 95% interval, sorted, with the population-typical SD as a reference line (a “caterpillar plot”);\nor a figure that shows the location and scale together, e.g., a few people’s predicted trajectories with 95% prediction bands whose widths differ;\nlabels in words with units, a stand-alone caption, ggsave() at 6.5 inches wide, and the one or two sentences you’d put in a Results section."
+  },
+  {
+    "objectID": "hw-13.html",
+    "href": "hw-13.html",
+    "title": "HW 13: Your first Stan programs",
+    "section": "",
+    "text": "Due: Thursday, Apr 29 at 2:30 pm on Canvas · Size: full analysis · Points: 25 · Covers: Stan basics and IRT\nStart from the homework template, use ## Q1 to ## Q5 headings, and turn in both the .qmd and the rendered .html.\nThe big idea. All semester, brms has been writing Stan programs for you (you may have peeked in the “Under the hood” boxes). Now you’ll write two yourself: first a model you already know, so you can check you got it right, then a 2PL IRT model, the kind of model where writing Stan directly is often easier than coaxing brms into it.\nSetup. You already have Stan installed through {cmdstanr}. In R, a Stan program can live in a string; write_stan_file() saves it and cmdstan_model() compiles it:\nlibrary(cmdstanr)\nlibrary(posterior)\nlibrary(tidybayes)\n\ncode &lt;- \"\ndata { ... }\nparameters { ... }\nmodel { ... }\n\"\nmod &lt;- cmdstan_model(write_stan_file(code))\nfit &lt;- mod$sample(data = list(...), seed = 13, chains = 4, parallel_chains = 4)\nfit$summary()\ndraws &lt;- as_draws_df(fit$draws())      # works with tidybayes / ggplot like any other draws\nStan is picky: every statement ends in ;, every variable has a declared type, and comments start with //. When it won’t compile, read the error message’s line number first."
+  },
+  {
+    "objectID": "hw-13.html#part-a-a-model-you-already-know-q1q2",
+    "href": "hw-13.html#part-a-a-model-you-already-know-q1q2",
+    "title": "HW 13: Your first Stan programs",
+    "section": "Part A: a model you already know (Q1–Q2)",
+    "text": "Part A: a model you already know (Q1–Q2)\nUse your HW 2 data and priors (your own data, or sat.act: SATV predicted by centered ACT)."
+  },
+  {
+    "objectID": "hw-13.html#q1.-write-the-regression-in-stan-5-points",
+    "href": "hw-13.html#q1.-write-the-regression-in-stan-5-points",
+    "title": "HW 13: Your first Stan programs",
+    "section": "Q1. Write the regression in Stan (5 points)",
+    "text": "Q1. Write the regression in Stan (5 points)\n\nFill in the TODOs in this skeleton with your HW 2 model (likelihood and the three priors):\n\ndata {\n  int&lt;lower=1&gt; N;        // number of people\n  vector[N] x;           // predictor (centered)\n  vector[N] y;           // outcome\n}\nparameters {\n  real alpha;            // intercept\n  real beta;             // slope\n  real&lt;lower=0&gt; sigma;   // residual SD (the &lt;lower=0&gt; matters: why?)\n}\nmodel {\n  // priors\n  alpha ~ TODO;\n  beta  ~ TODO;\n  sigma ~ TODO;\n  // likelihood\n  y ~ TODO;\n}\n\nFit it with cmdstanr. Check R-hat and ESS in fit$summary().\nCompare the posterior for the intercept, slope, and σ with your HW 2 brms fit (a small table is enough). They should match to within Monte Carlo error. Do they? If not, what’s different? (Hint: compare with stancode() of your brms model. Did brms center anything, or put the prior on a different intercept?)\nWhy does sigma need &lt;lower=0&gt;? What would go wrong without it?"
+  },
+  {
+    "objectID": "hw-13.html#q2.-make-stan-compute-something-for-you-5-points",
+    "href": "hw-13.html#q2.-make-stan-compute-something-for-you-5-points",
+    "title": "HW 13: Your first Stan programs",
+    "section": "Q2. Make Stan compute something for you (5 points)",
+    "text": "Q2. Make Stan compute something for you (5 points)\nAdd a generated quantities block that computes, for every posterior draw:\n\nmu_new: the expected outcome for a person with a predictor value you choose (pass it in as data, e.g., real x_new;);\ny_new: a predicted outcome for one new person at that value (normal_rng());\ny_rep: a full replicated dataset (vector[N] y_rep; filled in a loop with normal_rng()).\n\nThen: report mu_new and y_new with 95% intervals (why is one wider?), and use y_rep to make your own posterior predictive check (e.g., bayesplot::ppc_dens_overlay(y, yrep_matrix)). In two or three sentences: what does generated quantities let you do that would be awkward otherwise?"
+  },
+  {
+    "objectID": "hw-13.html#part-b-a-2pl-irt-model-q3q5",
+    "href": "hw-13.html#part-b-a-2pl-irt-model-q3q5",
+    "title": "HW 13: Your first Stan programs",
+    "section": "Part B: a 2PL IRT model (Q3–Q5)",
+    "text": "Part B: a 2PL IRT model (Q3–Q5)\nThe LSAT data: 1,000 people answered 5 law-school-admission items, each scored correct (1) or incorrect (0). This is a classic IRT dataset. Put it in long format, one row per person × item:\n\nlsat &lt;- read_csv(\"https://bayes27.netlify.app/LSAT.csv\") |&gt;\n  mutate(person = row_number()) |&gt;\n  pivot_longer(starts_with(\"item\"), names_to = \"item\", values_to = \"y\") |&gt;\n  mutate(item = as.integer(str_remove(item, \"item\")))\n\nThe two-parameter logistic (2PL) model says the probability that person p gets item i right depends on the person’s ability θp, the item’s difficulty bi, and its discrimination ai:\n\\[\n\\begin{aligned}\ny_{pi} &\\sim \\text{Bernoulli}(\\pi_{pi}) \\\\\n\\text{logit}(\\pi_{pi}) &= a_i(\\theta_p - b_i) \\\\\n\\theta_p &\\sim \\text{Normal}(0, 1) \\\\\nb_i &\\sim \\text{Normal}(0, 2) \\\\\na_i &\\sim \\text{LogNormal}(0, 0.5)\n\\end{aligned}\n\\]"
+  },
+  {
+    "objectID": "hw-13.html#q3.-write-and-fit-the-2pl-5-points",
+    "href": "hw-13.html#q3.-write-and-fit-the-2pl-5-points",
+    "title": "HW 13: Your first Stan programs",
+    "section": "Q3. Write and fit the 2PL (5 points)",
+    "text": "Q3. Write and fit the 2PL (5 points)\n\nFill in the TODOs:\n\ndata {\n  int&lt;lower=1&gt; N;                        // number of responses (people x items)\n  int&lt;lower=1&gt; P;                        // number of people\n  int&lt;lower=1&gt; I;                        // number of items\n  array[N] int&lt;lower=1, upper=P&gt; person; // which person gave response n\n  array[N] int&lt;lower=1, upper=I&gt; item;   // which item response n is for\n  array[N] int&lt;lower=0, upper=1&gt; y;      // correct (1) or not (0)\n}\nparameters {\n  vector[P] theta;                       // person ability\n  vector[I] b;                           // item difficulty\n  vector&lt;lower=0&gt;[I] a;                  // item discrimination\n}\nmodel {\n  theta ~ TODO;\n  b ~ TODO;\n  a ~ TODO;\n  y ~ bernoulli_logit(TODO);             // hint: a[item] .* (theta[person] - b[item])\n}\n\nFit it and check the diagnostics. How many parameters did you just estimate? Compare that with the number of data points.\nTwo things make this model identified: θ ~ Normal(0, 1) and a constrained to be positive. In your own words, what would go wrong without each one? (Hint: if you added 1 to every θ and every b, would the likelihood change? What if you flipped the sign of every θ and every a?)"
+  },
+  {
+    "objectID": "hw-13.html#q4.-what-do-the-items-tell-you-5-points",
+    "href": "hw-13.html#q4.-what-do-the-items-tell-you-5-points",
+    "title": "HW 13: Your first Stan programs",
+    "section": "Q4. What do the items tell you? (5 points)",
+    "text": "Q4. What do the items tell you? (5 points)\n\nReport each item’s difficulty and discrimination with 95% intervals. Which item is hardest? Which best separates high- from low-ability people?\nCheck your answers against a maximum-likelihood 2PL from {ltm}: ltm::ltm(LSAT ~ z1, IRT.param = TRUE) (use the wide data with only the item columns). Do they agree? Why might the Bayesian estimates be a bit different for the easiest items?\nLook back at the lecture’s brms version of the 2PL (non-linear syntax with exp(logalpha) * delta). In two or three sentences: which version is easier to read and why? What would you need to change in your Stan code to turn this into a 1PL (Rasch) model?"
+  },
+  {
+    "objectID": "hw-13.html#q5.-publication-ready-item-characteristic-curves-5-points",
+    "href": "hw-13.html#q5.-publication-ready-item-characteristic-curves-5-points",
+    "title": "HW 13: Your first Stan programs",
+    "section": "Q5. Publication-ready item characteristic curves (5 points)",
+    "text": "Q5. Publication-ready item characteristic curves (5 points)\nMake a figure that meets the checklist showing the item characteristic curves (probability of a correct answer across ability, θ from −4 to 3) for all five items, computed from your posterior draws (π = logistic(a(θ − b)), draw by draw), with 95% ribbons.\n\nLabel items clearly, use a colorblind-safe palette with a second cue, and label the x-axis in words (e.g., “Ability (θ, SD units)”).\nWrite a stand-alone caption, use ggsave() at 6.5 inches wide, and write one or two sentences on what the figure says about this test (hint: who is it good at measuring?).\n\n\n\n\n\n\n\nGoing further: from 2PL to a drift diffusion model (optional, not graded)\n\n\n\n\n\nThe same workflow scales to cognitive models. A drift diffusion model describes a speeded two-choice decision as evidence accumulating toward one of two boundaries; it predicts response times and choices together. Stan has it built in as wiener_lpdf(), and brms wraps it as family = wiener(). The Stan model has exactly the same structure as your 2PL: data, parameters (drift rate, boundary separation, non-decision time, bias), priors, and one likelihood line. If you’re headed toward cognitive modeling, try writing one for a simulated dataset (RWiener::rwiener() simulates data)."
   }
 ]

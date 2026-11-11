@@ -16,6 +16,7 @@ Homework is posted Thursday after class and due the following Thursday at 2:30 p
 10. [HW 10: Varying slopes](hw-10.qmd) (due Apr 8)
 11. [HW 11: When the data are uncertain too](hw-11.qmd) (due Apr 15)
 12. [HW 12: Modeling variability](hw-12.qmd) (due Apr 22)
+13. [HW 13: Your first Stan programs](hw-13.qmd) (due Apr 29)
 
 ## Publication-ready figures {#figures}
 

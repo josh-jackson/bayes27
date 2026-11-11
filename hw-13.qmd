@@ -1,0 +1,143 @@
+---
+title: "HW 13: Your first Stan programs"
+---
+
+**Due:** Thursday, Apr 29 at 2:30 pm on Canvas · **Size:** full analysis · **Points:** 25 · **Covers:** Stan basics and [IRT](adv-9.qmd)
+
+Start from the [homework template](hw-template.qmd){download="hw-template.qmd"}, use `## Q1` to `## Q5` headings, and turn in both the `.qmd` and the rendered `.html`.
+
+**The big idea.** All semester, brms has been writing Stan programs for you (you may have peeked in the "Under the hood" boxes). Now you'll write two yourself: first a model you already know, so you can check you got it right, then a 2PL IRT model, the kind of model where writing Stan directly is often *easier* than coaxing brms into it.
+
+**Setup.** You already have Stan installed through {cmdstanr}. In R, a Stan program can live in a string; `write_stan_file()` saves it and `cmdstan_model()` compiles it:
+
+```{r, eval = FALSE}
+library(cmdstanr)
+library(posterior)
+library(tidybayes)
+
+code <- "
+data { ... }
+parameters { ... }
+model { ... }
+"
+mod <- cmdstan_model(write_stan_file(code))
+fit <- mod$sample(data = list(...), seed = 13, chains = 4, parallel_chains = 4)
+fit$summary()
+draws <- as_draws_df(fit$draws())      # works with tidybayes / ggplot like any other draws
+```
+
+Stan is picky: every statement ends in `;`, every variable has a declared type, and comments start with `//`. When it won't compile, read the error message's line number first.
+
+## Part A: a model you already know (Q1–Q2)
+
+Use your **HW 2 data and priors** (your own data, or `sat.act`: `SATV` predicted by centered `ACT`).
+
+## Q1. Write the regression in Stan (5 points)
+
+a) Fill in the `TODO`s in this skeleton with your HW 2 model (likelihood and the three priors):
+
+```stan
+data {
+  int<lower=1> N;        // number of people
+  vector[N] x;           // predictor (centered)
+  vector[N] y;           // outcome
+}
+parameters {
+  real alpha;            // intercept
+  real beta;             // slope
+  real<lower=0> sigma;   // residual SD (the <lower=0> matters: why?)
+}
+model {
+  // priors
+  alpha ~ TODO;
+  beta  ~ TODO;
+  sigma ~ TODO;
+  // likelihood
+  y ~ TODO;
+}
+```
+
+b) Fit it with cmdstanr. Check R-hat and ESS in `fit$summary()`.
+c) Compare the posterior for the intercept, slope, and σ with your HW 2 brms fit (a small table is enough). They should match to within Monte Carlo error. Do they? If not, what's different? (Hint: compare with `stancode()` of your brms model. Did brms center anything, or put the prior on a different intercept?)
+d) Why does `sigma` need `<lower=0>`? What would go wrong without it?
+
+## Q2. Make Stan compute something for you (5 points)
+
+Add a `generated quantities` block that computes, for every posterior draw:
+
+- `mu_new`: the expected outcome for a person with a predictor value you choose (pass it in as data, e.g., `real x_new;`);
+- `y_new`: a predicted outcome for one new person at that value (`normal_rng()`);
+- `y_rep`: a full replicated dataset (`vector[N] y_rep;` filled in a loop with `normal_rng()`).
+
+Then: report `mu_new` and `y_new` with 95% intervals (why is one wider?), and use `y_rep` to make your own posterior predictive check (e.g., `bayesplot::ppc_dens_overlay(y, yrep_matrix)`). In two or three sentences: what does `generated quantities` let you do that would be awkward otherwise?
+
+## Part B: a 2PL IRT model (Q3–Q5)
+
+The LSAT data: 1,000 people answered 5 law-school-admission items, each scored correct (1) or incorrect (0). This is a classic IRT dataset. Put it in long format, one row per person × item:
+
+```{r, eval = FALSE}
+lsat <- read_csv("https://bayes27.netlify.app/LSAT.csv") |>
+  mutate(person = row_number()) |>
+  pivot_longer(starts_with("item"), names_to = "item", values_to = "y") |>
+  mutate(item = as.integer(str_remove(item, "item")))
+```
+
+The **two-parameter logistic (2PL)** model says the probability that person *p* gets item *i* right depends on the person's ability θ<sub>p</sub>, the item's difficulty *b*<sub>i</sub>, and its discrimination *a*<sub>i</sub>:
+
+$$
+\begin{aligned}
+y_{pi} &\sim \text{Bernoulli}(\pi_{pi}) \\
+\text{logit}(\pi_{pi}) &= a_i(\theta_p - b_i) \\
+\theta_p &\sim \text{Normal}(0, 1) \\
+b_i &\sim \text{Normal}(0, 2) \\
+a_i &\sim \text{LogNormal}(0, 0.5)
+\end{aligned}
+$$
+
+## Q3. Write and fit the 2PL (5 points)
+
+a) Fill in the `TODO`s:
+
+```stan
+data {
+  int<lower=1> N;                        // number of responses (people x items)
+  int<lower=1> P;                        // number of people
+  int<lower=1> I;                        // number of items
+  array[N] int<lower=1, upper=P> person; // which person gave response n
+  array[N] int<lower=1, upper=I> item;   // which item response n is for
+  array[N] int<lower=0, upper=1> y;      // correct (1) or not (0)
+}
+parameters {
+  vector[P] theta;                       // person ability
+  vector[I] b;                           // item difficulty
+  vector<lower=0>[I] a;                  // item discrimination
+}
+model {
+  theta ~ TODO;
+  b ~ TODO;
+  a ~ TODO;
+  y ~ bernoulli_logit(TODO);             // hint: a[item] .* (theta[person] - b[item])
+}
+```
+
+b) Fit it and check the diagnostics. How many parameters did you just estimate? Compare that with the number of data points.
+c) Two things make this model **identified**: θ ~ Normal(0, 1) and `a` constrained to be positive. In your own words, what would go wrong without each one? (Hint: if you added 1 to every θ and every *b*, would the likelihood change? What if you flipped the sign of every θ and every *a*?)
+
+## Q4. What do the items tell you? (5 points)
+
+a) Report each item's difficulty and discrimination with 95% intervals. Which item is hardest? Which best separates high- from low-ability people?
+b) Check your answers against a maximum-likelihood 2PL from {ltm}: `ltm::ltm(LSAT ~ z1, IRT.param = TRUE)` (use the wide data with only the item columns). Do they agree? Why might the Bayesian estimates be a bit different for the easiest items?
+c) Look back at the lecture's brms version of the 2PL (non-linear syntax with `exp(logalpha) * delta`). In two or three sentences: which version is easier to read and why? What would you need to change in your Stan code to turn this into a 1PL (Rasch) model?
+
+## Q5. Publication-ready item characteristic curves (5 points)
+
+Make a figure that meets the [checklist](homeworks.qmd#figures) showing the **item characteristic curves** (probability of a correct answer across ability, θ from −4 to 3) for all five items, **computed from your posterior draws** (π = logistic(*a*(θ − *b*)), draw by draw), with 95% ribbons.
+
+- Label items clearly, use a colorblind-safe palette with a second cue, and label the x-axis in words (e.g., "Ability (θ, SD units)").
+- Write a stand-alone caption, use `ggsave()` at 6.5 inches wide, and write one or two sentences on what the figure says about this test (hint: who is it good at measuring?).
+
+::: {.callout-tip collapse="true"}
+## Going further: from 2PL to a drift diffusion model (optional, not graded)
+
+The same workflow scales to cognitive models. A **drift diffusion model** describes a speeded two-choice decision as evidence accumulating toward one of two boundaries; it predicts response times *and* choices together. Stan has it built in as `wiener_lpdf()`, and brms wraps it as `family = wiener()`. The Stan model has exactly the same structure as your 2PL: `data`, `parameters` (drift rate, boundary separation, non-decision time, bias), priors, and one likelihood line. If you're headed toward cognitive modeling, try writing one for a simulated dataset (`RWiener::rwiener()` simulates data).
+:::

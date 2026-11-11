@@ -7,6 +7,7 @@ project:
     - hw-template.qmd
     - mortality.csv
     - KN.csv
+    - LSAT.csv
 
 website:
   title: "Bayesian Statistics Spring 2027"
