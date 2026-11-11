@@ -200,6 +200,8 @@ We could do a few things:
 
 It really depends on whether the priors are important and/or costly, computationally
 
+Last time we went with option 2 and tightened the slope prior to N(0, 0.5). Today we'll do option 3 and leave it at N(0, 5) on purpose: with 928 families, the data will overwhelm even a silly prior. Watch for that when we plot the prior and posterior together.
+
 ## brms syntax
 
 ```{r, eval = FALSE}
