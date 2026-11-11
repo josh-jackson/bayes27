@@ -2854,5 +2854,54 @@
     "title": "advanced mlm",
     "section": "Linear basis",
     "text": "Linear basis\n\nWe will no longer use year as our predictor, instead only focus on the knots.\nThe most simple, is taking the synthetic variable and either turning on or turning off a range across the knots."
+  },
+  {
+    "objectID": "syllabus.html#course-description",
+    "href": "syllabus.html#course-description",
+    "title": "Syllabus",
+    "section": "Course description",
+    "text": "Course description\nBayesian parameter estimation and hypothesis testing offer a useful alternative to the classic frequentist paradigm within psychological science. This class will cover the foundations of Bayesian inference and hypothesis testing with the primary emphasis on fitting multiple regression and multi-level models common within psychology. A variety of response distributions will be discussed: Gaussian, binary and count, ordinal, survival, probability, and zero-inflated models, among others. Topics include: model calibration, regularization, prior and posterior predictions, Bayes factors, missing data, Bayesian power, cross-validation, Bayesian meta-analysis, distributional models, and multivariate response models."
+  },
+  {
+    "objectID": "syllabus.html#course-learning-objectives",
+    "href": "syllabus.html#course-learning-objectives",
+    "title": "Syllabus",
+    "section": "Course learning objectives",
+    "text": "Course learning objectives\n\nTake what you know (regression) and do it Bayesian (and more!)\nKnow the advantages of Bayesian data analysis\nRethink your approach to statistical modeling and inference"
+  },
+  {
+    "objectID": "syllabus.html#class-textbook",
+    "href": "syllabus.html#class-textbook",
+    "title": "Syllabus",
+    "section": "Class textbook",
+    "text": "Class textbook\n\nMcElreath, R. (2020). Statistical Rethinking: A Bayesian Course with Examples in R. SECOND EDITION CRC Press.\n\nNote that McElreath also has lectures from his book posted on his YouTube. They are excellent. While some bits of the class materials are covered in his lectures I believe the content of this course and his course complement one another. His focus is making the content digestible, viewing the broader picture, and delving into philosophy of science more so. We will focus more on the applied aspects, using specific programs and making sure we are comfortable “doing” the work rather than just understanding it at the high level.\nPlease check them out, especially if you are lost: https://tinyurl.com/yckrrzjy\nSolomon Kurz has also created a book that does all of the examples in brms. https://bookdown.org/content/4857/ It is extremely helpful. He focuses on brms helper functions, some of which are deprecated, and we will mainly focus on tidybayes, and marginaleffects, but to get an idea of how to apply the content this book is extremely useful. I highly recommend you read this along with the corresponding chapter from SR.\nWe will also read some chapters from Model to Meaning (M2M) by Vincent Arel-Bundock, who created the marginaleffects package: https://marginaleffects.com\nAndrew Heiss has some nice blog posts that cover the marginaleffects package and walk through in great detail some difficult topics.\nAH #1: https://www.andrewheiss.com/blog/2022/09/26/guide-visualizing-types-posteriors/\nAH #2: https://www.andrewheiss.com/blog/2022/05/20/marginalia/\nAH #3: https://www.andrewheiss.com/blog/2022/11/29/conditional-marginal-marginaleffects/\nRecommended text (not required)\n\nKruschke, J. (2015). Doing Bayesian Data Analysis. SECOND EDITION.\n\n(This is more of a traditional stats textbook from a psychologist. It is more comprehensive but less readable. Some practices are no longer standard, the structure of the book isn’t how I would present everything and it misses some important developments since it came out in 2015. Yes, a book from 2015 is now wildly out of date in this field. That said I still use it often as a reference).\nSolomon also has a brms-based walkthrough of Kruschke: https://bookdown.org/content/3686/\n\nFarrell, S., & Lewandowsky, S. (2018). Computational modeling of cognition and behavior. Cambridge University Press\n\n(Very good for those who predominantly do cognitive models/behavioral tasks. These are more advanced models that we will touch on at the end of the semester, however, go ahead and read this earlier if you are inclined.)\n\nGelman, A., Hill, J., & Vehtari, A. (2020). Regression and other stories. Cambridge University Press.\n\n(A practical compendium of how to approach GLMs. If you feel like you need a refresher on GLM or are lost at any point in the semester with concepts you feel like “should have” learned prior, this book will help. Very readable. It is Bayesian but also not, focusing more on regression basics.)\n\nLee, M. D., & Wagenmakers, E. J. (2014). Bayesian cognitive modeling: A practical course. Cambridge University Press\n\n(Terse but technically correct intro of Bayesian stats, best for completing your collection of Bayesian books by psychologists. I would not recommend as an intro book)"
+  },
+  {
+    "objectID": "syllabus.html#grading",
+    "href": "syllabus.html#grading",
+    "title": "Syllabus",
+    "section": "Grading",
+    "text": "Grading\nGrades consist of two components: Four “exams” and a take home project. Each will count for 20% of your grade.\nExams will be given at non class hours so as to maximize our time together to discuss Bayesian stats.\nThere will be homework that consists of mainly applied computations. Homework may be worked on together in groups. Homework isn’t graded; it’s practice for the exams (which look a lot like the homework), so do it.\nThe take-home project is a series of models and visualizations using your own data. We (you and Josh) will work together to go over what your data are, and what sort of analyses, checks and visualizations you should do. The sooner in the semester you have these conversations with me, the better. By week 6 (Feb 23) you need to have a plan approved.\nGrades:\n\n\n\nFinal %\nGrade\n\n\n\n\n100\nA+\n\n\n92 to &lt;100\nA\n\n\n90 to &lt;92\nA−\n\n\n89 to &lt;90\nB+\n\n\n81 to &lt;89\nB\n\n\n80 to &lt;81\nB−\n\n\n70 to &lt;80\nC\n\n\n60 to &lt;70\nD\n\n\nbelow 60\nF"
+  },
+  {
+    "objectID": "syllabus.html#class-procedure",
+    "href": "syllabus.html#class-procedure",
+    "title": "Syllabus",
+    "section": "Class procedure",
+    "text": "Class procedure\nI prepare slides and code. We then walk through them together. If you have questions, ask!"
+  },
+  {
+    "objectID": "syllabus.html#schedule",
+    "href": "syllabus.html#schedule",
+    "title": "Syllabus",
+    "section": "Schedule",
+    "text": "Schedule\nNote that dates and readings are tentative. Topics will likely shift; all changes will be updated on the homepage, not necessarily in the syllabus below.\n\n\n\n\n\n\n\n\n\nWeek\nDates\nTopic\nReadings\n\n\n\n\n1\nJan 19, 21\nBasics of Bayes\nSR 1 & 2\n\n\n2\nJan 26, 28\nLinear model basics\nSR 3, M2M 3–3.3 & 3.6\n\n\n3\nFeb 2, 4\nLinear models continued\nSR 4\n\n\n4\nFeb 9, 11\nMultiple regression and interactions\nSR 5 & 9\n\n\n\n\nExam 1\n\n\n\n5\nFeb 16, 18\nMarkov Chain Monte Carlo estimation (MCMC)\n\n\n\n6\nFeb 23, 25\nInformation, NHST and model fit (project plan due)\nSR 7 & 10\n\n\n7\nMar 2, 4\nGeneralized linear models\nSR 11, M2M 5, AH1\n\n\n8\nMar 9, 11\nGeneralized linear models\nSR 12, AH2\n\n\n\n\nExam 2\n\n\n\n\nMar 16, 18\nSpring break — no class\n\n\n\n9\nMar 23, 25\nMultilevel models\nSR 13, M2M 19\n\n\n10\nMar 30, Apr 1\nMultilevel models\nSR 14, AH3\n\n\n11\nApr 6, 8\nMultilevel models, meta-analysis and missing data\nSR 15\n\n\n\n\nExam 3\n\n\n\n12\nApr 13, 15\nMultivariate and distributional models\nWilliams et al. 2021 Psych Methods\n\n\n13\nApr 20, 22\nCognitive and IRT models (e.g., DDM)\nF&L 14, Bürkner 2019\n\n\n14\nApr 27, 29\nGAMs\n\n\n\n\n\nExam 4"
+  },
+  {
+    "objectID": "syllabus.html#ai-overlord-helpers",
+    "href": "syllabus.html#ai-overlord-helpers",
+    "title": "Syllabus",
+    "section": "AI overlord helpers",
+    "text": "AI overlord helpers\nAI tools (ChatGPT, Claude, Gemini, Copilot, Positron Assistant, and whatever shows up next month) are rapidly changing how we write code. They are truly wonderful for writing code quickly (rather than going down crazy rabbit holes), and they’re used constantly outside of the classroom, including for R. It would be CRAZY not to incorporate them into your learning.\nThat said, they still give you wrong code, and with Bayesian models the wrong code often runs just fine: a prior on the wrong scale, a brms formula that isn’t the model you think it is, a marginaleffects call that averages over the wrong thing. My goal is to get you to a place where you can use these tools and tell whether what they hand you gives the right answer or the wrong one. Here is my policy for this class:\n\nYou are allowed to use any AI tool on homework and the take-home project.\nIf you do, say so: which tool, and what you used it for. Include the prompt, or a link to the shared chat if you had a back and forth conversation.\nYou own every line you turn in. If you can’t explain what a line of code does and why it’s there, it shouldn’t be there.\n\nDisclosing this helps make sure you understand why the code works or doesn’t. It also lets me learn what does and does not work when communicating with our AI overlords."
   }
 ]
