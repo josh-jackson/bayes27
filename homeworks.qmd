@@ -11,6 +11,7 @@ Homework is posted Thursday after class and due the following Thursday at 2:30 p
 5.  [HW 5: When the chains go wild](hw-5.qmd) (due Feb 25)
 6.  [HW 6: Comparing models and making claims](hw-6.qmd) (due Mar 4)
 7.  [HW 7: Logistic regression](hw-7.qmd) (due Mar 11)
+8.  [HW 8: Counts and ordered categories](hw-8.qmd) (due Mar 25, after spring break)
 
 ## Publication-ready figures {#figures}
 

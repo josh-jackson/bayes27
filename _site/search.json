@@ -3169,5 +3169,68 @@
     "title": "HW 7: Logistic regression",
     "section": "Q6. Publication-ready figure (5 points)",
     "text": "Q6. Publication-ready figure (5 points)\nMake a figure that meets the checklist showing the predicted probability of premature death across risky behavior, from your best model in Q4:\n\nx-axis in the original risky behavior units (not centered); y-axis as a probability (or percentage) from 0 to 1;\na 95% ribbon around the predicted line(s); if your best model includes IQ, show lines at low and high IQ (e.g., ±1 SD, labeled in IQ units);\nthe raw data shown in a way that works for a 0/1 outcome (e.g., jittered points at 0 and 1, or a rug of deaths along the top and survivors along the bottom);\na stand-alone caption, ggsave() at 6.5 inches wide, and the one or two sentences you’d put in a Results section."
+  },
+  {
+    "objectID": "hw-8.html",
+    "href": "hw-8.html",
+    "title": "HW 8: Counts and ordered categories",
+    "section": "",
+    "text": "Due: Thursday, Mar 25 at 2:30 pm on Canvas (this one spans spring break) · Size: full analysis · Points: 25 · Covers: Generalized linear models (Poisson through ordinal)\nStart from the homework template, use ## Q1 to ## Q6 headings, and turn in both the .qmd and the rendered .html. Save brms fits with file =. Some of these models take a minute or two; don’t leave it for the last night of break."
+  },
+  {
+    "objectID": "hw-8.html#part-a-counts-q1q3",
+    "href": "hw-8.html#part-a-counts-q1q3",
+    "title": "HW 8: Counts and ordered categories",
+    "section": "Part A: counts (Q1–Q3)",
+    "text": "Part A: counts (Q1–Q3)\nThe KN data: 2,136 working adults, how many jobs they’ve had (numjobs), how many years they’ve worked (yrswork), and personality, including achievement striving (mpqachievement, a 1–2 scale).\n\nlibrary(tidyverse)\nkn &lt;- read_csv(\"https://bayes27.netlify.app/KN.csv\") |&gt; select(-1)"
+  },
+  {
+    "objectID": "hw-8.html#q1.-look-before-you-model-3-points",
+    "href": "hw-8.html#q1.-look-before-you-model-3-points",
+    "title": "HW 8: Counts and ordered categories",
+    "section": "Q1. Look before you model (3 points)",
+    "text": "Q1. Look before you model (3 points)\n\nSummarize numjobs: its mean, its variance, the number of zeros, and the largest values. What does the mean–variance comparison tell you about whether a Poisson model is likely to fit?\nTwo data problems are hiding in here. Look at the largest values of numjobs and at people with yrswork == 0. What do you think is going on with each, and what will you do about it? (Say what you did and why; there’s more than one defensible choice.)\nWhy does it make sense to model the number of jobs per year worked rather than the raw count? How does an offset, offset(log(yrswork)), do that, and why can’t you use it for someone with yrswork == 0?"
+  },
+  {
+    "objectID": "hw-8.html#q2.-poisson-vs.-negative-binomial-5-points",
+    "href": "hw-8.html#q2.-poisson-vs.-negative-binomial-5-points",
+    "title": "HW 8: Counts and ordered categories",
+    "section": "Q2. Poisson vs. negative binomial (5 points)",
+    "text": "Q2. Poisson vs. negative binomial (5 points)\nUse a standardized mpqachievement as the predictor, with the offset.\n\nWrite the Poisson model in likelihood notation (log link, offset).\nFit it in brms, along with a negative binomial version (family = negbinomial).\nCompare them with posterior predictive checks: pp_check(type = \"rootogram\") (or \"bars\") and a check of the variance (type = \"stat\", stat = \"var\"). Which model reproduces the data, and where does the other fail?\nCompare them with LOO. Do the PPC and LOO agree?\nInterpret the achievement coefficient from your preferred model as a rate ratio (exponentiate the draws): how does the expected number of jobs per year change for a 1 SD increase in achievement striving? Is that a big effect?"
+  },
+  {
+    "objectID": "hw-8.html#q3.-do-we-need-a-zero-model-4-points",
+    "href": "hw-8.html#q3.-do-we-need-a-zero-model-4-points",
+    "title": "HW 8: Counts and ordered categories",
+    "section": "Q3. Do we need a zero model? (4 points)",
+    "text": "Q3. Do we need a zero model? (4 points)\n\nFit a zero-inflated negative binomial and a hurdle negative binomial (no predictors on the zero part is fine). Explain in one or two sentences what each one assumes about where zeros come from.\nCompare them to your Q2 negative binomial with LOO. Given what you found in Q1b about where the zeros came from, are you surprised by the result?\nCheck how many zeros your Q2 negative binomial predicts compared with how many there are: pp_check(type = \"stat\", stat = \\(y) mean(y == 0)). Does the negative binomial predict too many zeros or too few? Which of the two zero models can fix that problem, and which can’t? (Hint: think about what each one can do to the probability of a zero.)"
+  },
+  {
+    "objectID": "hw-8.html#part-b-ordered-categories-q4q6",
+    "href": "hw-8.html#part-b-ordered-categories-q4q6",
+    "title": "HW 8: Counts and ordered categories",
+    "section": "Part B: ordered categories (Q4–Q6)",
+    "text": "Part B: ordered categories (Q4–Q6)\nItem C1 from the bfi data in {psychTools}: “Am exacting in my work,” rated 1 (very inaccurate) to 6 (very accurate), for 2,800 people, along with their age.\n\nlibrary(psychTools)\nbfi_c1 &lt;- bfi |&gt;\n  drop_na(C1, age) |&gt;\n  mutate(age_10 = (age - 30) / 10)   # decades from age 30"
+  },
+  {
+    "objectID": "hw-8.html#q4.-a-cumulative-ordered-logit-model-5-points",
+    "href": "hw-8.html#q4.-a-cumulative-ordered-logit-model-5-points",
+    "title": "HW 8: Counts and ordered categories",
+    "section": "Q4. A cumulative (ordered logit) model (5 points)",
+    "text": "Q4. A cumulative (ordered logit) model (5 points)\n\nWrite the model in likelihood notation (family = cumulative, logit link), with priors for the thresholds and the age effect.\nFit it. Interpret the thresholds: convert them to cumulative probabilities (plogis()), and say what they tell you about how people use the scale.\nInterpret the age coefficient: direction and size. What does “a 1-unit increase in log-cumulative-odds per decade” mean for actual responses?\nGet the predicted probability of each response category (1–6) at age 20 and at age 60 (e.g., add_epred_draws() or predictions()), with intervals. Which categories gain and which lose probability as people age?"
+  },
+  {
+    "objectID": "hw-8.html#q5.-why-not-just-treat-it-as-continuous-3-points",
+    "href": "hw-8.html#q5.-why-not-just-treat-it-as-continuous-3-points",
+    "title": "HW 8: Counts and ordered categories",
+    "section": "Q5. Why not just treat it as continuous? (3 points)",
+    "text": "Q5. Why not just treat it as continuous? (3 points)\nFit the same model treating C1 as Gaussian. Compare the two with pp_check(type = \"bars\"). What does the Gaussian model predict that can’t happen, and what does it miss about the distribution of responses? When might the Gaussian shortcut be good enough?"
+  },
+  {
+    "objectID": "hw-8.html#q6.-publication-ready-figure-5-points",
+    "href": "hw-8.html#q6.-publication-ready-figure-5-points",
+    "title": "HW 8: Counts and ordered categories",
+    "section": "Q6. Publication-ready figure (5 points)",
+    "text": "Q6. Publication-ready figure (5 points)\nMake a figure that meets the checklist showing how the probability of each response category changes with age (e.g., one line per category with 95% ribbons, or stacked probabilities), across the observed age range in years.\n\nLabel the response categories with their meaning (at least the endpoints, e.g., “1 = very inaccurate” to “6 = very accurate”).\nUse an ordered (sequential) colorblind-safe palette, since the categories are ordered (e.g., scale_color_viridis_d()).\nWrite a stand-alone caption, use ggsave() at 6.5 inches wide, and write the one or two sentences you’d put in a Results section."
   }
 ]
