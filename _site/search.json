@@ -3120,5 +3120,54 @@
     "title": "HW 6: Comparing models and making claims",
     "section": "Q3. A publication-ready figure of your claim",
     "text": "Q3. A publication-ready figure of your claim\nMake one figure that shows the posterior of your Q2 parameter with the ROPE shaded and the key numbers (median, 95% interval, pd, % in ROPE) annotated or in the caption. It should meet the figure checklist: the parameter labeled in words with units (e.g., “Difference in SAT quantitative score, women − men”), a clean theme, a stand-alone caption, and ggsave() at 6.5 inches wide. Then write the one or two sentences you’d put in a Results section."
+  },
+  {
+    "objectID": "hw-7.html",
+    "href": "hw-7.html",
+    "title": "HW 7: Logistic regression",
+    "section": "",
+    "text": "Due: Thursday, Mar 11 at 2:30 pm on Canvas · Size: full analysis · Points: 25 · Covers: Generalized linear models (binomial/Bernoulli part)\nStart from the homework template, use ## Q1 to ## Q6 headings, and turn in both the .qmd and the rendered .html. Save brms fits with file =.\nData. The mortality data from class: 300 people, whether they died prematurely, their risky behavior score, and IQ (both on the study’s own scales). Model premature death (1 = premature), not survival:\nlibrary(tidyverse)\nmortality &lt;- read_csv(\"https://bayes27.netlify.app/mortality.csv\") |&gt;\n  select(-1) |&gt;                                   # drop the row-number column\n  mutate(premature = 1 - NOT.premature,\n         risky_c = Risky.behavior - mean(Risky.behavior),\n         IQ_c = IQ - mean(IQ))"
+  },
+  {
+    "objectID": "hw-7.html#q1.-set-up-the-model-4-points",
+    "href": "hw-7.html#q1.-set-up-the-model-4-points",
+    "title": "HW 7: Logistic regression",
+    "section": "Q1. Set up the model (4 points)",
+    "text": "Q1. Set up the model (4 points)\n\nWrite the model for premature death predicted by risky behavior in likelihood notation (Bernoulli likelihood, logit link).\nChoose priors for the intercept and slope on the logit scale. Justify the intercept prior using what you’d expect the rate of premature death to be at average risky behavior. (Hint: qlogis() turns a probability into a logit.)\nDo a prior predictive check: simulate from your priors and plot the implied probability of premature death across the range of risky behavior. Then do the same with normal(0, 10) priors. What happens to the implied probabilities with the “uninformative” prior, and why is that a problem?"
+  },
+  {
+    "objectID": "hw-7.html#q2.-interpret-the-slope-three-ways-5-points",
+    "href": "hw-7.html#q2.-interpret-the-slope-three-ways-5-points",
+    "title": "HW 7: Logistic regression",
+    "section": "Q2. Interpret the slope three ways (5 points)",
+    "text": "Q2. Interpret the slope three ways (5 points)\nFit the model in brms (family = bernoulli). Then interpret the effect of risky behavior:\n\nOn the logit scale: what does the coefficient mean?\nAs an odds ratio (exp() the posterior draws, don’t just exponentiate the point estimate): what does it mean, with a 95% interval?\nOn the probability scale: report the average marginal effect (avg_slopes() from {marginaleffects}) with a 95% interval, and say in words what it means.\nCompute the slope on the probability scale at low (−2 SD) and high (+2 SD) risky behavior (slopes() with datagrid()). Why isn’t it the same everywhere when the logit slope is a single number?"
+  },
+  {
+    "objectID": "hw-7.html#q3.-predicted-probabilities-4-points",
+    "href": "hw-7.html#q3.-predicted-probabilities-4-points",
+    "title": "HW 7: Logistic regression",
+    "section": "Q3. Predicted probabilities (4 points)",
+    "text": "Q3. Predicted probabilities (4 points)\nWhat is the predicted probability of premature death for someone 1 SD below the mean of risky behavior? At the mean? 2 SD above? Report each with a 95% interval (predictions() with datagrid()), and the difference between +2 SD and −1 SD with its interval (a hypothesis, or from the draws)."
+  },
+  {
+    "objectID": "hw-7.html#q4.-add-iq-4-points",
+    "href": "hw-7.html#q4.-add-iq-4-points",
+    "title": "HW 7: Logistic regression",
+    "section": "Q4. Add IQ (4 points)",
+    "text": "Q4. Add IQ (4 points)\n\nFit two more models: risky behavior and IQ as main effects, and risky behavior × IQ.\nCompare all three models with LOO. Which predicts best, and is the difference meaningful relative to its standard error?\nOn the logit scale, is there evidence for an interaction? Then use avg_comparisons() or slopes() to look at whether the effect of risky behavior on the probability of premature death differs between low and high IQ. Can there be an “interaction” on the probability scale even without one on the logit scale? Explain in two or three sentences."
+  },
+  {
+    "objectID": "hw-7.html#q5.-does-the-model-reproduce-the-data-3-points",
+    "href": "hw-7.html#q5.-does-the-model-reproduce-the-data-3-points",
+    "title": "HW 7: Logistic regression",
+    "section": "Q5. Does the model reproduce the data? (3 points)",
+    "text": "Q5. Does the model reproduce the data? (3 points)\npp_check() with the default plot isn’t very informative for 0/1 outcomes. Make your own check: cut risky behavior into 5 bins, and for each bin plot the observed proportion of premature deaths against the model’s posterior predicted proportion (with an interval), using add_predicted_draws() or add_epred_draws(). Does the model capture how risk changes across the range? Where does it miss, if anywhere?"
+  },
+  {
+    "objectID": "hw-7.html#q6.-publication-ready-figure-5-points",
+    "href": "hw-7.html#q6.-publication-ready-figure-5-points",
+    "title": "HW 7: Logistic regression",
+    "section": "Q6. Publication-ready figure (5 points)",
+    "text": "Q6. Publication-ready figure (5 points)\nMake a figure that meets the checklist showing the predicted probability of premature death across risky behavior, from your best model in Q4:\n\nx-axis in the original risky behavior units (not centered); y-axis as a probability (or percentage) from 0 to 1;\na 95% ribbon around the predicted line(s); if your best model includes IQ, show lines at low and high IQ (e.g., ±1 SD, labeled in IQ units);\nthe raw data shown in a way that works for a 0/1 outcome (e.g., jittered points at 0 and 1, or a rug of deaths along the top and survivors along the bottom);\na stand-alone caption, ggsave() at 6.5 inches wide, and the one or two sentences you’d put in a Results section."
   }
 ]

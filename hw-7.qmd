@@ -1,0 +1,56 @@
+---
+title: "HW 7: Logistic regression"
+---
+
+**Due:** Thursday, Mar 11 at 2:30 pm on Canvas · **Size:** full analysis · **Points:** 25 · **Covers:** [Generalized linear models](glm-7.qmd) (binomial/Bernoulli part)
+
+Start from the [homework template](hw-template.qmd){download="hw-template.qmd"}, use `## Q1` to `## Q6` headings, and turn in both the `.qmd` and the rendered `.html`. Save brms fits with `file =`.
+
+**Data.** The mortality data from class: 300 people, whether they died prematurely, their risky behavior score, and IQ (both on the study's own scales). Model **premature death** (1 = premature), not survival:
+
+```{r, eval = FALSE}
+library(tidyverse)
+mortality <- read_csv("https://bayes27.netlify.app/mortality.csv") |>
+  select(-1) |>                                   # drop the row-number column
+  mutate(premature = 1 - NOT.premature,
+         risky_c = Risky.behavior - mean(Risky.behavior),
+         IQ_c = IQ - mean(IQ))
+```
+
+## Q1. Set up the model (4 points)
+
+a) Write the model for premature death predicted by risky behavior in likelihood notation (Bernoulli likelihood, logit link).
+b) Choose priors for the intercept and slope **on the logit scale**. Justify the intercept prior using what you'd expect the rate of premature death to be at average risky behavior. (Hint: `qlogis()` turns a probability into a logit.)
+c) Do a prior predictive check: simulate from your priors and plot the implied **probability** of premature death across the range of risky behavior. Then do the same with `normal(0, 10)` priors. What happens to the implied probabilities with the "uninformative" prior, and why is that a problem?
+
+## Q2. Interpret the slope three ways (5 points)
+
+Fit the model in brms (`family = bernoulli`). Then interpret the effect of risky behavior:
+
+a) On the **logit** scale: what does the coefficient mean?
+b) As an **odds ratio** (`exp()` the posterior draws, don't just exponentiate the point estimate): what does it mean, with a 95% interval?
+c) On the **probability** scale: report the average marginal effect (`avg_slopes()` from {marginaleffects}) with a 95% interval, and say in words what it means.
+d) Compute the slope on the probability scale at low (−2 SD) and high (+2 SD) risky behavior (`slopes()` with `datagrid()`). Why isn't it the same everywhere when the logit slope is a single number?
+
+## Q3. Predicted probabilities (4 points)
+
+What is the predicted probability of premature death for someone **1 SD below** the mean of risky behavior? At the mean? **2 SD above**? Report each with a 95% interval (`predictions()` with `datagrid()`), and the difference between +2 SD and −1 SD with its interval (a `hypothesis`, or from the draws).
+
+## Q4. Add IQ (4 points)
+
+a) Fit two more models: risky behavior **and** IQ as main effects, and risky behavior × IQ.
+b) Compare all three models with LOO. Which predicts best, and is the difference meaningful relative to its standard error?
+c) On the **logit** scale, is there evidence for an interaction? Then use `avg_comparisons()` or `slopes()` to look at whether the effect of risky behavior on the **probability** of premature death differs between low and high IQ. Can there be an "interaction" on the probability scale even without one on the logit scale? Explain in two or three sentences.
+
+## Q5. Does the model reproduce the data? (3 points)
+
+`pp_check()` with the default plot isn't very informative for 0/1 outcomes. Make your own check: cut risky behavior into 5 bins, and for each bin plot the **observed** proportion of premature deaths against the model's **posterior predicted** proportion (with an interval), using `add_predicted_draws()` or `add_epred_draws()`. Does the model capture how risk changes across the range? Where does it miss, if anywhere?
+
+## Q6. Publication-ready figure (5 points)
+
+Make a figure that meets the [checklist](homeworks.qmd#figures) showing the **predicted probability of premature death** across risky behavior, from your best model in Q4:
+
+- x-axis in the original risky behavior units (not centered); y-axis as a probability (or percentage) from 0 to 1;
+- a 95% ribbon around the predicted line(s); if your best model includes IQ, show lines at low and high IQ (e.g., ±1 SD, labeled in IQ units);
+- the raw data shown in a way that works for a 0/1 outcome (e.g., jittered points at 0 and 1, or a rug of deaths along the top and survivors along the bottom);
+- a stand-alone caption, `ggsave()` at 6.5 inches wide, and the one or two sentences you'd put in a Results section.

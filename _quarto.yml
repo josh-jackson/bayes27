@@ -5,6 +5,8 @@ project:
     - "!hw-template.qmd"
   resources:
     - hw-template.qmd
+    - mortality.csv
+    - KN.csv
 
 website:
   title: "Bayesian Statistics Spring 2027"
