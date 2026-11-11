@@ -3232,5 +3232,54 @@
     "title": "HW 8: Counts and ordered categories",
     "section": "Q6. Publication-ready figure (5 points)",
     "text": "Q6. Publication-ready figure (5 points)\nMake a figure that meets the checklist showing how the probability of each response category changes with age (e.g., one line per category with 95% ribbons, or stacked probabilities), across the observed age range in years.\n\nLabel the response categories with their meaning (at least the endpoints, e.g., “1 = very inaccurate” to “6 = very accurate”).\nUse an ordered (sequential) colorblind-safe palette, since the categories are ordered (e.g., scale_color_viridis_d()).\nWrite a stand-alone caption, use ggsave() at 6.5 inches wide, and write the one or two sentences you’d put in a Results section."
+  },
+  {
+    "objectID": "hw-9.html",
+    "href": "hw-9.html",
+    "title": "HW 9: Varying intercepts and partial pooling",
+    "section": "",
+    "text": "Due: Thursday, Apr 1 at 2:30 pm on Canvas · Size: full analysis · Points: 25 · Covers: Multilevel models\nStart from the homework template, use ## Q1 to ## Q6 headings, and turn in both the .qmd and the rendered .html. Save brms fits with file =.\nData. If you have your own nested data (repeated measures within people, people within groups), you may use it: say what the levels are. Otherwise use this version of the classic sleep-deprivation study: reaction times (ms) for 18 people across days of sleep restriction. To make partial pooling visible, some people “missed sessions,” so people have between 3 and 10 observations.\nlibrary(tidyverse)\ndata(sleepstudy, package = \"lme4\")   # install.packages(\"lme4\") if needed\n\nset.seed(9)\nkeep &lt;- tibble(Subject = unique(sleepstudy$Subject),\n               n_days = sample(c(2, 3, 4, 6, 8, 10, 10, 10), 18, replace = TRUE))\nsleep &lt;- sleepstudy |&gt;\n  left_join(keep, by = \"Subject\") |&gt;\n  mutate(u = runif(n())) |&gt;\n  group_by(Subject) |&gt;\n  filter(rank(u) &lt;= n_days) |&gt;\n  ungroup() |&gt;\n  select(Reaction, Days, Subject)"
+  },
+  {
+    "objectID": "hw-9.html#q1.-the-structure-3-points",
+    "href": "hw-9.html#q1.-the-structure-3-points",
+    "title": "HW 9: Varying intercepts and partial pooling",
+    "section": "Q1. The structure (3 points)",
+    "text": "Q1. The structure (3 points)\n\nHow many people, how many observations in total, and how many per person (range)?\nPlot each person’s raw mean reaction time against how many observations they have. Which people’s means would you trust least, and why?"
+  },
+  {
+    "objectID": "hw-9.html#q2.-the-empty-model-4-points",
+    "href": "hw-9.html#q2.-the-empty-model-4-points",
+    "title": "HW 9: Varying intercepts and partial pooling",
+    "section": "Q2. The empty model (4 points)",
+    "text": "Q2. The empty model (4 points)\n\nWrite the varying-intercept model Reaction ~ 1 + (1 | Subject) in likelihood notation, with all levels: the observation-level likelihood, the distribution of person intercepts, and priors (including for the between-person SD).\nFit it. Interpret the intercept, the between-person SD (sd(Intercept)), and σ, in milliseconds.\nCompute the intraclass correlation (ICC = between-person variance / total variance) draw by draw and report it with a 95% interval. What does it mean for these data?"
+  },
+  {
+    "objectID": "hw-9.html#q3.-complete-no-and-partial-pooling-5-points",
+    "href": "hw-9.html#q3.-complete-no-and-partial-pooling-5-points",
+    "title": "HW 9: Varying intercepts and partial pooling",
+    "section": "Q3. Complete, no, and partial pooling (5 points)",
+    "text": "Q3. Complete, no, and partial pooling (5 points)\n\nFit (or compute) three estimates of each person’s mean reaction time:\n\ncomplete pooling: one mean for everyone (Reaction ~ 1);\nno pooling: each person on their own (Reaction ~ 0 + Subject, or just the raw means);\npartial pooling: each person’s intercept from your Q2 model (e.g., add_epred_draws() per person, or coef()).\n\nMake a table or quick plot comparing the no-pooling and partial-pooling estimates for each person. Who moved the most toward the grand mean, and why them? Use both their number of observations and how far their raw mean was from the grand mean in your answer.\nIn two or three sentences: why is partial pooling usually a better bet for predicting a person’s next observation than either extreme?"
+  },
+  {
+    "objectID": "hw-9.html#q4.-add-a-level-1-predictor-4-points",
+    "href": "hw-9.html#q4.-add-a-level-1-predictor-4-points",
+    "title": "HW 9: Varying intercepts and partial pooling",
+    "section": "Q4. Add a level-1 predictor (4 points)",
+    "text": "Q4. Add a level-1 predictor (4 points)\n\nFit Reaction ~ 1 + Days + (1 | Subject). Write it in likelihood notation.\nInterpret the Days coefficient.\nCompare sd(Intercept) and σ with the empty model. Why did they change? (Hint: think about which days each person happened to be observed on.)"
+  },
+  {
+    "objectID": "hw-9.html#q5.-predicting-a-known-person-vs.-a-new-person-4-points",
+    "href": "hw-9.html#q5.-predicting-a-known-person-vs.-a-new-person-4-points",
+    "title": "HW 9: Varying intercepts and partial pooling",
+    "section": "Q5. Predicting a known person vs. a new person (4 points)",
+    "text": "Q5. Predicting a known person vs. a new person (4 points)\nUsing your Q4 model, predict reaction time at Day 5:\n\nfor Subject 308 (an existing person; use the default re_formula = NULL), and\nfor a new person not in the data (re_formula = NULL, allow_new_levels = TRUE with a new Subject value, or sample_new_levels = \"gaussian\").\n\nReport the expected value (epred) for each with a 95% interval. Why is the new person’s interval so much wider? Which piece of the model does that extra width come from?"
+  },
+  {
+    "objectID": "hw-9.html#q6.-publication-ready-shrinkage-figure-5-points",
+    "href": "hw-9.html#q6.-publication-ready-shrinkage-figure-5-points",
+    "title": "HW 9: Varying intercepts and partial pooling",
+    "section": "Q6. Publication-ready shrinkage figure (5 points)",
+    "text": "Q6. Publication-ready shrinkage figure (5 points)\nMake a figure that meets the checklist showing partial pooling in action for the empty model:\n\neach person’s no-pooling estimate (raw mean) and partial-pooling estimate, connected (e.g., arrows from raw to pooled) so the shrinkage is visible;\nthe grand mean as a reference line;\nthe number of observations per person shown somehow (point size, labels, or sorting), so a reader can see that people with fewer observations shrink more;\nlabels in words and units, a stand-alone caption, ggsave() at 6.5 inches wide, and the one or two sentences you’d put in a paper to explain it."
   }
 ]
