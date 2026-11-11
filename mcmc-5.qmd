@@ -305,6 +305,8 @@ So we need to make sure that the algorithm "works" in that there are enough samp
 
 -   Tail_ESS is similar but it is used more for CIs. The convergence of Markov chains are not uniform across the parameter. Central tendency estimates should use Bulk_ESS, whereas for intervals (the tails) look at Tail_ESS.
 
+-   **How much is enough?** Rule of thumb: Bulk_ESS and Tail_ESS above about **400** (≈100 per chain with 4 chains) for every parameter you report (Vehtari et al., 2021).
+
 ## A model to diagnose
 
 ```{r}
@@ -364,6 +366,18 @@ First step is to look for fuzzy caterpillars (mixing, stationarity, and converge
 plot(h.3)
 ```
 
+## Rank plots
+
+A more sensitive check than trace plots: pool all draws, rank them, then plot each chain's ranks as a histogram. If the chains are exploring the same distribution, every chain's histogram is roughly **flat** (each chain gets its fair share of low, middle, and high values).
+
+```{r}
+#| code-fold: true
+#| fig-height: 3.5
+mcmc_rank_overlay(h.3, pars = c("b_mood.group.dcontrol", "b_mood.group.dtx", "sigma"))
+```
+
+A chain whose histogram bulges at one end is stuck in part of the posterior, even if its trace plot looks like a fuzzy caterpillar.
+
 ## R-hat
 
 -   Compares the variance between chains to the variance within chains (brms reports the improved rank-normalized, split version).
@@ -383,6 +397,22 @@ Sometimes problems occur
 3.  Change your model (priors or estimated parameters)
 
 4.  Modify H-MCMC sampler
+
+## Which warning, which fix? (1) {.smaller}
+
+| Warning | What it means | Usual cause | First things to try |
+|---|---|---|---|
+| R-hat > 1.01 | chains disagree | too short a run; a multimodal or poorly identified posterior | more warmup/iterations; check the model (priors, redundant parameters) |
+| Low Bulk/Tail ESS | too few effectively independent draws | high autocorrelation, often from strongly correlated parameters | more iterations; reparameterize or remove redundancy |
+
+## Which warning, which fix? (2) {.smaller}
+
+| Warning | What it means | Usual cause | First things to try |
+|---|---|---|---|
+| Divergent transitions | the sampler hit regions it can't follow; **results may be biased** | sharp curvature: tiny data with vague priors, funnels in multilevel models | better priors; `adapt_delta = .95` or `.99`; non-centered parameterization |
+| Max treedepth | the sampler took the longest allowed trajectories; an **efficiency** warning | long, narrow posteriors (e.g., near-duplicate predictors), flat priors | fix the model first; then `max_treedepth = 12` or more |
+
+Rule of thumb: **divergences and non-identified models need a model fix; sampler settings are a last resort.**
 
 ## Divergent transitions
 
@@ -423,6 +453,44 @@ pairs(div.t,
 #| code-fold: true
 plot(div.t)
 ```
+
+## A model that can't be identified
+
+Two predictors that carry the same information: each person's leg length, measured on the left and the right leg (after SR 6.1).
+
+```{r}
+#| code-fold: true
+set.seed(5)
+n <- 100
+legs <- tibble(height    = rnorm(n, 10, 2),
+               leg_prop  = runif(n, .4, .5),
+               leg_left  = leg_prop * height + rnorm(n, 0, .02),
+               leg_right = leg_prop * height + rnorm(n, 0, .02))
+cor(legs$leg_left, legs$leg_right)
+
+legs.1 <- brm(height ~ 1 + leg_left + leg_right, data = legs,
+              iter = 400, warmup = 100, chains = 4, cores = 4, seed = 5,
+              backend = "cmdstanr", file = "legs.1")    # brms default (flat) priors on the slopes
+```
+
+## Non-identified: the symptoms {.smaller}
+
+```{r}
+#| code-fold: true
+summary(legs.1)
+```
+
+R-hat above 1.01, ESS around 150, and each leg slope's interval runs from about −4 to +5 even though leg length obviously predicts height. Look at the shape to see why.
+
+## Non-identified: the shape
+
+```{r}
+#| code-fold: true
+#| fig-height: 3.5
+mcmc_scatter(legs.1, pars = c("b_leg_left", "b_leg_right"), alpha = .3)
+```
+
+The data only pin down the **sum** of the two slopes, so the posterior is a long, thin ridge. Running longer maps the ridge more thoroughly but can't make it narrower: **fix the model** (drop or combine the duplicate, or give the slopes real priors). HW 5 has you work through a version of this.
 
 ## Leap Frog steps and NUTS
 
@@ -467,3 +535,13 @@ h.3 <-
       file = "h.3")
 summary(h.3)
 ```
+
+## Preview: divergences in multilevel models {.smaller}
+
+The most common place you'll see divergences is a multilevel model with few groups or a small between-group SD. If group effects are $u_j \sim \text{Normal}(0, \tau)$, then when $\tau$ is near 0 all the $u_j$ are squeezed near 0, and the posterior takes a **funnel** shape that HMC can't follow with one step size.
+
+The standard fix is the **non-centered parameterization**: sample standardized effects and scale them,
+
+$$z_j \sim \text{Normal}(0, 1), \qquad u_j = \tau \, z_j$$
+
+Same model, different geometry: the $z_j$ don't get squeezed when $\tau$ is small. brms already does this for you (you'll see it in `stancode()` in the multilevel weeks), but knowing why helps when you write your own Stan code.

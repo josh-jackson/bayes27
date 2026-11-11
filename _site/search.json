@@ -1397,7 +1397,7 @@
     "href": "mcmc-5.html#how-many-iterations-do-you-need",
     "title": "MCMC",
     "section": "How many iterations do you need?",
-    "text": "How many iterations do you need?\n\nMore iterations = more accurate posterior estimates. Total (usable) iterations = (Iterations - warm up samples)*chains\nEffective sample size: roughly the number of draws divided by (1 + 2 × the sum of the autocorrelations), i.e., how many independent draws your correlated draws are worth. Can have greater than the number iterations due to negative correlations (this is good!). Referred to as Bulk_ESS in brms\nTail_ESS is similar but it is used more for CIs. The convergence of Markov chains are not uniform across the parameter. Central tendency estimates should use Bulk_ESS, whereas for intervals (the tails) look at Tail_ESS."
+    "text": "How many iterations do you need?\n\nMore iterations = more accurate posterior estimates. Total (usable) iterations = (Iterations - warm up samples)*chains\nEffective sample size: roughly the number of draws divided by (1 + 2 × the sum of the autocorrelations), i.e., how many independent draws your correlated draws are worth. Can have greater than the number iterations due to negative correlations (this is good!). Referred to as Bulk_ESS in brms\nTail_ESS is similar but it is used more for CIs. The convergence of Markov chains are not uniform across the parameter. Central tendency estimates should use Bulk_ESS, whereas for intervals (the tails) look at Tail_ESS.\nHow much is enough? Rule of thumb: Bulk_ESS and Tail_ESS above about 400 (≈100 per chain with 4 chains) for every parameter you report (Vehtari et al., 2021)."
   },
   {
     "objectID": "mcmc-5.html#auto-regressive-correlation-across-chains",
@@ -4940,5 +4940,61 @@
     "title": "MCMC",
     "section": "Gradient descent, pictured",
     "text": "Gradient descent, pictured"
+  },
+  {
+    "objectID": "mcmc-5.html#rank-plots",
+    "href": "mcmc-5.html#rank-plots",
+    "title": "MCMC",
+    "section": "Rank plots",
+    "text": "Rank plots\nA more sensitive check than trace plots: pool all draws, rank them, then plot each chain’s ranks as a histogram. If the chains are exploring the same distribution, every chain’s histogram is roughly flat (each chain gets its fair share of low, middle, and high values).\n\n\nCode\nmcmc_rank_overlay(h.3, pars = c(\"b_mood.group.dcontrol\", \"b_mood.group.dtx\", \"sigma\"))\n\n\n\nA chain whose histogram bulges at one end is stuck in part of the posterior, even if its trace plot looks like a fuzzy caterpillar."
+  },
+  {
+    "objectID": "mcmc-5.html#which-warning-which-fix",
+    "href": "mcmc-5.html#which-warning-which-fix",
+    "title": "MCMC",
+    "section": "Which warning, which fix?",
+    "text": "Which warning, which fix?\n\n\n\n\n\n\n\n\n\nWarning\nWhat it means\nUsual cause\nFirst things to try\n\n\n\n\nR-hat &gt; 1.01\nchains disagree\ntoo short a run; multimodal or poorly identified posterior\nmore warmup/iterations; check the model (priors, redundant parameters)\n\n\nLow Bulk/Tail ESS\ntoo few effectively independent draws\nhigh autocorrelation, often from strongly correlated parameters\nmore iterations; reparameterize or remove redundancy\n\n\nDivergent transitions\nthe sampler hit regions it can’t follow; results may be biased\nsharp curvature: tiny data with vague priors, funnels in multilevel models\nbetter priors; adapt_delta = .95 or .99; non-centered parameterization\n\n\nMax treedepth\nthe sampler took the longest allowed trajectories; an efficiency warning\nlong, narrow posteriors (e.g., near-duplicate predictors), flat priors\nfix the model first; then max_treedepth = 12+\n\n\n\nRule of thumb: divergences and non-identified models need a model fix; the sampler settings are a last resort."
+  },
+  {
+    "objectID": "mcmc-5.html#a-model-that-cant-be-identified",
+    "href": "mcmc-5.html#a-model-that-cant-be-identified",
+    "title": "MCMC",
+    "section": "A model that can’t be identified",
+    "text": "A model that can’t be identified\nTwo predictors that carry the same information: each person’s leg length, measured on the left and the right leg (after SR 6.1).\n\n\nCode\nset.seed(5)\nn &lt;- 100\nlegs &lt;- tibble(height    = rnorm(n, 10, 2),\n               leg_prop  = runif(n, .4, .5),\n               leg_left  = leg_prop * height + rnorm(n, 0, .02),\n               leg_right = leg_prop * height + rnorm(n, 0, .02))\ncor(legs$leg_left, legs$leg_right)\n\n\n[1] 0.9996139\n\n\nCode\nlegs.1 &lt;- brm(height ~ 1 + leg_left + leg_right, data = legs,\n              iter = 400, warmup = 100, chains = 4, cores = 4, seed = 5,\n              backend = \"cmdstanr\", file = \"legs.1\")    # brms default (flat) priors on the slopes"
+  },
+  {
+    "objectID": "mcmc-5.html#non-identified-the-symptoms",
+    "href": "mcmc-5.html#non-identified-the-symptoms",
+    "title": "MCMC",
+    "section": "Non-identified: the symptoms",
+    "text": "Non-identified: the symptoms\n\n\nCode\nsummary(legs.1)\n\n\n Family: gaussian \n  Links: mu = identity; sigma = identity \nFormula: height ~ 1 + leg_left + leg_right \n   Data: legs (Number of observations: 100) \n  Draws: 4 chains, each with iter = 400; warmup = 100; thin = 1;\n         total post-warmup draws = 1200\n\nRegression Coefficients:\n          Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nIntercept     1.79      0.27     1.28     2.31 1.00     1524     1069\nleg_left      0.59      2.24    -3.74     5.20 1.06      147      157\nleg_right     1.25      2.24    -3.39     5.59 1.06      147      157\n\nFurther Distributional Parameters:\n      Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nsigma     0.60      0.04     0.53     0.70 1.01      590      746\n\nDraws were sampled using sample(hmc). For each parameter, Bulk_ESS\nand Tail_ESS are effective sample size measures, and Rhat is the potential\nscale reduction factor on split chains (at convergence, Rhat = 1).\n\n\nR-hat above 1.01, ESS around 150, and each leg slope’s interval runs from about −4 to +5 even though leg length obviously predicts height. Look at the shape to see why."
+  },
+  {
+    "objectID": "mcmc-5.html#non-identified-the-shape",
+    "href": "mcmc-5.html#non-identified-the-shape",
+    "title": "MCMC",
+    "section": "Non-identified: the shape",
+    "text": "Non-identified: the shape\n\n\nCode\nmcmc_scatter(legs.1, pars = c(\"b_leg_left\", \"b_leg_right\"), alpha = .3)\n\n\n\nThe data only pin down the sum of the two slopes, so the posterior is a long, thin ridge. Running longer maps the ridge more thoroughly but can’t make it narrower: fix the model (drop or combine the duplicate, or give the slopes real priors). HW 5 has you work through a version of this."
+  },
+  {
+    "objectID": "mcmc-5.html#preview-divergences-in-multilevel-models",
+    "href": "mcmc-5.html#preview-divergences-in-multilevel-models",
+    "title": "MCMC",
+    "section": "Preview: divergences in multilevel models",
+    "text": "Preview: divergences in multilevel models\nThe most common place you’ll see divergences is a multilevel model with few groups or a small between-group SD. If group effects are \\(u_j \\sim \\text{Normal}(0, \\tau)\\), then when \\(\\tau\\) is near 0 all the \\(u_j\\) are squeezed near 0, and the posterior takes a funnel shape that HMC can’t follow with one step size.\nThe standard fix is the non-centered parameterization: sample standardized effects and scale them,\n\\[z_j \\sim \\text{Normal}(0, 1), \\qquad u_j = \\tau \\, z_j\\]\nSame model, different geometry: the \\(z_j\\) don’t get squeezed when \\(\\tau\\) is small. brms already does this for you (you’ll see it in stancode() in the multilevel weeks), but knowing why helps when you write your own Stan code."
+  },
+  {
+    "objectID": "mcmc-5.html#which-warning-which-fix-1",
+    "href": "mcmc-5.html#which-warning-which-fix-1",
+    "title": "MCMC",
+    "section": "Which warning, which fix? (1)",
+    "text": "Which warning, which fix? (1)\n\n\n\n\n\n\n\n\n\nWarning\nWhat it means\nUsual cause\nFirst things to try\n\n\n\n\nR-hat &gt; 1.01\nchains disagree\ntoo short a run; a multimodal or poorly identified posterior\nmore warmup/iterations; check the model (priors, redundant parameters)\n\n\nLow Bulk/Tail ESS\ntoo few effectively independent draws\nhigh autocorrelation, often from strongly correlated parameters\nmore iterations; reparameterize or remove redundancy"
+  },
+  {
+    "objectID": "mcmc-5.html#which-warning-which-fix-2",
+    "href": "mcmc-5.html#which-warning-which-fix-2",
+    "title": "MCMC",
+    "section": "Which warning, which fix? (2)",
+    "text": "Which warning, which fix? (2)\n\n\n\n\n\n\n\n\n\nWarning\nWhat it means\nUsual cause\nFirst things to try\n\n\n\n\nDivergent transitions\nthe sampler hit regions it can’t follow; results may be biased\nsharp curvature: tiny data with vague priors, funnels in multilevel models\nbetter priors; adapt_delta = .95 or .99; non-centered parameterization\n\n\nMax treedepth\nthe sampler took the longest allowed trajectories; an efficiency warning\nlong, narrow posteriors (e.g., near-duplicate predictors), flat priors\nfix the model first; then max_treedepth = 12 or more\n\n\n\nRule of thumb: divergences and non-identified models need a model fix; sampler settings are a last resort."
   }
 ]
