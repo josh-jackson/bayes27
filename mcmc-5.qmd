@@ -5,9 +5,6 @@ slide-number: true
 editor: visual
 execute: 
   echo: true
-html:
-    code-fold: true
-    code-summary: "Show the code"
 ---
 
 ## How do we estimate the posterior?
@@ -20,7 +17,7 @@ html:
 
 -   Think of marbles in the bag -- we don't know what that looks like but we can sample from it to compute a posterior.
 
-## Why this way?
+## Why this way? {.smaller}
 
 -   Short answer: computation is difficult.
 
@@ -30,15 +27,15 @@ html:
 
 $$ p(x) = \int_\theta p(x|\theta)p(\theta)d(\theta) $$
 
-## Conjugate priors
+## Conjugate priors {.smaller}
 
 -   With many parameters it is basically impossible to compute analytically. "Bayesian analysis is hard because integrals are hard". Maximization (derivatives) is easier than integrals, which is why frequentist is so popular.
 
--   Conjugate priors are a less computational heavy approach to solving the integral problem. If posterior is from the same family as prior then it is easier to compute the evidence. Eg. prior is normal, posterior is normal. For something like sigma, people use gamma and gamma. As a result the posterior, p( $\theta$ \| data), becomes analytically tractable.
+-   Conjugate priors are a less computational heavy approach to solving the integral problem. If posterior is from the same family as prior then it is easier to compute the evidence. E.g., a normal likelihood (with known σ) and a normal prior on the mean give a normal posterior; a binomial likelihood and a beta prior give a beta posterior (what we did on the grid in week 1); for a variance, the conjugate prior is an inverse-gamma. As a result the posterior, p( $\theta$ \| data), becomes analytically tractable.
 
-------------------------------------------------------------------------
+## Why we can ignore the evidence
 
-$$p(\theta | data) \propto \frac{p(data | \theta) \times p(\theta )}{p(data)}$$
+$$p(\theta | data) = \frac{p(data | \theta) \times p(\theta )}{p(data)}$$
 
 The evidence is a constant with respect to $\theta$ so the equation is often presented as:
 
@@ -46,9 +43,9 @@ $$ p(\theta | data) \propto p(data | \theta) \times p(\theta ) $$ "The posterior
 
 As long as we can calculate the right side of the equation we can then sample from the posterior distribution
 
-## Markov Chain Monte Carlo
+## Markov Chain Monte Carlo {.smaller}
 
--   Markov Chain: random process that undergoes transitions between states where the current state depends on the previous state. This is considered "memory less" because any state more than 1 away from each other is unrelated.
+-   Markov Chain: random process that moves between states, where the next state depends only on the current state. This is the "memoryless" property: given where you are now, where you were before adds nothing. (Draws are still correlated with earlier draws through the chain, which is why we'll check autocorrelation.)
 
 -   Monte Carlo: Famous casino in Monaco. Used here to refer to repeated random sampling, like tossing dice
 
@@ -60,11 +57,11 @@ As long as we can calculate the right side of the equation we can then sample fr
 
 -   Stan (and thus brms) uses Hamiltonian\
 
--   JAGS (in Krushke's DBDA) stands for Just Another Gibbs Sampler
+-   JAGS (in Kruschke's DBDA) stands for Just Another Gibbs Sampler
 
 -   BUGS (Bayesian inference Using Gibbs Sampling) was recently popular
 
-## Metropolis
+## Metropolis {.smaller}
 
 Steps of algorithm:
 
@@ -74,29 +71,29 @@ Steps of algorithm:
 
 3.  Calculate likelihood\*prior of proposal
 
-4.  Divide proposal value by current value
+4.  Divide the proposal's value by the current value: the acceptance ratio
 
-5.  Sample from runif(1)
+5.  Draw a random number from runif(1)
 
-6.  If proposal is greater, move. If not, stay.
+6.  If the random number is less than the ratio, move to the proposal; otherwise stay. (Uphill moves, ratio > 1, are always accepted; downhill moves only sometimes.)
 
-------------------------------------------------------------------------
+## Metropolis, step by step (1)
 
 ![](met1.png)
 
-------------------------------------------------------------------------
+## Metropolis, step by step (2)
 
 ![](met2.png)
 
-------------------------------------------------------------------------
+## Metropolis, step by step (3)
 
 ![](met3.png)
 
-------------------------------------------------------------------------
+## Metropolis, step by step (4)
 
 ![](met4.png)
 
-------------------------------------------------------------------------
+## Metropolis, step by step (5)
 
 ![](met5.png)
 
@@ -140,7 +137,7 @@ tibble(week   = 1:1000,
 
 ```
 
-------------------------------------------------------------------------
+## Where the chain spent its time
 
 ```{r}
 #| code-fold: true
@@ -160,13 +157,11 @@ tibble(week   = 1:1000,
 
 -   To visualize posteriors we usually "marginalize" them, that is, visualize them averaged across other posteriors.
 
-------------------------------------------------------------------------
+## Two variables at once
 
 ```{r}
 #| code-fold: true
-data <- "https://raw.githubusercontent.com/josh-jackson/bayes/master/week3.csv"
-
-data <- read.csv(data) %>% 
+data <- read.csv("week3.csv") %>%   # also at https://bayes27.netlify.app/week3.csv
   select(-ID, -SES)
 
 library(ggExtra)
@@ -179,7 +174,7 @@ p2 <- ggMarginal(p, type="density")
 p2
 ```
 
-------------------------------------------------------------------------
+## A correlated posterior
 
 ```{r}
 #| code-fold: true
@@ -194,7 +189,7 @@ Y = cor.dat[, 2]  # standard normal (mu=0, sd=1)
 cor <- tibble(X,Y)
 
 cor %>% 
-  ggplot(aes(x = X, y = Y, fill = stat(density))) +
+  ggplot(aes(x = X, y = Y, fill = after_stat(density))) +
   stat_density_2d(geom = "raster", contour = F) +
   scale_fill_viridis_c(option = "D") +
   labs(x = expression(theta[1]),
@@ -205,17 +200,17 @@ detach(package:MASS, unload=TRUE)
 
 ```
 
-## Gibbs
+## Gibbs {.smaller}
 
 -   To explore a high dimensional space we need to be savvy about our proposals. Especially, when we are drawing samples for each parameter given a specific value of another parameter.
 
--   Like metropolis, Gibbs "guesses and checks," but has more adaptive proposals so as to not explore (and reject) so much space, leading to more efficient sampling.
+-   Gibbs updates one parameter at a time, drawing it directly from its distribution *given the current values of all the others* (its "full conditional"). Every draw is accepted, so there's no wasted guess-and-check.
 
--   Faster than Metropolis (and really probably good enough for most linear regressions).
+-   Usually faster than Metropolis (and good enough for many regressions), but it needs those conditional distributions to be easy to sample from, which in practice means conjugate priors.
 
-------------------------------------------------------------------------
+## When Gibbs and Metropolis struggle
 
--   But, this efficient sampling can go awry and result in slow sampling, regardless of step size. If step size is too low, it takes a lot of samples to explore the space. If too large, there are too many rejections. So you need to "tune" your algorithm.
+-   Both struggle when parameters are strongly correlated, like the posterior below: moving one parameter at a time (Gibbs) or with small random steps (Metropolis) creeps slowly along the narrow ridge. Metropolis also needs its step size tuned: too small and it takes forever to explore, too large and most proposals are rejected.
 
 ```{r, echo = FALSE}
 samples = 200
@@ -229,7 +224,7 @@ Y = cor.dat[, 2]  # standard normal (mu=0, sd=1)
 cor <- tibble(X,Y)
 
 cor %>% 
-  ggplot(aes(x = X, y = Y, fill = stat(density))) +
+  ggplot(aes(x = X, y = Y, fill = after_stat(density))) +
   stat_density_2d(geom = "raster", contour = F) +
   scale_fill_viridis_c(option = "D") +
   labs(x = expression(theta[1]),
@@ -246,15 +241,15 @@ detach(package:MASS, unload=TRUE)
 
 -   Cannot just focus on the mode, we need to focus on the volume. The volume is an important part of the integral we are trying to solve with MCMC. Most of the volume is away from the mode.
 
-------------------------------------------------------------------------
+## Where the volume is (1)
 
 ![](met6.png)
 
-------------------------------------------------------------------------
+## Where the volume is (2)
 
 ![](met7.png)
 
-------------------------------------------------------------------------
+## Where the volume is (3)
 
 ![](met8.png)
 
@@ -272,9 +267,9 @@ detach(package:MASS, unload=TRUE)
 
 -   Gradient descent is one such algorithm that could see what theta most likely.
 
--   EM algorithm (Expectation-Maximum) is typically standard. More of an iterative hike (E-step to M-step) rather than skateboarding
+-   The EM algorithm (Expectation–Maximization) is another common one. More of an iterative hike (E-step to M-step) rather than skateboarding
 
-## gradient descent
+## Gradient descent, pictured
 
 ![](met9.png)
 
@@ -282,11 +277,11 @@ detach(package:MASS, unload=TRUE)
 
 https://chi-feng.github.io/mcmc-demo/app.html
 
-------------------------------------------------------------------------
+## Gradients and autodiff
 
 -   If proposals depend on the curvature or gradient in the posterior how do we calculate that? Derivatives. Lots of them.
 
--   Automatic-differentiation (auto-diff) is a way to do gradient descent computationally efficient.
+-   Automatic differentiation (autodiff) computes those gradients exactly and efficiently, which is what makes HMC practical.
 
 -   We are not calculating the posterior directly, but instead just local estimation of the curvature (not full integral).
 
@@ -298,29 +293,29 @@ Two key points:
 
 1.  It is iterative, does not create the posterior distribution, instead it results in samples.
 
-2.  It is stochastic. This means you wont get the same result each time.
+2.  It is stochastic. This means you won't get the same result each time (unless you set a seed).
 
 So we need to make sure that the algorithm "works" in that there are enough samples to get a good picture of the posterior, and that the samples will replicate across different attempts.
 
-## How many iterations do you need?
+## How many iterations do you need? {.smaller}
 
 -   More iterations = more accurate posterior estimates. Total (usable) iterations = (Iterations - warm up samples)\*chains
 
--   Effective sample size \~= Iterations divided by autocorrelation. Can have greater than the number iterations due to `negative correlations` (this is good!). Referred to as Bulk_ESS in `brms`
+-   Effective sample size: roughly the number of draws divided by (1 + 2 × the sum of the autocorrelations), i.e., how many *independent* draws your correlated draws are worth. Can have greater than the number iterations due to `negative correlations` (this is good!). Referred to as Bulk_ESS in `brms`
 
--   Tail_ESS is similar but it is used more for CIs. The convergence of Markov chains are not uniform across the parameter. Central tendency estimates should use Bulk_ESS whereas if you want to work with CIs look at tail_EFF.
+-   Tail_ESS is similar but it is used more for CIs. The convergence of Markov chains are not uniform across the parameter. Central tendency estimates should use Bulk_ESS, whereas for intervals (the tails) look at Tail_ESS.
 
-------------------------------------------------------------------------
+## A model to diagnose
 
 ```{r}
 #| code-fold: true
 library(tidyverse)
 library(brms)
 
-data <- "https://raw.githubusercontent.com/josh-jackson/bayes/master/week3.csv"
-
-week3 <- read.csv(data) %>% 
-  dplyr::select(-ID, -SES)
+week3 <- read.csv("week3.csv") %>%   # also at https://bayes27.netlify.app/week3.csv
+  dplyr::select(-ID, -SES) %>% 
+  mutate(mood.group.d = factor(mood.group) %>% 
+           fct_recode("control" = "0", "tx" = "1", "tx" = "2"))
 
 
 h.3 <- 
@@ -341,19 +336,16 @@ summary(h.3)
 ```{r}
 #| code-fold: true
 library(bayesplot)
-post <- posterior_samples(h.3, add_chain = TRUE)
-post %>% 
-  select(b_mood.group.dcontrol,b_mood.group.dtx, sigma) %>% 
-mcmc_acf()
+mcmc_acf(h.3, pars = c("b_mood.group.dcontrol", "b_mood.group.dtx", "sigma"))
 ```
 
 ## How many chains do you need?
 
--   You need enough chains to chains to check convergence.
+-   You need enough chains to check convergence.
 
 -   The number of chains depends on 1) how many cores your computer has and 2) how much time you have. Conceivably you could run 100 chains. The problem though is this is wasteful computationally, as you will discard more warmup iterations.
 
----------------------
+## How many chains: the recommendation
 
 -   The Stan team suggests that 4 chains are adequate for checking convergence. `brms` defaults are iter = 2000 and warmup = 1000 which yields 4000 usable posterior samples ((iter - warmup) \* chains).
 
@@ -365,7 +357,7 @@ Convergence is to a target distribution (the required posterior), not to a singl
 
 First step is to look for fuzzy caterpillars (mixing, stationarity, and convergence) in the trace plots. Note that our warm up samples are not visualized.
 
-------------------------------------------------------------------------
+## Trace plots
 
 ```{r}
 #| code-fold: true
@@ -374,11 +366,11 @@ plot(h.3)
 
 ## R-hat
 
--   Ratio of variances between and within chain.
+-   Compares the variance between chains to the variance within chains (brms reports the improved rank-normalized, split version).
 
--   1 indicates that there are no differences across chains.
+-   1 indicates that the chains agree.
 
--   $>$ 1.05 indicates that chains provide unequal information
+-   Current recommendation: R-hat < 1.01 for every parameter (Vehtari et al., 2021). Older rules of thumb used 1.1 or 1.05; brms warns above 1.05.
 
 ## Fixing wild chains
 
@@ -409,14 +401,14 @@ div.t <-
       file = "div.t")
 ```
 
-------------------------------------------------------------------------
+## A model with divergences
 
 ```{r}
 #| code-fold: true
 summary(div.t)
 ```
 
-------------------------------------------------------------------------
+## Divergences in a pairs plot
 
 ```{r}
 #| code-fold: true
@@ -425,7 +417,7 @@ pairs(div.t,
       off_diag_args = list(size = 1/4))
 ```
 
-------------------------------------------------------------------------
+## Divergences in trace plots
 
 ```{r}
 #| code-fold: true
@@ -440,7 +432,7 @@ plot(div.t)
 
 -   Number of steps is done with NUTS, the No U-Turn Sampler. It makes sure that your puck does not end up in the same place it started. It does so by running the simulation in two directions. Provides optimal number of steps specific to the gradient you are currently in.
 
-------------------------------------------------------------------------
+## Fixing divergences: adapt_delta
 
 If dealing with divergent transitions, increasing the acceptance probability during warm up will result in smaller steps (smaller time interval) and a longer sampling time (but more robust sampling).
 
