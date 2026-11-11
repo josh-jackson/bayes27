@@ -1,0 +1,51 @@
+---
+title: "HW 5: When the chains go wild"
+---
+
+**Due:** Thursday, Feb 25 at 2:30 pm on Canvas · **Size:** light · **Covers:** [MCMC](mcmc-5.qmd)
+
+Start from the [homework template](hw-template.qmd){download="hw-template.qmd"}, use `## Q1` to `## Q3` headings, and turn in both the `.qmd` and the rendered `.html`. Each question is graded 0 / 1 / 2 (missing / attempted / solid); answers in words count.
+
+**Reminder:** your final project plan needs to be approved by **Tuesday, Feb 23**.
+
+## The setup
+
+A research assistant sends you a dataset on stress and sleep (hours per night) for 60 people. While cleaning it, they fixed a scoring typo in the stress questionnaire and kept *both* versions, `stress` and `stress_v2`, "just in case." You fit both as predictors without looking too closely.
+
+```{r, eval = FALSE}
+library(tidyverse)
+library(brms)
+
+set.seed(5)
+n <- 60
+d <- tibble(stress    = rnorm(n, 0, 1),
+            stress_v2 = stress + rnorm(n, 0, .002),
+            sleep     = 7 - .5 * stress + rnorm(n, 0, 1))
+
+m_wild <- brm(sleep ~ 1 + stress + stress_v2, data = d,
+              iter = 300, warmup = 50, chains = 4, cores = 4, seed = 5,
+              backend = "cmdstanr", file = "fits/hw5-m_wild")
+```
+
+(Yes, brms's default flat priors on the slopes are part of the problem. That's on purpose.)
+
+## Q1. Diagnose
+
+a) Read the `summary()` and any warnings brms prints. For each slope, report **R-hat**, **Bulk_ESS**, and **Tail_ESS**, and say what each one tells you. What warning(s) did you get, and what do they mean?
+b) Look at the trace plots (`plot(m_wild)` or `bayesplot::mcmc_trace()`) and rank plots (`bayesplot::mcmc_rank_overlay()`). Describe what you see for the slopes versus the intercept and σ. Are these "fuzzy caterpillars"?
+c) Make a scatterplot of the posterior draws of the two slopes against each other (`pairs()` or `mcmc_scatter()`). What shape is it, and why does that shape make sampling hard?
+
+## Q2. The fix that doesn't fix it
+
+The first thing everyone tries is "run it longer."
+
+a) Refit the same model with brms's defaults (`iter = 2000, warmup = 1000`). Report R-hat and ESS for the slopes again. Did they improve?
+b) Now look at the **estimates**. Are the two slopes believable? What does a 95% interval spanning more than 100 hours of sleep per unit of stress (in a day with 24) tell you?
+c) Look at the data (`cor(d$stress, d$stress_v2)`). In two or three sentences: what is the real problem, and why can't more iterations solve it? (Hint: what is the model being asked to estimate that the data can't tell apart?)
+
+## Q3. Actually fix it, and show it's fixed
+
+a) Fix the model. You choose how (drop the redundant predictor, combine them, or use priors that make the model identifiable), and justify your choice in a sentence or two. Which fix is best *here*, and why?
+b) Show the fixed model's R-hat, ESS, and that there are no warnings.
+c) **Make a supplement-ready diagnostics figure** for your fixed model: trace plots and rank plots for the intercept, slope(s), and σ, combined into one figure with {patchwork}. Journals increasingly ask for these in supplementary materials. Apply the [figure checklist](homeworks.qmd#figures) where it makes sense: readable parameter labels (e.g., "Slope: stress" instead of `b_stress`), a clean theme, colorblind-safe chain colors (bayesplot's `color_scheme_set("viridis")` helps), a caption, and `ggsave()` at 6.5 inches wide.
+d) One sentence: what does your fixed model say about stress and sleep?

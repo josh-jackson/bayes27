@@ -3057,5 +3057,40 @@
     "title": "homeworks",
     "section": "Publication-ready figures",
     "text": "Publication-ready figures\nA model you can’t show is a model nobody will understand, so from HW 3 on, most homeworks have a question that asks for a publication-ready figure. That means a figure you could drop into a manuscript without apologizing for it. It’s graded against this checklist:\n\nIt shows the model, with uncertainty. Plot model estimates (posterior means/medians with intervals, or lines with ribbons), not just raw data, and say which interval it is (e.g., “97% interval for the mean” vs. “97% prediction interval”).\nRaw data, when it helps. Show the data behind the estimates (jittered, transparent points) unless there are so many points they hide everything.\nLabels in words, with units. “SAT quantitative score,” not SATQ; “Condition” with levels “Control” and “Treatment,” not a with 0 and 1. Recode factors and set labs() before plotting.\nReadable and clean. A clean theme (theme_classic(), theme_minimal(), or similar), text that’s readable at the final size (base size around 12), no clutter.\nColor that works for everyone. Use a colorblind-safe palette (e.g., scale_color_viridis_d() or the Okabe–Ito colors) and a second cue (linetype or shape) so it still works in grayscale.\nA caption that stands alone. Use #| fig-cap: in the chunk. A reader should know what’s plotted, which interval, and the n without reading your text.\nSaved at publication size. Save it with ggsave(\"fig-hwX.png\", width = 6.5, height = 4, dpi = 300) (6.5 inches is a journal page width) and check that it still looks right at that size.\n\nUseful tools: {tidybayes} (stat_lineribbon(), stat_pointinterval(), stat_halfeye()), {marginaleffects} (plot_predictions(), plot_slopes(), or draw = FALSE to get the data and build the plot yourself in ggplot), and {patchwork} to put panels together."
+  },
+  {
+    "objectID": "hw-5.html",
+    "href": "hw-5.html",
+    "title": "HW 5: When the chains go wild",
+    "section": "",
+    "text": "Due: Thursday, Feb 25 at 2:30 pm on Canvas · Size: light · Covers: MCMC\nStart from the homework template, use ## Q1 to ## Q3 headings, and turn in both the .qmd and the rendered .html. Each question is graded 0 / 1 / 2 (missing / attempted / solid); answers in words count.\nReminder: your final project plan needs to be approved by Tuesday, Feb 23."
+  },
+  {
+    "objectID": "hw-5.html#the-setup",
+    "href": "hw-5.html#the-setup",
+    "title": "HW 5: When the chains go wild",
+    "section": "The setup",
+    "text": "The setup\nA research assistant sends you a dataset on stress and sleep (hours per night) for 60 people. While cleaning it, they fixed a scoring typo in the stress questionnaire and kept both versions, stress and stress_v2, “just in case.” You fit both as predictors without looking too closely.\n\nlibrary(tidyverse)\nlibrary(brms)\n\nset.seed(5)\nn &lt;- 60\nd &lt;- tibble(stress    = rnorm(n, 0, 1),\n            stress_v2 = stress + rnorm(n, 0, .002),\n            sleep     = 7 - .5 * stress + rnorm(n, 0, 1))\n\nm_wild &lt;- brm(sleep ~ 1 + stress + stress_v2, data = d,\n              iter = 300, warmup = 50, chains = 4, cores = 4, seed = 5,\n              backend = \"cmdstanr\", file = \"fits/hw5-m_wild\")\n\n(Yes, brms’s default flat priors on the slopes are part of the problem. That’s on purpose.)"
+  },
+  {
+    "objectID": "hw-5.html#q1.-diagnose",
+    "href": "hw-5.html#q1.-diagnose",
+    "title": "HW 5: When the chains go wild",
+    "section": "Q1. Diagnose",
+    "text": "Q1. Diagnose\n\nRead the summary() and any warnings brms prints. For each slope, report R-hat, Bulk_ESS, and Tail_ESS, and say what each one tells you. What warning(s) did you get, and what do they mean?\nLook at the trace plots (plot(m_wild) or bayesplot::mcmc_trace()) and rank plots (bayesplot::mcmc_rank_overlay()). Describe what you see for the slopes versus the intercept and σ. Are these “fuzzy caterpillars”?\nMake a scatterplot of the posterior draws of the two slopes against each other (pairs() or mcmc_scatter()). What shape is it, and why does that shape make sampling hard?"
+  },
+  {
+    "objectID": "hw-5.html#q2.-the-fix-that-doesnt-fix-it",
+    "href": "hw-5.html#q2.-the-fix-that-doesnt-fix-it",
+    "title": "HW 5: When the chains go wild",
+    "section": "Q2. The fix that doesn’t fix it",
+    "text": "Q2. The fix that doesn’t fix it\nThe first thing everyone tries is “run it longer.”\n\nRefit the same model with brms’s defaults (iter = 2000, warmup = 1000). Report R-hat and ESS for the slopes again. Did they improve?\nNow look at the estimates. Are the two slopes believable? What does a 95% interval spanning more than 100 hours of sleep per unit of stress (in a day with 24) tell you?\nLook at the data (cor(d$stress, d$stress_v2)). In two or three sentences: what is the real problem, and why can’t more iterations solve it? (Hint: what is the model being asked to estimate that the data can’t tell apart?)"
+  },
+  {
+    "objectID": "hw-5.html#q3.-actually-fix-it-and-show-its-fixed",
+    "href": "hw-5.html#q3.-actually-fix-it-and-show-its-fixed",
+    "title": "HW 5: When the chains go wild",
+    "section": "Q3. Actually fix it, and show it’s fixed",
+    "text": "Q3. Actually fix it, and show it’s fixed\n\nFix the model. You choose how (drop the redundant predictor, combine them, or use priors that make the model identifiable), and justify your choice in a sentence or two. Which fix is best here, and why?\nShow the fixed model’s R-hat, ESS, and that there are no warnings.\nMake a supplement-ready diagnostics figure for your fixed model: trace plots and rank plots for the intercept, slope(s), and σ, combined into one figure with {patchwork}. Journals increasingly ask for these in supplementary materials. Apply the figure checklist where it makes sense: readable parameter labels (e.g., “Slope: stress” instead of b_stress), a clean theme, colorblind-safe chain colors (bayesplot’s color_scheme_set(\"viridis\") helps), a caption, and ggsave() at 6.5 inches wide.\nOne sentence: what does your fixed model say about stress and sleep?"
   }
 ]
