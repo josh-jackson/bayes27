@@ -10,6 +10,8 @@ project:
     - LSAT.csv
     - week3.csv
     - hw3.csv
+    - anova.csv
+    - Multipleregression.csv
 
 website:
   title: "Bayesian Statistics Spring 2027"

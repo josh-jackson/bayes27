@@ -5,9 +5,6 @@ slide-number: true
 editor: visual
 execute:
   echo: true
-html:
-  code-fold: true
-  code-summary: Show the code
 ---
 
 ## Goals for this section
@@ -26,7 +23,6 @@ library(modelr)
 library(patchwork)
 library(tidyverse)
 library(tidybayes)
-library(emmeans)
 
 # normal density
 p1 <-
@@ -43,7 +39,7 @@ p1 <-
            size = 7, family = "Times", parse = T) +
   scale_x_continuous(expand = c(0, 0)) +
   theme_void() +
-  theme(axis.line.x = element_line(size = 0.5))
+  theme(axis.line.x = element_line(linewidth = 0.5))
 
 # a second normal density
 p2 <-
@@ -60,7 +56,7 @@ p2 <-
            size = 7, family = "Times", parse = T) +
   scale_x_continuous(expand = c(0, 0)) +
   theme_void() +
-  theme(axis.line.x = element_line(size = 0.5))
+  theme(axis.line.x = element_line(linewidth = 0.5))
 
 ## two annotated arrows
 # save our custom arrow settings
@@ -96,7 +92,7 @@ p4 <-
            size = 7, family = "Times", parse = T) +
   scale_x_continuous(expand = c(0, 0)) +
   theme_void() +
-  theme(axis.line.x = element_line(size = 0.5))
+  theme(axis.line.x = element_line(linewidth = 0.5))
 
 # likelihood formula
 p5 <-
@@ -125,7 +121,7 @@ p6 <-
            size = 7, family = "Times", parse = T) +
   scale_x_continuous(expand = c(0, 0)) +
   theme_void() +
-  theme(axis.line.x = element_line(size = 0.5))
+  theme(axis.line.x = element_line(linewidth = 0.5))
 
 # three annotated arrows
 p7 <-
@@ -163,7 +159,7 @@ p8 <-
            size = 7, family = "Times", parse = T) +
   scale_x_continuous(expand = c(0, 0)) +
   theme_void() +
-  theme(axis.line.x = element_line(size = 0.5))
+  theme(axis.line.x = element_line(linewidth = 0.5))
 
 # the final annotated arrow
 p9 <-
@@ -220,7 +216,7 @@ Can you write this model equation? Assume two IVs.
 ```{r}
 #| code-fold: true
 #| 
-MR <-read.csv("https://raw.githubusercontent.com/josh-jackson/bayes/master/hw3.csv")
+MR <- read.csv("hw3.csv")   # also at https://bayes27.netlify.app/hw3.csv
 MR <- MR %>% 
   mutate(SS_c = `schoool.success` - mean(`schoool.success`),
          FQ_c = `friendship.quality` - mean(`friendship.quality`),
@@ -247,10 +243,10 @@ happiness \~ Normal( $\mu_i$ , $\sigma$ )
 
 $\mu_i$ = $\beta_0$ + $\beta_1$ $SS\_c$ + $\beta_2$ $FQ\_c$
 
-$\beta_0$ \~ Normal(0, 5)\
-$\beta_1$ \~ Normal(0, 5)\
-$\beta_2$ \~ Normal(0, 5)\
-$\sigma$ \~ HalfCauchy(0,10)
+$\beta_0$ \~ Normal(5, 2)\
+$\beta_1$ \~ Normal(0, 2)\
+$\beta_2$ \~ Normal(0, 2)\
+$\sigma$ \~ Exponential(1)
 
 ------------------------------------------------------------------------
 
@@ -265,7 +261,7 @@ mr.1 <-
       iter = 2000, warmup = 1000, chains = 2, cores = 2,
       data = MR,
       backend = "cmdstanr",
-      sample_prior = T,
+      sample_prior = "yes",
       file = "mr.1")
 ```
 
@@ -284,7 +280,7 @@ mr.1 <-
                 prior(exponential(1), class = sigma)),
       iter = 2000, warmup = 1000, chains = 2, cores = 2,
       data = MR,
-      sample_prior = T,
+      sample_prior = "yes",
       backend = "cmdstanr",
       file = "mr.1")
 
@@ -303,7 +299,7 @@ prior.mr1
 ```{r}
 #| code-fold: true
 prior.mr1 %>% 
-  sample_n(size = 100) %>% 
+  slice_sample(n = 100) %>% 
   rownames_to_column("draw") %>% 
   expand(nesting(draw, Intercept, b_SS_c),
          a = c(-10, 10)) %>% 
@@ -331,7 +327,7 @@ mr.2 <-
                 prior(exponential(.5), class = sigma)),
       iter = 2000, warmup = 1000, chains = 2, cores = 2,
       data = MR,
-      sample_prior = T,
+      sample_prior = "yes",
       backend = "cmdstanr",
       file = "mr.2")
 ```
@@ -340,9 +336,9 @@ mr.2 <-
 
 ```{r}
 #| code-fold: true
-prior.mr2<- prior_samples(mr.2)
+prior.mr2 <- prior_draws(mr.2)
 prior.mr2 %>% 
-  sample_n(size = 100) %>% 
+  slice_sample(n = 100) %>% 
   rownames_to_column("draw") %>% 
   expand(nesting(draw, Intercept, b_SS_c),
          a = c(-10, 10)) %>% 
@@ -382,7 +378,8 @@ plot(mr.1)
 ------------------------------------------------------------------------
 
 ```{r}
-conditional_effects(mr.1, effects = "FQ_c")
+library(marginaleffects)
+plot_predictions(mr.1, condition = "FQ_c")
 ```
 
 ## Conditional plots
@@ -393,7 +390,7 @@ conditional_effects(mr.1, effects = "FQ_c")
 
 -   To do so, we need to either average across or pick a point on the other variables in the model to visualize our effect of interest
 
-## Whats in our posterior?
+## What's in our posterior?
 
 ```{r}
 get_variables(mr.1)
@@ -475,7 +472,7 @@ MR %>%
 library(marginaleffects)
 predictions(mr.1,
              datagrid(FQ_c = 0,SS_c = seq(from = min(MR$SS_c), to = max(MR$SS_c))))  %>% 
-  posterior_draws() %>% 
+  get_draws() %>% 
    ggplot(aes(x = SS_c, y = happiness)) +
   stat_lineribbon(aes(y = draw), .width = c(.95), color = "grey") + geom_point(data = MR, size = 2)  
 
@@ -514,7 +511,7 @@ MR %>%
 predictions(mr.1,
             type = "prediction",
              datagrid(SS_c = 0,FQ_c = seq(from = min(MR$FQ_c), to = max(MR$FQ_c))))  %>% 
-  posterior_draws() %>% 
+  get_draws() %>% 
    ggplot(aes(x = FQ_c, y = happiness)) +
   stat_lineribbon(aes(y = draw), .width = c(.95), alpha = .5, color = "grey") + geom_point(data = MR, size = 2)  
 
@@ -581,7 +578,7 @@ MR %>%
 
 predictions(mr.1,
             type = "prediction")  %>% 
-  posterior_draws() %>% 
+  get_draws() %>% 
     sample_draws(50, draw = "drawid") %>% 
     ggplot(aes(draw, group = drawid)) +
    geom_line(stat = "density", alpha = .1) +
@@ -598,7 +595,7 @@ The model's epred/fitted against the observed data
 MR %>% 
  add_epred_draws(mr.1) %>% 
   ggplot(aes(x = happiness , y = .epred)) +
-  geom_abline(linetype = 2, color = "grey50", size = .5) +
+  geom_abline(linetype = 2, color = "grey50", linewidth = .5) +
   stat_interval(.width = c(.50, .95, .99)) +
   labs(y = "Predicted happiness")+
   xlim(0, 10) + ylim(0,10)
@@ -651,9 +648,9 @@ summary(mr.5)
 
 {brms} does not automatically create index variables for more than 1 categorical variable. The `0 +` treats the first variable as an index but not the second, such that the second has a standard dummy interpretation.
 
-We need a new syntax to write the model we want. We will us non-linear syntax for this, and revisit the syntax later in the class for additional models.
+We need a new syntax to write the model we want. We will use non-linear syntax for this, and revisit the syntax later in the class for additional models.
 
-For ANOVA ive found centering or standardizing your DV is helpful
+For ANOVA I've found centering or standardizing your DV is helpful
 
 ------------------------------------------------------------------------
 
@@ -703,11 +700,12 @@ Add the mean of your DV back in
 
 ```{r}
 #| code-fold: true
+mean_happy <- mean(MR$happiness)   # 5.21: we centered the DV, so add it back
 mr.6 %>%
   spread_draws(b_a_iv1, b_a_iv2, b_a_iv3) %>%
-  mutate(iv1 = b_a_iv1 + 5.213902) %>% 
-  mutate(iv2 = b_a_iv2 + 5.213902) %>% 
-  mutate(iv3 = b_a_iv3 + 5.213902) %>% 
+  mutate(iv1 = b_a_iv1 + mean_happy) %>% 
+  mutate(iv2 = b_a_iv2 + mean_happy) %>% 
+  mutate(iv3 = b_a_iv3 + mean_happy) %>% 
   gather_draws(iv1, iv2, iv3) %>% 
   ggplot(aes(y = .variable, x = .value)) +
   stat_dotsinterval()
@@ -720,9 +718,9 @@ mr.6 %>%
 #| code-fold: true
 mr.6 %>%
   spread_draws(b_a_iv1, b_a_iv2, b_a_iv3) %>%
-  mutate(iv1 = b_a_iv1 + 5.213902) %>% 
-  mutate(iv2 = b_a_iv2 + 5.213902) %>% 
-  mutate(iv3 = b_a_iv3 + 5.213902) %>% 
+  mutate(iv1 = b_a_iv1 + mean_happy) %>% 
+  mutate(iv2 = b_a_iv2 + mean_happy) %>% 
+  mutate(iv3 = b_a_iv3 + mean_happy) %>% 
   gather_draws(iv1, iv2, iv3) %>% 
   mean_qi()
 ```
@@ -744,14 +742,14 @@ MR %>%
   data_grid(iv, .model = MR) %>%
   add_epred_draws(mr.6, dpar = c("mu", "sigma")) %>%
   sample_draws(50) %>%
-  mutate(mu = mu + 5.213902) %>% 
+  mutate(mu = mu + mean_happy) %>% 
   ggplot(aes(y = iv)) +
   stat_dist_slab(aes(dist = "norm", arg1 = mu, arg2 = sigma),
     slab_color = "gray65", alpha = 1/10, fill = NA) +
   geom_point(aes(x = happiness), data = MR, shape = 21, fill = "#9ECAE1", size = 2)
 ```
 
-## redundent predictors?
+## Redundant predictors?
 
 ```{r}
 pairs(mr.1)
@@ -821,7 +819,7 @@ What would the coefficients look like, ideally?
 ------------------------------------------------------------------------
 
 ```{r}
-anova <-read_csv("https://raw.githubusercontent.com/josh-jackson/bayes/master/anova.csv")
+anova <- read_csv("anova.csv")   # also at https://bayes27.netlify.app/anova.csv
 anova$SupportLevel<-cut(anova$Support, breaks = c(0,5,10,18), labels = c("low","med","high"))
 anova <- anova %>% 
   mutate(group = as.factor(group))
@@ -847,7 +845,7 @@ mr.8 <-
                 prior(student_t(3, 0, 2.5), class = sigma)),
       iter = 2000, warmup = 1000, chains = 2, cores = 2,
       data = anova,
-      sample_prior = T,
+      sample_prior = "yes",
       backend = "cmdstanr",
       file = "mr.8")
 ```
@@ -916,7 +914,8 @@ How could we get posterior means for each group?
 ------------------------------------------------------------------------
 
 ```{r}
-em.1<- emmeans(mr.8, c("group", "SupportLevel"))
+library(emmeans)
+em.1 <- emmeans(mr.8, c("group", "SupportLevel"))
 em.1
 ```
 
@@ -931,6 +930,15 @@ emmip(mr.8, group ~ SupportLevel)
 ```{r}
 emmeans(mr.8, pairwise ~ SupportLevel)
 ```
+
+## marginaleffects: what it does by default {.smaller}
+
+From here on, {marginaleffects} is our main tool for contrasts and slopes. It makes choices for you; know them:
+
+-   **The grid.** With no `newdata`, it makes a prediction for *every row of your data*. `avg_*()` then **averages** those, e.g. averaging over the observed mix of groups. Not the same as a "typical" person (`newdata = "mean"`) or all factor combinations equally (`newdata = "balanced"`); next slides show two grids, two answers.
+-   **The summary.** For a brms model, `estimate` is the posterior **median**, and the interval is equal-tailed (quantile) at 95%.
+-   **The scale.** `type = "response"` (the default) vs. `"link"`. It doesn't matter yet, but it will for logistic and count models.
+-   **The escape hatch.** `get_draws()` turns any result back into one row per draw, so you can check it by hand or plot it with tidybayes.
 
 ------------------------------------------------------------------------
 
@@ -1003,11 +1011,11 @@ mr.8 %>%
 
 Continuing our translation of previous skills to a Bayesian framework.
 
-Interactions reflect when the influence of one variables depends on another. No longer can speak of main effects, now one needs to describe the association between two (or more) variables and the DV. The result is that the interpretation is the hard part, not necessarily the modeling.
+Interactions reflect when the influence of one variable depends on another. No longer can speak of main effects, now one needs to describe the association between two (or more) variables and the DV. The result is that the interpretation is the hard part, not necessarily the modeling.
 
 As models get more complex, interactions become more likely (anytime there is a boundary in the DV)
 
-## Nominal plus metric/continuous interaciton
+## Nominal plus metric/continuous interaction
 
 ```{r}
 #| code-fold: true
@@ -1194,7 +1202,7 @@ predictions(mr.14, newdata = datagrid(iv.d = c("control", "tx"), SS_c = 3))
 
 ## Three groups × a continuous predictor
 
-(Moved here from the regression lecture.) The same idea with all three intervention groups and SES, using the MR data:
+The same idea with all three intervention groups and a continuous moderator (SES). With three groups, the "effect of SES" is three slopes, and the interaction asks whether they differ. This is where marginaleffects saves a lot of hand computation.
 
 ```{r}
 a.4 <- 
@@ -1251,7 +1259,7 @@ slopes(a.4, datagrid(iv = unique))
 avg_slopes(a.4)
 ```
 
-------------------------------------------------------------------------
+## Slopes at specific SES values {.smaller}
 
 ```{r}
 slopes(a.4,
@@ -1273,7 +1281,7 @@ slopes(a.4,
 
 ```{r}
 #| code-fold: true
-Multipleregression  <- read.csv("https://raw.githubusercontent.com/josh-jackson/bayes2022/main/static/Lectures/Multipleregression.csv")
+Multipleregression <- read.csv("Multipleregression.csv")
 
 
 
@@ -1319,7 +1327,7 @@ mr.15 <-
                 prior(exponential(1), class = sigma)),
       iter = 2000, warmup = 1000, chains = 2, cores = 2,
       data = MR,
-      sample_prior = T,
+      sample_prior = "yes",
        backend = "cmdstanr",
       file = "mr.15")
 ```
