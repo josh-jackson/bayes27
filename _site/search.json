@@ -1045,9 +1045,9 @@
   {
     "objectID": "hw-1.html",
     "href": "hw-1.html",
-    "title": "HW-1",
+    "title": "HW 1: Distributions, priors, and counting",
     "section": "",
-    "text": "Please knit to an html or pdf, name it with some combination of your name and homework number 1 (also please put your name in the document as well), attach to an email and send it to: Homewor.fnaaqbwhr10hjz08@u.box.com\n\nTo get refreshed with thinking in terms of distributions (as well as ggplot), please plot 2 different versions of each of the following probability distributions (ie change up the parameters). It is your choice on choosing the different parameters of each of the distributions. If you are unfamiliar with these distributions, wikipedia has a pretty good section for each. These are distributions we will use throughout the class\n\n\nt-distribution\nBeta distribution\nCauchy distribution\nGamma distribution\nExponential distribution\nUniform distribution\n\n\nBased on what you know about the normal distribution and your substantive area of research, please describe two types of priors you might put around one of your recent analyses (or a future one). First, briefly describe what parameter(s) you want to estimate (eg comparison of two groups with a regression coefficient) and the corresponding effect size you found for that parameter (eg d =.3). Then describe:\n\n\na prior distribution that represents your “best guess” for the parameter if you replicated this study. This is an “informed” prior. Bonus points for plotting the distribution.\na prior distribution that would serve to regularize the data i.e. a weakly informative prior.\n\n\nRun a simple regression using your own data using:\n\n\nlm function\nbrms and meaningful (to you) priors\n\n\nFor the brms model, graph the posterior of your predictor using either {marginaleffects} and/or {tidybayes}. Interpret and compare with the the lm results.\nCalculate the posterior estimate for the mode/median/mean and hdi/qi. Do you notice any differences?\n\n\n# i.e., use: \nmode_hdi()\nmean_qi()\n\n\nHow many samples do are there in the posterior? Why are there that many? What happens to our posterior if we ask for more samples (draws)?\nRun a new model with a very different prior. How does this new prior impact the interpretation of the posterior?\nGraph the modeled derived regression line with a confidence band, a prediction band, and the raw data (for categorical predictor see the many alternative options: http://mjskay.github.io/tidybayes/articles/tidy-brms.html)."
+    "text": "Due: Thursday, Jan 28 at 2:30 pm on Canvas · Size: light (about an hour) · Covers: Lecture 1\nStart from the homework template, use ## Q1, ## Q2, ## Q3 headings, and turn in both the .qmd and the rendered .html. Each question is graded 0 / 1 / 2 (missing / attempted / solid). Answers in words count: a plot with no interpretation is a 1."
   },
   {
     "objectID": "mr-4.html#goals-for-this-section",
@@ -1292,7 +1292,7 @@
     "href": "homeworks.html",
     "title": "homeworks",
     "section": "",
-    "text": "Homework is posted Thursday after class and due the following Thursday at 2:30 pm on Canvas. Turn in your .qmd and the rendered .html, starting from the homework template. See the syllabus for grading and late policy.\n\nHomework #1\nHomework #2\nHomework #3"
+    "text": "Homework is posted Thursday after class and due the following Thursday at 2:30 pm on Canvas. Turn in your .qmd and the rendered .html, starting from the homework template. See the syllabus for grading and late policy.\n\nHW 1: Distributions, priors, and counting (due Jan 28)\nHomework #2\nHomework #3"
   },
   {
     "objectID": "mr-4.html",
@@ -2903,5 +2903,26 @@
     "title": "Syllabus",
     "section": "AI overlord helpers",
     "text": "AI overlord helpers\nAI tools (ChatGPT, Claude, Gemini, Copilot, Positron Assistant, and whatever shows up next month) are rapidly changing how we write code. They are truly wonderful for writing code quickly (rather than going down crazy rabbit holes), and they’re used constantly outside of the classroom, including for R. It would be CRAZY not to incorporate them into your learning.\nThat said, they still give you wrong code, and with Bayesian models the wrong code often runs just fine: a prior on the wrong scale, a brms formula that isn’t the model you think it is, a marginaleffects call that averages over the wrong thing. My goal is to get you to a place where you can use these tools and tell whether what they hand you gives the right answer or the wrong one. Here is my policy for this class:\n\nYou are allowed to use any AI tool on homework and the take-home project.\nIf you do, say so: which tool, and what you used it for. Include the prompt, or a link to the shared chat if you had a back and forth conversation.\nYou own every line you turn in. If you can’t explain what a line of code does and why it’s there, it shouldn’t be there.\n\nDisclosing this helps make sure you understand why the code works or doesn’t. It also lets me learn what does and does not work when communicating with our AI overlords."
+  },
+  {
+    "objectID": "hw-1.html#q1.-get-comfortable-with-distributions",
+    "href": "hw-1.html#q1.-get-comfortable-with-distributions",
+    "title": "HW 1: Distributions, priors, and counting",
+    "section": "Q1. Get comfortable with distributions",
+    "text": "Q1. Get comfortable with distributions\nEverything this semester is a distribution: priors, likelihoods, posteriors. So let’s look at a few we’ll keep running into.\nFor each distribution below, plot two versions with different parameters on the same plot (e.g., two colors), and label which is which. You pick the parameters. stat_function() or geom_line() with the d*() functions are the easiest routes (see the prior plots in Lecture 1). Wikipedia has a good page for each if they’re new to you.\n\nt (vary the degrees of freedom; dt())\nBeta (dbeta())\nCauchy (dcauchy())\nGamma (dgamma())\nExponential (dexp())\nUniform (dunif())\n\nThen answer in one or two sentences: which of these could you sensibly use as a prior for a standard deviation (σ), and which for a probability? Why not the others? (Hint: look at what values each one allows.)\n\n# one way to start\nggplot() +\n  stat_function(fun = dt, args = list(df = 1),  aes(color = \"df = 1\")) +\n  stat_function(fun = dt, args = list(df = 30), aes(color = \"df = 30\")) +\n  xlim(-5, 5) +\n  labs(color = NULL, y = \"density\")"
+  },
+  {
+    "objectID": "hw-1.html#q2.-bayes-is-just-counting",
+    "href": "hw-1.html#q2.-bayes-is-just-counting",
+    "title": "HW 1: Distributions, priors, and counting",
+    "section": "Q2. Bayes is just counting",
+    "text": "Q2. Bayes is just counting\nIn a study of 20 participants, 14 recalled more words in the experimental condition than in the control condition. Let θ be the probability that a participant shows the effect.\n\\[\n\\begin{aligned}\nk &\\sim \\text{Binomial}(n, \\theta) \\\\\n\\theta &\\sim \\text{prior}\n\\end{aligned}\n\\]\nUse grid approximation like we did in class (a grid of θ values from 0 to 1, a prior, a likelihood with dbinom(), multiply, normalize).\n\nCompute and plot the prior, likelihood, and posterior with a flat prior on θ.\nDo it again with a skeptical prior: you think the effect is probably small, so θ is likely near .5. Use dbeta(theta, 20, 20) as the prior. Plot all three again.\nNow suppose the study had 200 participants and 140 showed the effect (same proportion). Redo (b). What changed about the posterior, and why does the prior matter less now?"
+  },
+  {
+    "objectID": "hw-1.html#q3.-priors-for-your-own-research",
+    "href": "hw-1.html#q3.-priors-for-your-own-research",
+    "title": "HW 1: Distributions, priors, and counting",
+    "section": "Q3. Priors for your own research",
+    "text": "Q3. Priors for your own research\nPick one of your own recent analyses (or one you’re planning). Briefly describe the parameter you care about (e.g., a regression coefficient comparing two groups) and the effect size you found or expect (e.g., d = .3). Then:\n\nDescribe and plot an informed prior: your best guess for this parameter if you replicated the study. Say where the guess comes from (your past results, a meta-analysis, the literature).\nDescribe and plot a weakly informative prior: one that rules out absurd values but otherwise lets the data speak.\nPut both on the same plot. In two or three sentences: which would you use for your next paper, and how would you defend it to a skeptical reviewer?\n\nIf you don’t have your own data yet, borrow an effect from a paper in your area and say which one."
   }
 ]

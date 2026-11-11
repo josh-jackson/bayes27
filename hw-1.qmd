@@ -1,45 +1,58 @@
 ---
-title: "HW-1"
-output: html_document
+title: "HW 1: Distributions, priors, and counting"
 ---
 
+**Due:** Thursday, Jan 28 at 2:30 pm on Canvas · **Size:** light (about an hour) · **Covers:** [Lecture 1](bayes-1.qmd)
 
-Please knit to an html or pdf, name it with some combination of your name and homework number 1 (also please put your name in the document as well), attach to an email and send it to: Homewor.fnaaqbwhr10hjz08@u.box.com
+Start from the [homework template](hw-template.qmd){download="hw-template.qmd"}, use `## Q1`, `## Q2`, `## Q3` headings, and turn in both the `.qmd` and the rendered `.html`. Each question is graded 0 / 1 / 2 (missing / attempted / solid). Answers in words count: a plot with no interpretation is a 1.
 
+## Q1. Get comfortable with distributions
 
-1. To get refreshed with thinking in terms of distributions (as well as ggplot), please plot 2 different versions of each of the following probability distributions (ie change up the parameters). It is your choice on choosing the different parameters of each of the distributions. If you are unfamiliar with these distributions, wikipedia has a pretty good section for each. These are distributions we will use throughout the class
+Everything this semester is a distribution: priors, likelihoods, posteriors. So let's look at a few we'll keep running into.
 
-a) t-distribution
-b) Beta distribution
-c) Cauchy distribution
-d) Gamma distribution
-e) Exponential distribution
-f) Uniform distribution
+For each distribution below, plot **two versions with different parameters on the same plot** (e.g., two colors), and label which is which. You pick the parameters. `stat_function()` or `geom_line()` with the `d*()` functions are the easiest routes (see the prior plots in Lecture 1). Wikipedia has a good page for each if they're new to you.
 
+a) t (vary the degrees of freedom; `dt()`)
+b) Beta (`dbeta()`)
+c) Cauchy (`dcauchy()`)
+d) Gamma (`dgamma()`)
+e) Exponential (`dexp()`)
+f) Uniform (`dunif()`)
 
-2. Based on what you know about the normal distribution and your substantive area of research, please describe two types of priors you might put around one of your recent analyses (or a future one). First, briefly describe what parameter(s) you want to estimate (eg comparison of two groups with a regression coefficient) and the corresponding effect size you found for that parameter (eg d =.3). Then describe:
+Then answer in one or two sentences: **which of these could you sensibly use as a prior for a standard deviation (σ), and which for a probability?** Why not the others? (Hint: look at what values each one allows.)
 
-a) a prior distribution that represents your "best guess" for the parameter if you replicated this study. This is an "informed" prior. Bonus points for plotting the distribution. 
-
-b) a prior distribution that would serve to regularize the data i.e. a weakly informative prior. 
- 
-
-3. Run a simple regression using your own data using: 
-  a. lm function
-  b. brms and meaningful (to you) priors
-
-4. For the brms model, graph the posterior of your predictor using either {marginaleffects} and/or {tidybayes}. Interpret and compare with the the lm results. 
-
-5. Calculate the posterior estimate for the mode/median/mean and hdi/qi. Do you notice any differences?  
 ```{r, eval = FALSE}
-# i.e., use: 
-mode_hdi()
-mean_qi()
+# one way to start
+ggplot() +
+  stat_function(fun = dt, args = list(df = 1),  aes(color = "df = 1")) +
+  stat_function(fun = dt, args = list(df = 30), aes(color = "df = 30")) +
+  xlim(-5, 5) +
+  labs(color = NULL, y = "density")
 ```
 
-6. How many samples do are there in the posterior? Why are there that many? What happens to our posterior if we ask for more samples (draws)? 
+## Q2. Bayes is just counting
 
-7. Run a new model with a very different prior. How does this new prior impact the interpretation of the posterior? 
+In a study of 20 participants, 14 recalled more words in the experimental condition than in the control condition. Let θ be the probability that a participant shows the effect.
 
-8. Graph the modeled derived regression line with a confidence band, a prediction band, and the raw data (for categorical predictor see the many alternative options: http://mjskay.github.io/tidybayes/articles/tidy-brms.html).    
+$$
+\begin{aligned}
+k &\sim \text{Binomial}(n, \theta) \\
+\theta &\sim \text{prior}
+\end{aligned}
+$$
 
+Use grid approximation like we did in class (a grid of θ values from 0 to 1, a prior, a likelihood with `dbinom()`, multiply, normalize).
+
+a) Compute and plot the prior, likelihood, and posterior with a **flat prior** on θ.
+b) Do it again with a **skeptical prior**: you think the effect is probably small, so θ is likely near .5. Use `dbeta(theta, 20, 20)` as the prior. Plot all three again.
+c) Now suppose the study had 200 participants and 140 showed the effect (same proportion). Redo (b). What changed about the posterior, and why does the prior matter less now?
+
+## Q3. Priors for your own research
+
+Pick one of your own recent analyses (or one you're planning). Briefly describe the parameter you care about (e.g., a regression coefficient comparing two groups) and the effect size you found or expect (e.g., *d* = .3). Then:
+
+a) Describe and **plot** an **informed prior**: your best guess for this parameter if you replicated the study. Say where the guess comes from (your past results, a meta-analysis, the literature).
+b) Describe and **plot** a **weakly informative prior**: one that rules out absurd values but otherwise lets the data speak.
+c) Put both on the same plot. In two or three sentences: which would you use for your next paper, and how would you defend it to a skeptical reviewer?
+
+If you don't have your own data yet, borrow an effect from a paper in your area and say which one.

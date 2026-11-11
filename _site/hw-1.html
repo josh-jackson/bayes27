@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Bayesian Statistics Spring 2027 - HW-1</title>
+<title>Bayesian Statistics Spring 2027 - HW 1: Distributions, priors, and counting</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -94,6 +94,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   }
 }</script>
 
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
 <link rel="stylesheet" href="styles.css">
 </head>
@@ -143,14 +145,22 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <!-- sidebar -->
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#q1.-get-comfortable-with-distributions" id="toc-q1.-get-comfortable-with-distributions" class="nav-link active" data-scroll-target="#q1.-get-comfortable-with-distributions">Q1. Get comfortable with distributions</a></li>
+  <li><a href="#q2.-bayes-is-just-counting" id="toc-q2.-bayes-is-just-counting" class="nav-link" data-scroll-target="#q2.-bayes-is-just-counting">Q2. Bayes is just counting</a></li>
+  <li><a href="#q3.-priors-for-your-own-research" id="toc-q3.-priors-for-your-own-research" class="nav-link" data-scroll-target="#q3.-priors-for-your-own-research">Q3. Priors for your own research</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">HW-1</h1>
+<h1 class="title">HW 1: Distributions, priors, and counting</h1>
 </div>
 
 
@@ -165,48 +175,58 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </header>
 
-<p>Please knit to an html or pdf, name it with some combination of your name and homework number 1 (also please put your name in the document as well), attach to an email and send it to: Homewor.fnaaqbwhr10hjz08@u.box.com</p>
-<ol type="1">
-<li>To get refreshed with thinking in terms of distributions (as well as ggplot), please plot 2 different versions of each of the following probability distributions (ie change up the parameters). It is your choice on choosing the different parameters of each of the distributions. If you are unfamiliar with these distributions, wikipedia has a pretty good section for each. These are distributions we will use throughout the class</li>
-</ol>
+<p><strong>Due:</strong> Thursday, Jan 28 at 2:30 pm on Canvas · <strong>Size:</strong> light (about an hour) · <strong>Covers:</strong> <a href="./bayes-1.html">Lecture 1</a></p>
+<p>Start from the <a href="hw-template.qmd" download="hw-template.qmd">homework template</a>, use <code>## Q1</code>, <code>## Q2</code>, <code>## Q3</code> headings, and turn in both the <code>.qmd</code> and the rendered <code>.html</code>. Each question is graded 0 / 1 / 2 (missing / attempted / solid). Answers in words count: a plot with no interpretation is a 1.</p>
+<section id="q1.-get-comfortable-with-distributions" class="level2">
+<h2 class="anchored" data-anchor-id="q1.-get-comfortable-with-distributions">Q1. Get comfortable with distributions</h2>
+<p>Everything this semester is a distribution: priors, likelihoods, posteriors. So let’s look at a few we’ll keep running into.</p>
+<p>For each distribution below, plot <strong>two versions with different parameters on the same plot</strong> (e.g., two colors), and label which is which. You pick the parameters. <code>stat_function()</code> or <code>geom_line()</code> with the <code>d*()</code> functions are the easiest routes (see the prior plots in Lecture 1). Wikipedia has a good page for each if they’re new to you.</p>
 <ol type="a">
-<li>t-distribution</li>
-<li>Beta distribution</li>
-<li>Cauchy distribution</li>
-<li>Gamma distribution</li>
-<li>Exponential distribution</li>
-<li>Uniform distribution</li>
+<li>t (vary the degrees of freedom; <code>dt()</code>)</li>
+<li>Beta (<code>dbeta()</code>)</li>
+<li>Cauchy (<code>dcauchy()</code>)</li>
+<li>Gamma (<code>dgamma()</code>)</li>
+<li>Exponential (<code>dexp()</code>)</li>
+<li>Uniform (<code>dunif()</code>)</li>
 </ol>
-<ol start="2" type="1">
-<li>Based on what you know about the normal distribution and your substantive area of research, please describe two types of priors you might put around one of your recent analyses (or a future one). First, briefly describe what parameter(s) you want to estimate (eg comparison of two groups with a regression coefficient) and the corresponding effect size you found for that parameter (eg d =.3). Then describe:</li>
-</ol>
-<ol type="a">
-<li><p>a prior distribution that represents your “best guess” for the parameter if you replicated this study. This is an “informed” prior. Bonus points for plotting the distribution.</p></li>
-<li><p>a prior distribution that would serve to regularize the data i.e.&nbsp;a weakly informative prior.</p></li>
-</ol>
-<ol start="3" type="1">
-<li>Run a simple regression using your own data using:</li>
-</ol>
-<ol type="a">
-<li>lm function</li>
-<li>brms and meaningful (to you) priors</li>
-</ol>
-<ol start="4" type="1">
-<li><p>For the brms model, graph the posterior of your predictor using either {marginaleffects} and/or {tidybayes}. Interpret and compare with the the lm results.</p></li>
-<li><p>Calculate the posterior estimate for the mode/median/mean and hdi/qi. Do you notice any differences?</p></li>
-</ol>
+<p>Then answer in one or two sentences: <strong>which of these could you sensibly use as a prior for a standard deviation (σ), and which for a probability?</strong> Why not the others? (Hint: look at what values each one allows.)</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># i.e., use: </span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">mode_hdi</span>()</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">mean_qi</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># one way to start</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_function</span>(<span class="at">fun =</span> dt, <span class="at">args =</span> <span class="fu">list</span>(<span class="at">df =</span> <span class="dv">1</span>),  <span class="fu">aes</span>(<span class="at">color =</span> <span class="st">"df = 1"</span>)) <span class="sc">+</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_function</span>(<span class="at">fun =</span> dt, <span class="at">args =</span> <span class="fu">list</span>(<span class="at">df =</span> <span class="dv">30</span>), <span class="fu">aes</span>(<span class="at">color =</span> <span class="st">"df = 30"</span>)) <span class="sc">+</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlim</span>(<span class="sc">-</span><span class="dv">5</span>, <span class="dv">5</span>) <span class="sc">+</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">color =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="st">"density"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<ol start="6" type="1">
-<li><p>How many samples do are there in the posterior? Why are there that many? What happens to our posterior if we ask for more samples (draws)?</p></li>
-<li><p>Run a new model with a very different prior. How does this new prior impact the interpretation of the posterior?</p></li>
-<li><p>Graph the modeled derived regression line with a confidence band, a prediction band, and the raw data (for categorical predictor see the many alternative options: http://mjskay.github.io/tidybayes/articles/tidy-brms.html).</p></li>
+</section>
+<section id="q2.-bayes-is-just-counting" class="level2">
+<h2 class="anchored" data-anchor-id="q2.-bayes-is-just-counting">Q2. Bayes is just counting</h2>
+<p>In a study of 20 participants, 14 recalled more words in the experimental condition than in the control condition. Let θ be the probability that a participant shows the effect.</p>
+<p><span class="math display">\[
+\begin{aligned}
+k &amp;\sim \text{Binomial}(n, \theta) \\
+\theta &amp;\sim \text{prior}
+\end{aligned}
+\]</span></p>
+<p>Use grid approximation like we did in class (a grid of θ values from 0 to 1, a prior, a likelihood with <code>dbinom()</code>, multiply, normalize).</p>
+<ol type="a">
+<li>Compute and plot the prior, likelihood, and posterior with a <strong>flat prior</strong> on θ.</li>
+<li>Do it again with a <strong>skeptical prior</strong>: you think the effect is probably small, so θ is likely near .5. Use <code>dbeta(theta, 20, 20)</code> as the prior. Plot all three again.</li>
+<li>Now suppose the study had 200 participants and 140 showed the effect (same proportion). Redo (b). What changed about the posterior, and why does the prior matter less now?</li>
 </ol>
+</section>
+<section id="q3.-priors-for-your-own-research" class="level2">
+<h2 class="anchored" data-anchor-id="q3.-priors-for-your-own-research">Q3. Priors for your own research</h2>
+<p>Pick one of your own recent analyses (or one you’re planning). Briefly describe the parameter you care about (e.g., a regression coefficient comparing two groups) and the effect size you found or expect (e.g., <em>d</em> = .3). Then:</p>
+<ol type="a">
+<li>Describe and <strong>plot</strong> an <strong>informed prior</strong>: your best guess for this parameter if you replicated the study. Say where the guess comes from (your past results, a meta-analysis, the literature).</li>
+<li>Describe and <strong>plot</strong> a <strong>weakly informative prior</strong>: one that rules out absurd values but otherwise lets the data speak.</li>
+<li>Put both on the same plot. In two or three sentences: which would you use for your next paper, and how would you defend it to a skeptical reviewer?</li>
+</ol>
+<p>If you don’t have your own data yet, borrow an effect from a paper in your area and say which one.</p>
 
 
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
