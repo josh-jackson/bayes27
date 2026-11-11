@@ -5,9 +5,6 @@ slide-number: true
 editor: source
 execute:
   echo: true
-html:
-  code-fold: true
-  code-summary: Show the code
 ---
 
 ## Goals for the semester
@@ -47,7 +44,7 @@ What are Bayesian models?
 
 3.  Priors that incorporate existing knowledge.
 
-## Step 1 is easy
+## 1. A different estimation algorithm
 
 ::: incremental
 -   OLS i.e. $min\sum(Y_{i}-\hat{Y})^{2}$
@@ -94,7 +91,6 @@ $$\mu_i = \beta_0 + \beta_1  parent_i $$
 ```{r}
 #| code-fold: true
 library(brms)
-library("rstan")
 fit.1.bayesian <- brm(child ~ parent, data = galton.data,
                       backend = "cmdstanr",
                       file = "fit.1.b")
@@ -119,7 +115,7 @@ ggplot(aes(x = b_parent)) +
 
 -   Is made up of a series of educated guesses (via our algorithm), each of which is consistent with the data.
 
--   Greater density, greater likelihood of our parameter.
+-   Greater density, greater plausibility of that parameter value.
 
 -   Unlike CI which every value is equally plausible until it is implausible because it is out of the CI. Not just a best guess and an SE around the best guess (as with Maximum Likelihood).
 
@@ -127,7 +123,7 @@ ggplot(aes(x = b_parent)) +
 
 ## Posterior distribution (ie results)
 
-Is made of up of a series of educated guesses. Each dot represents a particular guess. Guesses that occur more often are considered more likely.
+Is made up of a series of educated guesses. Each dot represents a particular guess. Guesses that occur more often are considered more likely.
 
 ```{r}
 #| code-fold: true
@@ -147,7 +143,7 @@ spread_draws(b_Intercept, b_parent)
 
 ## How does the algorithm work?
 
--   Bayes formula is analytically intractable (due to complex differential equations) so one needs to use an algorithm
+-   Bayes formula is analytically intractable for most models (the denominator, p(data), is a high-dimensional integral), so one needs to use an algorithm
 
 -   Played a role in developing the thermonuclear bomb with one of the earliest computers. Published in 1953 but ignored within stats b/c it was published within a physics/chemistry journal. Took about until 1990 for desktop computers to run fast enough to do at home.
 
@@ -207,12 +203,10 @@ p(data | hypothesis)
 ::: {.column width="70%"}
 ```{r}
 #| code-fold: true
-p <- seq(0.01, 0.99, by = 0.01)
-loglike <- dbinom(2, size = 10, prob = p)
-as.tibble(loglike) %>% 
-  mutate(p = row_number()/100) %>% 
-ggplot(aes(y = value, x=p)) + 
-     geom_line() + ylab("likelihood")
+tibble(p = seq(0.01, 0.99, by = 0.01)) %>% 
+  mutate(likelihood = dbinom(2, size = 10, prob = p)) %>% 
+  ggplot(aes(x = p, y = likelihood)) + 
+  geom_line()
 
 ```
 :::
@@ -239,12 +233,10 @@ ggplot(aes(y = value, x=p)) +
 ::: {.column width="70%"}
 ```{r}
 #| code-fold: true
-p <- seq(0.01, 0.99, by = 0.01)
-loglike <- dbinom(2, size = 10, prob = p)
-as.tibble(loglike) %>% 
-  mutate(p = row_number()/100) %>% 
-ggplot(aes(y = value, x=p)) + 
-     geom_line() + ylab("likelihood")
+tibble(p = seq(0.01, 0.99, by = 0.01)) %>% 
+  mutate(likelihood = dbinom(2, size = 10, prob = p)) %>% 
+  ggplot(aes(x = p, y = likelihood)) + 
+  geom_line()
 
 ```
 
@@ -255,7 +247,7 @@ ggplot(aes(y = value, x=p)) +
 
 ML results that we often use for MLM and SEMs are similar. But instead of focusing on the entire distribution, they give us a distribution that is centered on the most likely ie "maximum".
 
-We can fix the distribution around the mean estimate, and then try out different versions of SD to for the typically assumed normal distribution, maximizing or finding the most likely value.
+We can fix the distribution around the mean estimate, and then try out different versions of SD for the typically assumed normal distribution, maximizing or finding the most likely value.
 
 Ultimately, what we end up with (in Bayes land) is very closely related to this ML estimate (often identical). Conceptually, though, the process is different.
 
@@ -416,13 +408,13 @@ $$\sigma \sim HalfCauchy(0,10) $$
 
 ## Tying it together
 
-$$p(\theta | data) \propto \frac{p(data | \theta) \times p(\theta )}{p(data)}$$ P(θ\|data) is the posterior probability.
+$$p(\theta | data) = \frac{p(data | \theta) \times p(\theta )}{p(data)} \propto p(data | \theta) \times p(\theta)$$ P(θ\|data) is the posterior probability.
 
 P(θ) is the prior probability.
 
 p(data\| $\theta$ ) is the likelihood (really no different than ML).
 
-p(data) can be ignored, it is just a normalized coefficient
+p(data) can be ignored for most purposes: it's a normalizing constant (the same for every value of θ), which is why we can work with the right-hand side
 
 ## Tying it together
 
@@ -437,8 +429,7 @@ p(data) can be ignored, it is just a normalized coefficient
 Priors influencing Posterior
 
 ```{r, message = FALSE, echo = FALSE}
-library(gridExtra)
-library(tidyverse)
+library(patchwork)
 sequence_length <- 1e3
 
 d <-
@@ -451,7 +442,7 @@ d <-
          likelihood = dbinom(x = 6, size = 9, prob = probability)) %>% 
   group_by(row) %>% 
   mutate(posterior = prior * likelihood / sum(prior * likelihood)) %>% 
-  gather(key, value, -probability, -row) %>% 
+  pivot_longer(c(prior, likelihood, posterior), names_to = "key", values_to = "value") %>% 
   ungroup() %>% 
   mutate(key = factor(key, levels = c("prior", "likelihood", "posterior")),
          row = factor(row, levels = c("flat", "stepped", "Laplace"))) 
@@ -495,9 +486,7 @@ p3 <-
         strip.text       = element_blank()) +
   facet_wrap(row ~ ., scales = "free_y", ncol = 1)
 
-library(gridExtra)
-
-grid.arrange(p1, p2, p3, ncol = 3)
+p1 | p2 | p3
 ```
 
 ## sample size influence
@@ -522,7 +511,7 @@ s <- tibble(theta =   seq(from = 0,     to = 1, by = .001),
   mutate(marginal_likelihood = sum(Prior * Likelihood)) %>% 
   mutate(Posterior           = (Prior * Likelihood) / marginal_likelihood) %>% 
   select(theta, Prior, Likelihood, Posterior) %>% 
-  gather(key, value, -theta) %>% 
+  pivot_longer(-theta, names_to = "key", values_to = "value") %>% 
   mutate(key = factor(key, levels = c("Prior", "Likelihood", "Posterior")))  
 
 small <- ggplot(s, aes(x = theta, ymin = 0, ymax = value)) +
@@ -545,7 +534,7 @@ l <- tibble(theta =   seq(from = 0,     to = 1, by = .001),
   mutate(marginal_likelihood = sum(Prior * Likelihood)) %>% 
   mutate(Posterior           = (Prior * Likelihood) / marginal_likelihood) %>% 
   select(theta, Prior, Likelihood, Posterior) %>% 
-  gather(key, value, -theta) %>% 
+  pivot_longer(-theta, names_to = "key", values_to = "value") %>% 
   mutate(key = factor(key, levels = c("Prior", "Likelihood", "Posterior"))) 
   
  large <- ggplot(l, aes(x = theta, ymin = 0, ymax = value)) +
@@ -555,7 +544,6 @@ l <- tibble(theta =   seq(from = 0,     to = 1, by = .001),
        y = "probability density") +
   theme(panel.grid = element_blank()) +
   facet_wrap(~key, scales = "free_y", ncol = 1)
-library(patchwork)
 (small | large)
 ```
 
@@ -573,7 +561,7 @@ select(b_parent) %>%
 
 ## Going from prior to posterior
 
-With a prior for b0 of N(0, .5)
+With a prior for $b_1$ of N(0, .5)
 
 ```{r}
 #| code-fold: true
@@ -586,7 +574,7 @@ spread_draws(b_Intercept, b_parent) %>%
 
 ## Going from prior to posterior
 
--   plusible lines prior to data --\> plausible lines after data
+-   plausible lines prior to data --\> plausible lines after data
 
 ```{r, echo = FALSE}
 library(modelr)
