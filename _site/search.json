@@ -3092,5 +3092,33 @@
     "title": "HW 5: When the chains go wild",
     "section": "Q3. Actually fix it, and show it’s fixed",
     "text": "Q3. Actually fix it, and show it’s fixed\n\nFix the model. You choose how (drop the redundant predictor, combine them, or use priors that make the model identifiable), and justify your choice in a sentence or two. Which fix is best here, and why?\nShow the fixed model’s R-hat, ESS, and that there are no warnings.\nMake a supplement-ready diagnostics figure for your fixed model: trace plots and rank plots for the intercept, slope(s), and σ, combined into one figure with {patchwork}. Journals increasingly ask for these in supplementary materials. Apply the figure checklist where it makes sense: readable parameter labels (e.g., “Slope: stress” instead of b_stress), a clean theme, colorblind-safe chain colors (bayesplot’s color_scheme_set(\"viridis\") helps), a caption, and ggsave() at 6.5 inches wide.\nOne sentence: what does your fixed model say about stress and sleep?"
+  },
+  {
+    "objectID": "hw-6.html",
+    "href": "hw-6.html",
+    "title": "HW 6: Comparing models and making claims",
+    "section": "",
+    "text": "Due: Thursday, Mar 4 at 2:30 pm on Canvas · Size: light · Covers: Information, NHST and model fit\nStart from the homework template, use ## Q1 to ## Q3 headings, and turn in both the .qmd and the rendered .html. Each question is graded 0 / 1 / 2 (missing / attempted / solid); answers in words count.\nData. Use the same data as your HW 4 Part B (your own, or sat.act from {psych}). If you used sat.act, use SATQ as the outcome, with ACT, education, and gender as candidate predictors (center the continuous ones; make gender a factor with real labels)."
+  },
+  {
+    "objectID": "hw-6.html#q1.-which-model-predicts-best",
+    "href": "hw-6.html#q1.-which-model-predicts-best",
+    "title": "HW 6: Comparing models and making claims",
+    "section": "Q1. Which model predicts best?",
+    "text": "Q1. Which model predicts best?\n\nFit at least three models of increasing complexity (e.g., one predictor; several predictors; several predictors plus an interaction). Write each one in a line of brms formula.\nAdd LOO to each (add_criterion(model, \"loo\")) and compare them with loo_compare(). Which model is expected to predict new data best? Is the difference in elpd large relative to its standard error (se_diff)? What would you conclude?\nCheck the Pareto k diagnostics. Are any observations problematic (k &gt; 0.7)? What does that mean for trusting the LOO estimate?\nReport Bayesian R² for each model. Why does R² keep going up (or stay flat) as you add predictors, while LOO might not? Which would you use to choose among models, and why?"
+  },
+  {
+    "objectID": "hw-6.html#q2.-three-ways-to-make-a-claim-about-one-parameter",
+    "href": "hw-6.html#q2.-three-ways-to-make-a-claim-about-one-parameter",
+    "title": "HW 6: Comparing models and making claims",
+    "section": "Q2. Three ways to make a claim about one parameter",
+    "text": "Q2. Three ways to make a claim about one parameter\nPick one parameter from your best model that you’d want to make a claim about in a paper (e.g., a group difference or a slope). Using {bayestestR}:\n\nProbability of direction (p_direction()): what is it, and what does it say about your parameter?\nROPE (rope()): choose a region of practical equivalence in the units of your outcome and justify it substantively (e.g., “a difference smaller than 10 SAT points is less than one question and wouldn’t matter to anyone”). Don’t just use the default. What share of the posterior falls inside it, and what do you conclude?\nBayes factor (bayesfactor_parameters()): report it and say what it means in words.\nRefit the same model with a much wider prior on that parameter (say 10× the SD) and recompute all three. Which of the three changed a lot, which barely moved, and why? What does that tell you about using Bayes factors?"
+  },
+  {
+    "objectID": "hw-6.html#q3.-a-publication-ready-figure-of-your-claim",
+    "href": "hw-6.html#q3.-a-publication-ready-figure-of-your-claim",
+    "title": "HW 6: Comparing models and making claims",
+    "section": "Q3. A publication-ready figure of your claim",
+    "text": "Q3. A publication-ready figure of your claim\nMake one figure that shows the posterior of your Q2 parameter with the ROPE shaded and the key numbers (median, 95% interval, pd, % in ROPE) annotated or in the caption. It should meet the figure checklist: the parameter labeled in words with units (e.g., “Difference in SAT quantitative score, women − men”), a clean theme, a stand-alone caption, and ggsave() at 6.5 inches wide. Then write the one or two sentences you’d put in a Results section."
   }
 ]

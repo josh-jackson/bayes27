@@ -1,0 +1,29 @@
+---
+title: "HW 6: Comparing models and making claims"
+---
+
+**Due:** Thursday, Mar 4 at 2:30 pm on Canvas · **Size:** light · **Covers:** [Information, NHST and model fit](info-6.qmd)
+
+Start from the [homework template](hw-template.qmd){download="hw-template.qmd"}, use `## Q1` to `## Q3` headings, and turn in both the `.qmd` and the rendered `.html`. Each question is graded 0 / 1 / 2 (missing / attempted / solid); answers in words count.
+
+**Data.** Use the same data as your HW 4 Part B (your own, or `sat.act` from {psych}). If you used `sat.act`, use `SATQ` as the outcome, with `ACT`, `education`, and `gender` as candidate predictors (center the continuous ones; make `gender` a factor with real labels).
+
+## Q1. Which model predicts best?
+
+a) Fit **at least three** models of increasing complexity (e.g., one predictor; several predictors; several predictors plus an interaction). Write each one in a line of brms formula.
+b) Add LOO to each (`add_criterion(model, "loo")`) and compare them with `loo_compare()`. Which model is expected to predict new data best? Is the difference in `elpd` large **relative to its standard error** (`se_diff`)? What would you conclude?
+c) Check the Pareto *k* diagnostics. Are any observations problematic (*k* > 0.7)? What does that mean for trusting the LOO estimate?
+d) Report Bayesian R² for each model. Why does R² keep going up (or stay flat) as you add predictors, while LOO might not? Which would you use to choose among models, and why?
+
+## Q2. Three ways to make a claim about one parameter
+
+Pick **one** parameter from your best model that you'd want to make a claim about in a paper (e.g., a group difference or a slope). Using {bayestestR}:
+
+a) **Probability of direction** (`p_direction()`): what is it, and what does it say about your parameter?
+b) **ROPE** (`rope()`): choose a region of practical equivalence **in the units of your outcome and justify it substantively** (e.g., "a difference smaller than 10 SAT points is less than one question and wouldn't matter to anyone"). Don't just use the default. What share of the posterior falls inside it, and what do you conclude?
+c) **Bayes factor** (`bayesfactor_parameters()`): report it and say what it means in words.
+d) Refit the same model with a **much wider** prior on that parameter (say 10× the SD) and recompute all three. Which of the three changed a lot, which barely moved, and why? What does that tell you about using Bayes factors?
+
+## Q3. A publication-ready figure of your claim
+
+Make one figure that shows the posterior of your Q2 parameter with the ROPE shaded and the key numbers (median, 95% interval, pd, % in ROPE) annotated or in the caption. It should meet the [figure checklist](homeworks.qmd#figures): the parameter labeled in words with units (e.g., "Difference in SAT quantitative score, women − men"), a clean theme, a stand-alone caption, and `ggsave()` at 6.5 inches wide. Then write the one or two sentences you'd put in a Results section.
