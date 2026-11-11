@@ -8,6 +8,8 @@ project:
     - mortality.csv
     - KN.csv
     - LSAT.csv
+    - week3.csv
+    - hw3.csv
 
 website:
   title: "Bayesian Statistics Spring 2027"

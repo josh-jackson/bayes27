@@ -5,9 +5,6 @@ slide-number: true
 editor: source
 execute: 
   echo: true
-html:
-    code-fold: true
-    code-summary: "Show the code"
 ---
 
 ## Goals for this section
@@ -23,9 +20,8 @@ html:
 ```{r}
 #| code-fold: true
 library(tidyverse)
-data <- "https://raw.githubusercontent.com/josh-jackson/bayes/master/week3.csv"
-
-week3 <- read.csv(data) %>% 
+# also at https://bayes27.netlify.app/week3.csv
+week3 <- read.csv("week3.csv") %>% 
   select(-ID, -SES)
 
 week3
@@ -104,7 +100,7 @@ h.1p <-
 pp_check(h.1p) + xlim(-35,35)
 ```
 
-This graphs 10 simulated datasets from posterior predictive distribution, compared to the our actual density distribution
+This graphs 10 simulated datasets from the **prior** predictive distribution, compared to our actual data's density
 
 ------------------------------------------------------------------------
 
@@ -293,7 +289,7 @@ Every sample implies a different set of regression coefficients. Every regressio
 
 ```{r}
 #| code-fold: true
-head(bayes_R2(h.1, summary = F)) # use = FALSE to get samples of each R2
+head(bayes_R2(h.1, summary = F)) # summary = FALSE gives one R2 per draw
 ```
 
 Typically R2 is the variance of the predicted values divided by total variance. But for Bayes we have 1) many predicted values (1 for each sample) and 2) we want to incorporate uncertainty in the estimates
@@ -304,7 +300,7 @@ This is a summary of our 1000 R2 values. Like other parameters it has a distribu
 
 ```{r}
 #| code-fold: true
-bayes_R2(h.1, summary = T) # use = true to get a summary
+bayes_R2(h.1, summary = T) # summary = TRUE gives a summary
 ```
 
 ## Bayesian R2
@@ -323,7 +319,7 @@ Of course anytime we use group variables we need to assign them numeric values. 
 
 2.  We will manipulate the posterior to get what we want
 
-3.  There is an addition coding option that is often helpful
+3.  There is an additional coding option that is often helpful
 
 ## Categorical data
 
@@ -417,7 +413,7 @@ h.2 %>%
   rename(control = b_Intercept) %>% 
   mutate(tx = control + b_mood.group.dtx) %>% 
   select(control, tx) %>% 
-  gather() %>% 
+  pivot_longer(everything(), names_to = "key", values_to = "value") %>% 
   ggplot(aes(y = key, x = value)) +
   stat_halfeye()+xlab("health")
 
@@ -432,7 +428,7 @@ h.2 %>%
   rename(control = b_Intercept) %>% 
   mutate(tx = control + b_mood.group.dtx) %>% 
   select(control, tx) %>% 
-  gather() %>% 
+  pivot_longer(everything(), names_to = "key", values_to = "value") %>% 
   ggplot(aes( x = value, group = key, fill = key)) +
   stat_halfeye(alpha = .74)+xlab("health")
 
@@ -447,7 +443,7 @@ Predictions are equal to manipulating posterior
 library(marginaleffects)
 predictions(h.2, 
   newdata = datagrid(mood.group.d  = unique)
-) %>%  posterior_draws() %>% 
+) %>%  get_draws() %>% 
    ggplot(aes( x = draw, fill = mood.group.d)) +
   stat_halfeye(alpha = .74) +xlab("health")
   
@@ -465,7 +461,7 @@ avg_predictions(h.2, by = "mood.group.d")
 
 
 ```{r}
-avg_predictions(h.2, by = "mood.group.d") %>%  posterior_draws() %>% 
+avg_predictions(h.2, by = "mood.group.d") %>%  get_draws() %>% 
    ggplot(aes( y = draw, x =mood.group.d)) +
   stat_gradientinterval() +ylab("health")
   
@@ -476,7 +472,7 @@ avg_predictions(h.2, by = "mood.group.d") %>%  posterior_draws() %>%
 
 
 ```{r}
-avg_predictions(h.2, by = "mood.group.d") %>%  posterior_draws() %>% 
+avg_predictions(h.2, by = "mood.group.d") %>%  get_draws() %>% 
    ggplot(aes( y = draw, x =mood.group.d)) +
   stat_eye() +ylab("health")
   
@@ -496,7 +492,7 @@ h.2 %>%
   mutate(`difference` = tx - control) %>%  # or just b_mood.group.dtx
   mutate(`std.effect` =  difference / sigma) %>% 
   select(std.effect, difference) %>% 
-  gather() %>% 
+  pivot_longer(everything(), names_to = "key", values_to = "value") %>% 
   ggplot(aes(y = key, x = value)) +
   stat_dotsinterval() 
 ```
@@ -584,7 +580,7 @@ h.3 %>%
 -   {emmeans}
 -   {marginaleffects}
 
-## Hypothesis function
+## Hypothesis function {.smaller}
 
 ```{r, message=FALSE}
 hypothesis(h.3, "mood.group.dtx = mood.group.dcontrol")
@@ -595,12 +591,14 @@ hypothesis(h.3, "mood.group.dtx = mood.group.dcontrol")
 hypothesis(h.3, "mood.group.dtx - mood.group.dcontrol = 0")
 ```
 
-------------------------------------------------------------------------
+## One-sided hypotheses and Post.Prob {.smaller}
 
 ```{r}
 hyp.3 <- hypothesis(h.3, "mood.group.dtx > mood.group.dcontrol")
 hyp.3
 ```
+
+`Post.Prob` is the share of posterior draws in which tx > control: the **posterior probability that the difference is positive**. You can get the same number by hand with `mean(diff > 0)` on the draws. Unlike a *p*-value, it's a probability about the effect, not about the data. (Week 6 calls this the "probability of direction.")
 
 ```{r, message=FALSE}
 hypothesis(h.3, "mood.group.dtx < 9")
@@ -624,14 +622,14 @@ h.3 %>%
   gather_emmeans_draws() %>%
   ggplot(aes(x = mood.group.d, y = .value)) +
   stat_eye() +
-  stat_summary(aes(group = NA), fun.y = mean, geom = "line")
+  stat_summary(aes(group = NA), fun = mean, geom = "line")
 ```
 
 ## marginaleffects
 
 ```{r}
-library(modelsummary)
 avg_predictions(h.3, by = "mood.group.d", hypothesis = "pairwise")
+# newer marginaleffects versions write this as  hypothesis = ~ pairwise
 
 ```
 
@@ -649,7 +647,7 @@ avg_predictions(h.3, by = "mood.group.d", hypothesis = "b2 - b1 = .5")
 
 ## multiple comparison corrections
 
--   One the one hand, multiple comparisons are about error rates, which reference NHST and dichotomous decisions, and we don't have a null distribution in Bayes land
+-   On the one hand, multiple comparisons are about error rates, which reference NHST and dichotomous decisions, and we don't have a null distribution in Bayes land
 
 -   On the other hand, the idea that chance results come up with more shakes of the dice is about probability. We still want to make good decisions and strengthen inferences. Often decisions are needed.
 
@@ -716,7 +714,7 @@ $\mu_i$ = $\beta_0$ + $\beta_1$ $G_i$
 $\nu$ \~ Gamma(1,.1)\
 $\beta_0$ \~ Normal(0, 10)\
 $\beta_1$ \~ Normal(0, 10)\
-$\sigma$ \~ HalfCauchy(0,10)
+$\sigma$ \~ HalfCauchy(0,1)
 
 ## gamma prior
 
@@ -773,9 +771,9 @@ Instead of estimating nu we could also fix it to be low, thereby ensuring that w
 h.5R <- 
   brm(family = student,
       bf(health ~ 0 + mood.group.d, nu = 1),
-                prior(normal(0, 10), class = b),
-                prior(cauchy(0, 1),  class = sigma),
-      file = "h.5R",
+      prior = c(prior(normal(0, 10), class = b),
+                prior(cauchy(0, 1),  class = sigma)),
+      file = "h.5R2",
       backend = "cmdstanr",
       data = week3)
 ```
@@ -799,7 +797,7 @@ h.5R %>%
   gather_emmeans_draws() %>%
   ggplot(aes(x = mood.group.d, y = .value)) +
   stat_eye() +
-  stat_summary(aes(group = NA), fun.y = mean, geom = "line") +
+  stat_summary(aes(group = NA), fun = mean, geom = "line") +
   geom_point(aes(y = health), data = week3)
 
   
@@ -816,14 +814,14 @@ h.3 %>%
   gather_emmeans_draws() %>%
   ggplot(aes(x = mood.group.d, y = .value)) +
   stat_eye() +
-  stat_summary(aes(group = NA), fun.y = mean, geom = "line") + geom_point(aes(y = health), data = week3)
+  stat_summary(aes(group = NA), fun = mean, geom = "line") + geom_point(aes(y = health), data = week3)
 ```
 :::
 :::::
 
 ## relaxing equal variance assumption
 
-One assumption that often gets relaxed in ANOVA and other group models is the assumption that there are equal variances. Welches t-test does not assume groups to have equal variances.
+One assumption that often gets relaxed in ANOVA and other group models is the assumption that there are equal variances. Welch's t-test does not assume groups to have equal variances.
 
 We could run a model that is both robust and has no equal variance assumption.
 
@@ -836,22 +834,22 @@ Robust and unequal variances
 Health \~ T( $\nu$ , $\mu_i$ , $\sigma_i$ )
 
 $\mu_i$ = $\beta_0$ + $\beta_1$ $Group_i$\
-$\sigma_i$ = $\gamma_0$ + $\gamma_1$ $Group_i$
+log($\sigma_i$) = $\gamma_0$ + $\gamma_1$ $Group_i$
 
 $\nu$ \~ Gamma(2,.1)\
 $\beta_0$ \~ Normal(0, 10)\
-$\beta_1$ \~ Normal(0, 10)\
-$\gamma_0$ \~ Normal(0, 3)\
+$\beta_1$ \~ Normal(0, 3)\
+$\gamma_0$ \~ Normal(0, 10)\
 $\gamma_1$ \~ Normal(0, 3)
 :::
 
 ::: {.column width="50%"}
-Welches, but not robust
+Welch's, but not robust
 
 Health \~ Normal( $\mu_i$ , $\sigma_i$ )
 
 $\mu_i$ = $\beta_0$ + $\beta_1$ $Group_i$\
-$\sigma_i$ = $\gamma_0$ + $\gamma_1$ $Group_i$
+log($\sigma_i$) = $\gamma_0$ + $\gamma_1$ $Group_i$
 
 $\beta_0$ \~ Normal(0, 10)\
 $\beta_1$ \~ Normal(0, 10)\
@@ -866,12 +864,12 @@ Index variable for robust and unequal variances
 
 Health \~ T( $\nu$ , $\mu_i$ , $\sigma_i$ )
 
-$\mu_i$ = $\beta_1$ $Group_i$\
-$\sigma_i$ = $\gamma_1$ $Group_i$
+$\mu_i$ = $\alpha_{\text{Group}[i]}$\
+log($\sigma_i$) = $\gamma_{\text{Group}[i]}$
 
 $\nu$ \~ Gamma(2,.1)\
-$\beta_1$ \~ Normal(0, 10)\
-$\gamma_1$ \~ Normal(0, 3)
+$\alpha_j$ \~ Normal(0, 3)\
+$\gamma_j$ \~ Normal(0, 3)
 
 ------------------------------------------------------------------------
 
@@ -920,7 +918,7 @@ summary(h.7)
 
 ------------------------------------------------------------------------
 
-The sigmas are modeled through a (natural) log-link (to constrain the values to be positive). Convert natural logs (which range from negative inf to positive inf) back to the original scale by exponentiating by e
+The sigmas are modeled through a (natural) log link (to constrain them to be positive). Convert log values (which range from −∞ to ∞) back to the original scale with `exp()`.
 
 ```{r}
 #| code-fold: true
@@ -944,7 +942,7 @@ post.h7
 ```{r}
 #| code-fold: true
 post.h7 %>% 
-  gather() %>% 
+  pivot_longer(everything(), names_to = "key", values_to = "value") %>% 
   ggplot(aes(y = key, x = value)) +
   stat_halfeye()
 ```
@@ -953,9 +951,9 @@ post.h7 %>%
 
 -   We will now be able to "tweak" this basic model into any model we want. All are still modeled the same, with a linear model.
 
--   Logistic regression? Binomial plus a link. Shifted log normal? Now we have three parameters, similar to t dist. Drift Diffusion model? 4 parameter Weiner. Graded response IRT? Cumlative + logit. ZIP? Logistic plus Poisson!
+-   Logistic regression? Binomial plus a link. Shifted log normal? Now we have three parameters, similar to t dist. Drift Diffusion model? 4 parameter Wiener. Graded response IRT? Cumulative + logit. ZIP? Logistic plus Poisson!
 
--   The process is the same: we try to understand different parameters by looking at how they change with different levels of IVs. The only thing that differs across these models is what parameters, and if you need to covert the scale of a parameter.
+-   The process is the same: we try to understand different parameters by looking at how they change with different levels of IVs. The only thing that differs across these models is what parameters, and if you need to convert the scale of a parameter.
 
 ## ANOVA models
 
@@ -964,7 +962,7 @@ This easily extends past the t-test into multi-category models
 ```{r}
 #| code-fold: true
 
-MR <-read.csv("https://raw.githubusercontent.com/josh-jackson/bayes/master/hw3.csv")
+MR <- read.csv("hw3.csv")   # also at https://bayes27.netlify.app/hw3.csv
 
 MR <- MR %>% 
   mutate(SS_c = `schoool.success` - mean(`schoool.success`),
@@ -981,7 +979,7 @@ happiness \~ Normal( $\mu_i$ , $\sigma$ )
 
 $\mu_i$ = $\alpha_{\text{IV}[i]}$
 
-$\alpha_j$ \~ Normal(0, 5) , for j = 1,2,3\
+$\alpha_j$ \~ Normal(5, 2) , for j = 1,2,3\
 $\sigma$ \~ Exponential(1)
 
 ## ANOVA priors
@@ -996,7 +994,7 @@ a.1 <-
                 prior(exponential(1), class = sigma)),
       iter = 2000, warmup = 1000, chains = 2, cores = 2,
       data = MR,
-      sample_prior = T,
+      sample_prior = "yes",
       backend = "cmdstanr",
       file = "a.1")
 
@@ -1018,8 +1016,7 @@ prior.a.1 %>%
   ggplot(aes(x = b)) +
   geom_density() +
   theme_bw() +
-  theme(panel.grid = element_blank(),
-        legend.position = c(.84, .84))
+  theme(panel.grid = element_blank())
 ```
 
 ------------------------------------------------------------------------
@@ -1120,7 +1117,7 @@ a.4 <-
                 prior(exponential(1), class = sigma)),
       iter = 2000, warmup = 1000, chains = 2, cores = 2,
       data = MR,
-      sample_prior = T,
+      sample_prior = "yes",
       backend = "cmdstanr",
       file = "a.4")
 
@@ -1135,14 +1132,14 @@ summary(a.4)
 -------
 
 ```{r}
-conditional_effects(a.4, effects = "iv")
+plot_predictions(a.4, condition = "iv")
 ```
 
 
 ---------
 
 ```{r}
-conditional_effects(a.4, effects = "iv:SES")
+plot_predictions(a.4, condition = c("iv", "SES"))
 ```
 
 
@@ -1150,7 +1147,7 @@ conditional_effects(a.4, effects = "iv:SES")
 --------------
 
 ```{r}
-conditional_effects(a.4, effects = "SES:iv")
+plot_predictions(a.4, condition = c("SES", "iv"))
 ```
 
 
