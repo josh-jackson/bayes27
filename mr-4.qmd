@@ -207,7 +207,7 @@ layout <- c(
   theme(plot.margin = margin(0, 5.5, 0, 5.5))
 ```
 
-------------------------------------------------------------------------
+## Your turn: write the equation
 
 Can you write this model equation? Assume two IVs.
 
@@ -229,7 +229,7 @@ MR <- MR %>%
 MR
 ```
 
-------------------------------------------------------------------------
+## Describing the data
 
 ```{r}
 #| code-fold: true
@@ -248,7 +248,7 @@ $\beta_1$ \~ Normal(0, 2)\
 $\beta_2$ \~ Normal(0, 2)\
 $\sigma$ \~ Exponential(1)
 
-------------------------------------------------------------------------
+## Fitting the model
 
 ```{r}
 mr.1 <- 
@@ -265,7 +265,7 @@ mr.1 <-
       file = "mr.1")
 ```
 
-------------------------------------------------------------------------
+## Equivalent notation
 
 equivalent notation
 
@@ -286,7 +286,7 @@ mr.1 <-
 
 ```
 
-------------------------------------------------------------------------
+## Prior draws
 
 ```{r}
 #| code-fold: true
@@ -332,7 +332,7 @@ mr.2 <-
       file = "mr.2")
 ```
 
-------------------------------------------------------------------------
+## Prior predictive with tighter priors
 
 ```{r}
 #| code-fold: true
@@ -353,7 +353,7 @@ prior.mr2 %>%
   theme(panel.grid = element_blank()) 
 ```
 
-------------------------------------------------------------------------
+## Results: weak priors
 
 ```{r}
 #| code-fold: true
@@ -361,7 +361,7 @@ summary(mr.1)
 ## weak/non-informative prior model
 ```
 
-------------------------------------------------------------------------
+## Results: tighter priors
 
 ```{r}
 #| code-fold: true
@@ -369,13 +369,13 @@ summary(mr.2)
 ## modestly informative prior model
 ```
 
-------------------------------------------------------------------------
+## Trace plots
 
 ```{r}
 plot(mr.1)
 ```
 
-------------------------------------------------------------------------
+## Predictions across friendship quality
 
 ```{r}
 library(marginaleffects)
@@ -401,7 +401,7 @@ head(mr.1 %>%
 spread_draws(b_Intercept, b_SS_c, b_FQ_c, sigma))
 ```
 
-## Conditional plots
+## A conditional plot for SS_c
 
 ```{r}
 #| code-fold: true
@@ -416,7 +416,7 @@ MR %>%
   
 ```
 
-## Conditional plots
+## Why the grid needs a value for FQ_c
 
 ```{r, eval = FALSE}
 MR %>% 
@@ -427,7 +427,7 @@ MR %>%
 
 Results in: " Error: The following variables can neither be found in 'data' nor in 'data2': 'FQ_c'
 
-## Conditional plots
+## What .model = MR fills in
 
 ```{r}
 MR %>% 
@@ -435,14 +435,14 @@ MR %>%
   select(SS_c, FQ_c)
 ```
 
-## Conditional plots
+## Holding FQ_c at 0
 
 ```{r}
 MR %>% 
   data_grid(SS_c = seq_range(SS_c, n = 10), FQ_c = 0) 
 ```
 
-## Conditional plots
+## Feeding that grid to the model
 
 ```{r}
 MR %>% 
@@ -452,7 +452,7 @@ MR %>%
 
 Why do we have 20,000 rows?
 
-------------------------------------------------------------------------
+## Plotting with FQ held at 0
 
 ```{r}
 #| code-fold: true
@@ -465,7 +465,7 @@ MR %>%
   
 ```
 
-------------------------------------------------------------------------
+## Same plot with marginaleffects
 
 ```{r}
 #| code-fold: true
@@ -478,7 +478,7 @@ predictions(mr.1,
 
 ```
 
-------------------------------------------------------------------------
+## Friendship quality, averaging over SS
 
 FQ_c
 
@@ -504,7 +504,7 @@ MR %>%
   geom_point(data = MR, size = 2) 
 ```
 
-------------------------------------------------------------------------
+## Prediction band with marginaleffects
 
 ```{r}
 #| code-fold: true
@@ -528,7 +528,7 @@ MR %>%
   stat_lineribbon(aes(y = .epred), .width = c(.95), color = "grey") + geom_point(data = MR, size = 2)  
 ```
 
-------------------------------------------------------------------------
+## Posterior predictive check
 
 ```{r}
 #| code-fold: true
@@ -545,7 +545,7 @@ MR %>%
     sample_draws(1) 
 ```
 
-------------------------------------------------------------------------
+## 50 simulated datasets
 
 50\*118 = 5900
 
@@ -557,7 +557,7 @@ MR %>%
     sample_draws(50) 
 ```
 
-------------------------------------------------------------------------
+## Our own PPC plot
 
 ```{r}
 #| code-fold: true
@@ -571,7 +571,7 @@ MR %>%
   theme_classic()
 ```
 
-------------------------------------------------------------------------
+## Our own PPC with marginaleffects
 
 ```{r}
 #| code-fold: true
@@ -586,7 +586,7 @@ predictions(mr.1,
   theme_classic()
 ```
 
-------------------------------------------------------------------------
+## Predicted vs. observed
 
 The model's epred/fitted against the observed data
 
@@ -606,24 +606,17 @@ MR %>%
 ```{r}
 #| code-fold: true
 MR <- MR %>% 
-  mutate(iv = factor(iv))
+  mutate(iv = factor(iv),
+         happy_c = happiness - mean(happiness),
+         # a second factor: SES split at the median (just to have a 2nd categorical
+         # variable to work with; in practice keep SES continuous, as we do later)
+         iv2 = factor(if_else(SES > median(SES), "high SES", "low SES"),
+                      levels = c("low SES", "high SES")))
 
-iv2 <- c("drug.a", "drug.b")
-
-MR <- MR %>% 
-  mutate(happy_c = `happiness` - mean(`happiness`))
-
-## fix this
-
-
-MR <- MR %>% 
-  mutate(iv2 = rep(iv2,  each = 59, size = 2))
-         
- MR <- MR %>%         
-         mutate(iv2 = factor(iv2))
+MR %>% count(iv, iv2)
 ```
 
-------------------------------------------------------------------------
+## Two factors: one index, one dummy
 
 ```{r}
 #| code-fold: true
@@ -635,10 +628,10 @@ mr.5 <-
       iter = 2000, warmup = 1000, chains = 2, cores = 2,
       data = MR,
       backend = "cmdstanr",
-      file = "mr.5")
+      file = "mr.5b")
 ```
 
-------------------------------------------------------------------------
+## Two-factor results
 
 ```{r}
 summary(mr.5)
@@ -652,7 +645,7 @@ We need a new syntax to write the model we want. We will use non-linear syntax f
 
 For ANOVA I've found centering or standardizing your DV is helpful
 
-------------------------------------------------------------------------
+## Non-linear syntax: two index variables
 
 ```{r}
 #| code-fold: true
@@ -668,18 +661,18 @@ mr.6 <-
       iter = 2000, warmup = 1000, chains = 4, cores = 4,
       data = MR,
       backend = "cmdstanr",
-      file = "mr.6")
+      file = "mr.6b")
 
 
 ```
 
-------------------------------------------------------------------------
+## Non-linear results
 
 ```{r}
 summary(mr.6)
 ```
 
-------------------------------------------------------------------------
+## Group means (centered DV)
 
 ```{r}
 get_variables(mr.6)
@@ -694,7 +687,7 @@ mr.6 %>%
 
 ```
 
-------------------------------------------------------------------------
+## Add the mean of the DV back in
 
 Add the mean of your DV back in
 
@@ -712,7 +705,7 @@ mr.6 %>%
 
 ```
 
-------------------------------------------------------------------------
+## Group means, summarized
 
 ```{r}
 #| code-fold: true
@@ -732,7 +725,7 @@ MR %>%
   summarise(mean = mean(happiness), n = n())
 ```
 
-------------------------------------------------------------------------
+## Each draw is a population
 
 Each posterior row suggests a different population we are drawing from, much like each row represents a different regression line
 
@@ -767,14 +760,14 @@ mr.6 %>%
   stat_halfeye()
 ```
 
-------------------------------------------------------------------------
+## The draws, long format
 
 ```{r}
 mr.6 %>%
   gather_draws(b_a_iv1, b_a_iv2, b_a_iv3) 
 ```
 
-------------------------------------------------------------------------
+## compare_levels() output
 
 ```{r}
 mr.6 %>%
@@ -782,7 +775,7 @@ mr.6 %>%
   compare_levels(.value, by = .variable) 
 ```
 
-------------------------------------------------------------------------
+## Summarizing the contrasts
 
 ```{r}
 mr.6 %>%
@@ -792,144 +785,164 @@ mr.6 %>%
   mode_qi(.value)
 ```
 
-------------------------------------------------------------------------
+## An index for every cell
 
-What does non-linear interaction look like?
+What about an *interaction* between two categorical variables? The simplest index-coded version gives every **cell** (every combination of `iv` and `iv2`) its own mean, with one prior for all six:
 
-```{r, eval=FALSE}
+```{r}
 #| code-fold: true
 mr.7 <- 
   brm(family = gaussian,
-      bf(happy_c ~  a + b + a:b , # define 2 predictors
-         a ~ 0 + iv, # specify the predictors
-         b ~ 0 + iv,
-         a:b ~ 0,
-         nl = TRUE), # use non-linear syntax
-      prior = c(prior(normal(0, 2), nlpar = a),
-                prior(normal(0, 2), nlpar = b),
+      happy_c ~ 0 + iv:iv2,
+      prior = c(prior(normal(0, 2), class = b),
                 prior(exponential(1), class = sigma)),
       iter = 2000, warmup = 1000, chains = 4, cores = 4,
       data = MR,
-      backend = "cmdstanr")
-
+      backend = "cmdstanr",
+      file = "mr.7")
+fixef(mr.7)
 ```
 
-What would the coefficients look like, ideally?
+## Is there an interaction? Ask the cell means {.smaller}
 
-------------------------------------------------------------------------
-
-```{r}
-anova <- read_csv("anova.csv")   # also at https://bayes27.netlify.app/anova.csv
-anova$SupportLevel<-cut(anova$Support, breaks = c(0,5,10,18), labels = c("low","med","high"))
-anova <- anova %>% 
-  mutate(group = as.factor(group))
-```
-
-If we want to fit a 3x2 ANOVA, what linear model are we running?
-
-$$Y_{ijk} = b_{0} + b_{1}J1 + b_{2}K1 + b_{3}K2 + b_{4}J1:K1 + b_{5}J1:K2 +\varepsilon_{ijk}$$
-
-------------------------------------------------------------------------
+With cell means, "is there an interaction?" becomes "does the high − low SES difference change across `iv`?", a difference of differences computed from the draws:
 
 ```{r}
 #| code-fold: true
-mr.8 <- 
+#| fig-height: 3.5
+cells <- avg_predictions(mr.7, by = c("iv", "iv2")) %>% get_draws()
+
+cells %>% 
+  mutate(draw = draw + mean_happy) %>% 
+  ggplot(aes(x = iv, y = draw, color = iv2, group = iv2)) +
+  stat_pointinterval(position = position_dodge(width = .3)) +
+  stat_summary(fun = median, geom = "line", position = position_dodge(width = .3)) +
+  labs(y = "happiness", color = NULL)
+```
+
+## Difference of differences
+
+The high − low SES gap in each `iv` group, then how much those gaps differ between groups (that's the interaction):
+
+```{r}
+#| code-fold: true
+cells %>% 
+  select(drawid, iv, iv2, draw) %>% 
+  pivot_wider(names_from = iv2, values_from = draw) %>% 
+  mutate(ses_diff = `high SES` - `low SES`) %>% 
+  select(drawid, iv, ses_diff) %>% 
+  pivot_wider(names_from = iv, values_from = ses_diff, names_prefix = "iv") %>% 
+  transmute(`iv2 vs iv1` = iv2 - iv1, `iv3 vs iv1` = iv3 - iv1, `iv3 vs iv2` = iv3 - iv2) %>% 
+  pivot_longer(everything()) %>% 
+  group_by(name) %>% 
+  median_qi(value)
+```
+
+
+## A 3×2 factorial: the data
+
+```{r}
+anova <- read_csv("anova.csv")   # also at https://bayes27.netlify.app/anova.csv
+anova <- anova %>% 
+  mutate(SupportLevel = cut(Support, breaks = c(0, 5, 10, 18), labels = c("low", "med", "high")),
+         condition = factor(group))   # renamed: marginaleffects reserves the name "group"
+anova %>% count(condition, SupportLevel)
+```
+
+If we want to fit a 3×2 ANOVA, what linear model are we running?
+
+## The 3×2 model, in brms's names {.smaller}
+
+$$\text{Anxiety}_i \sim \text{Normal}(\mu_i, \sigma)$$
+
+$$
+\begin{aligned}
+\mu_i = \beta_0 &+ \beta_1\,\text{conditionTx}_i + \beta_2\,\text{SupportLevelmed}_i + \beta_3\,\text{SupportLevelhigh}_i \\
+&+ \beta_4\,(\text{conditionTx} \times \text{SupportLevelmed})_i + \beta_5\,(\text{conditionTx} \times \text{SupportLevelhigh})_i
+\end{aligned}
+$$
+
+Each name is a 0/1 dummy, exactly as it will appear in `summary()`. The reference cell (all dummies = 0) is Control with low support, so $\beta_0$ is that cell's mean and every other coefficient is a difference from it.
+
+## Fitting the factorial model
+
+```{r}
+#| code-fold: true
+mr.8b <- 
   brm(family = gaussian,
-      Anxiety ~ group * SupportLevel,
+      Anxiety ~ condition * SupportLevel,
       prior = c(prior(normal(5, 3), class = Intercept),
-                prior(normal(0, 2), class = b, coef = groupTx),
-                prior(normal(0, 2), class = b, coef =SupportLevelhigh),
+                prior(normal(0, 2), class = b, coef = conditionTx),
+                prior(normal(0, 2), class = b, coef = SupportLevelhigh),
                 prior(normal(0, 2), class = b, coef = SupportLevelmed),
-                prior(normal(0, 2), class = b, coef =groupTx:SupportLevelhigh),
-                prior(normal(0, 2), class = b, coef = groupTx:SupportLevelmed),
+                prior(normal(0, 2), class = b, coef = conditionTx:SupportLevelhigh),
+                prior(normal(0, 2), class = b, coef = conditionTx:SupportLevelmed),
                 prior(student_t(3, 0, 2.5), class = sigma)),
       iter = 2000, warmup = 1000, chains = 2, cores = 2,
       data = anova,
       sample_prior = "yes",
       backend = "cmdstanr",
-      file = "mr.8")
+      file = "mr.8b")
 ```
 
-------------------------------------------------------------------------
+## Factorial results
 
 ```{r}
-summary(mr.8)
+summary(mr.8b)
 ```
 
-------------------------------------------------------------------------
+## Parameter names
 
 ```{r}
 #| code-fold: true
-get_variables(mr.8)
+get_variables(mr.8b)
 ```
 
-------------------------------------------------------------------------
+## Cell means by hand: the dummy codes
 
-How could we get posterior means for each group?
-
-1.  feed a matrix/compute longhand into equation to calculate group values for each of our 6 groups
+How could we get posterior means for each of the 6 cells? Feed the 0/1 codes into the equation, draw by draw.
 
 ```{r}
-contrasts(anova$group)
+contrasts(anova$condition)
 ```
 
 ```{r}
 contrasts(anova$SupportLevel)
 ```
 
-------------------------------------------------------------------------
+## Cell means by hand
 
 ```{r}
 #| code-fold: true
-mr.8 %>% 
-  spread_draws(b_Intercept, b_groupTx, b_SupportLevelmed,b_SupportLevelhigh, `b_groupTx:SupportLevelmed`, `b_groupTx:SupportLevelhigh`) %>% 
-  mutate(Con_Lo = b_Intercept + b_groupTx * 0 + b_SupportLevelmed * 0 + `b_SupportLevelhigh` * 0 * 0 + `b_groupTx:SupportLevelmed` *0 * 0 + `b_groupTx:SupportLevelhigh` *0 * 0,
-         Con_Med = b_Intercept + b_groupTx * 0 + b_SupportLevelmed * 1 + b_SupportLevelhigh * 0 +  `b_groupTx:SupportLevelmed`*0 * 1 + `b_groupTx:SupportLevelhigh` *0 * 0,
-         Con_Hi = b_Intercept + b_groupTx * 0 + b_SupportLevelmed * 0 + b_SupportLevelhigh *1 +  `b_groupTx:SupportLevelmed` *0 * 0+ `b_groupTx:SupportLevelhigh` *0 * 1) %>% 
-select(.draw, Con_Lo, Con_Med, Con_Hi)
+mr.8b %>% 
+  spread_draws(b_Intercept, b_conditionTx, b_SupportLevelmed, b_SupportLevelhigh,
+               `b_conditionTx:SupportLevelmed`, `b_conditionTx:SupportLevelhigh`) %>% 
+  mutate(Con_Lo  = b_Intercept,
+         Con_Med = b_Intercept + b_SupportLevelmed,
+         Con_Hi  = b_Intercept + b_SupportLevelhigh,
+         Tx_Lo   = b_Intercept + b_conditionTx,
+         Tx_Med  = b_Intercept + b_conditionTx + b_SupportLevelmed + `b_conditionTx:SupportLevelmed`,
+         Tx_Hi   = b_Intercept + b_conditionTx + b_SupportLevelhigh + `b_conditionTx:SupportLevelhigh`) %>% 
+  select(.draw, Con_Lo:Tx_Hi)
 ```
 
-------------------------------------------------------------------------
+## A difference of cell means, by hand
 
 ```{r}
 #| code-fold: true
-mr.8 %>% 
-  spread_draws(b_Intercept, b_groupTx, b_SupportLevelmed,b_SupportLevelhigh, `b_groupTx:SupportLevelmed`, `b_groupTx:SupportLevelhigh`) %>% 
-  mutate(Con_Med = b_Intercept + b_groupTx * 0 + b_SupportLevelmed * 1 + b_SupportLevelhigh * 0 +  `b_groupTx:SupportLevelmed`*0 * 1 + `b_groupTx:SupportLevelhigh` *0 * 0,
-         Con_Hi = b_Intercept + b_groupTx * 0 + b_SupportLevelmed * 0 + b_SupportLevelhigh *1 +  `b_groupTx:SupportLevelmed` *0 * 0+ `b_groupTx:SupportLevelhigh` *0 * 1, 
+mr.8b %>% 
+  spread_draws(b_Intercept, b_SupportLevelmed, b_SupportLevelhigh) %>% 
+  mutate(Con_Med = b_Intercept + b_SupportLevelmed,
+         Con_Hi  = b_Intercept + b_SupportLevelhigh,
          hi_med_diff = Con_Hi - Con_Med) %>% 
   mean_qi(hi_med_diff)
 ```
 
-------------------------------------------------------------------------
+## Getting cell means: options
 
-How could we get posterior means for each group?
-
-1.  Feed a matrix/compute longhand into equation to calculate group values for each of our 6 groups
-
-2.  Feed similar info into the hypothesis function. This will be especially handy when we have LOTS of parameters from MLM models
-
-3.  Use a package that does this for you, like {emmeans}, {tidybayes} or {marginaleffects}
-
-------------------------------------------------------------------------
-
-```{r}
-library(emmeans)
-em.1 <- emmeans(mr.8, c("group", "SupportLevel"))
-em.1
-```
-
-------------------------------------------------------------------------
-
-```{r}
-emmip(mr.8, group ~ SupportLevel)
-```
-
-------------------------------------------------------------------------
-
-```{r}
-emmeans(mr.8, pairwise ~ SupportLevel)
-```
+1.  Compute them by hand from the draws (what we just did)
+2.  Feed the same arithmetic to brms's `hypothesis()` (handy with LOTS of parameters, as in MLMs)
+3.  Let a package do it: {marginaleffects} (what we'll use), or {emmeans}, which also works with brms models
 
 ## marginaleffects: what it does by default {.smaller}
 
@@ -940,72 +953,68 @@ From here on, {marginaleffects} is our main tool for contrasts and slopes. It ma
 -   **The scale.** `type = "response"` (the default) vs. `"link"`. It doesn't matter yet, but it will for logistic and count models.
 -   **The escape hatch.** `get_draws()` turns any result back into one row per draw, so you can check it by hand or plot it with tidybayes.
 
-------------------------------------------------------------------------
+## Support-level means, averaged over the observed data
+
+```{r}
+avg_predictions(mr.8b, by = "SupportLevel")
+```
+
+## ...or over a balanced grid
+
+Each support level averaged over Control and Tx *equally*, regardless of how many people were in each cell:
+
+```{r}
+avg_predictions(mr.8b, newdata = "balanced", by = "SupportLevel")
+```
+
+## All six cell means
+
+```{r}
+predictions(mr.8b, newdata = datagrid(SupportLevel = unique, condition = unique))
+```
+
+## Pairwise contrasts between support levels
+
+```{r}
+avg_predictions(mr.8b, by = "SupportLevel", hypothesis = "pairwise")
+# newer marginaleffects versions write this as  hypothesis = ~ pairwise
+```
+
+## Tx vs. Control within each support level
+
+```{r}
+comparisons(mr.8b, variables = "condition", by = "SupportLevel")
+```
+
+If the Tx − Control difference changes across support levels, that's the interaction.
+
+## Plotting the contrasts
 
 ```{r}
 #| code-fold: true
-#compare with marginal effects
-avg_predictions(mr.8,  by = "SupportLevel")
-
+#| fig-height: 3.5
+avg_predictions(mr.8b, by = "SupportLevel", hypothesis = "pairwise") %>% 
+  get_draws() %>% 
+  ggplot(aes(x = draw, y = term)) +
+  stat_halfeye() +
+  geom_vline(xintercept = 0, linetype = 2) +
+  labs(x = "difference in anxiety", y = NULL)
 ```
 
-------------------------------------------------------------------------
+## The interaction, plotted
 
 ```{r}
 #| code-fold: true
-
-avg_predictions(mr.8, newdata = "balanced", by = "SupportLevel")
-
+#| fig-height: 4
+avg_predictions(mr.8b, by = c("SupportLevel", "condition")) %>% 
+  get_draws() %>% 
+  ggplot(aes(x = SupportLevel, y = draw, color = condition)) +
+  geom_jitter(data = anova, aes(y = Anxiety), alpha = .4, width = .15) +
+  stat_pointinterval(position = position_dodge(width = .4)) +
+  facet_grid(~ condition) +
+  labs(y = "Anxiety", color = NULL) +
+  theme(legend.position = "none")
 ```
-
-------------------------------------------------------------------------
-
-```{r}
-predictions(mr.8, newdata = datagrid(SupportLevel = unique, group = unique))
-```
-
-------------------------------------------------------------------------
-
-```{r, eval = FALSE}
-comparisons(mr.8, newdata = datagrid(SupportLevel = unique, group = unique))
-```
-
-Error: These variable names are forbidden to avoid conflicts with the outputs of `marginaleffects`: "group" Please rename your variables before fitting the model.
-
-------------------------------------------------------------------------
-
-```{r}
-#| code-fold: true
-pairs(em.1)
-```
-
-------------------------------------------------------------------------
-
-```{r}
-#| code-fold: true
-mr.8 %>%
-  emmeans( ~ SupportLevel) %>%
-  contrast(method = "pairwise") %>%
-  gather_emmeans_draws() %>%
-   ggplot(aes(y = .value, x = contrast)) +
-  stat_eye()
-```
-
-------------------------------------------------------------------------
-
-```{r}
-#| code-fold: true
-mr.8 %>%
-  emmeans( ~ SupportLevel | group) %>%
-  gather_emmeans_draws() %>%
-   ggplot(aes(x = SupportLevel, y = .value, fill = group, color=group)) +
-  geom_line(aes(group = .draw), alpha = .005) +
-  stat_pointinterval(color = "black") +
-  facet_grid(~ group) +
-  geom_jitter(data = anova, aes(y = Anxiety), alpha = .6, width = 0.2)
-```
-
-
 
 ## Interactions
 
@@ -1032,13 +1041,13 @@ mr.12 <-
       file = "mr.12")
 ```
 
-------------------------------------------------------------------------
+## Results: parallel slopes
 
 ```{r}
 summary(mr.12)
 ```
 
-------------------------------------------------------------------------
+## Parallel lines by group
 
 ```{r}
 #| code-fold: true
@@ -1052,7 +1061,7 @@ MR %>%
 ```
 
 
----------------
+## The grid behind that plot
 
 
 ```{r}
@@ -1062,7 +1071,7 @@ MR %>%
   data_grid(SS_c = seq_range(SS_c, n = 50), .model = MR) 
 ```
 
-------------------------------------------------------------------------
+## Letting the slopes differ
 
 ```{r}
 #| code-fold: true
@@ -1079,13 +1088,13 @@ mr.13 <-
       file = "mr.13")
 ```
 
-------------------------------------------------------------------------
+## Results: separate slopes
 
 ```{r}
 summary(mr.13)
 ```
 
-------------------------------------------------------------------------
+## Separate lines by group
 
 ```{r}
 #| code-fold: true
@@ -1099,7 +1108,7 @@ MR %>%
 ```
 
 
--------
+## The grid, again
 
 ```{r}
 #| code-fold: true
@@ -1110,7 +1119,7 @@ df
 ```
 
 
-------------------------------------------------------------------------
+## Without index coding
 
 What if we fit it without index coding?
 
@@ -1129,13 +1138,13 @@ mr.14 <-
       file = "mr.14")
 ```
 
-------------------------------------------------------------------------
+## Results: dummy-coded interaction
 
 ```{r}
 summary(mr.14)
 ```
 
-------------------------------------------------------------------------
+## Same lines, different parameters
 
 ```{r}
 #| code-fold: true
@@ -1148,7 +1157,7 @@ MR %>%
   geom_point(data = MR) 
 ```
 
-------------------------------------------------------------------------
+## Predictions behind the plot
 
 
 ```{r}
@@ -1160,7 +1169,7 @@ MR %>%
 ```
 
 
---------------
+## Group slopes by hand
 
 ```{r}
 mr.14 %>%
@@ -1171,7 +1180,7 @@ mr.14 %>%
   mean_qi() 
 ```
 
--------------
+## Group slopes with marginaleffects
 
 ```{r}
 library(marginaleffects)
@@ -1180,7 +1189,7 @@ avg_slopes(mr.14, variables = "SS_c", by = "iv.d")
 
 
 
-------------------------------------------------------------------------
+## Group intercepts (index model)
 
 ```{r}
 mr.13 %>%
@@ -1189,7 +1198,7 @@ mr.13 %>%
 
 ```
 
----------------
+## Group predictions at chosen SS values
 
 ```{r}
 predictions(mr.14, newdata = datagrid(iv.d = c("control", "tx"), SS_c = mean))
@@ -1218,20 +1227,20 @@ a.4 <-
 
 ```
 
-------------------------------------------------------------------------
+## 3-group × SES results
 
 ```{r}
 summary(a.4)
 ```
 
--------
+## Predictions by group
 
 ```{r}
 plot_predictions(a.4, condition = "iv")
 ```
 
 
----------
+## Group means at different SES
 
 ```{r}
 plot_predictions(a.4, condition = c("iv", "SES"))
@@ -1239,21 +1248,21 @@ plot_predictions(a.4, condition = c("iv", "SES"))
 
 
 
---------------
+## SES slopes by group
 
 ```{r}
 plot_predictions(a.4, condition = c("SES", "iv"))
 ```
 
 
-------------------------------------------------------------------------
+## Slopes by group
 
 ```{r}
 slopes(a.4, datagrid(iv = unique))
 ```
 
 
----------
+## Average slopes
 
 ```{r}
 avg_slopes(a.4)
@@ -1274,7 +1283,7 @@ slopes(a.4,
     SES = 0))
 ```
 
--------
+
 
 
 ## Continuous interaction example
@@ -1293,7 +1302,7 @@ visreg2d(mr.model,"Support.r", "Anxiety", plot.type = "persp")
 
 ```
 
-------------------------------------------------------------------------
+## Adding the interaction
 
 ```{r}
 #| code-fold: true
@@ -1307,14 +1316,14 @@ visreg2d(mr.model,"Support.r", "Anxiety", plot.type = "persp")
 
 ```
 
-------------------------------------------------------------------------
+## Default priors for the interaction model
 
 ```{r}
 get_prior(family = gaussian,
       happiness ~ 1 + SS_c * FQ_c,data = MR)
 ```
 
-------------------------------------------------------------------------
+## Fitting the interaction model
 
 ```{r}
 mr.15 <- 
@@ -1332,7 +1341,7 @@ mr.15 <-
       file = "mr.15")
 ```
 
-------------------------------------------------------------------------
+## Interaction results
 
 ```{r}
 summary(mr.15)
@@ -1352,7 +1361,7 @@ data_grid(SS_c = seq_range(SS_c, n = 20), FQ_c = c(-2.5,0,2.5), .model = MR)
 
 ```
 
-------------------------------------------------------------------------
+## Feeding the grid to the model
 
 ```{r}
 MR %>% 
@@ -1360,7 +1369,7 @@ data_grid(SS_c = seq_range(SS_c, n = 20), FQ_c = c(-2.5,0,2.5), .model = MR) %>%
 
 ```
 
-------------------------------------------------------------------------
+## Lines at three FQ values
 
 ```{r}
 MR %>% 
@@ -1372,7 +1381,7 @@ data_grid(SS_c = seq_range(SS_c, n = 20), FQ_c = c(-2.5,0,2.5), .model = MR) %>%
 
 ```
 
-------------------------------------------------------------------------
+## Each FQ value, many draws
 
 ```{r}
 MR %>% 
@@ -1383,7 +1392,7 @@ data_grid(SS_c = seq_range(SS_c, n = 20), FQ_c = c(-2.5,0,2.5), .model = MR) %>%
 facet_grid(cols = vars(FQ_c))
 ```
 
-------------
+## Slopes across FQ (five-number summary)
 
 ```{r}
 slopes(mr.15, variables = "SS_c", newdata = datagrid(FQ_c = fivenum))
