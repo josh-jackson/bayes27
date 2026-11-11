@@ -1,0 +1,34 @@
+---
+title: "HW 10: Varying slopes"
+---
+
+**Due:** Thursday, Apr 8 at 2:30 pm on Canvas · **Size:** light · **Covers:** [Multilevel models](mlm-8.qmd) (random slopes onward)
+
+Start from the [homework template](hw-template.qmd){download="hw-template.qmd"}, use `## Q1` to `## Q3` headings, and turn in both the `.qmd` and the rendered `.html`. Each question is graded 0 / 1 / 2 (missing / attempted / solid); answers in words count.
+
+**Data.** Your own nested data with a level-1 predictor (if you used your own data for HW 9), or the **full** sleep-deprivation data this time: all 10 days for all 18 people.
+
+```{r, eval = FALSE}
+data(sleepstudy, package = "lme4")
+```
+
+## Q1. Let the slopes vary
+
+a) Fit `Reaction ~ 1 + Days + (1 + Days | Subject)` with priors for the fixed effects, both SDs, σ, and an `lkj(2)` prior on the correlation. Write the model in likelihood notation, including the multivariate normal for each person's intercept and slope.
+b) Interpret, in ms and ms/day: the average slope, `sd(Days)` (how much do people differ in how much sleep loss slows them?), and `cor(Intercept, Days)`. Is there evidence that people who start slower also slow down faster (or less)? How sure are you, given 18 people?
+c) Compare this model with the varying-intercept-only model (`(1 | Subject)`) using LOO. Do varying slopes earn their keep?
+
+## Q2. Whose slope?
+
+a) Get each person's slope (population slope + their deviation, draw by draw, e.g., `spread_draws(b_Days, r_Subject[Subject, term])`) with a 95% interval.
+b) Which people's slopes are clearly steeper or shallower than average? Is anyone's slope plausibly zero or negative, i.e., not affected by sleep loss at all?
+c) Compare one person's partially pooled slope with the slope you'd get from fitting a regression to only that person's 10 days (`lm()` on their data). Why are they different?
+
+## Q3. A publication-ready figure
+
+Make one figure that meets the [checklist](homeworks.qmd#figures) showing **both** the population-average trajectory **and** individual trajectories:
+
+- the population-average line with a 95% ribbon (`re_formula = NA`);
+- each person's predicted line (`re_formula = NULL`), thinner and lighter, or in small multiples with their raw data;
+- labels in words and units, a stand-alone caption, and `ggsave()` at 6.5 inches wide;
+- the one or two sentences you'd put in a Results section about the average effect and how much people vary around it.

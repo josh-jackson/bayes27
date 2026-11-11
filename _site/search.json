@@ -3281,5 +3281,33 @@
     "title": "HW 9: Varying intercepts and partial pooling",
     "section": "Q6. Publication-ready shrinkage figure (5 points)",
     "text": "Q6. Publication-ready shrinkage figure (5 points)\nMake a figure that meets the checklist showing partial pooling in action for the empty model:\n\neach person’s no-pooling estimate (raw mean) and partial-pooling estimate, connected (e.g., arrows from raw to pooled) so the shrinkage is visible;\nthe grand mean as a reference line;\nthe number of observations per person shown somehow (point size, labels, or sorting), so a reader can see that people with fewer observations shrink more;\nlabels in words and units, a stand-alone caption, ggsave() at 6.5 inches wide, and the one or two sentences you’d put in a paper to explain it."
+  },
+  {
+    "objectID": "hw-10.html",
+    "href": "hw-10.html",
+    "title": "HW 10: Varying slopes",
+    "section": "",
+    "text": "Due: Thursday, Apr 8 at 2:30 pm on Canvas · Size: light · Covers: Multilevel models (random slopes onward)\nStart from the homework template, use ## Q1 to ## Q3 headings, and turn in both the .qmd and the rendered .html. Each question is graded 0 / 1 / 2 (missing / attempted / solid); answers in words count.\nData. Your own nested data with a level-1 predictor (if you used your own data for HW 9), or the full sleep-deprivation data this time: all 10 days for all 18 people.\ndata(sleepstudy, package = \"lme4\")"
+  },
+  {
+    "objectID": "hw-10.html#q1.-let-the-slopes-vary",
+    "href": "hw-10.html#q1.-let-the-slopes-vary",
+    "title": "HW 10: Varying slopes",
+    "section": "Q1. Let the slopes vary",
+    "text": "Q1. Let the slopes vary\n\nFit Reaction ~ 1 + Days + (1 + Days | Subject) with priors for the fixed effects, both SDs, σ, and an lkj(2) prior on the correlation. Write the model in likelihood notation, including the multivariate normal for each person’s intercept and slope.\nInterpret, in ms and ms/day: the average slope, sd(Days) (how much do people differ in how much sleep loss slows them?), and cor(Intercept, Days). Is there evidence that people who start slower also slow down faster (or less)? How sure are you, given 18 people?\nCompare this model with the varying-intercept-only model ((1 | Subject)) using LOO. Do varying slopes earn their keep?"
+  },
+  {
+    "objectID": "hw-10.html#q2.-whose-slope",
+    "href": "hw-10.html#q2.-whose-slope",
+    "title": "HW 10: Varying slopes",
+    "section": "Q2. Whose slope?",
+    "text": "Q2. Whose slope?\n\nGet each person’s slope (population slope + their deviation, draw by draw, e.g., spread_draws(b_Days, r_Subject[Subject, term])) with a 95% interval.\nWhich people’s slopes are clearly steeper or shallower than average? Is anyone’s slope plausibly zero or negative, i.e., not affected by sleep loss at all?\nCompare one person’s partially pooled slope with the slope you’d get from fitting a regression to only that person’s 10 days (lm() on their data). Why are they different?"
+  },
+  {
+    "objectID": "hw-10.html#q3.-a-publication-ready-figure",
+    "href": "hw-10.html#q3.-a-publication-ready-figure",
+    "title": "HW 10: Varying slopes",
+    "section": "Q3. A publication-ready figure",
+    "text": "Q3. A publication-ready figure\nMake one figure that meets the checklist showing both the population-average trajectory and individual trajectories:\n\nthe population-average line with a 95% ribbon (re_formula = NA);\neach person’s predicted line (re_formula = NULL), thinner and lighter, or in small multiples with their raw data;\nlabels in words and units, a stand-alone caption, and ggsave() at 6.5 inches wide;\nthe one or two sentences you’d put in a Results section about the average effect and how much people vary around it."
   }
 ]
