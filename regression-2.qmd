@@ -634,12 +634,41 @@ We often want to get predicted values for specific combinations of model variabl
 
 ```{r}
 #| code-fold: true
-galton.data %>% 
-data_grid(parent.c = -4.3) %>% 
- add_epred_draws(fit.1) %>% 
+galton.data %>%
+data_grid(parent.c = -4.3) %>%
+ add_epred_draws(fit.1) %>%
     ggplot(aes(x = .epred)) +
   stat_halfeye( .width = c(.95))
 ```
+
+## One quantity, three ways
+
+Expected child height for a 64-inch parent (parent.c = −4.3). Every tool does the same three steps: **get the draws → compute the quantity for each draw → summarize.**
+
+```{r}
+#| code-fold: true
+# 1. By hand: the posterior is just a data frame of draws
+by_hand <- fit.1 %>%
+  spread_draws(b_Intercept, b_parent.c) %>%
+  mutate(mu_at_64 = b_Intercept + b_parent.c * -4.3) %>%
+  median_qi(mu_at_64)
+
+# 2. tidybayes: feed a grid, get one row per draw
+tb <- tibble(parent.c = -4.3) %>%
+  add_epred_draws(fit.1) %>%
+  median_qi(.epred)
+
+# 3. marginaleffects: feed a grid, get the summary (get_draws() shows the draws behind it)
+me <- predictions(fit.1, newdata = datagrid(parent.c = -4.3))
+
+tibble(method = c("by hand (spread_draws + mutate)", "tidybayes (add_epred_draws)", "marginaleffects (predictions)"),
+       estimate = c(by_hand$mu_at_64, tb$.epred, me$estimate),
+       lower = c(by_hand$.lower, tb$.lower, me$conf.low),
+       upper = c(by_hand$.upper, tb$.upper, me$conf.high)) %>%
+  mutate(across(where(is.numeric), \(x) round(x, 2)))
+```
+
+Same answer. marginaleffects reports the posterior **median** and an equal-tailed 95% interval by default, which is why `median_qi()` matches it exactly. When a function surprises you, recompute it by hand from the draws.
 
 ## marginal effects
 
