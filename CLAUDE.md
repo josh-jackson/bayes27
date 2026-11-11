@@ -22,6 +22,7 @@ Quarto website for a graduate Bayesian statistics course (psychology). Lectures 
 ## Workflow
 - Instructor's planning notes live in the Obsidian vault at `~/Library/Mobile Documents/iCloud~md~obsidian/Documents/Pmad lab/Teaching/Bayesian Statistics/` — read `Bayes Revision Notes.md` before revising a lecture, and tick items off there when done (with the instructor's OK).
 - Render a single file: `quarto render <file>.qmd`; full site: `quarto render`. Preview: `quarto preview`.
+- After fitting or refitting any model, run `./backup-fits.sh` (copies new/changed `.rds` files to Box `Bayesian Statistics/BayesSpring27/fits`; never deletes).
 - Never refit a long model or delete `.rds` fits without asking.
 - **Never push without asking** — pushing publishes to students via Netlify. Commit in small, described steps.
 - This repo is public: never commit grades, student names/work, exam answer keys, or private submission links.
