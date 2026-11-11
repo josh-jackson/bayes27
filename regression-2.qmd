@@ -5,9 +5,6 @@ slide-number: true
 editor: source
 execute:
   echo: true
-html:
-  code-fold: true
-  code-summary: Show the code
 ---
 
 ## Goals for this slide deck
@@ -18,7 +15,7 @@ html:
 
 ## Specify the model
 
-We want to understand why i people differ on the mean of the DV.
+We want to understand why people differ on the DV.
 
 $$ y_i \sim Normal( \mu_i , \sigma )\ $$ $$\mu_i = \beta_1  X_i $$
 
@@ -40,7 +37,7 @@ In general we want to:
 1.  Center our priors around a null effect
 2.  Have dispersion (our accuracy metric) be a balance between not too large and not too little. This choice requires thought, whereas centering a prior around zero requires none.
 
-This also get around the "subjectivity in objective science" arguments against bayes.
+This also gets around the "subjectivity in objective science" arguments against bayes.
 
 ## Example
 
@@ -111,7 +108,7 @@ galton.data
 
 ```
 
-## Prior for regression coefficent
+## Prior for regression coefficient
 
 ```{r}
 #| code-fold: true
@@ -119,7 +116,7 @@ galton.data
   ggplot(aes(x = x, y = dnorm(x, mean = 0, sd = 5))) +
   geom_line() +
   scale_x_continuous(breaks = seq(from = -15, to = 15, by = 3)) +
-  labs(title = "mu ~ dnorm(0, 5)",
+  labs(title = "beta ~ dnorm(0, 5)",
        y = "density")
 ```
 
@@ -163,10 +160,35 @@ tibble(n = 1:100,
 
 ## Prior predictive
 
-We will eventually have brms do this for us
+brms can do this for us: `sample_prior = "only"` fits the model while ignoring the data, so the "posterior" is just the prior.
 
+```{r}
+#| code-fold: true
+#| fig-height: 3.5
+#| out-width: "100%"
+library(brms)
+library(tidybayes)
+library(modelr)
+fit.1p <- 
+  brm(family = gaussian,
+      child ~ 1 + parent.c,
+      prior = c(prior(normal(68, 5), class = Intercept),
+                prior(normal(0, 5), class = b),
+                prior(cauchy(0, 1), class = sigma)),
+      data = galton.data, 
+      sample_prior = "only",
+      backend = "cmdstanr",
+      iter = 1000, warmup = 500, chains = 2, cores = 2, 
+      file = "fit.1p")
 
-
+galton.data %>% 
+  data_grid(parent.c = seq_range(parent.c, n = 2)) %>% 
+  add_epred_draws(fit.1p, ndraws = 100) %>% 
+  ggplot(aes(x = parent.c, y = .epred, group = .draw)) +
+  geom_line(alpha = 1/10) +
+  coord_cartesian(ylim = c(36, 96)) +
+  labs(y = "child height (prior predicted)")
+```
 
 ## Prior predictive
 
@@ -186,7 +208,7 @@ model.name <- # name your fit
       Y ~ X, # insert model
       prior = prior, # your priors go here
       data = data,  # your data goes here
-      sample_prior = "TRUE", # to construct a prior predictive
+      sample_prior = "yes", # also draw from the priors ("only" ignores the data: a prior predictive)
       iter = 1000, warmup = 500, chains = 4, cores = 4, # wait for this 
       backend = "cmdstanr", # quicker than alternative Rstan library
       file = "fits/b04.01") # save your samples
@@ -228,7 +250,7 @@ fit.1 <-
 ## brms
 
 -   What if you don't know what priors should be in your model?
--   Default priors are usually bad (i.e flat and non-centered)
+-   Default priors are usually not what you want: flat on the slopes, and the intercept and sigma defaults are centered and scaled using your own outcome data
 
 ```{r}
 #| code-fold: true
@@ -321,7 +343,7 @@ spread_draws(b_Intercept, b_parent.c)
 
 ## Pairs plot
 
-posteriors and the covariances across draws (e.g., when the algorithm found a high value for $b_o$ did it also find a high value for sigma?). 
+posteriors and the covariances across draws (e.g., when the algorithm found a high value for $b_0$ did it also find a high value for sigma?). 
 
 ```{r}
 #| code-fold: true
@@ -417,7 +439,7 @@ augment(lm(child ~ parent, galton.data))
 
 Bayesian analysis also has fitted values, but now we have many samples of parameters rather than just a single estimate for each value.
 
-$$ \widehat{Y}_{prediction} = b_o + b_1X $$ If we previously had 928 fitted values. We now have 928 participants \* 1000 samples = 928,000 fitted values to work with. (Though people with the same X have the same yhat so it is effectively less)
+$$ \widehat{Y}_{prediction} = b_0 + b_1X $$ If we previously had 928 fitted values. We now have 928 participants \* 1000 samples = 928,000 fitted values to work with. (Though people with the same X have the same yhat so it is effectively less)
 
 ## Predicted/fitted values
 
@@ -436,7 +458,7 @@ The confidence band tells us potential expected values of Y given X (Y\|X)
 
 ::: columns
 ::: {.column width="50%"}
-If we examine a expected/predicted mean at a certain value across all of our samples we directly compute our uncertainty. In contrast to frequentist where we have to use an ugly equation, which has big assumptions.
+If we examine an expected/predicted mean at a certain value across all of our samples we directly compute our uncertainty. In contrast to frequentist where we have to use an ugly equation, which has big assumptions.
 :::
 
 ::: {.column width="50%"}
@@ -481,7 +503,7 @@ A way to think about it is we are going to take some set of \[data\] and *feed* 
 
 Example: \[0 and 1s\] --\>
 
-\[complex model with lots of covariates but but focal parameter is a treatment vs control\] --\>
+\[complex model with lots of covariates but the focal parameter is a treatment vs control\] --\>
 
 \[estimated means for treatment and control groups\]
 
@@ -545,7 +567,7 @@ data_grid(parent.c = seq_range(parent.c, n = 10)) %>%
 #| code-fold: true
 predictions(model = fit.1,
              datagrid(parent.c = seq(from = min(galton.data$parent.c), to = max(galton.data$parent.c), length.out = 10))) %>% 
-  posterior_draws()
+  get_draws()
 ```
 
 ## plot predictions from tidybayes
@@ -566,7 +588,7 @@ data_grid(parent.c = seq_range(parent.c, n = 10)) %>%
 #| code-fold: true
 predictions(model = fit.1,
              datagrid(parent.c = seq(from = min(galton.data$parent.c), to = max(galton.data$parent.c), length.out = 10))) %>% 
-  posterior_draws() %>% 
+  get_draws() %>% 
   ggplot(aes(x = parent.c, y = child)) +
   stat_lineribbon(aes(y = draw), .width = c(.95), color = "grey") +
   geom_point(data = galton.data, size = 2)
@@ -619,7 +641,7 @@ data_grid(parent.c = -4.3) %>%
 
 ## marginal effects
 
-We sometimes want to get a slope or estimate at different levels of variables (often this is called the marginal effect). From {marginalmeans} we can use the slopes function. Note that our slope should be the same at all levels of X.
+We sometimes want to get a slope or estimate at different levels of variables (often this is called the marginal effect). From {marginaleffects} we can use the `slopes()` function. Note that our slope should be the same at all levels of X.
 
 ```{r}
 #| code-fold: true
@@ -636,7 +658,7 @@ slopes(
 slopes(fit.1,
   newdata = datagrid(
     parent.c = -4.3)) %>% 
-  posterior_draws() %>% 
+  get_draws() %>% 
   ggplot(aes(x = draw)) +
   stat_halfeye( .width = c(.95))
   
@@ -665,9 +687,9 @@ One needs to ask:
 
 Depending on which level of analysis we will use different functions
 
-1.  fitted/epred (expected prediction) style, Expected value of Y given Xs. Propagates uncertainty in $b_o$ & $b_1$. Sample or group averages. 
+1.  fitted/epred (expected prediction) style, Expected value of Y given Xs. Propagates uncertainty in $b_0$ & $b_1$. Sample or group averages. 
 
-2.  prediction style, where we are propagating uncertainty in $b_o$, $b_1$ & $\hat{\sigma}$. What is plausible when we collect a new subject? Predictions, unit level.
+2.  prediction style, where we are propagating uncertainty in $b_0$, $b_1$ & $\sigma$. What is plausible when we collect a new subject? Predictions, unit level.
 
 3.  Link transformed. Only useful for generalized linear models (ie do you want predictions in logits or in probabilities?). 
 
@@ -688,7 +710,7 @@ data_grid(parent.c = seq_range(parent.c, n = 10)) %>%
 
 ## predicted values
 
-Each .prediction is feeding in a parent.c value into our model $\hat{Y}_i = \beta_0 + \beta_1 X + \epsilon_i$. Each row of the posterior has different estimates for each of the three parameters. 
+Each .prediction feeds a parent.c value into our model and simulates a new person: $\tilde{y} \sim \text{Normal}(\beta_0 + \beta_1 X, \sigma)$. Each row of the posterior has different values for each of the three parameters. 
 
 ```{r}
 #| code-fold: true
@@ -711,14 +733,14 @@ predictions(model = fit.1,
 
 ## predicted values
 
-Though if you want to see the full df, then just use the posterior draws function.
+Though if you want to see the full df, then just use `get_draws()` (called `posterior_draws()` in older versions of marginaleffects).
 
 ```{r}
 #| code-fold: true
 predictions(model = fit.1,
             type = "prediction",
              datagrid(parent.c = seq(from = min(galton.data$parent.c), to = max(galton.data$parent.c), length.out = 10))) %>% 
-  posterior_draws()
+  get_draws()
 
 ```
 
@@ -731,7 +753,7 @@ Which allows you to use tidybayes functions
 predictions(model = fit.1,
             type = "prediction",
              datagrid(parent.c = seq(from = min(galton.data$parent.c), to = max(galton.data$parent.c), length.out = 10))) %>% 
-  posterior_draws() %>% 
+  get_draws() %>% 
   ggplot(aes(x = parent.c, y = child)) +
      stat_lineribbon(aes(y = draw), 
                   .width = .95, 
@@ -765,7 +787,7 @@ avg_predictions(fit.1)
 Adding new data to make an "interesting" grid. With more complex models you can have more interesting combinations. Right now we have just a single variable
 
 ```{r}
-predictions(fit.1,  newdata = datagrid(parent.c = c(30, -2)))
+predictions(fit.1,  newdata = datagrid(parent.c = c(-4.3, 2)))
 ```
 
 ------------------------------------------------------------------------
@@ -774,7 +796,7 @@ Often we have categories and would like a grid across all of these categories. T
 
 ```{r, eval = FALSE}
 
-predictions(fit.1,  newdata = datagrid(fac1 = unique, fac2 = unique, covariate = mean)
+predictions(fit.1,  newdata = datagrid(fac1 = unique, fac2 = unique, covariate = mean))
 ```
 
 ------------------------------------------------------------------------
@@ -791,7 +813,7 @@ predictions(fit.1,  newdata = datagrid(fac1 = unique, fac2 = unique, covariate =
 
 ::: columns
 ::: {.column width="40%"}
--   One way to check whether our model is a good is to see if the predictions match up with our observed data. 
+-   One way to check whether our model is a good one is to see if the predictions match up with our observed data. 
 -   'pp_check' asks: do simulated samples match the observed?
 :::
 
@@ -832,4 +854,4 @@ galton.data %>%
 
 - If not, then you should question both your model and the posterior. 
 
-- Will can also use the model+posterior to generate (new) predictions about novel scenarios, e.g., those that don't exist in the dataset
+- We can also use the model+posterior to generate (new) predictions about novel scenarios, e.g., those that don't exist in the dataset
