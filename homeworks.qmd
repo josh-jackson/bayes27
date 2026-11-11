@@ -6,4 +6,4 @@ Homework is posted Thursday after class and due the following Thursday at 2:30 p
 
 1.  [HW 1: Distributions, priors, and counting](hw-1.qmd) (due Jan 28)
 2.  [HW 2: Your first brms model](hw-2.qmd) (due Feb 4)
-3.  [Homework #3](hw-3.qmd)
+3.  [HW 3: Lines, bands, priors, and groups](hw-3.qmd) (due Feb 11)

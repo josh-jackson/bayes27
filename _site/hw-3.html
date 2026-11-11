@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Bayesian Statistics Spring 2027 - hw-3</title>
+<title>Bayesian Statistics Spring 2027 - HW 3: Lines, bands, priors, and groups</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -109,14 +109,22 @@ ul.task-list li input[type="checkbox"] {
 <!-- sidebar -->
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#q1.-confidence-vs.-prediction" id="toc-q1.-confidence-vs.-prediction" class="nav-link active" data-scroll-target="#q1.-confidence-vs.-prediction">Q1. Confidence vs.&nbsp;prediction</a></li>
+  <li><a href="#q2.-how-much-does-the-prior-matter" id="toc-q2.-how-much-does-the-prior-matter" class="nav-link" data-scroll-target="#q2.-how-much-does-the-prior-matter">Q2. How much does the prior matter?</a></li>
+  <li><a href="#q3.-groups" id="toc-q3.-groups" class="nav-link" data-scroll-target="#q3.-groups">Q3. Groups</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">hw-3</h1>
+<h1 class="title">HW 3: Lines, bands, priors, and groups</h1>
 </div>
 
 
@@ -131,31 +139,40 @@ ul.task-list li input[type="checkbox"] {
 
 </header>
 
-<p>Please email in homework to: Homewor.migdgp1ciaay0jrv@u.box.com Include your code as a quarto(qmd) file and include either a html or PDF file. Please make sure you have your name on it.</p>
-<p>We will continue to use the mortality dataset from the GLM class for questions # 1 - 5:</p>
-<p>“https://raw.githubusercontent.com/josh-jackson/bayes/master/static/Lectures/mortality.csv”</p>
-<p>For questions # 6 please use the KN dataset: “https://raw.githubusercontent.com/josh-jackson/bayes25/refs/heads/main/KN.csv”</p>
-<ol type="1">
-<li>Run a logistic regression where premature mortality is predicted by risky behavior. Interpret the coefficients in terms of:</li>
-</ol>
+<p><strong>Due:</strong> Thursday, Feb 11 at 2:30 pm on Canvas · <strong>Size:</strong> light · <strong>Covers:</strong> <a href="./regression-3.html">Regression part 2</a></p>
+<p>Start from the <a href="hw-template.qmd" download="hw-template.qmd">homework template</a>, use <code>## Q1</code> to <code>## Q3</code> headings, and turn in both the <code>.qmd</code> and the rendered <code>.html</code>. Each question is graded 0 / 1 / 2 (missing / attempted / solid); answers in words count.</p>
+<p>Q1 and Q2 build on <strong>your model from HW 2</strong>: same data, same priors. Load the fit you saved with <code>file =</code> instead of refitting. Q3 needs a categorical predictor. If your own data don’t have one, use <code>sat.act</code> from {psych} with <code>SATV</code> by <code>gender</code> (1 = male, 2 = female in this dataset), and say so.</p>
+<section id="q1.-confidence-vs.-prediction" class="level2">
+<h2 class="anchored" data-anchor-id="q1.-confidence-vs.-prediction">Q1. Confidence vs.&nbsp;prediction</h2>
+<p>Make one plot with:</p>
+<ul>
+<li>the raw data,</li>
+<li>50 posterior regression lines (<code>add_epred_draws(ndraws = 50)</code>),</li>
+<li>a 95% band for the <strong>expected value</strong> (the “confidence” band), and</li>
+<li>a 95% band for <strong>new observations</strong> (the “prediction” band, <code>add_predicted_draws()</code>).</li>
+</ul>
+<p>Then in two or three sentences: why is the prediction band so much wider? Which band would you use to answer “what’s the average score for people with X = 30?” and which for “what score will <em>this</em> person with X = 30 get?”</p>
+</section>
+<section id="q2.-how-much-does-the-prior-matter" class="level2">
+<h2 class="anchored" data-anchor-id="q2.-how-much-does-the-prior-matter">Q2. How much does the prior matter?</h2>
+<p>Refit your HW 2 model with a <strong>deliberately bad</strong> prior on the slope: strong and centered in the wrong place. For example, if your slope is positive, use something like <code>normal(-10, 1)</code> scaled to your variables. Then:</p>
 <ol type="a">
-<li>Logits</li>
-<li>Logits converted to odds</li>
-<li>Logits converted to probability</li>
-<li>NHST test using a confidence interval of your choosing</li>
-<li>NHST test using Probability of Direction</li>
-<li>NHST test using ROPE</li>
-<li>NHST test using Bayes Factor</li>
+<li>Plot the slope’s posterior from HW 2 and from this new model on the same plot.</li>
+<li>Did the bad prior move the posterior much? Using your sample size and the prior’s width, explain why or why not. What would have to be true about a study for the prior to really matter?</li>
 </ol>
-<ol start="2" type="1">
-<li><p>Create predicted values for different levels of risky behavior. What is my probability of premature mortality if I was 1 sd deviation below the mean of risky behavior? 2 SDs above? Make sure to include CIs around these estimates.</p></li>
-<li><p>Graph the predicted relationship between risky behavior and premature mortality with probability as the Y axis.</p></li>
-<li><p>Run two new models with risky behavior AND IQ as predictors of premature mortality – one where they are main effects and another where they interact. Calculate psis-loo and waic for these two models and use them to compare with the previous model from #1. Which model is a better model?</p></li>
-<li><p>Create your own version of pp_check on the model in #4 to examine the posterior predictive distribution. Interpret.</p></li>
-<li><p>With the KN dataset, run 4 different models (poisson, negative binomial, and one zero inflated and one hurdle model (ZIP or ZINB and HP or HNB) predicting count of number of jobs one has had, accounting for number of years work by the personality trait of achievement (mpqachievement). If this was your data what model would you choose, and why?</p></li>
+</section>
+<section id="q3.-groups" class="level2">
+<h2 class="anchored" data-anchor-id="q3.-groups">Q3. Groups</h2>
+<p>Fit a model with your outcome predicted by a categorical variable using <strong>index coding</strong> (<code>y ~ 0 + group</code>), with one prior for all the group means.</p>
+<ol type="a">
+<li>Write the model in likelihood notation.</li>
+<li>Get the posterior of the difference between two groups, either with {marginaleffects} (<code>avg_predictions()</code> with <code>by =</code> and a <code>hypothesis</code>) or from the draws with {tidybayes}. Report it with a 95% interval.</li>
+<li>Convert the difference into a standardized effect (divide the difference by σ, draw by draw) and report its posterior.</li>
+<li>What is the posterior probability that the difference is greater than 0? In one sentence, how is that different from a <em>p</em>-value?</li>
 </ol>
 
 
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
