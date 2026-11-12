@@ -20,9 +20,10 @@ $${Y}_{ij} = b_{0} + b_{1}X_{ij} + ... +\epsilon_{ij}$$ where *i* refers to the 
 
 ```{r}
 mlm <- read.csv("mlm.csv")  # also at https://bayes27.netlify.app/mlm.csv
+names(mlm)[names(mlm) == "group"] <- "diagnosis"  # marginaleffects reserves the name "group"
 ```
 
--   91 people (people with Parkinson's disease, `group = "PD"`, and controls, `"CTRL"`), each scanned 2–4 times: 225 rows in all.
+-   91 people (people with Parkinson's disease, `diagnosis = "PD"`, and controls, `"CTRL"`), each scanned 2–4 times: 225 rows in all.
 -   `CON` and `SMN7` are resting-state connectivity scores for two brain networks; `time` is time since the first scan (0–6); `week` is a finer-grained version of it.
 -   Observations (*j*) are nested in people (*i*). Some examples below are conceptual (a Stroop task, students in schools); whenever there's a plot, it's these data.
 

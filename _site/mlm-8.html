@@ -407,10 +407,11 @@
 <section id="our-running-example" class="slide level2 smaller">
 <h2>Our running example</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a>mlm <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"mlm.csv"</span>)  <span class="co"># also at https://bayes27.netlify.app/mlm.csv</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a>mlm <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"mlm.csv"</span>)  <span class="co"># also at https://bayes27.netlify.app/mlm.csv</span></span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="fu">names</span>(mlm)[<span class="fu">names</span>(mlm) <span class="sc">==</span> <span class="st">"group"</span>] <span class="ot">&lt;-</span> <span class="st">"diagnosis"</span>  <span class="co"># marginaleffects reserves the name "group"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <ul>
-<li>91 people (people with Parkinson’s disease, <code>group = "PD"</code>, and controls, <code>"CTRL"</code>), each scanned 2–4 times: 225 rows in all.</li>
+<li>91 people (people with Parkinson’s disease, <code>diagnosis = "PD"</code>, and controls, <code>"CTRL"</code>), each scanned 2–4 times: 225 rows in all.</li>
 <li><code>CON</code> and <code>SMN7</code> are resting-state connectivity scores for two brain networks; <code>time</code> is time since the first scan (0–6); <code>week</code> is a finer-grained version of it.</li>
 <li>Observations (<em>j</em>) are nested in people (<em>i</em>). Some examples below are conceptual (a Stroop task, students in schools); whenever there’s a plot, it’s these data.</li>
 </ul>
@@ -845,7 +846,7 @@
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a><span class="fu">summary</span>(mlm<span class="fl">.1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: gaussian 
-  Links: mu = identity; sigma = identity 
+  Links: mu = identity 
 Formula: CON ~ 1 + (1 | ID) 
    Data: mlm (Number of observations: 225) 
   Draws: 4 chains, each with iter = 5000; warmup = 1000; thin = 1;
@@ -913,7 +914,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="sourceCode cell-code" id="cb17"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1"></a><span class="fu">summary</span>(mlm<span class="fl">.2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: gaussian 
-  Links: mu = identity; sigma = identity 
+  Links: mu = identity 
 Formula: CON ~ 1 
    Data: mlm (Number of observations: 225) 
   Draws: 4 chains, each with iter = 5000; warmup = 1000; thin = 1;
@@ -983,7 +984,7 @@ mlm.2 -58.2       8.9  </code></pre>
 <div class="sourceCode cell-code" id="cb22"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1"></a><span class="fu">summary</span>(mlm.id)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: gaussian 
-  Links: mu = identity; sigma = identity 
+  Links: mu = identity 
 Formula: CON ~ 0 + ID.f 
    Data: mlm (Number of observations: 225) 
   Draws: 2 chains, each with iter = 4000; warmup = 1000; thin = 1;
@@ -1127,7 +1128,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="sourceCode cell-code" id="cb26"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1"></a><span class="fu">summary</span>(mlm<span class="fl">.1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: gaussian 
-  Links: mu = identity; sigma = identity 
+  Links: mu = identity 
 Formula: CON ~ 1 + (1 | ID) 
    Data: mlm (Number of observations: 225) 
   Draws: 4 chains, each with iter = 5000; warmup = 1000; thin = 1;
@@ -1396,7 +1397,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="sourceCode cell-code" id="cb43"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1"></a><span class="fu">summary</span>(mlm<span class="fl">.1</span>p)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: gaussian 
-  Links: mu = identity; sigma = identity 
+  Links: mu = identity 
 Formula: CON ~ 1 + (1 | ID) 
    Data: mlm (Number of observations: 225) 
   Draws: 4 chains, each with iter = 4000; warmup = 1000; thin = 1;
@@ -1448,7 +1449,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="sourceCode cell-code" id="cb46"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1"></a><span class="fu">summary</span>(mlm.id)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: gaussian 
-  Links: mu = identity; sigma = identity 
+  Links: mu = identity 
 Formula: CON ~ 0 + ID.f 
    Data: mlm (Number of observations: 225) 
   Draws: 2 chains, each with iter = 4000; warmup = 1000; thin = 1;
@@ -1635,7 +1636,7 @@ mlm.1p -58.2       8.9  </code></pre>
 <div class="sourceCode cell-code" id="cb52"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1"></a><span class="fu">summary</span>(mlm<span class="fl">.3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: gaussian 
-  Links: mu = identity; sigma = identity 
+  Links: mu = identity 
 Formula: CON ~ 1 + time + (1 | ID) 
    Data: mlm (Number of observations: 225) 
   Draws: 4 chains, each with iter = 4000; warmup = 1000; thin = 1;
@@ -1858,21 +1859,19 @@ lp__                 2.300110e+02 11.128664937  2.065509e+02 250.263325000</code
 <span id="cb58-2"><a href="#cb58-2"></a>            <span class="at">allow_new_levels =</span> <span class="cn">TRUE</span>, <span class="at">sample_new_levels =</span> <span class="st">"gaussian"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
- Estimate  2.5 % 97.5 %   ID time
-    0.193 0.1452  0.241    6    3
-    0.187 0.0731  0.302 9999    3
+ Estimate  2.5 % 97.5 %
+    0.193 0.1452  0.241
+    0.187 0.0764  0.298
 
-Type:  response 
-Columns: rowid, estimate, conf.low, conf.high, ID, time, CON </code></pre>
+Type: response</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb60"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1"></a><span class="fu">predictions</span>(mlm<span class="fl">.3</span>, <span class="at">newdata =</span> <span class="fu">tibble</span>(<span class="at">time =</span> <span class="dv">3</span>), <span class="at">re_formula =</span> <span class="cn">NA</span>)  <span class="co"># the average person</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
- Estimate 2.5 % 97.5 % time
-    0.186 0.172    0.2    3
+ Estimate 2.5 % 97.5 %
+    0.186 0.172    0.2
 
-Type:  response 
-Columns: rowid, estimate, conf.low, conf.high, time, CON </code></pre>
+Type: response</code></pre>
 </div>
 </div>
 </section>

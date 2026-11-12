@@ -9034,7 +9034,7 @@ irt.1 -2.3       2.5   </code></pre>
 <div class="sourceCode cell-code" id="cb26"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1"></a><span class="fu">summary</span>(irt<span class="fl">.3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: cumulative 
-  Links: mu = logit; disc = identity 
+  Links: mu = logit 
 Formula: resp ~ 1 + (1 | item) + (1 | id) 
    Data: IRT (Number of observations: 7584) 
   Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;
@@ -9271,7 +9271,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="sourceCode cell-code" id="cb31"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1"></a><span class="fu">summary</span>(irt<span class="fl">.3</span>a)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: cumulative 
-  Links: mu = logit; disc = identity 
+  Links: mu = logit 
 Formula: resp | thres(gr = item) ~ 1 + (1 | item) + (1 | id) 
    Data: IRT (Number of observations: 7584) 
   Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;
@@ -9814,7 +9814,7 @@ Chain 4 finished in 0.1 seconds.
 
 All 4 chains finished successfully.
 Mean chain execution time: 0.1 seconds.
-Total execution time: 0.4 seconds.</code></pre>
+Total execution time: 0.3 seconds.</code></pre>
 </div>
 </div>
 </section>

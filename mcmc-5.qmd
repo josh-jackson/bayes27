@@ -7,8 +7,7 @@ execute:
   echo: true
 ---
 
-## How do we estimate the posterior?
-
+## How do we estimate the posterior? {.smaller}
 -   Grid, normal (quadratic) approximations, analytic/conjugate, MCMC
 
 -   MCMC refers to a set of algorithms that sample from a probability distribution

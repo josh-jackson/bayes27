@@ -435,8 +435,8 @@
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a><span class="fu">summary</span>(mv<span class="fl">.1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: MV(gaussian, gaussian) 
-  Links: mu = identity; sigma = identity
-         mu = identity; sigma = identity 
+  Links: mu = identity
+         mu = identity 
 Formula: CON ~ 1 + time + (1 + time | ID) 
          DAN ~ 1 + time + (1 + time | ID) 
    Data: mlm (Number of observations: 225) 
@@ -612,8 +612,8 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a><span class="fu">summary</span>(mv<span class="fl">.1</span>c)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: MV(gaussian, gaussian) 
-  Links: mu = identity; sigma = identity
-         mu = identity; sigma = identity 
+  Links: mu = identity
+         mu = identity 
 Formula: CON ~ 1 
          DAN ~ 1 
    Data: mlm (Number of observations: 225) 
@@ -686,8 +686,8 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="sourceCode cell-code" id="cb19"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1"></a><span class="fu">summary</span>(mv<span class="fl">.1</span>cr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: MV(student, student) 
-  Links: mu = identity; sigma = identity; nu = identity
-         mu = identity; sigma = identity; nu = identity 
+  Links: mu = identity
+         mu = identity 
 Formula: CON ~ 1 
          DAN ~ 1 
    Data: mlm (Number of observations: 225) 
@@ -777,7 +777,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: student 
-  Links: mu = identity; sigma = log; nu = identity 
+  Links: mu = identity; sigma = log 
 Formula: CON ~ 0 + group 
          sigma ~ 0 + group
    Data: mlm (Number of observations: 225) 
@@ -1054,7 +1054,7 @@ d.0  -1.5       2.4   </code></pre>
 <div class="sourceCode cell-code" id="cb44"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1"></a><span class="fu">summary</span>(melsm<span class="fl">.1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: gaussian 
-  Links: mu = identity; sigma = identity 
+  Links: mu = identity 
 Formula: N_A.std ~ 1 + day01 + (1 + day01 | record_id) 
    Data: melsm (Number of observations: 13033) 
   Draws: 4 chains, each with iter = 3000; warmup = 1000; thin = 1;

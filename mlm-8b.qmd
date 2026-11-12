@@ -22,6 +22,7 @@ library(modelr)
 library(marginaleffects)
 library(broom)
 mlm <- read.csv("mlm.csv")
+names(mlm)[names(mlm) == "group"] <- "diagnosis"  # marginaleffects reserves the name "group"
 mlm.3 <- readRDS("mlm.3.rds")  # varying intercepts + time, from last time
 ```
 

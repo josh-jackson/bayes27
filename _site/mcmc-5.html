@@ -395,7 +395,7 @@
 </div>
 
 </section>
-<section id="how-do-we-estimate-the-posterior" class="slide level2">
+<section id="how-do-we-estimate-the-posterior" class="slide level2 smaller">
 <h2>How do we estimate the posterior?</h2>
 <ul>
 <li><p>Grid, normal (quadratic) approximations, analytic/conjugate, MCMC</p></li>
@@ -701,7 +701,7 @@
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: gaussian 
-  Links: mu = identity; sigma = identity 
+  Links: mu = identity 
 Formula: health ~ 0 + mood.group.d 
    Data: week3 (Number of observations: 200) 
   Draws: 2 chains, each with iter = 1000; warmup = 500; thin = 1;
@@ -886,7 +886,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: gaussian 
-  Links: mu = identity; sigma = identity 
+  Links: mu = identity 
 Formula: y ~ 1 
    Data: list(y = c(-1, 1)) (Number of observations: 2) 
   Draws: 2 chains, each with iter = 2000; warmup = 1000; thin = 1;
@@ -962,7 +962,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: gaussian 
-  Links: mu = identity; sigma = identity 
+  Links: mu = identity 
 Formula: height ~ 1 + leg_left + leg_right 
    Data: legs (Number of observations: 100) 
   Draws: 4 chains, each with iter = 400; warmup = 100; thin = 1;

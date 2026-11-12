@@ -561,8 +561,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
          0     34.6  33.4   35.8
          1     19.7  19.0   20.4
 
-Type:  response 
-Columns: treatment, estimate, conf.low, conf.high </code></pre>
+Type: response</code></pre>
 </div>
 </div>
 </section>
@@ -579,14 +578,13 @@ Columns: treatment, estimate, conf.low, conf.high </code></pre>
      12.3  11.8   12.8
      12.4  11.9   12.9
      12.3  11.8   12.8
---- 252 rows omitted. See ?avg_predictions and ?print.marginaleffects --- 
+--- 252 rows omitted. See ?print.marginaleffects ---
      20.9  20.1   21.8
      20.9  20.1   21.8
      20.9  20.1   21.8
      20.9  20.1   21.8
      20.9  20.1   21.8
-Type:  response 
-Columns: rowid, estimate, conf.low, conf.high, y, roach1, treatment </code></pre>
+Type: response</code></pre>
 </div>
 </div>
 </section>
@@ -603,14 +601,13 @@ Columns: rowid, estimate, conf.low, conf.high, y, roach1, treatment </code></pre
      2.51  2.47   2.55
      2.52  2.48   2.56
      2.51  2.47   2.55
---- 252 rows omitted. See ?avg_predictions and ?print.marginaleffects --- 
+--- 252 rows omitted. See ?print.marginaleffects ---
      3.04  3.00   3.08
      3.04  3.00   3.08
      3.04  3.00   3.08
      3.04  3.00   3.08
      3.04  3.00   3.08
-Type:  link 
-Columns: rowid, estimate, conf.low, conf.high, y, roach1, treatment </code></pre>
+Type: link</code></pre>
 </div>
 </div>
 </section>
@@ -621,11 +618,10 @@ Columns: rowid, estimate, conf.low, conf.high, y, roach1, treatment </code></pre
 <div class="cell-output cell-output-stdout">
 <pre><code>
  roach1 treatment Estimate 2.5 % 97.5 %
-     10         1     13.0  12.5   13.5
      10         0     22.4  21.5   23.3
+     10         1     13.0  12.5   13.5
 
-Type:  response 
-Columns: rowid, estimate, conf.low, conf.high, roach1, treatment, y </code></pre>
+Type: response</code></pre>
 </div>
 </div>
 <p>By hand, for roach1 = 10 in the treatment group:</p>
@@ -643,11 +639,10 @@ Columns: rowid, estimate, conf.low, conf.high, roach1, treatment, y </code></pre
 <div class="cell-output cell-output-stdout">
 <pre><code>
  roach1 treatment Estimate 2.5 % 97.5 %
-     10         1     2.56  2.53   2.60
      10         0     3.11  3.07   3.15
+     10         1     2.56  2.53   2.60
 
-Type:  link 
-Columns: rowid, estimate, conf.low, conf.high, roach1, treatment, y </code></pre>
+Type: link</code></pre>
 </div>
 </div>
 </section>
@@ -678,13 +673,12 @@ Columns: rowid, estimate, conf.low, conf.high, roach1, treatment, y </code></pre
 <div class="sourceCode cell-code" id="cb22"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1"></a><span class="fu">comparisons</span>(glm<span class="fl">.7</span>, <span class="at">variables =</span> <span class="st">"treatment"</span>, <span class="at">newdata =</span> <span class="st">"mean"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
- Estimate 2.5 % 97.5 % roach1
-    -11.7 -12.8  -10.5   42.2
+ Estimate 2.5 % 97.5 %
+    -11.7 -12.8  -10.5
 
 Term: treatment
-Type:  response 
-Comparison: 1 - 0
-Columns: rowid, term, contrast, estimate, conf.low, conf.high, predicted_lo, predicted_hi, predicted, tmp_idx, roach1, treatment, y </code></pre>
+Type: response
+Comparison: 1 - 0</code></pre>
 </div>
 </div>
 </section>
@@ -781,7 +775,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="sourceCode cell-code" id="cb30"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1"></a><span class="fu">summary</span>(glm<span class="fl">.8</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: negbinomial 
-  Links: mu = log; shape = identity 
+  Links: mu = log 
 Formula: y ~ 0 + Intercept + roach1 + treatment 
    Data: roach (Number of observations: 262) 
   Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;
@@ -844,7 +838,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="sourceCode cell-code" id="cb35"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1"></a><span class="fu">summary</span>(glm<span class="fl">.8</span>b)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: negbinomial 
-  Links: mu = log; shape = identity 
+  Links: mu = log 
 Formula: y ~ 0 + Intercept + roach1 + treatment 
    Data: roach (Number of observations: 262) 
   Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;
@@ -876,8 +870,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
          0    101.5  36.3    646
          1     39.1  18.8    141
 
-Type:  response 
-Columns: treatment, estimate, conf.low, conf.high </code></pre>
+Type: response</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -888,8 +881,7 @@ Columns: treatment, estimate, conf.low, conf.high </code></pre>
          0     34.6  33.4   35.8
          1     19.7  19.0   20.4
 
-Type:  response 
-Columns: treatment, estimate, conf.low, conf.high </code></pre>
+Type: response</code></pre>
 </div>
 </div>
 </section>
@@ -900,26 +892,24 @@ Columns: treatment, estimate, conf.low, conf.high </code></pre>
 <div class="sourceCode cell-code" id="cb41"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1"></a><span class="fu">comparisons</span>(glm<span class="fl">.8</span>b, <span class="at">variables =</span> <span class="st">"treatment"</span>, <span class="at">newdata =</span> <span class="st">"mean"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
- Estimate 2.5 % 97.5 % roach1
-    -10.7 -20.6  -2.86   42.2
+ Estimate 2.5 % 97.5 %
+    -10.7 -20.6  -2.86
 
 Term: treatment
-Type:  response 
-Comparison: 1 - 0
-Columns: rowid, term, contrast, estimate, conf.low, conf.high, predicted_lo, predicted_hi, predicted, tmp_idx, roach1, treatment, y </code></pre>
+Type: response
+Comparison: 1 - 0</code></pre>
 </div>
 </div>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb43"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1"></a><span class="fu">comparisons</span>(glm<span class="fl">.7</span>, <span class="at">variables =</span> <span class="st">"treatment"</span>, <span class="at">newdata =</span> <span class="st">"mean"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
- Estimate 2.5 % 97.5 % roach1
-    -11.7 -12.8  -10.5   42.2
+ Estimate 2.5 % 97.5 %
+    -11.7 -12.8  -10.5
 
 Term: treatment
-Type:  response 
-Comparison: 1 - 0
-Columns: rowid, term, contrast, estimate, conf.low, conf.high, predicted_lo, predicted_hi, predicted, tmp_idx, roach1, treatment, y </code></pre>
+Type: response
+Comparison: 1 - 0</code></pre>
 </div>
 </div>
 </section>
@@ -941,9 +931,8 @@ Columns: rowid, term, contrast, estimate, conf.low, conf.high, predicted_lo, pre
     -35.8  -204  -7.09
 
 Term: treatment
-Type:  response 
-Comparison: 1 - 0
-Columns: term, contrast, estimate, conf.low, conf.high, predicted_lo, predicted_hi, predicted, tmp_idx </code></pre>
+Type: response
+Comparison: 1 - 0</code></pre>
 </div>
 </div>
 </section>
@@ -959,14 +948,13 @@ Columns: term, contrast, estimate, conf.low, conf.high, predicted_lo, predicted_
      7.86   5.54   11.5
      8.00   5.66   11.7
      7.89   5.57   11.6
---- 252 rows omitted. See ?avg_predictions and ?print.marginaleffects --- 
+--- 252 rows omitted. See ?print.marginaleffects ---
     13.75   9.57   20.1
     13.75   9.57   20.1
     13.75   9.57   20.1
     13.75   9.57   20.1
     13.75   9.57   20.1
-Type:  response 
-Columns: rowid, estimate, conf.low, conf.high, y, roach1, treatment </code></pre>
+Type: response</code></pre>
 </div>
 </div>
 </section>
@@ -982,14 +970,13 @@ Columns: rowid, estimate, conf.low, conf.high, y, roach1, treatment </code></pre
      12.3  11.8   12.8
      12.4  11.9   12.9
      12.3  11.8   12.8
---- 252 rows omitted. See ?avg_predictions and ?print.marginaleffects --- 
+--- 252 rows omitted. See ?print.marginaleffects ---
      20.9  20.1   21.8
      20.9  20.1   21.8
      20.9  20.1   21.8
      20.9  20.1   21.8
      20.9  20.1   21.8
-Type:  response 
-Columns: rowid, estimate, conf.low, conf.high, y, roach1, treatment </code></pre>
+Type: response</code></pre>
 </div>
 </div>
 </section>
@@ -1020,17 +1007,16 @@ exposure2    43.04 0.02</code></pre>
 <div class="cell-output cell-output-stdout">
 <pre><code>
  roach1 treatment Estimate  2.5 %  97.5 %
-      0         1     7.68   5.40    11.3
       0         0    13.75   9.57    20.1
-     10         1     8.79   6.36    12.7
+      0         1     7.68   5.40    11.3
      10         0    15.73  11.14    22.7
-    100         1    29.27  20.09    45.1
+     10         1     8.79   6.36    12.7
     100         0    52.49  34.41    85.2
-    450         1  3078.94 498.42 27512.3
+    100         1    29.27  20.09    45.1
     450         0  5460.93 855.19 51646.8
+    450         1  3078.94 498.42 27512.3
 
-Type:  response 
-Columns: rowid, estimate, conf.low, conf.high, roach1, treatment, y </code></pre>
+Type: response</code></pre>
 </div>
 </div>
 </section>
@@ -1041,17 +1027,16 @@ Columns: rowid, estimate, conf.low, conf.high, roach1, treatment, y </code></pre
 <div class="cell-output cell-output-stdout">
 <pre><code>
  roach1 treatment Estimate 2.5 % 97.5 %
-      0         1     12.2  11.7   12.7
       0         0     20.9  20.1   21.8
-     10         1     13.0  12.5   13.5
+      0         1     12.2  11.7   12.7
      10         0     22.4  21.5   23.3
-    100         1     23.8  23.0   24.7
+     10         1     13.0  12.5   13.5
     100         0     41.0  39.6   42.4
-    450         1    249.8 233.6  266.6
+    100         1     23.8  23.0   24.7
     450         0    430.7 404.0  457.6
+    450         1    249.8 233.6  266.6
 
-Type:  response 
-Columns: rowid, estimate, conf.low, conf.high, roach1, treatment, y </code></pre>
+Type: response</code></pre>
 </div>
 </div>
 </section>
@@ -1188,7 +1173,7 @@ Columns: rowid, estimate, conf.low, conf.high, roach1, treatment, y </code></pre
 <div class="sourceCode cell-code" id="cb63"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1"></a><span class="fu">summary</span>(glm<span class="fl">.9</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: zero_inflated_poisson 
-  Links: mu = log; zi = identity 
+  Links: mu = log 
 Formula: y ~ 1 
    Data: zips (Number of observations: 365) 
   Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;
@@ -1286,7 +1271,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="sourceCode cell-code" id="cb70"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb70-1"><a href="#cb70-1"></a><span class="fu">summary</span>(glm<span class="fl">.8</span>c)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: zero_inflated_poisson 
-  Links: mu = log; zi = identity 
+  Links: mu = log 
 Formula: y ~ 0 + Intercept + roach1 + treatment + offset(log(exposure2)) 
    Data: roach (Number of observations: 262) 
   Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;
@@ -1478,15 +1463,16 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </details>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb84"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb84-1"><a href="#cb84-1"></a>loo_p   <span class="ot">&lt;-</span> <span class="fu">loo</span>(glm<span class="fl">.7</span>o, <span class="at">moment_match =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb84-2"><a href="#cb84-2"></a>loo_nb  <span class="ot">&lt;-</span> <span class="fu">loo</span>(glm<span class="fl">.8</span>b2, <span class="at">moment_match =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb84-3"><a href="#cb84-3"></a>loo_zip <span class="ot">&lt;-</span> <span class="fu">loo</span>(glm<span class="fl">.8</span>e, <span class="at">moment_match =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb84-4"><a href="#cb84-4"></a><span class="fu">loo_compare</span>(loo_p, loo_nb, loo_zip)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb84"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb84-1"><a href="#cb84-1"></a><span class="co"># add_criterion() stores the result in the model's file, so it's only computed once</span></span>
+<span id="cb84-2"><a href="#cb84-2"></a>glm<span class="fl">.7</span>o  <span class="ot">&lt;-</span> <span class="fu">add_criterion</span>(glm<span class="fl">.7</span>o, <span class="st">"loo"</span>, <span class="at">moment_match =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb84-3"><a href="#cb84-3"></a>glm<span class="fl">.8</span>b2 <span class="ot">&lt;-</span> <span class="fu">add_criterion</span>(glm<span class="fl">.8</span>b2, <span class="st">"loo"</span>, <span class="at">moment_match =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb84-4"><a href="#cb84-4"></a>glm<span class="fl">.8</span>e  <span class="ot">&lt;-</span> <span class="fu">add_criterion</span>(glm<span class="fl">.8</span>e, <span class="st">"loo"</span>, <span class="at">moment_match =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb84-5"><a href="#cb84-5"></a><span class="fu">loo_compare</span>(glm<span class="fl">.7</span>o, glm<span class="fl">.8</span>b2, glm<span class="fl">.8</span>e)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>        elpd_diff se_diff
 glm.8b2     0.0       0.0
-glm.8e  -3284.3     572.5
-glm.7o  -5442.7     705.6</code></pre>
+glm.8e  -3284.5     572.5
+glm.7o  -5442.6     705.6</code></pre>
 </div>
 </div>
 </section>
@@ -1568,7 +1554,7 @@ glm.7o  -5442.7     705.6</code></pre>
 <div class="sourceCode cell-code" id="cb91"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb91-1"><a href="#cb91-1"></a><span class="fu">summary</span>(glm<span class="fl">.11</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: hurdle_poisson 
-  Links: mu = log; hu = identity 
+  Links: mu = log 
 Formula: y ~ 1 
          autocor ~ tructure(list(), class = "formula", .Environment = &lt;environment&gt;)
    Data: zips (Number of observations: 365) 
@@ -1610,7 +1596,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="sourceCode cell-code" id="cb94"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb94-1"><a href="#cb94-1"></a><span class="fu">summary</span>(glm<span class="fl">.11</span>x)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: hurdle_poisson 
-  Links: mu = log; hu = identity 
+  Links: mu = log 
 Formula: y ~ 1 + x 
          autocor ~ tructure(list(), class = "formula", .Environment = &lt;environment&gt;)
    Data: zips (Number of observations: 365) 
@@ -1694,9 +1680,9 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </details>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb100"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb100-1"><a href="#cb100-1"></a><span class="fu">loo_compare</span>(<span class="fu">loo</span>(glm<span class="fl">.8</span>b2, <span class="at">moment_match =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb100-2"><a href="#cb100-2"></a>            <span class="fu">loo</span>(glm<span class="fl">.8</span>f, <span class="at">moment_match =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb100-3"><a href="#cb100-3"></a>            <span class="fu">loo</span>(glm<span class="fl">.8</span>g, <span class="at">moment_match =</span> <span class="cn">TRUE</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb100"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb100-1"><a href="#cb100-1"></a>glm<span class="fl">.8</span>f <span class="ot">&lt;-</span> <span class="fu">add_criterion</span>(glm<span class="fl">.8</span>f, <span class="st">"loo"</span>, <span class="at">moment_match =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb100-2"><a href="#cb100-2"></a>glm<span class="fl">.8</span>g <span class="ot">&lt;-</span> <span class="fu">add_criterion</span>(glm<span class="fl">.8</span>g, <span class="st">"loo"</span>, <span class="at">moment_match =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb100-3"><a href="#cb100-3"></a><span class="fu">loo_compare</span>(glm<span class="fl">.8</span>b2, glm<span class="fl">.8</span>f, glm<span class="fl">.8</span>g)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>        elpd_diff se_diff
 glm.8b2   0.0       0.0  
@@ -1953,7 +1939,7 @@ zi        0.07      0.05     0.00     0.19</code></pre>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: cumulative 
-  Links: mu = logit; disc = identity 
+  Links: mu = logit 
 Formula: response ~ 1 
    Data: trolley (Number of observations: 9930) 
   Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;
@@ -2018,9 +2004,17 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <h2>Shifting the cut points</h2>
 
 <img data-src="cumlog.gif" class="r-stretch"></section>
-<section id="the-model-with-predictors" class="slide level2">
+<section id="the-model-with-predictors" class="slide level2 smaller">
 <h2>The model with predictors</h2>
-<p><span class="math display">\[ \text{response}_i  \sim \operatorname{Ordered-logit} (\phi_i, \boldsymbol\alpha) \]</span> <span class="math display">\[ \text{logit}(Pr(\text{response}_i \leq k)) = \alpha_k - \phi_i \]</span> <span class="math display">\[  \phi_i = \beta_1 \text{action}_i + \beta_2 \text{contact}_i + \beta_3 \text{intention}_i + \beta_4 (\text{action}_i \times \text{intention}_i) + \beta_5 (\text{contact}_i \times \text{intention}_i) \]</span> <span class="math display">\[\alpha_k               \sim \operatorname{Normal}(0, 1.5) \]</span> <span class="math display">\[\beta_1, ..., \beta_5  \sim \operatorname{Normal}(0, 0.5) \]</span></p>
+<p><span class="math display">\[
+\begin{aligned}
+\text{response}_i &amp;\sim \operatorname{Ordered-logit} (\phi_i, \boldsymbol\alpha) \\
+\text{logit}(Pr(\text{response}_i \leq k)) &amp;= \alpha_k - \phi_i \\
+\phi_i &amp;= \beta_1 \text{action}_i + \beta_2 \text{contact}_i + \beta_3 \text{intention}_i \\
+&amp;\quad + \beta_4 (\text{action}_i \times \text{intention}_i) + \beta_5 (\text{contact}_i \times \text{intention}_i) \\
+\alpha_k &amp;\sim \operatorname{Normal}(0, 1.5) \qquad \beta_1, \dots, \beta_5 \sim \operatorname{Normal}(0, 0.5)
+\end{aligned}
+\]</span></p>
 </section>
 <section id="fitting-glm.13" class="slide level2">
 <h2>Fitting <code>glm.13</code></h2>
@@ -2042,7 +2036,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="sourceCode cell-code" id="cb116"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb116-1"><a href="#cb116-1"></a><span class="fu">summary</span>(glm<span class="fl">.13</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: cumulative 
-  Links: mu = logit; disc = identity 
+  Links: mu = logit 
 Formula: response ~ 1 + action + contact + intention + intention:action + intention:contact 
    Data: trolley (Number of observations: 9930) 
   Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;
@@ -2118,37 +2112,39 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="cell">
 <details>
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb120"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb120-1"><a href="#cb120-1"></a><span class="fu">library</span>(marginaleffects)</span>
-<span id="cb120-2"><a href="#cb120-2"></a><span class="fu">avg_comparisons</span>(glm<span class="fl">.13</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb120"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb120-1"><a href="#cb120-1"></a><span class="co"># The model only uses action, contact and intention, so the 9,930 rows are just 12</span></span>
+<span id="cb120-2"><a href="#cb120-2"></a><span class="co"># distinct combinations. Averaging over those, weighted by how often each occurs,</span></span>
+<span id="cb120-3"><a href="#cb120-3"></a><span class="co"># gives exactly the same answer as averaging over every row, and is ~800x faster.</span></span>
+<span id="cb120-4"><a href="#cb120-4"></a>cells <span class="ot">&lt;-</span> trolley <span class="sc">%&gt;%</span> <span class="fu">count</span>(action, contact, intention)</span>
+<span id="cb120-5"><a href="#cb120-5"></a><span class="fu">avg_comparisons</span>(glm<span class="fl">.13</span>, <span class="at">newdata =</span> cells, <span class="at">wts =</span> <span class="st">"n"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>
- Group      Term Estimate    2.5 %   97.5 %
-     1 action     0.08071  0.07156  0.09034
-     2 action     0.03457  0.03041  0.03916
-     3 action     0.02633  0.02279  0.03009
-     4 action     0.00887  0.00483  0.01295
-     5 action    -0.02643 -0.02991 -0.02330
-     6 action    -0.05012 -0.05647 -0.04387
-     7 action    -0.07375 -0.08361 -0.06424
-     1 contact    0.14274  0.12813  0.15763
-     2 contact    0.04323  0.03790  0.04880
-     3 contact    0.01926  0.01487  0.02373
-     4 contact   -0.02524 -0.03076 -0.01977
-     5 contact   -0.04484 -0.04948 -0.04069
-     6 contact   -0.06059 -0.06776 -0.05367
-     7 contact   -0.07460 -0.08427 -0.06464
-     1 intention  0.09143  0.08246  0.10063
-     2 intention  0.04326  0.03835  0.04837
-     3 intention  0.02954  0.02568  0.03352
-     4 intention -0.00111 -0.00540  0.00315
-     5 intention -0.03507 -0.03880 -0.03137
-     6 intention -0.05520 -0.06116 -0.04939
-     7 intention -0.07276 -0.08156 -0.06423
+      Term Group Estimate    2.5 %   97.5 %
+ action        1  0.08071  0.07156  0.09034
+ action        2  0.03457  0.03041  0.03916
+ action        3  0.02633  0.02279  0.03009
+ action        4  0.00887  0.00483  0.01295
+ action        5 -0.02643 -0.02991 -0.02330
+ action        6 -0.05012 -0.05647 -0.04387
+ action        7 -0.07375 -0.08361 -0.06424
+ contact       1  0.14274  0.12813  0.15763
+ contact       2  0.04323  0.03790  0.04880
+ contact       3  0.01926  0.01487  0.02373
+ contact       4 -0.02524 -0.03076 -0.01977
+ contact       5 -0.04484 -0.04948 -0.04069
+ contact       6 -0.06059 -0.06776 -0.05367
+ contact       7 -0.07460 -0.08427 -0.06464
+ intention     1  0.09143  0.08246  0.10063
+ intention     2  0.04326  0.03835  0.04837
+ intention     3  0.02954  0.02568  0.03352
+ intention     4 -0.00111 -0.00540  0.00315
+ intention     5 -0.03507 -0.03880 -0.03137
+ intention     6 -0.05520 -0.06116 -0.04939
+ intention     7 -0.07276 -0.08156 -0.06423
 
-Type:  response 
-Comparison: 1 - 0
-Columns: term, group, contrast, estimate, conf.low, conf.high </code></pre>
+Type: response
+Comparison: 1 - 0</code></pre>
 </div>
 </div>
 </section>
@@ -2158,29 +2154,29 @@ Columns: term, group, contrast, estimate, conf.low, conf.high </code></pre>
 <div class="cell">
 <details>
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb122"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb122-1"><a href="#cb122-1"></a><span class="fu">avg_comparisons</span>(glm<span class="fl">.13</span>, <span class="at">variables =</span> <span class="st">"action"</span>, <span class="at">by =</span> <span class="st">"intention"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb122"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb122-1"><a href="#cb122-1"></a><span class="fu">avg_comparisons</span>(glm<span class="fl">.13</span>, <span class="at">variables =</span> <span class="st">"action"</span>, <span class="at">by =</span> <span class="st">"intention"</span>, <span class="at">newdata =</span> cells, <span class="at">wts =</span> <span class="st">"n"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>
- Group   Term intention Estimate   2.5 %   97.5 %
-     1 action         0   0.0389  0.0299  0.04809
-     2 action         0   0.0264  0.0205  0.03241
-     3 action         0   0.0264  0.0207  0.03222
-     4 action         0   0.0266  0.0205  0.03272
-     5 action         0  -0.0116 -0.0148 -0.00884
-     6 action         0  -0.0382 -0.0466 -0.02964
-     7 action         0  -0.0684 -0.0836 -0.05325
-     1 action         1   0.1286  0.1112  0.14660
-     2 action         1   0.0439  0.0382  0.04972
-     3 action         1   0.0262  0.0229  0.02973
-     4 action         1  -0.0114 -0.0166 -0.00660
-     5 action         1  -0.0434 -0.0491 -0.03775
-     6 action         1  -0.0640 -0.0721 -0.05556
-     7 action         1  -0.0801 -0.0902 -0.06949
+ Group intention Estimate   2.5 %   97.5 %
+     1         0   0.0389  0.0299  0.04809
+     2         0   0.0264  0.0205  0.03241
+     3         0   0.0264  0.0207  0.03222
+     4         0   0.0266  0.0205  0.03272
+     5         0  -0.0116 -0.0148 -0.00884
+     6         0  -0.0382 -0.0466 -0.02964
+     7         0  -0.0684 -0.0836 -0.05325
+     1         1   0.1286  0.1112  0.14660
+     2         1   0.0439  0.0382  0.04972
+     3         1   0.0262  0.0229  0.02973
+     4         1  -0.0114 -0.0166 -0.00660
+     5         1  -0.0434 -0.0491 -0.03775
+     6         1  -0.0640 -0.0721 -0.05556
+     7         1  -0.0801 -0.0902 -0.06949
 
-Type:  response 
-Comparison: 1 - 0
-Columns: term, group, contrast, intention, estimate, conf.low, conf.high </code></pre>
+Term: action
+Type: response
+Comparison: 1 - 0</code></pre>
 </div>
 </div>
 </section>
@@ -2443,8 +2439,10 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </section>
 <section id="extra-readings" class="slide level2">
 <h2>Extra readings</h2>
-<p>https://cran.r-project.org/web/packages/brms/vignettes/brms_monotonic.html</p>
-<p>https://psyarxiv.com/9qkhj/</p>
+<ul>
+<li><a href="https://cran.r-project.org/web/packages/brms/vignettes/brms_monotonic.html">Monotonic effects in brms</a> (Bürkner &amp; Charpentier)</li>
+<li><a href="https://psyarxiv.com/9qkhj/">Ordinal regression models in psychology</a> (Bürkner &amp; Vuorre)</li>
+</ul>
 
 <div class="footer footer-default">
 

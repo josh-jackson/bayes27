@@ -516,8 +516,7 @@ h.2 %>%
   median_qi()
 ```
 
-## Index variables
-
+## Index variables {.smaller}
 -   There are two priors for the group coded 1. One prior on the difference and one on the intercept.
 
 -   What we could do instead is not fit an intercept and instead directly model two group means.
@@ -580,6 +579,7 @@ h.3 %>%
 
 ## Dummy or index coding? {.smaller}
 
+::: {style="font-size: 85%"}
 | | Dummy coding `y ~ 1 + group` | Index coding `y ~ 0 + group` |
 |---|---|---|
 | Parameters | reference-group mean + differences from it | one mean per group |
@@ -587,6 +587,7 @@ h.3 %>%
 | Group means | intercept + difference, per draw | read directly |
 | Differences | read directly (vs. reference only) | subtract per draw (any pair) |
 | Best when | differences from one baseline matter, or other predictors | group means matter, or many groups |
+:::
 
 Same model, same group-mean posteriors (with comparable priors): the choice is about priors and readability.
 
@@ -618,8 +619,7 @@ hypothesis(h.3, "mood.group.dtx < 9")
 ## marginaleffects
 
 ```{r}
-avg_predictions(h.3, by = "mood.group.d", hypothesis = "pairwise")
-# newer marginaleffects versions write this as  hypothesis = ~ pairwise
+avg_predictions(h.3, by = "mood.group.d", hypothesis = ~ pairwise)
 
 ```
 
@@ -1076,7 +1076,7 @@ post.a.1 %>%
 The same comparisons with marginaleffects (each row is a pairwise difference, summarized from the draws):
 
 ```{r}
-avg_predictions(a.1, by = "iv", hypothesis = "pairwise")
+avg_predictions(a.1, by = "iv", hypothesis = ~ pairwise)
 ```
 
 ## Contrasts with avg_slopes()

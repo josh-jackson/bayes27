@@ -150,8 +150,7 @@ spread_draws(b_Intercept, b_parent)
 
 -   Played a role in developing the thermonuclear bomb with one of the earliest computers. Published in 1953 but ignored within stats b/c it was published within a physics/chemistry journal. Took about until 1990 for desktop computers to run fast enough to do at home.
 
-## What do you mean by likely?
-
+## What do you mean by likely? {.smaller}
 ::::: columns
 ::: {.column width="35%"}
 -   Three parameters in a binomial distribution (# successes, \# of trials, probability of success).
@@ -177,7 +176,7 @@ data.frame(heads = 0:10, prob = dbinom(x = 0:10, size = 10, prob = .2)) %>%
 :::
 :::::
 
-----------------
+## Likelihood is a function of the parameter
 
 - Note how this is in the form of: 
 p(data | hypothesis)
@@ -215,7 +214,7 @@ tibble(p = seq(0.01, 0.99, by = 0.01)) %>%
 :::
 :::::
 
-------------------------------------------------------------------------
+## Probability vs. likelihood
 
 - "Probability attaches to possible results; likelihood attaches to hypotheses" 
 
@@ -254,7 +253,7 @@ We can fix the distribution around the mean estimate, and then try out different
 
 Ultimately, what we end up with (in Bayes land) is very closely related to this ML estimate (often identical). Conceptually, though, the process is different.
 
-------------------------------------------------------------------------
+## How MCMC explores
 
 -   The Bayesian (MCMC) algorithm tries out a bunch of parameter values. The ones that are *more likely* will appear more often.
 
@@ -269,8 +268,7 @@ ggplot(aes(x = b_parent)) +
   stat_dotsinterval()
 ```
 
-------------------------------------------------------------------------
-
+## The posterior is a pile of guesses {.smaller}
 Our posterior is literally made up of educated parameter guesses by the algorithm. Which estimates are more likely given the data?
 
 ```{r}
@@ -278,16 +276,14 @@ Our posterior is literally made up of educated parameter guesses by the algorith
 tidy_draws(fit.1.bayesian)
 ```
 
-## Bayesian analysis is just counting
-
+## Bayesian analysis is just counting {.smaller}
 -   Bayesian analysis counts all ways that something can happen (according to assumptions/model). Assumptions with more ways that are consistent with data are more plausible.
 
 -   This method is not demonstrably different than standard approaches. Standard likelihood approaches use the values that are most consistent with the data as an estimate. Try out all possible numbers and then tells you which *one* is most likely.
 
 -   Where Bayes differs, is that there is no ONE result, that there are many possible results that are consistent with the data
 
-## 3. Be comfortable integrating prior knowledge
-
+## 3. Be comfortable integrating prior knowledge {.smaller}
 -   Priors insert knowledge you have outside of your data into your model
 
 -   This can seem "subjective" as opposed to the more "objective" way of letting the data speak.
@@ -298,9 +294,7 @@ tidy_draws(fit.1.bayesian)
 -   Often priors don't matter...
 :::
 
-------------------------------------------------------------------------
-
-
+## A model with priors {.smaller}
 $$ child_i \sim Normal( \mu_i , \sigma )\ $$
 
 $$\mu_i = \beta_0 + \beta_1  parent_i $$
@@ -311,7 +305,7 @@ $$\mu_i = \beta_0 + \beta_1  parent_i $$
 
 -   We know, roughly, what average height of adults are so we can create a distribution, say \~N(66 (5.5 ft), 5). That means we are pretty sure (95%) the average height is between \~4'8 and 6\`4
 
-------------------------------------------------------------------------
+## Prior draws
 
 ```{r}
 #| code-fold: true
@@ -327,7 +321,7 @@ p.0 <-
 p.0
 ```
 
-------------------------------------------------------------------------
+## What prior for the slope?
 
 -   We could argue that the $b_{1}$ parameter (which indexes the strength of association between parent and child height) is positive. But we don't want to stack the deck.
 
@@ -335,7 +329,7 @@ p.0
 
 -   In sum: we tend not to make guesses on the average parameter estimate, but instead constraints on the range of possible values. Constraints tell us how "surprised" we'd be if we get some estimate
 
-------------------------------------------------------------------------
+## Wide vs. narrow slope priors
 
 ```{r}
 #| code-fold: true
@@ -386,11 +380,11 @@ g.pp
 
 ```
 
-## Okay so why is this important?
-
+## Okay so why is this important? {.smaller}
 -   Those N(0, 5) lines say a 1-inch taller parent could mean a child 10+ inches taller (or shorter). That's absurd, so we'll use N(0, 0.5) instead: still centered on "no association," but only entertaining plausible slopes.
 
 
+## Why priors matter {.smaller}
 -   A model that makes impossible predictions prior to seeing the data isn't too useful. Why waste the effort? We often know what values are likely, given what we know about effect sizes
 
 -   We entertain impossible values with standard "frequentist" methods. They have implicit priors such that all values, from negative infinity to positive infinity are equally likely.
@@ -647,15 +641,14 @@ data_grid(parent = seq_range(parent, n = 101)) %>%
 (g.pp | g.pp2)
 ```
 
-## What is confusing:
-
+## What is confusing: {.smaller}
 ::: incremental
 -   Is it a philosophically different framework? p( ${H_0}$ \| D) vs p(D \| ${H_0}$ ) but it doesn't really matter. Bayesian just means using the algorithm, and again, most of us don't have strong algo preferences. Assuming a flat prior basically makes p( ${H_0}$ \|d) = p( D \| ${H_0}$ ) so if you want (don't tell Bayesians) you can interpret frequentist stats as Bayesian. And that means CIs too! (don't tell frequentists)
 
 -   Why don't we do this already? Isn't frequentist better? History doesn't progress due to fair and even fights (i.e. the correct doesn't always prevail). Computation limitations and Fisher held progress back.
 :::
 
-## What is confusing:
+## What is confusing: {.smaller}
 
 ::: incremental
 -   Technically, we don't have p-values, but Bayesian has analogues.

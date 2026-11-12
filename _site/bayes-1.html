@@ -485,7 +485,7 @@
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a><span class="fu">summary</span>(fit.<span class="fl">1.</span>bayesian)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: gaussian 
-  Links: mu = identity; sigma = identity 
+  Links: mu = identity 
 Formula: child ~ parent 
    Data: galton.data (Number of observations: 928) 
   Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;
@@ -576,7 +576,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <li><p>Played a role in developing the thermonuclear bomb with one of the earliest computers. Published in 1953 but ignored within stats b/c it was published within a physics/chemistry journal. Took about until 1990 for desktop computers to run fast enough to do at home.</p></li>
 </ul>
 </section>
-<section id="what-do-you-mean-by-likely" class="slide level2">
+<section id="what-do-you-mean-by-likely" class="slide level2 smaller">
 <h2>What do you mean by likely?</h2>
 <div class="columns">
 <div class="column" style="width:35%;">
@@ -608,8 +608,8 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </div>
 </div>
 </section>
-<section class="slide level2">
-
+<section id="likelihood-is-a-function-of-the-parameter" class="slide level2">
+<h2>Likelihood is a function of the parameter</h2>
 <ul>
 <li><p>Note how this is in the form of: p(data | hypothesis)</p></li>
 <li><p>“What is the probability of having x successes given a fixed probability of success?”</p></li>
@@ -647,8 +647,8 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </div>
 </div>
 </section>
-<section class="slide level2">
-
+<section id="probability-vs.-likelihood" class="slide level2">
+<h2>Probability vs.&nbsp;likelihood</h2>
 <ul>
 <li><p>“Probability attaches to possible results; likelihood attaches to hypotheses”</p></li>
 <li><p>The first graph assumed p = .2. Probabilities are about a fixed distribution. p( data | distribution ) or p(heads | p = .2).</p></li>
@@ -684,8 +684,8 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <p>We can fix the distribution around the mean estimate, and then try out different versions of SD for the typically assumed normal distribution, maximizing or finding the most likely value.</p>
 <p>Ultimately, what we end up with (in Bayes land) is very closely related to this ML estimate (often identical). Conceptually, though, the process is different.</p>
 </section>
-<section class="slide level2">
-
+<section id="how-mcmc-explores" class="slide level2">
+<h2>How MCMC explores</h2>
 <ul>
 <li><p>The Bayesian (MCMC) algorithm tries out a bunch of parameter values. The ones that are <em>more likely</em> will appear more often.</p></li>
 <li><p>What do I mean “appear” more often? The algorithm lands on that just as our coin flipping example finds .2 to be most likely, but doesn’t rule out other possibilities.</p></li>
@@ -701,8 +701,8 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 
 </div>
 <img data-src="bayes-1_files/figure-revealjs/unnamed-chunk-11-1.png" width="960" class="r-stretch"></section>
-<section class="slide level2">
-
+<section id="the-posterior-is-a-pile-of-guesses" class="slide level2 smaller">
+<h2>The posterior is a pile of guesses</h2>
 <p>Our posterior is literally made up of educated parameter guesses by the algorithm. Which estimates are more likely given the data?</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1"></a><span class="fu">tidy_draws</span>(fit.<span class="fl">1.</span>bayesian)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -726,7 +726,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </div>
 </div>
 </section>
-<section id="bayesian-analysis-is-just-counting" class="slide level2">
+<section id="bayesian-analysis-is-just-counting" class="slide level2 smaller">
 <h2>Bayesian analysis is just counting</h2>
 <ul>
 <li><p>Bayesian analysis counts all ways that something can happen (according to assumptions/model). Assumptions with more ways that are consistent with data are more plausible.</p></li>
@@ -734,7 +734,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <li><p>Where Bayes differs, is that there is no ONE result, that there are many possible results that are consistent with the data</p></li>
 </ul>
 </section>
-<section id="be-comfortable-integrating-prior-knowledge" class="slide level2">
+<section id="be-comfortable-integrating-prior-knowledge" class="slide level2 smaller">
 <h2>3. Be comfortable integrating prior knowledge</h2>
 <ul>
 <li><p>Priors insert knowledge you have outside of your data into your model</p></li>
@@ -748,8 +748,8 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </ul>
 </div>
 </section>
-<section class="slide level2">
-
+<section id="a-model-with-priors" class="slide level2 smaller">
+<h2>A model with priors</h2>
 <p><span class="math display">\[ child_i \sim Normal( \mu_i , \sigma )\ \]</span></p>
 <p><span class="math display">\[\mu_i = \beta_0 + \beta_1  parent_i \]</span></p>
 <ul>
@@ -758,8 +758,8 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <li><p>We know, roughly, what average height of adults are so we can create a distribution, say ~N(66 (5.5 ft), 5). That means we are pretty sure (95%) the average height is between ~4’8 and 6`4</p></li>
 </ul>
 </section>
-<section class="slide level2">
-
+<section id="prior-draws" class="slide level2">
+<h2>Prior draws</h2>
 <div class="cell">
 <details>
 <summary>Code</summary>
@@ -777,16 +777,16 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 
 </div>
 <img data-src="bayes-1_files/figure-revealjs/unnamed-chunk-13-1.png" width="960" class="r-stretch"></section>
-<section class="slide level2">
-
+<section id="what-prior-for-the-slope" class="slide level2">
+<h2>What prior for the slope?</h2>
 <ul>
 <li><p>We could argue that the <span class="math inline">\(b_{1}\)</span> parameter (which indexes the strength of association between parent and child height) is positive. But we don’t want to stack the deck.</p></li>
 <li><p>Let’s center it around zero, saying that the most plausible estimate is no association, but that we are willing to entertain some strong effects in either direction.</p></li>
 <li><p>In sum: we tend not to make guesses on the average parameter estimate, but instead constraints on the range of possible values. Constraints tell us how “surprised” we’d be if we get some estimate</p></li>
 </ul>
 </section>
-<section class="slide level2">
-
+<section id="wide-vs.-narrow-slope-priors" class="slide level2">
+<h2>Wide vs.&nbsp;narrow slope priors</h2>
 <div class="cell">
 <details>
 <summary>Code</summary>
@@ -837,10 +837,15 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 
 </div>
 <img data-src="bayes-1_files/figure-revealjs/unnamed-chunk-15-1.png" width="960" class="r-stretch"></section>
-<section id="okay-so-why-is-this-important" class="slide level2">
+<section id="okay-so-why-is-this-important" class="slide level2 smaller">
 <h2>Okay so why is this important?</h2>
 <ul>
-<li><p>Those N(0, 5) lines say a 1-inch taller parent could mean a child 10+ inches taller (or shorter). That’s absurd, so we’ll use N(0, 0.5) instead: still centered on “no association,” but only entertaining plausible slopes.</p></li>
+<li>Those N(0, 5) lines say a 1-inch taller parent could mean a child 10+ inches taller (or shorter). That’s absurd, so we’ll use N(0, 0.5) instead: still centered on “no association,” but only entertaining plausible slopes.</li>
+</ul>
+</section>
+<section id="why-priors-matter" class="slide level2 smaller">
+<h2>Why priors matter</h2>
+<ul>
 <li><p>A model that makes impossible predictions prior to seeing the data isn’t too useful. Why waste the effort? We often know what values are likely, given what we know about effect sizes</p></li>
 <li><p>We entertain impossible values with standard “frequentist” methods. They have implicit priors such that all values, from negative infinity to positive infinity are equally likely.</p></li>
 <li><p>If we use flat (uniform) priors we get essentially the same results as a frequentist method: the posterior mode equals the maximum likelihood estimate, and the intervals are usually very close (though we interpret them differently).</p></li>
@@ -958,7 +963,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </ul>
 
 <img data-src="bayes-1_files/figure-revealjs/unnamed-chunk-21-1.png" width="960" class="r-stretch"></section>
-<section id="what-is-confusing" class="slide level2">
+<section id="what-is-confusing" class="slide level2 smaller">
 <h2>What is confusing:</h2>
 <div>
 <ul>
@@ -967,7 +972,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </ul>
 </div>
 </section>
-<section id="what-is-confusing-1" class="slide level2">
+<section id="what-is-confusing-1" class="slide level2 smaller">
 <h2>What is confusing:</h2>
 <div>
 <ul>

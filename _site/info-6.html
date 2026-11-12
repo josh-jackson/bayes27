@@ -898,7 +898,7 @@ Number of Fisher Scoring iterations: 2</code></pre>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: gaussian 
-  Links: mu = identity; sigma = identity 
+  Links: mu = identity 
 Formula: happiness ~ 0 + iv.d + SS_c 
    Data: MR (Number of observations: 118) 
   Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;
@@ -1010,7 +1010,7 @@ All Pareto k estimates are good (k &lt; 0.7).</code></pre>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: gaussian 
-  Links: mu = identity; sigma = identity 
+  Links: mu = identity 
 Formula: happiness ~ 1 + (1 | iv) 
    Data: MR (Number of observations: 118) 
   Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;
@@ -1275,7 +1275,7 @@ mr.11 -17.0       6.3  </code></pre>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: gaussian 
-  Links: mu = identity; sigma = identity 
+  Links: mu = identity 
 Formula: happiness ~ 1 + iv.d * SS_c 
    Data: MR (Number of observations: 118) 
   Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;
@@ -1373,12 +1373,12 @@ iv.dtx      |   0.36 | [-0.21,  0.92] | 89.33% | [-0.19, 0.19] |    26.68%
 SS_c        |   0.41 | [ 0.29,  0.52] |   100% | [-0.19, 0.19] |        0%
 iv.dtx:SS_c |  -0.28 | [-0.46, -0.09] | 99.72% | [-0.19, 0.19] |    15.00%
 
-Parameter   |  Rhat |     ESS
------------------------------
-(Intercept) | 1.000 | 4541.00
-iv.dtx      | 1.000 | 4897.00
-SS_c        | 1.000 | 3345.00
-iv.dtx:SS_c | 1.000 | 3621.00</code></pre>
+Parameter   |  Rhat |  ESS
+--------------------------
+(Intercept) | 1.000 | 4541
+iv.dtx      | 1.000 | 4897
+SS_c        | 1.000 | 3345
+iv.dtx:SS_c | 1.000 | 3621</code></pre>
 </div>
 </div>
 </section>
@@ -1442,7 +1442,7 @@ iv.dtx:SS_c | 1.000 | 3621.00</code></pre>
 <div class="cell-output cell-output-stdout">
 <pre><code># Proportion of samples inside the ROPE [-0.20, 0.20]:
 
-Parameter | inside ROPE
+Parameter | Inside ROPE
 -----------------------
 iv.dtx    |     26.88 %</code></pre>
 </div>
@@ -1482,7 +1482,7 @@ iv.dtx    |     26.88 %</code></pre>
 <div class="cell-output cell-output-stdout">
 <pre><code># Proportion of samples inside the ROPE [-0.20, 0.20]:
 
-Parameter   | inside ROPE
+Parameter   | Inside ROPE
 -------------------------
 Intercept   |      0.00 %
 iv.dtx      |     28.29 %
@@ -1508,7 +1508,7 @@ iv.dtx:SS_c |     18.45 %</code></pre>
 <div class="cell-output cell-output-stdout">
 <pre><code># Proportion of samples inside the ROPE [-0.30, 0.30]:
 
-Parameter   | inside ROPE
+Parameter   | Inside ROPE
 -------------------------
 Intercept   |      0.00 %
 iv.dtx      |     41.14 %
@@ -1579,7 +1579,7 @@ iv.dtx:SS_c | Undecided |     61.08 % | [-0.46, -0.09]</code></pre>
 <div class="cell-output cell-output-stdout">
 <pre><code># Proportion of samples inside the ROPE [-0.19, 0.19]:
 
-Parameter   | inside ROPE
+Parameter   | Inside ROPE
 -------------------------
 Intercept   |      0.00 %
 iv.dtx      |     26.68 %
@@ -1595,12 +1595,12 @@ iv.dtx:SS_c |     15.00 %</code></pre>
 <div class="cell-output cell-output-stdout">
 <pre><code>Summary of Posterior Distribution
 
-Parameter   | Median |         95% CI |          ROPE | % in ROPE |  Rhat |     ESS
------------------------------------------------------------------------------------
-(Intercept) |   4.98 | [ 4.52,  5.43] | [-0.19, 0.19] |        0% | 1.000 | 4541.00
-iv.dtx      |   0.36 | [-0.21,  0.92] | [-0.19, 0.19] |    26.68% | 1.000 | 4897.00
-SS_c        |   0.41 | [ 0.29,  0.52] | [-0.19, 0.19] |        0% | 1.000 | 3345.00
-iv.dtx:SS_c |  -0.28 | [-0.46, -0.09] | [-0.19, 0.19] |    15.00% | 1.000 | 3621.00</code></pre>
+Parameter   | Median |         95% CI |          ROPE | % in ROPE |  Rhat |  ESS
+--------------------------------------------------------------------------------
+(Intercept) |   4.98 | [ 4.52,  5.43] | [-0.19, 0.19] |        0% | 1.000 | 4541
+iv.dtx      |   0.36 | [-0.21,  0.92] | [-0.19, 0.19] |    26.68% | 1.000 | 4897
+SS_c        |   0.41 | [ 0.29,  0.52] | [-0.19, 0.19] |        0% | 1.000 | 3345
+iv.dtx:SS_c |  -0.28 | [-0.46, -0.09] | [-0.19, 0.19] |    15.00% | 1.000 | 3621</code></pre>
 </div>
 </div>
 </section>
@@ -1881,7 +1881,7 @@ BF
 <div class="sourceCode cell-code" id="cb100"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb100-1"><a href="#cb100-1"></a><span class="fu">summary</span>(mr<span class="fl">.2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: gaussian 
-  Links: mu = identity; sigma = identity 
+  Links: mu = identity 
 Formula: happiness ~ 1 + SS_c + FQ_c 
    Data: MR (Number of observations: 118) 
   Draws: 2 chains, each with iter = 2000; warmup = 1000; thin = 1;
@@ -1913,9 +1913,9 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 
 Parameter   |       BF
 ----------------------
-(Intercept) | 9.12e+33
-SS_c        | 6.46e+03
-FQ_c        |     9.98
+(Intercept) | 1.13e+34
+SS_c        | 6.66e+03
+FQ_c        |    10.06
 
 * Evidence Against The Null: 0</code></pre>
 </div>
@@ -1960,9 +1960,9 @@ FQ_c        |     9.98
 
 Parameter   |       BF
 ----------------------
-(Intercept) | 4.92e+43
-SS_c        | 4.30e+04
-FQ_c        |    0.488
+(Intercept) | 7.76e+43
+SS_c        | 4.31e+04
+FQ_c        |    0.533
 
 * Evidence Against The Null: 0</code></pre>
 </div>
@@ -1978,9 +1978,9 @@ FQ_c        |    0.488
 
 Parameter   |       BF
 ----------------------
-(Intercept) | 2.10e+33
-SS_c        |   361.21
-FQ_c        |     1.52
+(Intercept) | 2.94e+33
+SS_c        |   346.26
+FQ_c        |     1.47
 
 * Evidence Against The Null: [-0.189, 0.189]</code></pre>
 </div>
@@ -2062,9 +2062,9 @@ FQ_c        |     1.52
 
 Parameter   |       BF
 ----------------------
-(Intercept) | 8.67e+29
-SS_c        | 2.37e+04
-FQ_c        |     4.59
+(Intercept) | 1.28e+30
+SS_c        | 2.35e+04
+FQ_c        |     4.82
 
 * Evidence Against The Null: 0</code></pre>
 </div>
@@ -2080,9 +2080,9 @@ FQ_c        |     4.59
 
 Parameter   |       BF
 ----------------------
-(Intercept) | 3.82e+27
-SS_c        | 1.80e+04
-FQ_c        |    10.08
+(Intercept) | 3.42e+27
+SS_c        | 1.64e+04
+FQ_c        |     9.66
 
 * Evidence Against The Null: 0</code></pre>
 </div>
@@ -2145,13 +2145,13 @@ FQ_c        |    10.08
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">School success</td>
-<td style="text-align: right;">23660.7</td>
-<td style="text-align: right;">17999.2</td>
+<td style="text-align: right;">23468.9</td>
+<td style="text-align: right;">16411.0</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">Friendship quality</td>
-<td style="text-align: right;">4.6</td>
-<td style="text-align: right;">10.1</td>
+<td style="text-align: right;">4.8</td>
+<td style="text-align: right;">9.7</td>
 </tr>
 </tbody>
 </table>

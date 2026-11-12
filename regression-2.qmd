@@ -49,7 +49,7 @@ library(tidyverse)
 glimpse(galton.data)
 ```
 
-------------------------------------------------------------------------
+## The Galton data
 
 ```{r}
 #| code-fold: true
@@ -190,8 +190,7 @@ galton.data %>%
   labs(y = "child height (prior predicted)")
 ```
 
-## Prior predictive: what to do about it
-
+## Prior predictive: what to do about it {.smaller}
 We could do a few things:
 
 1.  Constrain the slope to be positive
@@ -249,8 +248,7 @@ fit.1 <-
       file = "fit.1")
 ```
 
-## Default priors: get_prior()
-
+## Default priors: get_prior() {.smaller}
 -   What if you don't know what priors should be in your model?
 -   Default priors are usually not what you want: flat on the slopes, and the intercept and sigma defaults are centered and scaled using your own outcome data
 
@@ -294,13 +292,13 @@ sigma(m.lm)              # compare with sigma
 
 Nearly identical estimates and SEs (vs. `Est.Error`). With 928 families and weak priors, the likelihood dominates and Bayes and OLS agree. The difference is in what we can *do* with the result (and how we interpret the intervals).
 
-------------------------------------------------------------------------
+## Trace plots
 
 ```{r}
 plot(fit.1)
 ```
 
-------------------------------------------------------------------------
+## lm() and brms side by side
 
 ```{r}
 #| code-fold: true
@@ -343,16 +341,14 @@ get_variables(fit.1)
 
 -   {marginaleffects} and {bayestestR} from easystats are two other packages we will routinely use
 
-## posterior samples/draws
-
+## posterior samples/draws {.smaller}
 1k rows indicate 1k parameter samples (we told the algo to give us 1k). All of these parameters represent *possible* states of the world given our data. Parameters more consistent with the data will appear more often.
 
 ```{r}
 tidy_draws(fit.1)
 ```
 
-## spread_draws
-
+## spread_draws {.smaller}
 Instead of looking at all of our "draws" or samples for all variables we often want to look at just some of them. Spread draws is an oft used function similar to select in {dplyr}
 
 ```{r}
@@ -382,7 +378,7 @@ Notice that the intercept and slope are nearly uncorrelated. That's a payoff of 
 
 -   Anything we want to accomplish with our model is IN the posterior
 
-------------------------------------------------------------------------
+## Draws as a data frame
 
 ```{r}
 #| code-fold: true
@@ -392,7 +388,7 @@ spread_draws(b_Intercept, b_parent.c) %>%
   stat_dotsinterval()
 ```
 
-------------------------------------------------------------------------
+## Summarizing draws
 
 ```{r}
 #| code-fold: true
@@ -410,7 +406,7 @@ spread_draws(b_Intercept, b_parent.c) %>%
   mode_hdi(.width = c(.5, .89, .95, .99))
 ```
 
-------------------------------------------------------------------------
+## Plotting a parameter
 
 ```{r}
 #| code-fold: true
@@ -420,7 +416,7 @@ spread_draws(b_Intercept, b_parent.c) %>%
 ggplot(aes(y = as.factor(.width), x = b_parent.c, xmin = .lower, xmax = .upper)) + geom_pointinterval() 
 ```
 
-------------------------------------------------------------------------
+## Plotting several parameters
 
 ```{r}
 #| code-fold: true
@@ -563,8 +559,7 @@ Example: \[0 and 1s\] --\>
 
 - We already did this with our parent height at 64 example. Same with our dummy variable example where we fed 0 or 1s. Note we did not have to consider our sample size, our model doesn't really care. Just feed it what is relevant.
 
-## How do we feed it?
-
+## How do we feed it? {.smaller}
 ::: columns
 ::: {.column width="60%"}
 First step is to get a data grid. There are many options. base::expand.grid, tidyr::expand_grid, modelr::data_grid, marginaleffects::datagrid, modelbased::visualization_grid, emmeans::ref_grid
@@ -596,8 +591,7 @@ datagrid(parent.c = seq(from = min(galton.data$parent.c), to = max(galton.data$p
 
 The second step after you have the data/reference grid is to feed it into the model. You may have done something similar using the 'predict' functions of base R or {lme4}. We will use the functions from {marginaleffects} or {tidybayes}, both of which operate similarly. {brms} also has a predict function, but its not as user friendly
 
-------------------------------------------------------------------------
-
+## Reading the grid {.smaller}
 1.  Notice how the predicted values are ".epred"
 2.  Notice the number of rows. Where did it come from?
 
@@ -608,8 +602,7 @@ data_grid(parent.c = seq_range(parent.c, n = 10)) %>%
  add_epred_draws(fit.1)
 ```
 
-## Feed reference grid to marginaleffects
-
+## Feed reference grid to marginaleffects {.smaller}
 1.  Notice how the predicted values are "draw"
 2.  Same number of rows. estimate and conf refer to the mean at a fixed parent.c
 
@@ -617,7 +610,9 @@ data_grid(parent.c = seq_range(parent.c, n = 10)) %>%
 #| code-fold: true
 predictions(model = fit.1,
              datagrid(parent.c = seq(from = min(galton.data$parent.c), to = max(galton.data$parent.c), length.out = 10))) %>% 
-  get_draws()
+  get_draws() %>%
+  as_tibble() %>%
+  select(drawid, parent.c, draw, estimate, conf.low, conf.high)
 ```
 
 ## plot predictions from tidybayes
@@ -689,8 +684,7 @@ data_grid(parent.c = -4.3) %>%
   stat_halfeye( .width = c(.95))
 ```
 
-## One quantity, three ways
-
+## One quantity, three ways {.smaller}
 Expected child height for a 64-inch parent (parent.c = −4.3). Every tool does the same three steps: **get the draws → compute the quantity for each draw → summarize.**
 
 ```{r}
@@ -730,7 +724,7 @@ slopes(
     parent.c = -4.3))
 ```
 
-------------------------------------------------------------------------
+## Slopes at chosen values
 
 ```{r}
 #| code-fold: true
@@ -776,8 +770,8 @@ Depending on which level of analysis we will use different functions
 
 ```{r}
 #| code-fold: true
-#| fig-height: 4
-#| out-width: "100%"
+#| fig-height: 3.1
+#| out-width: "82%"
 grid <- galton.data %>% data_grid(parent.c = seq_range(parent.c, n = 20))
 ggplot(galton.data, aes(x = parent.c, y = child)) +
   stat_lineribbon(data = add_predicted_draws(grid, fit.1), aes(y = .prediction),
@@ -807,8 +801,7 @@ data_grid(parent.c = seq_range(parent.c, n = 10)) %>%
   geom_point(data = galton.data, size = 2,alpha = .5) 
 ```
 
-## Unit-level predictions: the draws
-
+## Unit-level predictions: the draws {.smaller}
 Each .prediction feeds a parent.c value into our model and simulates a new person: $\tilde{y} \sim \text{Normal}(\beta_0 + \beta_1 X, \sigma)$. Each row of the posterior has different values for each of the three parameters. 
 
 ```{r}
@@ -818,8 +811,7 @@ data_grid(parent.c = seq_range(parent.c, n = 10)) %>%
   add_predicted_draws(fit.1)
 ```
 
-## Unit-level predictions with marginaleffects
-
+## Unit-level predictions with marginaleffects {.smaller}
 marginaleffects' df is more compact. This is helpful when working with complex datasets, though it does result in less opportunity to sanity check.
 
 ```{r}
@@ -830,8 +822,7 @@ predictions(model = fit.1,
 
 ```
 
-## ...and the draws behind them
-
+## ...and the draws behind them {.smaller}
 Though if you want to see the full df, then just use `get_draws()` (called `posterior_draws()` in older versions of marginaleffects).
 
 ```{r}
@@ -839,7 +830,9 @@ Though if you want to see the full df, then just use `get_draws()` (called `post
 predictions(model = fit.1,
             type = "prediction",
              datagrid(parent.c = seq(from = min(galton.data$parent.c), to = max(galton.data$parent.c), length.out = 10))) %>% 
-  get_draws()
+  get_draws() %>%
+  as_tibble() %>%
+  select(drawid, parent.c, draw, estimate, conf.low, conf.high)
 
 ```
 
@@ -861,7 +854,7 @@ predictions(model = fit.1,
   geom_point(data = galton.data, size = 2,alpha = .5)
 ```
 
-------------------------------------------------------------------------
+## The default grid: the observed data
 
 marginaleffects::predictions  defaults to returning "fitted" values based on full original data as the grid. Note the size of the df is the sample size
 
@@ -869,7 +862,7 @@ marginaleffects::predictions  defaults to returning "fitted" values based on ful
 predictions(fit.1)
 ```
 
-------------------------------------------------------------------------
+## The mean grid
 
 Representative, mean grid. Which is the same as just averaging all predictions.
 
@@ -881,7 +874,7 @@ predictions(fit.1,  newdata = "mean")
 avg_predictions(fit.1)
 ```
 
-------------------------------------------------------------------------
+## A grid you choose
 
 Adding new data to make an "interesting" grid. With more complex models you can have more interesting combinations. Right now we have just a single variable
 
@@ -889,7 +882,7 @@ Adding new data to make an "interesting" grid. With more complex models you can 
 predictions(fit.1,  newdata = datagrid(parent.c = c(-4.3, 2)))
 ```
 
-------------------------------------------------------------------------
+## Crossing categories
 
 Often we have categories and would like a grid across all of these categories. This is described as "crossing" our categorical variables.
 
@@ -898,7 +891,6 @@ Often we have categories and would like a grid across all of these categories. T
 predictions(fit.1,  newdata = datagrid(fac1 = unique, fac2 = unique, covariate = mean))
 ```
 
-------------------------------------------------------------------------
 
 ## Predictions as simulated data
 
@@ -924,7 +916,7 @@ pp_check(fit.1)
 :::
 
 
------------------------
+## Simulated outcomes across the grid
 
 ```{r}
 #| code-fold: true

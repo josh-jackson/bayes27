@@ -449,11 +449,10 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>
  W.other    ID Estimate 2.5 % 97.5 %
-       0 ralph     3.14  2.16   4.13
-       1 ralph     3.46  2.61   4.34
+       0 ralph     3.14  2.18   4.15
+       1 ralph     3.46  2.64   4.33
 
-Type:  response 
-Columns: rowid, estimate, conf.low, conf.high, W.other, ID, PA </code></pre>
+Type: response</code></pre>
 </div>
 </div>
 </section>
@@ -470,12 +469,11 @@ Columns: rowid, estimate, conf.low, conf.high, W.other, ID, PA </code></pre>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>
- W.other Estimate 2.5 % 97.5 %    ID
-       0     3.15  3.08   3.22 10472
-       1     3.47  3.42   3.52 10472
+ W.other Estimate 2.5 % 97.5 %
+       0     3.15  3.08   3.22
+       1     3.47  3.42   3.52
 
-Type:  response 
-Columns: rowid, estimate, conf.low, conf.high, ID, W.other, PA </code></pre>
+Type: response</code></pre>
 </div>
 </div>
 </section>
@@ -495,8 +493,7 @@ Columns: rowid, estimate, conf.low, conf.high, ID, W.other, PA </code></pre>
        0 10472     4.20  3.89   4.51
        1 10472     4.35  4.14   4.57
 
-Type:  response 
-Columns: rowid, estimate, conf.low, conf.high, W.other, ID, PA </code></pre>
+Type: response</code></pre>
 </div>
 </div>
 </section>
@@ -639,8 +636,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
  Estimate 2.5 % 97.5 %
     0.462 0.448  0.476
 
-Type:  response 
-Columns: estimate, conf.low, conf.high </code></pre>
+Type: response</code></pre>
 </div>
 </div>
 <p>The intercept is on the log-odds scale; <code>plogis()</code> turns it into a probability:</p>
@@ -753,13 +749,12 @@ Columns: estimate, conf.low, conf.high </code></pre>
 <span id="cb21-3"><a href="#cb21-3"></a>    <span class="at">newdata =</span> <span class="fu">datagrid</span>(<span class="at">state_name =</span> <span class="st">"missouri"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
- age_group decade_married state_name educ_group Estimate 2.5 % 97.5 %
-        35           2009   missouri        &gt;BA    0.538 0.453  0.619
-        35           2009   missouri        &lt;BA    0.267 0.190  0.358
-        35           2009   missouri        BA     0.312 0.240  0.395
+ age_group educ_group state_name Estimate 2.5 % 97.5 %
+        35        &lt;BA   missouri    0.267 0.190  0.358
+        35        &gt;BA   missouri    0.538 0.453  0.619
+        35        BA    missouri    0.312 0.240  0.395
 
-Type:  response 
-Columns: rowid, rowidcf, estimate, conf.low, conf.high, age_group, decade_married, state_name, kept_name, educ_group </code></pre>
+Type: response</code></pre>
 </div>
 </div>
 </section>
@@ -826,8 +821,7 @@ Columns: rowid, rowidcf, estimate, conf.low, conf.high, age_group, decade_marrie
         70    0.513 0.3177  0.719
         75    0.208 0.0586  0.492
 
-Type:  response 
-Columns: age_group, estimate, conf.low, conf.high </code></pre>
+Type: response</code></pre>
 </div>
 </div>
 <p>(The long way, with <code>add_predicted_draws()</code> on all 6,058 cells × 4,000 draws, gives the same answer and builds a 24-million-row table.)</p>
@@ -1018,26 +1012,26 @@ chl   1   1   1   0</code></pre>
 <div class="sourceCode cell-code" id="cb36"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1"></a><span class="fu">summary</span>(imp<span class="fl">.1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: gaussian 
-  Links: mu = identity; sigma = identity 
+  Links: mu = identity 
 Formula: bmi ~ age * chl 
    Data: nhanes.imp (Number of observations: 25) 
   Draws: 40 chains, each with iter = 2000; warmup = 1000; thin = 1;
          total post-warmup draws = 40000
 
 Regression Coefficients:
-          Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-Intercept    16.55      9.36    -1.39    35.17 1.22      127      658
-age          -0.21      5.33   -10.68    10.32 1.16      165      749
-chl           0.08      0.05    -0.02     0.17 1.24      120      689
-age:chl      -0.02      0.03    -0.07     0.03 1.14      179      810
+          Estimate Est.Error l-95% CI u-95% CI
+Intercept    16.55      9.36    -1.39    35.17
+age          -0.21      5.33   -10.68    10.32
+chl           0.08      0.05    -0.02     0.17
+age:chl      -0.02      0.03    -0.07     0.03
 
 Further Distributional Parameters:
-      Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-sigma     3.49      0.69     2.32     5.02 1.26      111      276
+      Estimate Est.Error l-95% CI u-95% CI
+sigma     3.49      0.69     2.32     5.02
 
-Draws were sampled using sample(hmc). For each parameter, Bulk_ESS
-and Tail_ESS are effective sample size measures, and Rhat is the potential
-scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
+Draws were sampled using sample(hmc). Overall Rhat and ESS estimates
+are not informative for brm_multiple models and are hence not displayed.
+Please see ?brm_multiple for how to assess convergence of such models.</code></pre>
 </div>
 </div>
 </section>
@@ -1075,8 +1069,8 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="sourceCode cell-code" id="cb40"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1"></a><span class="fu">summary</span>(imp<span class="fl">.2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: MV(gaussian, gaussian) 
-  Links: mu = identity; sigma = identity
-         mu = identity; sigma = identity 
+  Links: mu = identity
+         mu = identity 
 Formula: bmi | mi() ~ age * mi(chl) 
          chl | mi() ~ age 
    Data: nhanes (Number of observations: 25) 
@@ -1536,8 +1530,8 @@ F-statistic: 29.58 on 1 and 55 DF,  p-value: 1.274e-06</code></pre>
 <div class="sourceCode cell-code" id="cb55"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1"></a><span class="fu">summary</span>(imp<span class="fl">.3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: MV(gaussian, gaussian) 
-  Links: mu = identity; sigma = identity
-         mu = identity; sigma = identity 
+  Links: mu = identity
+         mu = identity 
 Formula: schoool.success | mi() ~ mi(happiness) 
          happiness | mi() ~ friendship.quality + SES 
    Data: MI.missing (Number of observations: 118) 
@@ -1690,7 +1684,7 @@ happiness           0.15 0.17</code></pre>
 <div class="sourceCode cell-code" id="cb61"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb61-1"><a href="#cb61-1"></a><span class="fu">summary</span>(ME<span class="fl">.1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: gaussian 
-  Links: mu = identity; sigma = identity 
+  Links: mu = identity 
 Formula: schoool.success | mi() ~ happiness 
    Data: MI (Number of observations: 118) 
   Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;
@@ -1730,7 +1724,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="sourceCode cell-code" id="cb64"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1"></a><span class="fu">summary</span>(ME<span class="fl">.2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: gaussian 
-  Links: mu = identity; sigma = identity 
+  Links: mu = identity 
 Formula: schoool.success | mi(se_ss) ~ happiness 
    Data: MI (Number of observations: 118) 
   Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;
@@ -1775,8 +1769,8 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="sourceCode cell-code" id="cb67"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1"></a><span class="fu">summary</span>(ME<span class="fl">.2</span>a)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: MV(gaussian, gaussian) 
-  Links: mu = identity; sigma = identity
-         mu = identity; sigma = identity 
+  Links: mu = identity
+         mu = identity 
 Formula: schoool.success | mi(se_ss) ~ mi(happiness) 
          happiness | mi(se_happy) ~ 1 
    Data: MI (Number of observations: 118) 
@@ -2246,7 +2240,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="sourceCode cell-code" id="cb73"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb73-1"><a href="#cb73-1"></a><span class="fu">summary</span>(meta<span class="fl">.1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: gaussian 
-  Links: mu = identity; sigma = identity 
+  Links: mu = identity 
 Formula: d | se(se) ~ 1 + (1 | study) 
    Data: spank (Number of observations: 111) 
   Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;
@@ -2426,7 +2420,7 @@ Error in `spread()`:
 <div class="sourceCode cell-code" id="cb81"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb81-1"><a href="#cb81-1"></a><span class="fu">summary</span>(meta<span class="fl">.2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: gaussian 
-  Links: mu = identity; sigma = identity 
+  Links: mu = identity 
 Formula: d | se(se) ~ 1 + (1 | study) + (1 | id) 
    Data: spank (Number of observations: 111) 
   Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;
@@ -2754,7 +2748,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="sourceCode cell-code" id="cb89"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb89-1"><a href="#cb89-1"></a><span class="fu">summary</span>(meta<span class="fl">.3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: gaussian 
-  Links: mu = identity; sigma = identity 
+  Links: mu = identity 
 Formula: d | se(se) ~ 1 + (1 | study) + (1 | outcome) + (1 | id) 
    Data: spank (Number of observations: 111) 
   Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;
@@ -2857,7 +2851,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="sourceCode cell-code" id="cb94"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb94-1"><a href="#cb94-1"></a><span class="fu">summary</span>(meta<span class="fl">.4</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: gaussian 
-  Links: mu = identity; sigma = identity 
+  Links: mu = identity 
 Formula: d | se(se) ~ 1 + between + (1 | study) + (1 | outcome) + (1 | id) 
    Data: spank (Number of observations: 111) 
   Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;

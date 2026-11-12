@@ -20,9 +20,10 @@ $${Y}_{ij} = b_{0} + b_{1}X_{ij} + ... +\epsilon_{ij}$$ where *i* refers to the 
 
 ```{r}
 mlm <- read.csv("mlm.csv")  # also at https://bayes27.netlify.app/mlm.csv
+names(mlm)[names(mlm) == "group"] <- "diagnosis"  # marginaleffects reserves the name "group"
 ```
 
--   91 people (people with Parkinson's disease, `group = "PD"`, and controls, `"CTRL"`), each scanned 2–4 times: 225 rows in all.
+-   91 people (people with Parkinson's disease, `diagnosis = "PD"`, and controls, `"CTRL"`), each scanned 2–4 times: 225 rows in all.
 -   `CON` and `SMN7` are resting-state connectivity scores for two brain networks; `time` is time since the first scan (0–6); `week` is a finer-grained version of it.
 -   Observations (*j*) are nested in people (*i*). Some examples below are conceptual (a Stroop task, students in schools); whenever there's a plot, it's these data.
 
@@ -477,15 +478,15 @@ Intercept in simple regression --\> a (prior/posterior) distribution of possible
 
 Intercept in mlm --\> a distribution of group/clusters of intercepts. The population we are sampling from can have a distribution (mu, sigma), and that distribution is different from the observed distribution of mu (or sigma)
 
-## Parameters that depend on parameters {.nostretch}
+## Priors with their own priors {.nostretch .smaller}
 
 The person intercepts $\beta_{0[i]}$ get a prior whose parameters ($\bar\mu$, $\sigma_0$) are themselves estimated: a prior with its own priors.
 
 ```{r}
 #| code-fold: true
-#| out-width: "100%"
+#| out-width: "80%"
 #| fig-width: 10
-#| fig-height: 4.5
+#| fig-height: 4.2
 lab <- tribble(~x, ~y, ~label,
   1.2, 3, "bar(mu) %~% Normal(0, 1.5)",
   3.2, 3, "sigma[0] %~% HalfNormal(0, 1.5)",

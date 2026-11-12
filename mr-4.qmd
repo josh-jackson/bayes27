@@ -845,7 +845,8 @@ cells %>%
 anova <- read_csv("anova.csv")   # also at https://bayes27.netlify.app/anova.csv
 anova <- anova %>% 
   mutate(SupportLevel = cut(Support, breaks = c(0, 5, 10, 18), labels = c("low", "med", "high")),
-         condition = factor(group))   # renamed: marginaleffects reserves the name "group"
+         condition = factor(group)) %>%   # renamed: marginaleffects reserves the name "group"
+  select(-group)
 anova %>% count(condition, SupportLevel)
 ```
 
@@ -976,8 +977,7 @@ predictions(mr.8b, newdata = datagrid(SupportLevel = unique, condition = unique)
 ## Pairwise contrasts between support levels
 
 ```{r}
-avg_predictions(mr.8b, by = "SupportLevel", hypothesis = "pairwise")
-# newer marginaleffects versions write this as  hypothesis = ~ pairwise
+avg_predictions(mr.8b, by = "SupportLevel", hypothesis = ~ pairwise)
 ```
 
 ## Tx vs. Control within each support level
@@ -993,9 +993,9 @@ If the Tx − Control difference changes across support levels, that's the inter
 ```{r}
 #| code-fold: true
 #| fig-height: 3.5
-avg_predictions(mr.8b, by = "SupportLevel", hypothesis = "pairwise") %>% 
-  get_draws() %>% 
-  ggplot(aes(x = draw, y = term)) +
+avg_predictions(mr.8b, by = "SupportLevel", hypothesis = ~ pairwise) %>%
+  get_draws() %>%
+  ggplot(aes(x = draw, y = hypothesis)) +
   stat_halfeye() +
   geom_vline(xintercept = 0, linetype = 2) +
   labs(x = "difference in anxiety", y = NULL)

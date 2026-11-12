@@ -678,10 +678,11 @@ glm.8b2 <-
 ```
 
 ```{r}
-loo_p   <- loo(glm.7o, moment_match = TRUE)
-loo_nb  <- loo(glm.8b2, moment_match = TRUE)
-loo_zip <- loo(glm.8e, moment_match = TRUE)
-loo_compare(loo_p, loo_nb, loo_zip)
+# add_criterion() stores the result in the model's file, so it's only computed once
+glm.7o  <- add_criterion(glm.7o, "loo", moment_match = TRUE)
+glm.8b2 <- add_criterion(glm.8b2, "loo", moment_match = TRUE)
+glm.8e  <- add_criterion(glm.8e, "loo", moment_match = TRUE)
+loo_compare(glm.7o, glm.8b2, glm.8e)
 ```
 
 ## Checking count models: rootograms {.smaller}
@@ -836,9 +837,9 @@ glm.8g <- brm(family = hurdle_negbinomial,
 ```
 
 ```{r}
-loo_compare(loo(glm.8b2, moment_match = TRUE),
-            loo(glm.8f, moment_match = TRUE),
-            loo(glm.8g, moment_match = TRUE))
+glm.8f <- add_criterion(glm.8f, "loo", moment_match = TRUE)
+glm.8g <- add_criterion(glm.8g, "loo", moment_match = TRUE)
+loo_compare(glm.8b2, glm.8f, glm.8g)
 ```
 
 ## Often the NB is enough {.smaller}
@@ -1104,13 +1105,17 @@ Why is the linear model ϕ subtracted from each intercept? Because if we decreas
 ![](cumlog.gif)
 
 
-## The model with predictors
+## The model with predictors {.smaller}
 
-$$ \text{response}_i  \sim \operatorname{Ordered-logit} (\phi_i, \boldsymbol\alpha) $$
-$$ \text{logit}(Pr(\text{response}_i \leq k)) = \alpha_k - \phi_i $$
-$$  \phi_i = \beta_1 \text{action}_i + \beta_2 \text{contact}_i + \beta_3 \text{intention}_i + \beta_4 (\text{action}_i \times \text{intention}_i) + \beta_5 (\text{contact}_i \times \text{intention}_i) $$
-$$\alpha_k               \sim \operatorname{Normal}(0, 1.5) $$
-$$\beta_1, ..., \beta_5  \sim \operatorname{Normal}(0, 0.5) $$
+$$
+\begin{aligned}
+\text{response}_i &\sim \operatorname{Ordered-logit} (\phi_i, \boldsymbol\alpha) \\
+\text{logit}(Pr(\text{response}_i \leq k)) &= \alpha_k - \phi_i \\
+\phi_i &= \beta_1 \text{action}_i + \beta_2 \text{contact}_i + \beta_3 \text{intention}_i \\
+&\quad + \beta_4 (\text{action}_i \times \text{intention}_i) + \beta_5 (\text{contact}_i \times \text{intention}_i) \\
+\alpha_k &\sim \operatorname{Normal}(0, 1.5) \qquad \beta_1, \dots, \beta_5 \sim \operatorname{Normal}(0, 0.5)
+\end{aligned}
+$$
 
 ## Fitting `glm.13`
 
@@ -1174,8 +1179,11 @@ predictions(glm.13, newdata = datagrid(action = 0:1, intention = 0:1, contact = 
 
 ```{r}
 #| code-fold: true
-library(marginaleffects)
-avg_comparisons(glm.13)
+# The model only uses action, contact and intention, so the 9,930 rows are just 12
+# distinct combinations. Averaging over those, weighted by how often each occurs,
+# gives exactly the same answer as averaging over every row, and is ~800x faster.
+cells <- trolley %>% count(action, contact, intention)
+avg_comparisons(glm.13, newdata = cells, wts = "n")
 ```
 
 ## Action's effect, by intention {.smaller}
@@ -1184,7 +1192,7 @@ How much does action change the probability of each response, with and without i
 
 ```{r}
 #| code-fold: true
-avg_comparisons(glm.13, variables = "action", by = "intention")
+avg_comparisons(glm.13, variables = "action", by = "intention", newdata = cells, wts = "n")
 ```
 
 ## Predicted response distributions: action × intention
@@ -1402,6 +1410,5 @@ Monotonic effects, `mo(x)` in brms. Think of it as a compromise between continuo
 
 ## Extra readings
 
-https://cran.r-project.org/web/packages/brms/vignettes/brms_monotonic.html
-
-https://psyarxiv.com/9qkhj/
+-   [Monotonic effects in brms](https://cran.r-project.org/web/packages/brms/vignettes/brms_monotonic.html) (Bürkner & Charpentier)
+-   [Ordinal regression models in psychology](https://psyarxiv.com/9qkhj/) (Bürkner & Vuorre)
