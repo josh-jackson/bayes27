@@ -14,6 +14,9 @@ project:
     - Multipleregression.csv
     - roaches.csv
     - trolley.csv
+    - mlm.csv
+    - esm.csv
+    - melsm.csv
     - solutions/*.html
 
 website:
