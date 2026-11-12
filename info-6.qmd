@@ -23,7 +23,8 @@ library(bayestestR)
 MR <- read.csv("hw3.csv") %>%   # also at https://bayes27.netlify.app/hw3.csv
   mutate(SS_c = schoool.success - mean(schoool.success),
          FQ_c = friendship.quality - mean(friendship.quality),
-         iv = factor(intervention.group))
+         iv = factor(intervention.group),
+         iv.d = factor(if_else(intervention.group == 1, "control", "tx")))
 ```
 
 ## NHST
@@ -40,15 +41,18 @@ Bayesians typically do not use "standard" NHST. Why?
 
 ## Standard fit indices and tests
 
-$R^2$, AIC, BIC, likelihood ratio test (LRT). Here is a Bayesian $R^2$ (a whole distribution of them):
+$R^2$, AIC, BIC, likelihood ratio test (LRT). Here is a Bayesian $R^2$ for happiness ~ group + school success (a whole distribution of them, one per posterior draw):
 
-```{r, echo = FALSE}
-mr.10 <- readRDS("mr.10.rds")
-bayes_R2(mr.10, summary = F) %>% 
-  data.frame() %>% 
+```{r}
+#| code-fold: true
+#| fig-height: 4
+mr.12 <- readRDS("mr.12.rds")
+bayes_R2(mr.12, summary = FALSE) %>%
+  data.frame() %>%
   ggplot(aes(x = R2)) +
-  geom_density() +
-  scale_y_continuous(NULL, breaks = NULL) 
+  stat_halfeye(.width = .95) +
+  scale_y_continuous(NULL, breaks = NULL) +
+  labs(x = expression(Bayesian~R^2))
 ```
 
 ## What is likelihood?
@@ -63,10 +67,10 @@ Binomial likelihood L($\theta$ \| S = 3, N = 10)
 
 ```{r, echo = FALSE, message = FALSE}
 library(tidyverse)
-ggplot(tibble(x = c(0, 1)), 
-       aes(x = x)) + 
-  stat_function(fun = dbinom, args = list(x = 3, size = 10)) + 
-  labs(x = expression(theta), 
+ggplot(tibble(x = c(0, 1)),
+       aes(x = x)) +
+  stat_function(fun = dbinom, args = list(x = 3, size = 10)) +
+  labs(x = expression(theta),
        y = "likelihood")
 ```
 
@@ -174,11 +178,11 @@ grid
 library(purrr)
 grid_function <- function(mu, sigma) {
   dnorm(galton.data$child, mean = mu, sd = sigma, log = T) %>%
-    sum() 
+    sum()
   }
 
 p_grid <-
-  grid %>% 
+  grid %>%
   mutate(log_likelihood = map2(mu, sigma, grid_function)) %>%
   unnest(log_likelihood)
   p_grid
@@ -189,8 +193,8 @@ p_grid <-
 ```{r}
 #| code-fold: true
 library(viridis)
-p_grid %>% 
-  ggplot(aes(x = mu, y = sigma, fill = log_likelihood)) + 
+p_grid %>%
+  ggplot(aes(x = mu, y = sigma, fill = log_likelihood)) +
   geom_raster(interpolate = T) +
   scale_fill_viridis_c(option = "C") +
   labs(x = expression(mu),
@@ -203,9 +207,9 @@ p_grid %>%
 ```{r}
 #| code-fold: true
 # can compute CI bc we are varying sigma (not plotted)
-p_grid %>% 
-  ggplot(aes(x = mu, y = log_likelihood )) + 
-    stat_lineribbon(.width = c(.0), alpha = .4) 
+p_grid %>%
+  ggplot(aes(x = mu, y = log_likelihood )) +
+    stat_lineribbon(.width = c(.0), alpha = .4)
 
 ```
 
@@ -257,11 +261,11 @@ A dice roll is 2.585 bits. Best to think about this is each bit like a yes/no qu
 
 ## Bits and probabilities
 
-1/2\^bit = probability of some event 
+1/2\^bit = probability of some event
 
-2\^bit = 1/p 
+2\^bit = 1/p
 
-bit = log2(1/p) 
+bit = log2(1/p)
 
 bit = −log2(p)
 
@@ -316,12 +320,12 @@ d <-
          b = c(0, 1, 8, 1, 0),
          c = c(0, 2, 6, 2, 0),
          d = c(1, 2, 4, 2, 1),
-         e = 2) 
+         e = 2)
 
-d %>% 
-  mutate(bucket = 1:5) %>% 
-  pivot_longer(-bucket, names_to = "letter", values_to = "pebbles") %>% 
-  
+d %>%
+  mutate(bucket = 1:5) %>%
+  pivot_longer(-bucket, names_to = "letter", values_to = "pebbles") %>%
+
   ggplot(aes(x = bucket, y = pebbles)) +
   geom_col(width = 1/5) +
   geom_text(aes(y = pebbles + 1, label = pebbles)) +
@@ -329,7 +333,7 @@ d %>%
     letter  = letters[1:5],
     bucket  = 5.5,
     pebbles = 10,
-    label   = str_c(c(1, 90, 1260, 37800, 113400), 
+    label   = str_c(c(1, 90, 1260, 37800, 113400),
                     rep(c(" way", " ways"), times = c(1, 4)))),
     aes(label = label), hjust = 1) +
   scale_y_continuous(breaks = c(0, 5, 10))  +
@@ -379,7 +383,7 @@ In words: for each observation, average its likelihood over the $S$ posterior dr
 
 - Often called the log pointwise predictive density (lpd or lppd)
 
-- We just went full circle to get a bayesian equivalent to log likelihood. And will thus use lppd for our model fit questions. 
+- We just went full circle to get a bayesian equivalent to log likelihood. And will thus use lppd for our model fit questions.
 
 ## Two options for model comparison
 
@@ -426,7 +430,51 @@ mr.12$criteria$loo
 
 -   p_loo is the effective number of parameters
 
--   looic is -2(elpd). Low scores better. Why -2? Because of chi-square history and/or for Gaussian model with known variance -2 log score is equal to squared error. 
+-   looic is -2(elpd). Low scores better. Why -2? Because of chi-square history and/or for Gaussian model with known variance -2 log score is equal to squared error.
+
+## Pareto *k*: can we trust PSIS-LOO? {.smaller}
+
+-   PSIS estimates what would happen if each observation were left out. That works when leaving out one point barely changes the posterior.
+-   Each observation gets a Pareto *k*: how badly the shortcut is strained for that point. **k < 0.7 is fine.** k > 0.7 means that observation is so influential that the shortcut is unreliable (and so is the elpd for that model).
+
+```{r}
+loo::pareto_k_table(mr.12$criteria$loo)
+```
+
+## Pareto *k* for every observation
+
+All of `mr.12`'s *k* values sit well below the 0.7 line, so we can trust its LOO estimate.
+
+```{r}
+#| code-fold: true
+#| fig-height: 4.5
+tibble(k = mr.12$criteria$loo$diagnostics$pareto_k) %>% 
+  mutate(observation = row_number()) %>% 
+  ggplot(aes(x = observation, y = k)) +
+  geom_hline(yintercept = 0.7, linetype = "dashed", colour = "firebrick") +
+  annotate("text", x = 1, y = 0.74, label = "k = 0.7: trouble above here", hjust = 0, colour = "firebrick") +
+  geom_point(alpha = .6) +
+  labs(x = "Observation", y = "Pareto k") +
+  theme_classic(base_size = 14)
+```
+
+## What if some *k* are too high?
+
+High *k* usually means an outlier or a model that is too flexible for its data (e.g., one parameter per person). Options, from cheapest to most expensive:
+
+```{r}
+#| eval: false
+# 1. moment matching: adjusts the draws for the bad points (needs save_pars(all = TRUE) when fitting)
+model <- add_criterion(model, "loo", moment_match = TRUE)
+
+# 2. actually refit without each bad point (fine if there are only a few)
+model <- add_criterion(model, "loo", reloo = TRUE)
+
+# 3. K-fold cross validation: refit K times (e.g., 10), no shortcut at all
+model <- add_criterion(model, "kfold", K = 10)
+```
+
+And look at those observations! A high *k* is also a model check: the model is surprised by them.
 
 ## A second model: `mr.11`
 
@@ -467,6 +515,52 @@ loo_compare(mr.11, mr.12, criterion = "loo")
 
 -   Here elpd_diff / se_diff = 17 / 6.3 ≈ 2.7: `mr.12` is expected to predict new data clearly better.
 
+## A third model: add the interaction {.smaller}
+
+```{r}
+#| code-fold: true
+mr.14b <-
+  brm(family = gaussian,
+      happiness ~ 1 + iv.d * SS_c,
+      prior = c(prior(normal(5, 2), class = Intercept),
+                prior(normal(0, 1), class = b),
+                prior(exponential(1), class = sigma)),
+      iter = 2000, warmup = 1000, chains = 4, cores = 4,
+      data = MR,
+      backend = "cmdstanr",
+      file = "mr.14b")
+mr.14b <- add_criterion(mr.14b, "loo")
+```
+
+$$
+\begin{aligned}
+\text{happiness}_i &\sim \text{Normal}(\mu_i, \sigma) \\
+\mu_i &= b_0 + b_1\,\text{tx}_i + b_2\,\text{SS}_i + b_3\,\text{tx}_i \times \text{SS}_i \\
+b_0 &\sim \text{Normal}(5, 2) \qquad b_1, b_2, b_3 \sim \text{Normal}(0, 1) \qquad \sigma \sim \text{Exponential}(1)
+\end{aligned}
+$$
+
+## R² always goes up. Does LOO? {.smaller}
+
+```{r}
+#| code-fold: true
+mods <- list(`mr.11: happiness ~ (1 | group)` = mr.11,
+             `mr.12: ~ tx + school` = mr.12,
+             `mr.14b: ~ tx * school` = mr.14b)
+tibble(model    = names(mods),
+       R2       = map_dbl(mods, ~ median(bayes_R2(.x, summary = FALSE))),
+       elpd_loo = map_dbl(mods, ~ .x$criteria$loo$estimates["elpd_loo", "Estimate"]),
+       p_loo    = map_dbl(mods, ~ .x$criteria$loo$estimates["p_loo", "Estimate"])) %>%
+  knitr::kable(digits = 2)
+
+loo_compare(mr.11, mr.12, mr.14b)
+```
+
+## Reading the comparison
+
+-   In-sample $R^2$ rewards every added parameter. LOO only rewards parameters that help predict *new* data.
+-   Here the interaction raises $R^2$ from .27 to .32, but its LOO advantage over `mr.12` (3.7, se 3.4) is under 4: a modest gain in prediction, not a clear one. (Whether the interaction is *real* is a different question; see the next section.)
+
 ## Information Criteria
 
 -   AIC, BIC, WAIC, DIC, etc.
@@ -483,7 +577,7 @@ $$\text{WAIC}(y, \theta) = -2 \big (\text{lppd} - \underbrace{\sum_i \operatorna
 
 lppd = log pointwise predictive density = deviance over the entire posterior
 
-Similar in form to old friend: 
+Similar in form to old friend:
 $$\text{AIC} = -2 \log p(y | \hat\theta_{MLE}) + 2p$$
 
 ## WAIC example
@@ -527,14 +621,13 @@ If you wanted to appease an editor/reviewer/adviser what do you do (other than t
 
 CIs! Predictions! Model comparisons with waic or loo! ROPE! Probability of direction! Bayes Factors!
 
-## Running example: `mr.14` {.smaller}
+## Running example: `mr.14b` {.smaller}
 
-Happiness predicted by intervention group × school success (centered).
+Happiness predicted by treatment (vs. control) × school success (centered), the model we just fit. `iv.dtx` is the treatment − control difference at average school success.
 
 ```{r}
 #| code-fold: true
-mr.14 <- readRDS("mr.14.rds")
-summary(mr.14)
+summary(mr.14b)
 ```
 
 ## Probability of direction
@@ -545,11 +638,11 @@ The Probability of Direction (pd) is an index of effect existence representing t
 -   Scale independent: interpretation doesn't change if you rescale the variable
 -   Similar to a p-value: roughly, two-sided p ≈ 2 × (1 − pd), so it helps convince pesky reviewers
 
-## Posteriors for `mr.14`
+## Posteriors for `mr.14b`
 
 ```{r}
 #| code-fold: true
-mr.14 %>%
+mr.14b %>%
   gather_draws(b_SS_c, b_iv.dtx, `b_iv.dtx:SS_c`) %>%
   ggplot(aes(y = fct_rev(.variable), x = .value)) +
   stat_halfeye(.width = c(.90, .5))
@@ -561,13 +654,28 @@ pd is the share of the posterior on the same side of 0 as the median (so it runs
 
 ```{r}
 #| code-fold: true
-p_direction(mr.14)
+p_direction(mr.14b)
 ```
+
+## pd by hand
+
+It's just a proportion of draws, same as everything else we've done with posteriors:
+
+```{r}
+tx_draws <- mr.14b %>% spread_draws(b_iv.dtx)
+
+tx_draws %>%
+  summarise(prob_positive = mean(b_iv.dtx > 0),
+            prob_negative = mean(b_iv.dtx < 0),
+            pd            = max(prob_positive, prob_negative))
+```
+
+About 89% of the posterior says the treatment helps (at average school success). Suggestive, not conclusive: roughly a two-sided p ≈ .21.
 
 ## `describe_posterior()`
 
 ```{r}
-describe_posterior(mr.14)
+describe_posterior(mr.14b)
 ```
 
 ## Downsides of PD
@@ -602,10 +710,57 @@ describe_posterior(mr.14)
 
 -   Note: rejecting the ROPE means rejecting *all* practically-null values, not just exactly 0.
 
-## `rope()`
+## A ROPE you can defend {.smaller}
+
+-   Happiness is on a 1–10 scale with SD ≈ `r round(sd(MR$happiness), 1)`.
+-   Say we decide that a treatment effect smaller than **0.2 points** (about 0.1 SD, a fifth of one scale point) is too small to matter to anyone deciding whether to run the program. That's our ROPE: [−0.2, 0.2].
+-   Write the reason down *before* you look at the posterior, in the units of the outcome. "The default" is not a reason.
 
 ```{r}
-rope.1 <- rope(mr.14, range = c(-0.05, 0.05))
+tx_draws %>%
+  summarise(in_rope  = mean(abs(b_iv.dtx) < 0.2),
+            above    = mean(b_iv.dtx >= 0.2),
+            below    = mean(b_iv.dtx <= -0.2))
+```
+
+## The same with `rope()`
+
+`parameters` picks out the one parameter the ROPE was built for; `ci = 1` uses the full posterior.
+
+```{r}
+rope(mr.14b, range = c(-0.2, 0.2), parameters = "^b_iv.dtx$", ci = 1)
+```
+
+About 27% of the posterior is practically zero and about 70% is a meaningful benefit. We can't call it either "no effect" or "an effect" with confidence; we need more data.
+
+## A publication-ready posterior {.smaller}
+
+```{r}
+#| code-fold: true
+#| fig-height: 4.2
+#| fig-width: 8
+# for a paper: add ggsave("tx-posterior.png", width = 6.5, height = 3.5) after the plot
+tx_sum <- tx_draws %>%
+  summarise(med = median(b_iv.dtx), lo = quantile(b_iv.dtx, .025), hi = quantile(b_iv.dtx, .975),
+            pd = mean(b_iv.dtx > 0), rope = mean(abs(b_iv.dtx) < 0.2))
+
+ggplot(tx_draws, aes(x = b_iv.dtx)) +
+  annotate("rect", xmin = -0.2, xmax = 0.2, ymin = -Inf, ymax = Inf, fill = "grey88") +
+  annotate("text", x = 0, y = 0.97, label = "ROPE", vjust = 1, colour = "grey40") +
+  stat_halfeye(.width = .95, point_interval = median_qi, fill = "#4C78A8", alpha = .8) +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  scale_y_continuous(NULL, breaks = NULL) +
+  labs(x = "Treatment − control difference in happiness (1–10 scale), at average school success",
+       caption = sprintf("Median = %.2f, 95%% CI [%.2f, %.2f]; pd = %.0f%%; %.0f%% of the posterior inside the ROPE [−0.2, 0.2].",
+                         tx_sum$med, tx_sum$lo, tx_sum$hi, 100 * tx_sum$pd, 100 * tx_sum$rope)) +
+  theme_classic(base_size = 13) +
+  theme(plot.caption = element_text(hjust = 0))
+```
+
+## One ROPE for everything?
+
+```{r}
+rope.1 <- rope(mr.14b, range = c(-0.2, 0.2))
 rope.1
 ```
 
@@ -620,20 +775,20 @@ plot(rope.1)
 ## A wider ROPE, 99% interval
 
 ```{r}
-rope(mr.14, range = c(-0.3, 0.3), ci = c(0.99))
+rope(mr.14b, range = c(-0.3, 0.3), ci = c(0.99))
 ```
 
 ## Plotting the wider ROPE
 
 ```{r}
-rope.2 <- rope(mr.14, range = c(-0.3, 0.3), ci = c(0.99))
+rope.2 <- rope(mr.14b, range = c(-0.3, 0.3), ci = c(0.99))
 plot(rope.2)
 ```
 
 ## Equivalence test
 
 ```{r}
-result <- equivalence_test(mr.14, range = c(-0.3, 0.3), ci = c(0.95))
+result <- equivalence_test(mr.14b, range = c(-0.3, 0.3), ci = c(0.95))
 result
 ```
 
@@ -654,7 +809,7 @@ result
 -   Difficult. Balance practicality with expertise judgment. DBDA: −0.1 to 0.1 of a standardized parameter (i.e., a negligible effect size, Cohen, 1988). bayestestR's default for linear models is ±0.1 × SD(y)
 
 ```{r}
-rope_range(mr.14)
+rope_range(mr.14b)
 ```
 
 -   Usually implemented when a decision needs to be made. More common in medicine than psych.
@@ -662,14 +817,14 @@ rope_range(mr.14)
 ## The default ROPE
 
 ```{r}
-rope.4 <- rope(mr.14)
+rope.4 <- rope(mr.14b)
 rope.4
 ```
 
 ## `describe_posterior()` with a ROPE
 
 ```{r}
-describe_posterior(mr.14, test = "ROPE")
+describe_posterior(mr.14b, test = "ROPE")
 ```
 
 ## Bayes Factors
@@ -837,7 +992,7 @@ plot(bf_3)
 Easy to implement with brms models. You need `sample_prior = "yes"` so brms saves draws from the prior.
 
 ```{r}
-mr.2 <- 
+mr.2 <-
   brm(family = gaussian,
       happiness ~ 1 + SS_c + FQ_c,
       prior = c(prior(normal(5, 2), class = Intercept),
@@ -874,7 +1029,7 @@ plot(bf.result)
 
 ```{r}
 #| code-fold: true
-mr.2b <- 
+mr.2b <-
   brm(family = gaussian,
       happiness ~ 1 + SS_c + FQ_c,
       prior = c(prior(normal(5, 2), class = Intercept),
@@ -900,7 +1055,7 @@ bf.resultb
 
 ```{r}
 bf.result2 <- bayesfactor_parameters(mr.2, null = rope_range(mr.2))
-bf.result2 
+bf.result2
 ```
 
 ## BF against an interval null
@@ -931,7 +1086,7 @@ plot(bf.result2)
 
 ```{r}
 #| code-fold: true
-info.1 <- 
+info.1 <-
   brm(family = gaussian,
       happiness ~ 1 + SS_c + FQ_c,
       prior = c(prior(normal(5, 2), class = Intercept),
@@ -948,7 +1103,7 @@ info.1 <-
 
 ```{r}
 #| code-fold: true
-info.2 <- 
+info.2 <-
   brm(family = gaussian,
       happiness ~ 1 + SS_c + FQ_c,
       prior = c(prior(normal(5, 2), class = Intercept),
@@ -968,7 +1123,7 @@ info.2 <-
 ```{r}
 #| code-fold: true
 bf.info.1 <- bayestestR::bayesfactor_parameters(info.1)
-bf.info.1 
+bf.info.1
 ```
 
 ```{r}
@@ -991,19 +1146,61 @@ plot(bf.info.2)
 
 ## Same effects, different BFs
 
-Effects are basically indistinguishable, but BFs are not.
+The posteriors barely move (the narrow prior shrinks them a little toward 0), but the BFs change a lot.
 
 ```{r}
 #| code-fold: true
-plot(info.1)
+#| fig-height: 4
+bind_rows(`wide prior: Normal(0, 2)`    = spread_draws(info.1, b_SS_c, b_FQ_c),
+          `narrow prior: Normal(0, 0.2)` = spread_draws(info.2, b_SS_c, b_FQ_c),
+          .id = "prior") %>%
+  pivot_longer(c(b_SS_c, b_FQ_c), names_to = "parameter") %>%
+  mutate(parameter = if_else(parameter == "b_SS_c", "School success slope", "Friendship quality slope")) %>%
+  ggplot(aes(x = value, y = parameter, fill = prior)) +
+  stat_halfeye(alpha = .6, .width = .95, position = position_dodge(width = .3)) +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  labs(x = "Slope (happiness points per unit)", y = NULL, fill = NULL) +
+  theme_classic(base_size = 14) +
+  theme(legend.position = "top")
 ```
 
-## `info.2` posteriors
+## Why? {.smaller}
 
 ```{r}
 #| code-fold: true
-plot(info.2)
+tibble(parameter = c("School success", "Friendship quality"),
+       `BF, wide prior`   = exp(bf.info.1$log_BF[bf.info.1$Parameter %in% c("b_SS_c", "b_FQ_c")]),
+       `BF, narrow prior` = exp(bf.info.2$log_BF[bf.info.2$Parameter %in% c("b_SS_c", "b_FQ_c")])) %>%
+  knitr::kable(digits = 1)
 ```
+
+-   The BF compares "the effect is 0" to "the effect is something like *the prior* says." A wide prior spreads its bets over huge slopes the data rule out, so it makes the alternative look worse.
+-   For friendship quality, just narrowing the prior more than doubles the BF (4.6 → 11): "moderate" becomes "strong" with the same data. School success is so far from 0 that any prior gives an enormous BF (the numbers move, the conclusion doesn't).
+-   The posterior (and so CIs, pd and ROPE) hardly cares about the prior here. **The BF cares a lot.** Always report the prior along with a BF.
+
+## Which tool answers which question? {.smaller}
+
+| Question | Tool | Prior matters? |
+|----------|------|----------------|
+| What is the effect, and how uncertain? | Median + 95% interval, plotted | A little |
+| Which model predicts new data best? | `loo_compare()` + Pareto *k* | A little |
+| Variance explained *in this sample*? | Bayesian $R^2$ | A little |
+| How sure of the *direction*? | pd, `p_direction()` | A little |
+| Big enough to *matter*? | ROPE, `rope()` | A little |
+| "Exactly 0" vs. "like my prior"? | BF, `bayesfactor_parameters()` | **A lot** |
+
+: {tbl-colwidths="[42,40,18]"}
+
+## What to report {.smaller}
+
+-   **Always:** the posterior estimate with a 95% interval, in the units of the outcome, and a figure. This is the main result; the rest are summaries of it.
+-   **If you compare models:** elpd_diff and se_diff from `loo_compare()`, and that all Pareto *k* < 0.7.
+-   **If you make a claim about one parameter:** pd and/or % in a ROPE, *with the reason for the ROPE*.
+-   **If you report a BF:** the prior it depends on, and ideally how it changes with a wider or narrower prior.
+
+## An example Results sentence
+
+ "Students in the treatment group were somewhat happier at average school success (*b* = 0.36 points on the 1–10 scale, 95% CI [−0.21, 0.92]; pd = 89%), but 27% of the posterior fell inside our ROPE of ±0.2 points, so the data can't yet tell a small benefit from none."
 
 ## Multiple comparisons {.smaller}
 
