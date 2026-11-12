@@ -1,0 +1,32 @@
+---
+title: "Homework solutions"
+---
+
+Solutions are posted here **after each homework's due date**, so check back the day after it's due. They show one good way to do each question; yours can differ and still be right. Your graded feedback comes through Canvas.
+
+| HW | Topic | Due | Solutions |
+|----|-------|-----|-----------|
+| 1 | Distributions, priors, and counting | Jan 28 | posted after the due date |
+| 2 | Your first brms model | Feb 4 | posted after the due date |
+| 3 | Lines, bands, priors, and groups | Feb 11 | posted after the due date |
+| 4 | Factorial models and interactions | Feb 18 | posted after the due date |
+| 5 | When the chains go wild | Feb 25 | posted after the due date |
+| 6 | Comparing models and making claims | Mar 4 | posted after the due date |
+| 7 | Logistic regression | Mar 11 | posted after the due date |
+| 8 | Counts and ordered categories | Mar 25 | posted after the due date |
+| 9 | Varying intercepts and partial pooling | Apr 1 | posted after the due date |
+| 10 | Varying slopes | Apr 8 | posted after the due date |
+| 11 | When the data are uncertain too | Apr 15 | posted after the due date |
+| 12 | Modeling variability | Apr 22 | posted after the due date |
+| 13 | Your first Stan programs | Apr 29 | posted after the due date |
+
+<!--
+To post a solution (instructor):
+1. Put the student-facing solution (NOT the grading key: no rubric or grader notes) at
+   solutions/hw-X-solutions.html  (render it with embed-resources so it is one file).
+2. In the table above, replace "posted after the due date" with
+   [Solutions](solutions/hw-X-solutions.html)
+3. quarto render solutions.qmd, commit, push.
+Anything committed to this repo is public on GitHub immediately, so don't commit a
+solution before its due date.
+-->

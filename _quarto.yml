@@ -12,6 +12,7 @@ project:
     - hw3.csv
     - anova.csv
     - Multipleregression.csv
+    - solutions/*.html
 
 website:
   title: "Bayesian Statistics Spring 2027"
@@ -23,6 +24,8 @@ website:
         text: Lectures
       - href: homeworks.qmd
         text: Homework
+      - href: solutions.qmd
+        text: Solutions
       - href: syllabus.qmd
         text: Syllabus
 

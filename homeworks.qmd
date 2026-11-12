@@ -2,7 +2,7 @@
 title: "homeworks"
 ---
 
-Homework is posted Thursday after class and due the following Thursday at 2:30 pm on Canvas. Turn in your `.qmd` and the rendered `.html`, starting from the [homework template](hw-template.qmd){download="hw-template.qmd"}. See the [syllabus](syllabus.qmd#homework) for grading and late policy.
+Homework is posted Thursday after class and due the following Thursday at 2:30 pm on Canvas. Turn in your `.qmd` and the rendered `.html`, starting from the [homework template](hw-template.qmd){download="hw-template.qmd"}. See the [syllabus](syllabus.qmd#homework) for grading and late policy. Solutions are posted on the [Solutions page](solutions.qmd) after each due date.
 
 1.  [HW 1: Distributions, priors, and counting](hw-1.qmd) (due Jan 28)
 2.  [HW 2: Your first brms model](hw-2.qmd) (due Feb 4)

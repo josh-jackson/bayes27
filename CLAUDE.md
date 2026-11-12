@@ -17,7 +17,7 @@ Quarto website for a graduate Bayesian statistics course (psychology). Lectures 
 - Write models in likelihood notation (e.g. `y_i ~ Normal(mu_i, sigma)`, `mu_i = b0 + b1 x_i`) alongside code.
 - Readings reference Statistical Rethinking 2e (SR), Kurz's brms translation, Model to Meaning (M2M), Heiss blog posts (AH).
 - Tone: conversational, a bit irreverent; code walked through step by step.
-- Homework: applied computations, students' own data where possible, group work allowed. Each new homework should come with a separate solution key that is **not** committed to this public repo (save it outside the repo or in the vault).
+- Homework: applied computations, students' own data where possible, group work allowed. Each new homework should come with a separate solution key that is **not** committed to this public repo (save it outside the repo or in the vault). Grading keys (with rubrics/grader notes) live in Box `BayesSpring27/keys` and never go in the repo. **After** a homework's due date, a student-facing solution (grader notes and rubric removed) may be posted at `solutions/hw-X-solutions.html` and linked from `solutions.qmd`; never commit one before its due date (the repo is public as soon as it's pushed).
 
 ## Workflow
 - Instructor's planning notes live in the Obsidian vault at `~/Library/Mobile Documents/iCloud~md~obsidian/Documents/Pmad lab/Teaching/Bayesian Statistics/` — read `Bayes Revision Notes.md` before revising a lecture, and tick items off there when done (with the instructor's OK).
