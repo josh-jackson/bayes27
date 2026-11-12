@@ -183,7 +183,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </header>
 
-<p><strong>Due:</strong> Thursday, Apr 29 at 2:30 pm on Canvas · <strong>Size:</strong> full analysis · <strong>Points:</strong> 25 · <strong>Covers:</strong> Stan basics and <a href="./adv-9.html">IRT</a></p>
+<p><strong>Due:</strong> Thursday, Apr 29 at 2:30 pm on Canvas · <strong>Size:</strong> full analysis · <strong>Points:</strong> 25 · <strong>Covers:</strong> Stan basics and <a href="./adv-9c.html">Cognitive and IRT models</a></p>
 <p>Start from the <a href="hw-template.qmd" download="hw-template.qmd">homework template</a>, use <code>## Q1</code> to <code>## Q5</code> headings, and turn in both the <code>.qmd</code> and the rendered <code>.html</code>.</p>
 <p><strong>The big idea.</strong> All semester, brms has been writing Stan programs for you (you may have peeked in the “Under the hood” boxes). Now you’ll write two yourself: first a model you already know, so you can check you got it right, then a 2PL IRT model, the kind of model where writing Stan directly is often <em>easier</em> than coaxing brms into it.</p>
 <p><strong>Setup.</strong> You already have Stan installed through {cmdstanr}. In R, a Stan program can live in a string; <code>write_stan_file()</code> saves it and <code>cmdstan_model()</code> compiles it:</p>

@@ -12,4 +12,7 @@ title: "Lectures"
 8.  [GLMs: counts and ordinal outcomes](glm-7b.qmd)
 9.  [Multilevel models 1: varying intercepts and pooling](mlm-8.qmd)
 10. [Multilevel models 2: varying slopes, centering, and plotting](mlm-8b.qmd)
-11. [advanced mlm](adv-9.qmd)
+11. [Advanced models 1: prediction, MrP, missing data, measurement error, meta-analysis](adv-9.qmd)
+12. [Advanced models 2: multivariate and distributional models](adv-9b.qmd)
+13. [Cognitive and IRT models](adv-9c.qmd)
+14. [Generalized additive models (GAMs)](gams-10.qmd)

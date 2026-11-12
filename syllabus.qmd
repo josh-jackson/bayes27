@@ -128,7 +128,7 @@ Note that dates and readings are tentative. Topics will likely shift; all change
 |    | Mar 16, 18 | *Spring break — no class* | | |
 | 9  | Mar 23, 25 | Multilevel models 1: varying intercepts and pooling | SR 13, M2M 19 | HW 8 (Mar 25) |
 | 10 | Mar 30, Apr 1 | Multilevel models 2: varying slopes, centering, plotting | SR 14, AH3 | HW 9 (Apr 1) |
-| 11 | Apr 6, 8 | Multilevel models, meta-analysis and missing data | SR 15 | HW 10 (Apr 8) |
+| 11 | Apr 6, 8 | Prediction, MrP, missing data, measurement error, meta-analysis | SR 15 | HW 10 (Apr 8) |
 | 12 | Apr 13, 15 | Multivariate and distributional models | Williams et al. 2021 *Psych Methods* | HW 11 (Apr 15) |
 | 13 | Apr 20, 22 | Cognitive and IRT models (e.g., DDM) | F&L 14, Bürkner 2019 | HW 12 (Apr 22) |
 | 14 | Apr 27, 29 | GAMs | | HW 13 (Apr 29) |

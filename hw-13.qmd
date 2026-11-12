@@ -2,7 +2,7 @@
 title: "HW 13: Your first Stan programs"
 ---
 
-**Due:** Thursday, Apr 29 at 2:30 pm on Canvas · **Size:** full analysis · **Points:** 25 · **Covers:** Stan basics and [IRT](adv-9.qmd)
+**Due:** Thursday, Apr 29 at 2:30 pm on Canvas · **Size:** full analysis · **Points:** 25 · **Covers:** Stan basics and [Cognitive and IRT models](adv-9c.qmd)
 
 Start from the [homework template](hw-template.qmd){download="hw-template.qmd"}, use `## Q1` to `## Q5` headings, and turn in both the `.qmd` and the rendered `.html`.
 

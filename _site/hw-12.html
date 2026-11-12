@@ -181,7 +181,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </header>
 
-<p><strong>Due:</strong> Thursday, Apr 22 at 2:30 pm on Canvas · <strong>Size:</strong> full analysis · <strong>Points:</strong> 25 · <strong>Covers:</strong> <a href="./adv-9.html">Advanced models</a> (distributional models and MELSM); Williams et al.&nbsp;(2021)</p>
+<p><strong>Due:</strong> Thursday, Apr 22 at 2:30 pm on Canvas · <strong>Size:</strong> full analysis · <strong>Points:</strong> 25 · <strong>Covers:</strong> <a href="./adv-9b.html">Advanced models 2</a> (distributional models and MELSM); Williams et al.&nbsp;(2021)</p>
 <p>Start from the <a href="hw-template.qmd" download="hw-template.qmd">homework template</a>, use <code>## Q1</code> to <code>## Q5</code> headings, and turn in both the <code>.qmd</code> and the rendered <code>.html</code>. Save brms fits with <code>file =</code>.</p>
 <p><strong>The big idea.</strong> Every model so far predicted the <em>mean</em> and treated the spread (σ) as one number for everyone. But variability is often the interesting part: some groups are more heterogeneous than others, some people are more consistent than others. A <strong>distributional model</strong> puts predictors on σ too. With brms that’s one extra line: <code>bf(y ~ ..., sigma ~ ...)</code>.</p>
 <section id="part-a-do-groups-differ-in-spread-q1q2" class="level2">

@@ -2,7 +2,7 @@
 title: "HW 12: Modeling variability"
 ---
 
-**Due:** Thursday, Apr 22 at 2:30 pm on Canvas · **Size:** full analysis · **Points:** 25 · **Covers:** [Advanced models](adv-9.qmd) (distributional models and MELSM); Williams et al. (2021)
+**Due:** Thursday, Apr 22 at 2:30 pm on Canvas · **Size:** full analysis · **Points:** 25 · **Covers:** [Advanced models 2](adv-9b.qmd) (distributional models and MELSM); Williams et al. (2021)
 
 Start from the [homework template](hw-template.qmd){download="hw-template.qmd"}, use `## Q1` to `## Q5` headings, and turn in both the `.qmd` and the rendered `.html`. Save brms fits with `file =`.
 

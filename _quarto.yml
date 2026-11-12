@@ -17,6 +17,10 @@ project:
     - mlm.csv
     - esm.csv
     - melsm.csv
+    - spank.csv
+    - mrp_survey.csv
+    - mrp_census.csv
+    - cherry_blossoms.csv
     - solutions/*.html
 
 website:
