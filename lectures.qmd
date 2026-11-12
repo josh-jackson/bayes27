@@ -10,5 +10,6 @@ title: "Lectures"
 6.  [Information, NHST and model fit](info-6.qmd)
 7.  [GLMs: logistic and multinomial regression](glm-7.qmd)
 8.  [GLMs: counts and ordinal outcomes](glm-7b.qmd)
-9.  [Multilevel models](mlm-8.qmd)
-10. [advanced mlm](adv-9.qmd)
+9.  [Multilevel models 1: varying intercepts and pooling](mlm-8.qmd)
+10. [Multilevel models 2: varying slopes, centering, and plotting](mlm-8b.qmd)
+11. [advanced mlm](adv-9.qmd)

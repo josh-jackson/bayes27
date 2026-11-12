@@ -2,7 +2,7 @@
 title: "HW 9: Varying intercepts and partial pooling"
 ---
 
-**Due:** Thursday, Apr 1 at 2:30 pm on Canvas · **Size:** full analysis · **Points:** 25 · **Covers:** [Multilevel models](mlm-8.qmd)
+**Due:** Thursday, Apr 1 at 2:30 pm on Canvas · **Size:** full analysis · **Points:** 25 · **Covers:** [Multilevel models 1](mlm-8.qmd)
 
 Start from the [homework template](hw-template.qmd){download="hw-template.qmd"}, use `## Q1` to `## Q6` headings, and turn in both the `.qmd` and the rendered `.html`. Save brms fits with `file =`.
 

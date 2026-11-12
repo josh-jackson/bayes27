@@ -126,8 +126,8 @@ Note that dates and readings are tentative. Topics will likely shift; all change
 | 7  | Mar 2, 4 | GLMs: logistic and multinomial regression | SR 11, M2M 5, AH1 | HW 6 (Mar 4) |
 | 8  | Mar 9, 11 | GLMs: counts and ordinal outcomes | SR 12, AH2 | HW 7 (Mar 11) |
 |    | Mar 16, 18 | *Spring break — no class* | | |
-| 9  | Mar 23, 25 | Multilevel models | SR 13, M2M 19 | HW 8 (Mar 25) |
-| 10 | Mar 30, Apr 1 | Multilevel models | SR 14, AH3 | HW 9 (Apr 1) |
+| 9  | Mar 23, 25 | Multilevel models 1: varying intercepts and pooling | SR 13, M2M 19 | HW 8 (Mar 25) |
+| 10 | Mar 30, Apr 1 | Multilevel models 2: varying slopes, centering, plotting | SR 14, AH3 | HW 9 (Apr 1) |
 | 11 | Apr 6, 8 | Multilevel models, meta-analysis and missing data | SR 15 | HW 10 (Apr 8) |
 | 12 | Apr 13, 15 | Multivariate and distributional models | Williams et al. 2021 *Psych Methods* | HW 11 (Apr 15) |
 | 13 | Apr 20, 22 | Cognitive and IRT models (e.g., DDM) | F&L 14, Bürkner 2019 | HW 12 (Apr 22) |

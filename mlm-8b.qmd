@@ -1,0 +1,824 @@
+---
+title: "Multilevel models 2: varying slopes, centering, and plotting"
+format: revealjs
+slide-number: true
+execute:
+  echo: true
+---
+
+## This time
+
+-   Varying (random) slopes and the correlation between intercepts and slopes
+-   Separating within-person and between-person effects (centering)
+-   Plotting MLMs: average vs. person-specific predictions
+-   Builds on [last time](mlm-8.qmd): varying intercepts, partial pooling, and the running connectivity data (`mlm.csv`)
+
+```{r, echo = FALSE, message = FALSE}
+library(tidyverse)
+library(tidybayes)
+library(ggdist)
+library(brms)
+library(modelr)
+library(marginaleffects)
+library(broom)
+mlm <- read.csv("mlm.csv")
+mlm.3 <- readRDS("mlm.3.rds")  # varying intercepts + time, from last time
+```
+
+## Introducing random slopes {.smaller}
+
+-   MLMs "learn" from other units as we saw with random effects
+
+-   MLMs can also "learn" about one parameter from another parameter
+
+-   We do this through correlated features or parameters. We create this correlated features through introducing random slopes, which pools information across groups
+
+-   This is another advantage of "keep it maximal": better estimates of the intercepts than an intercepts-only model gives
+
+## Random slopes
+
+Level 1: $${Y}_{ij} = \beta_{0i}  + \beta_{1i}X_{ij} + \varepsilon_{ij}$$ Level 2: $${\beta}_{0i} = \gamma_{00} + \gamma_{01}G_{i} +   U_{0i}$$
+$${\beta}_{1i} = \gamma_{10} + \gamma_{11}G_{i} + U_{1i}$$
+
+$$\begin{pmatrix} {U}_{0i} \\ {U}_{1i} \end{pmatrix}
+\sim N \left( \begin{pmatrix} 0 \\ 0 \end{pmatrix}, \begin{pmatrix} \tau_{00}^{2} & \tau_{01}\\ \tau_{01} & \tau_{11}^{2} \end{pmatrix} \right)$$
+
+## Correlated features
+
+-   We model the joint population of intercepts and slopes, which means modeling their covariance. We use a multivariate Gaussian because it is the maximum entropy distribution for a given mean vector and covariance matrix
+
+-   Rather than a 1 dimension prior we will be putting on a two dimension prior.
+
+-   Can scale into \> 2d depending on how many random effects you have
+
+## Random slopes, formally {.smaller}
+
+$$
+\begin{aligned}
+y_{ij} &\sim \text{Normal}(\mu_{ij}, \sigma) \\
+\mu_{ij} &= \beta_{0i} + \beta_{1i}X_{ij} \\
+\begin{pmatrix} \beta_{0i} \\ \beta_{1i} \end{pmatrix} &\sim \text{MVNormal}\left( \begin{pmatrix} \beta_0 \\ \beta_1 \end{pmatrix}, \Sigma \right) \\
+\Sigma &= \begin{pmatrix} \sigma_{\beta_0} & 0 \\ 0 & \sigma_{\beta_1} \end{pmatrix} R \begin{pmatrix} \sigma_{\beta_0} & 0 \\ 0 & \sigma_{\beta_1} \end{pmatrix} \\
+\beta_0, \beta_1 &\sim \text{Normal}(0, 1.5) \qquad
+\sigma_{\beta_0}, \sigma_{\beta_1} \sim \text{Half-Normal}(0, 1.5) \\
+\sigma &\sim \text{Exponential}(1) \qquad R \sim \text{LKJcorr}(2)
+\end{aligned}
+$$
+
+## The covariance matrix
+
+where Σ is the covariance matrix
+
+$$\Sigma =
+\left(\begin{array}{cc}
+\sigma^2_{\beta_0}&\sigma_{\beta_0}\sigma_{\beta_1}\rho\\
+\sigma_{\beta_0}\sigma_{\beta_1}\rho&\sigma^2_{\beta_1}
+\end{array}\right)$$
+
+and R is the correlation matrix R = $\begin{bmatrix} 1 & \rho \\ \rho & 1 \end{bmatrix}$.
+
+With more random effects, this matrix expands.
+
+## The LKJ prior on correlations
+
+```{r}
+#| code-fold: true
+library(forcats)
+
+expand.grid(
+  eta = 1:8,
+  K = 2:6
+) %>%
+  ggplot(aes(y = fct_rev(ordered(eta)), dist = "lkjcorr_marginal", arg1 = K, arg2 = eta)) +
+  stat_dist_slab() +
+  facet_grid(~ paste0(K, "x", K)) +
+  labs(
+    title = paste0(
+      "LKJ(eta) prior on different matrix sizes:\n"
+    ),
+    y = "eta",
+    x = "Marginal correlation"
+  ) +
+  theme(axis.title = element_text(hjust = 0))
+
+
+```
+
+## Multivariate distributions
+
+r = 0. Knowing about 1 parameter doesn't tell you anything about the other.
+
+```{r, echo = FALSE}
+
+samples = 5000
+r = 0
+
+library('MASS')
+cor.dat = mvrnorm(n=samples, mu=c(0, 0), Sigma=matrix(c(1, r, r, 1), nrow=2), empirical=TRUE)
+X = cor.dat[, 1]  # standard normal (mu=0, sd=1)
+Y = cor.dat[, 2]  # standard normal (mu=0, sd=1)
+
+cor <- tibble(X,Y)
+
+cor %>%
+  ggplot(aes(x = X, y = Y, fill = after_stat(density))) +
+  stat_density_2d(geom = "raster", contour = F) +
+  scale_fill_viridis_c(option = "D") +
+  labs(x = expression(U[0]),
+       y = expression(U[1])) +
+  coord_equal()
+
+
+detach(package:MASS, unload=TRUE)
+```
+
+## Correlation r = .5
+
+r = .5
+
+```{r, echo = FALSE}
+
+samples = 1000
+r = 0.5
+
+library('MASS')
+cor.dat = mvrnorm(n=samples, mu=c(0, 0), Sigma=matrix(c(1, r, r, 1), nrow=2), empirical=TRUE)
+X = cor.dat[, 1]  # standard normal (mu=0, sd=1)
+Y = cor.dat[, 2]  # standard normal (mu=0, sd=1)
+
+cor <- tibble(X,Y)
+
+cor %>%
+  ggplot(aes(x = X, y = Y, fill = after_stat(density))) +
+  stat_density_2d(geom = "raster", contour = F) +
+  scale_fill_viridis_c(option = "D") +
+  labs(x = expression(U[0]),
+       y = expression(U[1])) +
+  coord_equal()
+
+
+detach(package:MASS, unload=TRUE)
+```
+
+## Correlation r = .8
+
+r = .8
+
+```{r, echo = FALSE}
+
+samples = 1000
+r = 0.8
+
+library('MASS')
+cor.dat = mvrnorm(n=samples, mu=c(0, 0), Sigma=matrix(c(1, r, r, 1), nrow=2), empirical=TRUE)
+X = cor.dat[, 1]  # standard normal (mu=0, sd=1)
+Y = cor.dat[, 2]  # standard normal (mu=0, sd=1)
+
+cor <- tibble(X,Y)
+
+cor %>%
+  ggplot(aes(x = X, y = Y, fill = after_stat(density))) +
+  stat_density_2d(geom = "raster", contour = F) +
+  scale_fill_viridis_c(option = "D") +
+  labs(x = expression(U[0]),
+       y = expression(U[1])) +
+  coord_equal()
+
+
+detach(package:MASS, unload=TRUE)
+```
+
+## Default priors with random slopes
+
+```{r}
+get_prior(family = gaussian,
+      CON ~ 1 + time + (1 + time | ID),
+      data = mlm)
+```
+
+## What's hard to learn
+
+Information needed to learn about parameters can be ranked:
+
+1.  Means are easy
+2.  SDs are medium
+3.  Correlations are hard
+
+## Fitting random slopes: `mlm.4`
+
+```{r}
+
+mlm.4 <-
+  brm(family = gaussian,
+      CON ~ 1 + time + (1 + time | ID),
+      prior = c(prior(normal(0, 1.5), class = Intercept),
+                prior(normal(0, 1.5), class = b),
+                prior(normal(0, 1.5), class = sd, coef = Intercept, group = ID),
+                prior(normal(0, 1.5), class = sd, coef = time, group = ID),
+                prior(exponential(1), class = sigma),
+                prior(lkj(2), class = cor)),
+      iter = 4000, warmup = 1000, chains = 4, cores = 4,
+      file = "mlm.4",
+      backend = "cmdstanr",
+      data = mlm)
+
+```
+
+## `mlm.4` summary
+
+```{r}
+summary(mlm.4)
+```
+
+## Correlation: prior vs posterior
+
+```{r}
+#| code-fold: true
+p.mlm4 <- as_draws_df(mlm.4)
+
+r_2 <- tibble(V2 = rlkjcorr_marginal(1000, K = 2, eta = 2))  # from {ggdist}
+
+p.mlm4 %>%
+  ggplot() +
+  geom_density(data = r_2, aes(x = V2),
+               color = "transparent", fill = "blue", alpha = 3/4) +
+  geom_density(aes(x = cor_ID__Intercept__time),
+               color = "transparent", fill = "grey", alpha = 9/10) +
+  annotate(geom = "text", x = -0.15, y = 1.1,
+           label = "posterior", color = "black", family = "Courier") +
+  annotate(geom = "text", x = .2, y = 1.35,
+           label = "prior", color = "blue", alpha = 2/3, family = "Courier") +
+  scale_y_continuous(NULL, breaks = NULL) +
+  labs(subtitle = "Correlation between intercepts\nand slopes, prior and posterior",
+  x = "correlation")
+```
+
+## Shrinkage in two dimensions
+
+```{r}
+#| code-fold: true
+library(broom)
+partially_pooled_params <-
+  coef(mlm.4)$ID [ , 1, 1:2] %>%
+  as_tibble(rownames = "ID")
+
+
+un_pooled_params <-
+  mlm %>%
+  group_by(ID, time) %>%
+  summarise(mean = mean(CON)) %>%
+  do(tidy(lm(mean ~ time, data=.))) %>%
+  ungroup() %>%
+  select(ID, term, estimate) %>%
+  pivot_wider(names_from = term, values_from = estimate) %>%
+  mutate(Intercept = `(Intercept)`) %>%
+  select(-`(Intercept)`) %>%
+  mutate(ID = as.character(ID))
+
+params <-
+  # `bind_rows()` will stack the second tibble below the first
+  bind_rows(partially_pooled_params, un_pooled_params) %>%
+  # index whether the estimates are pooled
+  mutate(pooled = rep(c("partially", "not"), each = nrow(.)/2))
+
+p1 <-
+  ggplot(data = params, aes(x = time, y = Intercept)) +
+  stat_ellipse(geom = "polygon", type = "norm", level = 1/10, linewidth = 0, alpha = 1/20, fill = "#E7CDC2") +
+  stat_ellipse(geom = "polygon", type = "norm", level = 2/10, linewidth = 0, alpha = 1/20, fill = "#E7CDC2") +
+  stat_ellipse(geom = "polygon", type = "norm", level = 3/10, linewidth = 0, alpha = 1/20, fill = "#E7CDC2") +
+  stat_ellipse(geom = "polygon", type = "norm", level = 4/10, linewidth = 0, alpha = 1/20, fill = "#E7CDC2") +
+  stat_ellipse(geom = "polygon", type = "norm", level = 5/10, linewidth = 0, alpha = 1/20, fill = "#E7CDC2") +
+  stat_ellipse(geom = "polygon", type = "norm", level = 6/10, linewidth = 0, alpha = 1/20, fill = "#E7CDC2") +
+  stat_ellipse(geom = "polygon", type = "norm", level = 7/10, linewidth = 0, alpha = 1/20, fill = "#E7CDC2") +
+  stat_ellipse(geom = "polygon", type = "norm", level = 8/10, linewidth = 0, alpha = 1/20, fill = "#E7CDC2") +
+  stat_ellipse(geom = "polygon", type = "norm", level = 9/10, linewidth = 0, alpha = 1/20, fill = "#E7CDC2") +
+  stat_ellipse(geom = "polygon", type = "norm", level = .99,  linewidth = 0, alpha = 1/20, fill = "#E7CDC2") +
+  geom_point(aes(group = ID, color = pooled)) +
+  geom_line(aes(group = ID), linewidth = 1/4) +
+  scale_color_manual("Pooled?",
+                     values = c("#80A0C7", "#A65141")) +
+  coord_cartesian(xlim = range(params$time),
+                  ylim = range(params$Intercept))
+p1
+```
+
+## Variables in `mlm.4`
+
+```{r}
+get_variables(mlm.4)
+```
+
+## Random slope draws
+
+```{r}
+mlm.4 %>%
+  spread_draws(r_ID[ID,term])
+```
+
+## Each person's slope
+
+```{r}
+mlm.4 %>%
+  spread_draws(b_time, r_ID[ID, term]) %>%
+  filter(term == "time") %>%
+  mutate(person_t = b_time + r_ID) %>%
+ median_qi()
+```
+
+## Person slopes with intervals
+
+```{r}
+#| code-fold: true
+mlm.4 %>%
+  spread_draws(b_time, r_ID[ID, term]) %>%
+  filter(term == "time") %>%
+  median_qi(person_t = b_time + r_ID) %>%
+  ggplot(aes( y = reorder(ID, person_t), x = person_t, xmin = .lower, xmax = .upper)) +
+  geom_pointinterval() + xlab("est") + ylab("ID")
+```
+
+## Random slopes vs fixed slope
+
+```{r}
+mlm.3 <- add_criterion(mlm.3, "loo")
+mlm.4 <- add_criterion(mlm.4, "loo")
+loo_compare(mlm.3, mlm.4, criterion = "loo")
+```
+
+## ESM data
+
+```{r}
+esm <- read_csv("esm.csv")  # also at https://bayes27.netlify.app/esm.csv
+esm
+```
+
+## A quick lme4 fit
+
+```{r}
+#| code-fold: true
+
+esm$PA <- esm$esm.NQ11.w1
+esm$W.other <- esm$esm.ST04.w1
+esm$ID <- esm$esm.IDnum.w1
+
+library(lme4)
+test <- lmer(PA ~ 1 + W.other  + (1 + W.other  | ID), data = esm )
+summary(test)
+```
+
+## The same model in brms
+
+```{r}
+
+mlm.5 <-
+  brm(family = gaussian,
+      PA ~ 1 + W.other  + (1 + W.other  | ID),
+      prior = c(prior(normal(3, 1), class = Intercept),   # PA is on a 1-5 scale
+                prior(normal(0, 1), class = b),
+                prior(exponential(1), class = sd),
+                prior(exponential(1), class = sigma),
+                prior(lkj(2), class = cor)),
+      iter = 4000, warmup = 1000, chains = 4, cores = 4,
+      file = "mlm.5b",
+      backend = "cmdstanr",
+      data = esm)
+
+```
+
+## Counting parameters
+
+How many parameters? Two per person (364 people), plus the fixed effects, SDs, correlation and sigma:
+
+```{r}
+get_variables(mlm.5)
+```
+
+## `mlm.5` summary
+
+```{r}
+summary(mlm.5)
+
+```
+
+## Shrinkage in the ESM data
+
+```{r}
+#| code-fold: true
+partially_pooled_params2 <-
+  coef(mlm.5)$ID [ , 1, 1:2] %>%
+  as_tibble(rownames = "ID")
+
+
+un_pooled_params <-
+  esm %>%
+  filter((!is.na(PA))) %>%
+  group_by(ID, W.other) %>%
+  summarise(mean = mean(PA)) %>%
+  do(tidy(lm(mean ~ W.other, data=.))) %>%
+  ungroup() %>%
+  select(ID, term, estimate) %>%
+  pivot_wider(names_from = term, values_from = estimate) %>%
+  mutate(Intercept = `(Intercept)`) %>%
+  select(-`(Intercept)`) %>%
+  #select(-`Intercept`) %>%
+  mutate(ID = as.character(ID))
+
+params <-
+  # `bind_rows()` will stack the second tibble below the first
+  bind_rows(partially_pooled_params2, un_pooled_params) %>%
+  # index whether the estimates are pooled
+  mutate(pooled = rep(c("partially", "not"), each = nrow(.)/2))
+
+p2 <-
+  ggplot(data = params, aes(x = W.other, y = Intercept)) +
+  geom_point(aes(group = ID, color = pooled)) +
+  geom_line(aes(group = ID), linewidth = 1/4) +
+  scale_color_manual("Pooled?",
+                     values = c("#80A0C7", "#A65141")) + xlim(0,1)
+p2
+```
+
+## Person-specific slopes for being with others
+
+```{r}
+#| code-fold: true
+mlm.5 %>%
+  spread_draws(b_W.other, r_ID[ID, term]) %>%
+  filter(term == "W.other") %>%
+  median_qi(person_t = b_W.other + r_ID) %>%
+  ggplot(aes( y = reorder(ID, person_t), x = person_t, xmin = .lower, xmax = .upper)) +
+  geom_pointinterval(alpha = .1) + xlab("est")  + theme(axis.title.y=element_blank(),
+        axis.text.y=element_blank())
+```
+
+## Person-mean centering
+
+```{r}
+esm <- esm %>%
+group_by(ID) %>%
+mutate(W.other.pm = mean(`W.other`)) %>%
+ungroup() %>%
+filter(!is.na(W.other.pm)) %>%
+mutate(W.other.pc = W.other - W.other.pm) %>%
+mutate(W.other.gmc =W.other.pm  - mean (W.other.pm))
+```
+
+## Separating within and between
+
+```{r}
+
+mlm.6 <-
+  brm(family = gaussian,
+      PA ~ 1 + W.other.pc  +  W.other.gmc + (1 + W.other.pc  | ID),
+      prior = c(prior(normal(3, 1), class = Intercept),
+                prior(normal(0, 1), class = b),
+                prior(exponential(1), class = sd),
+                prior(exponential(1), class = sigma),
+                prior(lkj(2), class = cor)),
+      iter = 4000, warmup = 1000, chains = 4, cores = 4,
+      file = "mlm.6b",
+      backend = "cmdstanr",
+      data = esm)
+
+```
+
+## `mlm.6` summary
+
+```{r}
+summary(mlm.6)
+```
+
+## Within vs. between: two different effects {.smaller}
+
+```{r}
+#| code-fold: true
+fixef(mlm.6)[, c("Estimate", "Q2.5", "Q97.5")] %>% round(2)
+```
+
+-   **Within** (`W.other.pc` = 0.33): on occasions when a person is with others (vs. alone), their positive affect is about a third of a point higher than *their own* average.
+-   **Between** (`W.other.gmc` = 0.83): people who are with others a larger share of the time are happier overall. Going from 0% to 100% of occasions spent with others ≈ 0.8 points.
+-   These answer different questions (does company lift *my* mood? are sociable *people* happier?), and they aren't the same size. Without centering, the model blends them into one uninterpretable number (`mlm.5`: 0.32, close to the within effect only because most of the variance in `W.other` is within people).
+
+## Shrinkage with centered predictors
+
+```{r}
+#| code-fold: true
+partially_pooled_params3 <-
+  coef(mlm.6)$ID [ , 1, 1:2] %>%
+  as_tibble(rownames = "ID")
+
+
+un_pooled_params2 <-
+  esm %>%
+  filter((!is.na(PA))) %>%
+  group_by(ID, W.other.pc) %>%
+  summarise(mean = mean(PA)) %>%
+  do(tidy(lm(mean ~ W.other.pc, data=.))) %>%
+  ungroup() %>%
+  select(ID, term, estimate) %>%
+  pivot_wider(names_from = term, values_from = estimate) %>%
+  mutate(Intercept = `(Intercept)`) %>%
+  select(-`(Intercept)`) %>%
+  #select(-`Intercept`) %>%
+  mutate(ID = as.character(ID))
+
+params2 <-
+  # `bind_rows()` will stack the second tibble below the first
+  bind_rows(partially_pooled_params3, un_pooled_params2) %>%
+  # index whether the estimates are pooled
+  mutate(pooled = rep(c("partially", "not"), each = nrow(.)/2))
+
+p3 <-
+  ggplot(data = params2, aes(x = W.other.pc, y = Intercept, group = pooled)) +
+  geom_point(aes(group = ID, color = pooled)) +
+  geom_line(aes(group = ID), linewidth = 1/4) +
+  scale_color_manual("Pooled?",
+                     values = c("#80A0C7", "#A65141")) +
+  xlim(0,1) + ylim(1,5)
+
+p3
+```
+
+## Within-person slopes
+
+```{r}
+#| code-fold: true
+mlm.6 %>%
+  spread_draws(b_W.other.pc, r_ID[ID, term]) %>%
+  filter(term == "W.other.pc") %>%
+  median_qi(person_t = b_W.other.pc + r_ID) %>%
+  ggplot(aes( y = reorder(ID, person_t), x = person_t, xmin = .lower, xmax = .upper)) +
+  geom_pointinterval(alpha = .1) + xlab("est")  + theme(axis.title.y=element_blank(),
+        axis.text.y=element_blank())
+```
+
+
+## MLM plots
+
+```{r}
+#| code-fold: true
+melsm <- read.csv("melsm.csv")  # also at https://bayes27.netlify.app/melsm.csv
+
+melsm <- melsm %>%
+  mutate(day01 = (day - 2) / max((day - 2)))
+```
+
+
+```{r}
+#| code-fold: true
+melsm %>%
+distinct(record_id) %>%
+  count()
+```
+
+
+
+## Days per participant
+
+Participants filled out daily affective measures and physical activity
+
+```{r}
+#| code-fold: true
+melsm %>%
+    count(record_id) %>%
+  ggplot(aes(x = n)) +
+  geom_bar() +
+  scale_x_continuous("number of days", limits = c(0, NA))
+```
+
+
+
+## Participant trajectories
+
+Participant level
+
+
+```{r}
+#| code-fold: true
+set.seed(16)
+melsm %>%
+  ungroup() %>%
+  nest(data = !record_id) %>%
+  slice_sample(n = 12) %>%
+  unnest(data) %>%
+  ggplot(aes(x = day, y = N_A.lag)) +
+  geom_line(color = "black") +
+  geom_point(color = "black", size = 1/2) +
+  ylab("negative affect (standardized)") +
+  facet_wrap(~record_id)
+```
+
+
+## Random linear change
+
+day01 rescales day to run from 0 (first day) to 1 (last day), so its slope is the change over the whole study.
+
+```{r}
+#| code-fold: true
+melsm.1 <-
+  brm(family = gaussian,
+      N_A.std ~ 1 + day01 + (1 + day01 | record_id),
+      prior = c(prior(normal(0, 0.2), class = Intercept),
+                prior(normal(0, 1), class = b),
+                prior(exponential(1), class = sd),
+                prior(exponential(1), class = sigma),
+                prior(lkj(2), class = cor)),
+      iter = 3000, warmup = 1000, chains = 4, cores = 4,
+      data = melsm,
+      backend = "cmdstanr",
+      file = "melsm.1")
+```
+
+
+## `melsm.1` summary
+
+```{r}
+summary(melsm.1)
+```
+
+## Plotting MLMs: the data grid
+
+We have to be careful with plotting MLMs
+```{r}
+#| code-fold: true
+melsm %>%
+  data_grid(day01 = seq_range(day01, n = 20), .model= melsm)
+```
+
+## Adding draws
+
+```{r}
+#| code-fold: true
+melsm %>%
+  data_grid(day01 = seq_range(day01, n = 20), .model= melsm) %>%
+  add_epred_draws(melsm.1 )
+```
+
+## Average trajectory only {.smaller}
+
+If we do not care about random effects, specify re_formula = NA
+```{r}
+#| code-fold: true
+fixed.slope<- melsm %>%
+  data_grid(day01 = seq_range(day01, n = 20)) %>%
+  add_epred_draws(melsm.1, re_formula = NA )
+  fixed.slope
+```
+
+## A grid for every person {.smaller}
+
+If we want random effects we need to specify the variable to get ALL levels.
+```{r}
+
+melsm %>%
+  data_grid(day01 = seq_range(day01, n = 20), record_id)
+```
+193 people * 20 = 3860
+
+## Person-specific predictions
+
+Then we need to state re_formula = NULL (which is the default)
+```{r}
+#| code-fold: true
+melsm %>%
+  data_grid(day01 = seq_range(day01, n = 20), record_id) %>%
+  add_epred_draws(melsm.1, re_formula = NULL )
+```
+
+## How many rows?
+
+re_formula formula helps us focus on either the average trajectory (gammas) or the group specific (person Us). If NULL (default), include all group-level effects; if NA, include no group-level effects.
+
+160,000 = 20 (different values of X we chose) x 8000 iterations (2k x 4 chains)
+
+30,880,000 = 20* 8000 iterations * 193 people in our dataset
+
+## The average trajectory
+
+```{r}
+#| code-fold: true
+ melsm %>%
+  data_grid(day01 = seq_range(day01, n = 20), record_id) %>%
+  add_epred_draws(melsm.1, re_formula = NA) %>%
+  ggplot()+
+  aes(x = day01, y = .epred) +
+  stat_lineribbon(.width = 0.95, alpha = .5)
+```
+
+## Average and person trajectories {.smaller}
+
+```{r}
+#| code-fold: true
+#| fig-width: 9
+#| fig-height: 4.6
+# for a paper: add ggsave("trajectories.png", width = 6.5, height = 4) after the plot
+avg <- predictions(melsm.1, newdata = datagrid(day01 = seq(0, 1, by = .05)), re_formula = NA)
+people <- predictions(melsm.1, newdata = datagrid(record_id = unique, day01 = c(0, 1)))
+
+ggplot() +
+  geom_line(data = people, aes(x = day01, y = estimate, group = record_id),
+            colour = "grey70", alpha = .4, linewidth = .3) +
+  geom_ribbon(data = avg, aes(x = day01, ymin = conf.low, ymax = conf.high), fill = "#4C78A8", alpha = .35) +
+  geom_line(data = avg, aes(x = day01, y = estimate), colour = "#4C78A8", linewidth = 1.2) +
+  scale_x_continuous("Point in the study period", labels = scales::percent) +
+  labs(y = "Negative affect (standardized)",
+       caption = "Blue: average trajectory with 95% interval (re_formula = NA).\nGrey: each participant's predicted trajectory (re_formula = NULL).") +
+  theme_classic(base_size = 13) +
+  theme(plot.caption = element_text(hjust = 0))
+```
+
+## One person: `lm()` vs. partial pooling {.smaller}
+
+Participant 226 has 18 days of data. Fit a regression to just their days, and compare it to their slope from the MLM:
+
+```{r}
+#| code-fold: true
+#| fig-width: 9
+#| fig-height: 3.6
+p226 <- melsm %>% filter(record_id == 226, !is.na(N_A.std))
+lm_226 <- coef(lm(N_A.std ~ day01, data = p226))
+mlm_226 <- coef(melsm.1)$record_id["226", "Estimate", ]
+
+ggplot(p226, aes(x = day01, y = N_A.std)) +
+  geom_point() +
+  geom_abline(intercept = lm_226[1], slope = lm_226[2], colour = "firebrick", linewidth = 1) +
+  geom_abline(intercept = mlm_226["Intercept"], slope = mlm_226["day01"], colour = "#4C78A8", linewidth = 1) +
+  annotate("text", x = .98, y = -Inf, vjust = -3.2, hjust = 1, colour = "firebrick",
+           label = sprintf("lm() on their days only: slope = %.2f", lm_226[2])) +
+  annotate("text", x = .98, y = -Inf, vjust = -1.5, hjust = 1, colour = "#4C78A8",
+           label = sprintf("MLM (partially pooled): slope = %.2f", mlm_226["day01"])) +
+  scale_x_continuous("Point in the study period", labels = scales::percent, limits = c(0, 1)) +
+  labs(y = "Negative affect (standardized)") +
+  theme_classic(base_size = 13)
+```
+
+## Why the two slopes disagree
+
+Their 18 days cover only the first fifth of the study, so a line through them alone extrapolates wildly. The MLM borrows from the other 192 people's slopes and pulls theirs toward the average: it doesn't believe a 4-SD change from 18 noisy days.
+
+## Interactions
+
+What about interactions?
+
+```{r}
+#| code-fold: true
+melsm.1i <-
+  brm(family = gaussian,
+      N_A.std ~ 1 + day01+ P_A.std*steps.pm + (1 + day01 | record_id),
+      prior = c(prior(normal(0, 0.2), class = Intercept),
+                prior(normal(0, 1), class = b),
+                prior(exponential(1), class = sd),
+                prior(exponential(1), class = sigma),
+                prior(lkj(2), class = cor)),
+      iter = 3000, warmup = 1000, chains = 4, cores = 4,
+      data = melsm,
+      backend = "cmdstanr",
+      file = "melsm.1i")
+```
+
+## `melsm.1i` summary
+
+```{r}
+summary(melsm.1i)
+```
+
+
+## Steps: the moderator
+
+```{r}
+psych::describe(melsm$steps.pm)
+```
+
+## A grid for the interaction
+
+
+```{r}
+#| code-fold: true
+ melsm %>%
+  data_grid(steps.pm = seq_range(steps.pm, n = 5), P_A.std = c(-1,0,1), day01 = .5, .model = melsm)
+```
+5 * 3 = 15 rows
+
+## Draws for the interaction grid
+
+```{r}
+#| code-fold: true
+ melsm %>%
+  data_grid(steps.pm = seq_range(steps.pm, n = 5), P_A.std = c(-1,0,1), day01 = .5, .model = melsm) %>%
+  add_epred_draws(melsm.1i, re_formula = NA)
+```
+15 rows × 8,000 draws = 120,000 rows
+
+
+## Plotting the interaction
+
+```{r}
+#| code-fold: true
+ melsm %>%
+  data_grid(steps.pm = seq_range(steps.pm, n = 5), P_A.std = c(-1,0,1), day01 = .5, .model = melsm) %>%
+  add_epred_draws(melsm.1i, re_formula = NA) %>%
+  ggplot( aes(x = steps.pm, y = N_A.std)) +
+  stat_lineribbon(aes(y = .epred, group = P_A.std, color = as.factor(P_A.std)),  .width = 0, show.legend = T)
+```
+
+

@@ -2,7 +2,7 @@
 title: "HW 10: Varying slopes"
 ---
 
-**Due:** Thursday, Apr 8 at 2:30 pm on Canvas · **Size:** light · **Covers:** [Multilevel models](mlm-8.qmd) (random slopes onward)
+**Due:** Thursday, Apr 8 at 2:30 pm on Canvas · **Size:** light · **Covers:** [Multilevel models 2](mlm-8b.qmd)
 
 Start from the [homework template](hw-template.qmd){download="hw-template.qmd"}, use `## Q1` to `## Q3` headings, and turn in both the `.qmd` and the rendered `.html`. Each question is graded 0 / 1 / 2 (missing / attempted / solid); answers in words count.
 
