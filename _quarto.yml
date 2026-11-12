@@ -12,6 +12,8 @@ project:
     - hw3.csv
     - anova.csv
     - Multipleregression.csv
+    - roaches.csv
+    - trolley.csv
     - solutions/*.html
 
 website:

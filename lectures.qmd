@@ -8,6 +8,6 @@ title: "Lectures"
 4.  [Multiple Regression](mr-4.qmd)
 5.  [MCMC](mcmc-5.qmd)
 6.  [Information, NHST and model fit](info-6.qmd)
-7.  [glm](glm-7.qmd)
+7.  [Generalized linear models](glm-7.qmd)
 8.  [mlm](mlm-8.qmd)
 9.  [advanced mlm](adv-9.qmd)

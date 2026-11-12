@@ -1,13 +1,10 @@
 ---
-title: glm
+title: "Generalized linear models"
 format: revealjs
 slide-number: true
 editor: visual
 execute:
   echo: true
-html:
-  code-fold: true
-  code-summary: Show the code
 ---
 
 ## This time
@@ -18,13 +15,13 @@ html:
 
 ## Generalized linear model
 
--   Used to describe different Data Generating Processes (DGPs) "likelihoods" other than Gausian normal
+-   Used to describe different Data Generating Processes (DGPs) "likelihoods" other than the Gaussian (normal)
 
 -   Need to use if we cannot use the Gaussian normal e.g. the range of Y is restricted (e.g. binary, count) and/or the variance of Y depends on the mean
 
 -   Often there is a maximum entropy distribution that serves as the default likelihood, helping us guide our choice
 
-------------------------------------------------------------------------
+## Two ingredients
 
 Need to:
 
@@ -32,7 +29,7 @@ Need to:
 
 2.  Specify a link function. We do this so we can continue to use a typical linear regression model. Our parameters are now often non-linear, so we need to map a non-linear relationship to a linear one.
 
-## Binomial
+## Binomial {.smaller}
 
 $$y_i \sim \operatorname{Binomial} (n, p_i)$$
 
@@ -52,17 +49,17 @@ $$f(p_i) = \alpha + \beta (x_i - \bar x)$$
 
 -   Instead of predicting probabilities directly, we are instead predicting the log of the odds. Other link functions: probit, negative inverse, cloglog.
 
-------------------------------------------------------------------------
+## The logit link
 
 -   We need to map the s shaped ogive that goes between (0,1) to linear looking line that falls between $(-\infty, \infty)$
 
--   Prob is 0,1, odds are 0 -\> inf, log is -inf -\> 0, and log odds are -inf to inf.
+-   Probabilities live in (0, 1); odds, $p/(1-p)$, live in (0, ∞); log odds live in (−∞, ∞).
 
 -   Think of it as a transformation of Y-hats $$f(p) = logit(p) = log (\frac {p_{i}}{1-p_{i}})$$
 
 -   Logits are now in a shape similar to a normal regression (ie a line/plane that goes to infinity)
 
-## inverse link
+## Inverse link {.smaller}
 
 -   It is easier to think of transforming the probabilities but computationally the right side of the equation usually gets transformed. Note these two are equivalent.
 
@@ -70,7 +67,7 @@ $$f(p_i) = \alpha + \beta (x_i - \bar x)$$
 
 $$p_i = f^{-1}(\alpha + \beta (x_i - \bar x))$$
 
--   You already know this, maybe not in this term, but we can go back and forth between the link and inverse link via the exponential function.
+-   For the logit link, the inverse link is the logistic function: $p = \frac{1}{1 + e^{-x}}$ (`plogis()` or brms's `inv_logit_scaled()`). For the log link (counts), the inverse is `exp()`.
 
 ## Exponential Family
 
@@ -81,38 +78,38 @@ library(tidyverse)
 library(brms)
 
 E1 <- ggplot(data.frame(x = c(0, 15)), aes(x = x))  +
-    stat_function(fun = dexp, args = (mean=0.2), geom = "area", fill = "blue", alpha = 0.25) + ggtitle("Exponential with lambda = 0.2") 
+    stat_function(fun = dexp, args = list(rate = 0.2), geom = "area", fill = "blue", alpha = 0.25) + ggtitle("Exponential with lambda = 0.2")
 
 G1 <- ggplot(data.frame(x = c(0, 5)), aes(x = x))  +
-    stat_function(fun = dgamma, args=list(shape=2, rate=2), geom = "area", fill = "blue", alpha = 0.25) + ggtitle("Gamma with lambda = 2, kappa = 2") 
+    stat_function(fun = dgamma, args=list(shape=2, rate=2), geom = "area", fill = "blue", alpha = 0.25) + ggtitle("Gamma with lambda = 2, kappa = 2")
 
-p1 <- tibble(x = 0:12) %>% 
+p1 <- tibble(x = 0:12) %>%
   mutate(density = dpois(x, lambda = 3),
-         strip   = "y %~% Poisson(lambda)") %>% 
+         strip   = "y %~% Poisson(lambda)") %>%
   ggplot(aes(x = x, y = density)) +
   geom_col(fill = "blue", alpha = 0.25,width = 1/2) +
-  ggtitle("Poisson with lambda = 3") 
+  ggtitle("Poisson with lambda = 3")
 
-b1 <-tibble(x = 0:10) %>% 
+b1 <-tibble(x = 0:10) %>%
   mutate(density = dbinom(x, size = 10, prob = .3),
-         strip   = "y %~% Binomial(n, p)") %>% 
+         strip   = "y %~% Binomial(n, p)") %>%
   ggplot(aes(x = x, y = density)) +
   geom_col(fill = "blue", alpha = 0.25, width = 1/2) +
-  ggtitle("binomial with N = 10, p = .3") 
+  ggtitle("binomial with N = 10, p = .3")
 
 (E1 + G1) /
   (p1 + b1)
 ```
 
-------------------------------------------------------------------------
+## Exponential family members {.smaller}
 
 -   Exponential is constrained to be above zero. If probability of some event is constant, it tends to follow an exponential. Used a lot in survival models.
 
--   Gamma is positive but allowed to have a maximum that is not zero. This results when 2 or more exponential processes combine. Finance uses this a lot.
+-   Gamma is positive but its peak needn't be at zero. It arises as the sum of several exponential waiting times (e.g., time until the *k*th event). Common for skewed positive outcomes like reaction times or costs.
 
--   Poisson for counts, when p is low and or number of trials is considered infinite. Special case of binomial. Used a lot in health, epidemiology and sport applications where counts are used.
+-   Poisson for counts, when p is low and the number of trials is large or unknown. It is the limit of the binomial as n → ∞ with np fixed. Used a lot in health, epidemiology and sport applications where counts are used.
 
-------------------------------------------------------------------------
+## Distributions and their relationships
 
 ![](dist.png)
 
@@ -129,38 +126,37 @@ gaussian, student, binomial, bernoulli, poisson, negbinomial, geometric, gamma, 
 ```{r}
 #| code-fold: true
 library(readr)
-mortality <- read_csv("https://raw.githubusercontent.com/josh-jackson/bayes/master/static/Lectures/mortality.csv")
+mortality <- read_csv("mortality.csv")  # also at https://bayes27.netlify.app/mortality.csv
 
-
-mortality <- mortality %>% 
-  mutate(IQ_c = IQ - mean(IQ)) %>% 
+mortality <- mortality %>%
+  mutate(IQ_c = IQ - mean(IQ)) %>%
   select(-'...1')
 mortality
 
 ```
 
-------------------------------------------------------------------------
+## Describing the data
 
 ```{r}
 library(psych)
 describe(mortality)
 ```
 
-------------------------------------------------------------------------
+## The model
 
 $$P.Death_i  \sim \operatorname{Binomial} (1, p_i)$$\
 or $$P.Death_i  \sim \operatorname{Bernoulli} (p_i)$$
 
 $$\operatorname{logit} (p_i)= \beta_0 + \beta_1*IQ_c $$ $$\beta_0\sim \operatorname{Normal} (0, ?)$$ $$\beta_1\sim \operatorname{Normal} (0, ?)$$
 
-------------------------------------------------------------------------
+## Intercept-only logistic model
 
 ```{r}
 glm.1 <-
   brm(family = binomial,
       NOT.premature | trials(1) ~ 1,
       prior(normal(0, 10), class = Intercept),
-      sample_prior = T,
+      sample_prior = "yes",
       data = mortality,
       backend = "cmdstanr",
       file = "glm.1")
@@ -171,62 +167,62 @@ glm.1 <-
   brm(family = bernoulli(),
       NOT.premature ~ 1,
       prior(normal(0, 10), class = Intercept),
-      sample_prior = T,
+      sample_prior = "yes",
       data = mortality,
       backend = "cmdstanr",
-      file = "glm.1")
+      file = "glm.1b")
 ```
 
-------------------------------------------------------------------------
+## Prior draws
 
 ```{r}
-prior_draws(glm.1) 
+prior_draws(glm.1)
 ```
 
-------------------------------------------------------------------------
+## A Normal(0, 10) prior on the probability scale
 
 ```{r}
 #| code-fold: true
-prior_draws(glm.1) %>% 
-  mutate(p = inv_logit_scaled(Intercept)) %>% 
+prior_draws(glm.1) %>%
+  mutate(p = inv_logit_scaled(Intercept)) %>%
   ggplot(aes(x = p)) +
   geom_density( )
 ```
 
-------------------------------------------------------------------------
+## Why so extreme?
 
--   Before we see the data do we think that the event happens all the time time or never?
+-   Before we see the data, do we think the event happens all the time or never?
 
 -   Why is it distributed like that? Think of what logits are
 
-------------------------------------------------------------------------
+## Logits vs probabilities
 
 ![](logit.png)
 
-------------------------------------------------------------------------
+## A tighter intercept prior
 
 ```{r}
 glm.2 <-
   brm(family = binomial,
       NOT.premature | trials(1) ~ 1,
       prior(normal(0, 2), class = Intercept),
-      sample_prior = T,
+      sample_prior = "yes",
       data = mortality,
       backend = "cmdstanr",
       file = "glm.2")
 ```
 
-------------------------------------------------------------------------
+## The Normal(0, 2) prior on the probability scale
 
 ```{r}
 #| code-fold: true
-prior_draws(glm.2) %>% 
-  mutate(p = inv_logit_scaled(Intercept)) %>% 
+prior_draws(glm.2) %>%
+  mutate(p = inv_logit_scaled(Intercept)) %>%
   ggplot(aes(x = p)) +
   geom_density( )
 ```
 
-------------------------------------------------------------------------
+## Adding IQ
 
 ```{r}
 glm.3 <-
@@ -234,39 +230,39 @@ glm.3 <-
       NOT.premature ~ 1 + IQ_c,
       prior = c(prior(normal(0, 2), class = Intercept),
       prior(normal(0, 3), class = b)),
-      sample_prior = T,
+      sample_prior = "yes",
       data = mortality,
       backend = "cmdstanr",
       file = "glm.3")
 ```
 
-------------------------------------------------------------------------
+## Prior draws for `glm.3`
 
 ```{r}
-prior_draws(glm.3) 
+prior_draws(glm.3)
 
 ```
 
-------------------------------------------------------------------------
+## Prior predictive lines (logit scale)
 
 ```{r}
 #| code-fold: true
-prior_draws(glm.3)%>% 
-  sample_n(size = 100) %>% 
-  rownames_to_column("draw") %>% 
+prior_draws(glm.3)%>%
+  slice_sample(n = 100) %>%
+  rownames_to_column("draw") %>%
   expand(nesting(draw, Intercept, b),
-         a = c(-9, 9)) %>% 
-  mutate(d = Intercept + b * a) %>% 
+         a = c(-9, 9)) %>%
+  mutate(d = Intercept + b * a) %>%
   ggplot(aes(x = a, y = d)) +
   geom_line(aes(group = draw), alpha = .4) +
   labs(x = "IQ",
-       y = "logit(Not-premature dealth)") +
+       y = "logit(Not-premature death)") +
   coord_cartesian(ylim = c(-10, 10)) +
   theme_bw() +
-  theme(panel.grid = element_blank()) 
+  theme(panel.grid = element_blank())
 ```
 
-------------------------------------------------------------------------
+## Prior predictive lines (probability scale)
 
 scaled to probability
 
@@ -274,27 +270,27 @@ scaled to probability
 #| code-fold: true
 a <- seq(-9,9, .2)
 
-prior_draws(glm.3)%>% 
-  sample_n(size = 100) %>% 
-  rownames_to_column("draw") %>% 
-  expand(nesting(draw, Intercept, b), a) %>% 
-  mutate(d = inv_logit_scaled(Intercept + b * a)) %>% 
+prior_draws(glm.3)%>%
+  slice_sample(n = 100) %>%
+  rownames_to_column("draw") %>%
+  expand(nesting(draw, Intercept, b), a) %>%
+  mutate(d = inv_logit_scaled(Intercept + b * a)) %>%
   ggplot(aes(x = a, y = d)) +
   geom_line(aes(group = draw), alpha = .4) +
   labs(x = "IQ",
-       y = "prob(Not-premature dealth)") +
+       y = "prob(Not-premature death)") +
   coord_cartesian(ylim = c(0, 1))
 ```
 
-------------------------------------------------------------------------
+## `glm.3` summary
 
 ```{r}
 summary(glm.3)
 ```
 
-------------------------------------------------------------------------
+## A tighter slope prior
 
-Instead of normal(0, 3), lets try normal(0, .5) for our prior
+Instead of normal(0, 3), let's try normal(0, .5) for our prior
 
 ```{r}
 #| code-fold: true
@@ -304,74 +300,79 @@ glm.4 <-
       NOT.premature ~ 1 + IQ_c,
       prior = c(prior(normal(0, 2), class = Intercept),
       prior(normal(0, .5), class = b)),
-      sample_prior = T,
+      sample_prior = "yes",
       data = mortality,
       backend = "cmdstanr",
       file = "glm.4")
 ```
 
-------------------------------------------------------------------------
+## Prior predictive lines with Normal(0, .5)
 
 ```{r}
 #| code-fold: true
 
 a <- seq(-9,9, .2)
 
-prior_draws(glm.4)%>% 
-  sample_n(size = 100) %>% 
-  rownames_to_column("draw") %>% 
-  expand(nesting(draw, Intercept, b), a) %>% 
-  mutate(d = inv_logit_scaled(Intercept + b * a)) %>% 
+prior_draws(glm.4)%>%
+  slice_sample(n = 100) %>%
+  rownames_to_column("draw") %>%
+  expand(nesting(draw, Intercept, b), a) %>%
+  mutate(d = inv_logit_scaled(Intercept + b * a)) %>%
   ggplot(aes(x = a, y = d)) +
   geom_line(aes(group = draw), alpha = .4) +
   labs(x = "IQ",
-       y = "prob(Not-premature dealth)") +
+       y = "prob(Not-premature death)") +
   coord_cartesian(ylim = c(0, 1))
 ```
 
-------------------------------------------------------------------------
+## `glm.4` summary
 
 ```{r}
 summary(glm.4)
 ```
 
-------------------------------------------------------------------------
+## Interpreting logistic coefficients
 
 Interpretation of coefficients is not straight forward. Easier to plot predictions.
 
-Why are they hard? 1. Logits, not in natural scale 2. Nonlinear association in natural scale. 3. predicted values depend on multiple variables.
+Why are they hard?
 
-------------------------------------------------------------------------
+1. Logits are not on a natural scale
+2. The association is nonlinear on the probability scale
+3. So the change in probability depends on where you start (and on the other predictors)
+
+## From logits to probabilities by hand
 
 ```{r}
+# posterior means from summary(glm.4); ±3.73 = ±1 SD of IQ
 tibble(b0     = 1.62,
        b1     = .08,
-       IQ_c = c(-6,-2,0,2,6)) %>% 
+       IQ_c = c(-6,-2,0,2,6)) %>%
   mutate(logit_mu = b0 + b1 * IQ_c ) %>%
-  mutate(Not_premature   = 1 / (1 + exp(-logit_mu))) %>% 
+  mutate(Not_premature   = 1 / (1 + exp(-logit_mu))) %>%
   mutate(Not_premature2   = inv_logit_scaled(logit_mu))
 ```
 
-------------------------------------------------------------------------
+## Predictions with marginaleffects
 
 ```{r}
 library(marginaleffects)
-predictions(glm.4, newdata = datagrid(IQ_c = c(-3.73, -2, 0, 2, 3.73))) 
+predictions(glm.4, newdata = datagrid(IQ_c = c(-3.73, -2, 0, 2, 3.73)))
 ```
 
-------------------------------------------------------------------------
+## Trace plots
 
 ```{r}
 plot(glm.4)
 ```
 
-------------------------------------------------------------------------
+## Posterior predictive check
 
 ```{r}
 pp_check(glm.4)
 ```
 
-------------------------------------------------------------------------
+## Fitted probability curves
 
 ```{r}
 #| code-fold: true
@@ -382,76 +383,75 @@ library(modelr)
 mortality %>%
    data_grid(IQ_c = seq_range(IQ_c, n = 100)) %>%
   add_epred_draws(glm.4) %>%
-  sample_draws(100) %>% 
-    ggplot(aes(y = .value, x = IQ_c)) +
+  sample_draws(100) %>%
+    ggplot(aes(x = IQ_c)) +
   geom_line(aes(y = .epred, group = .draw),
-            color = "grey50", size = 1/3, alpha = 2/3) +
-  ylim(0,1) + geom_point(data = mortality, 
+            color = "grey50", linewidth = 1/3, alpha = 2/3) +
+  ylim(0,1) + geom_point(data = mortality,
                aes(y = NOT.premature),
                alpha = .3)
 ```
 
-------------------------------------------------------------------------
+## Distribution of predicted probabilities
 
 ```{r}
 #| code-fold: true
-predictions(glm.4) %>% 
+predictions(glm.4) %>%
   ggplot() +
   geom_histogram(aes(estimate)) +
-  labs(x = "Pr(outcome = 1)", y = "Count") +
-  scale_fill_grey()
+  labs(x = "Pr(outcome = 1)", y = "Count")
 
 ```
 
-------------------------------------------------------------------------
+## Predicted probability with uncertainty
 
 ```{r}
 #| code-fold: true
 
 predictions(glm.4, newdata = datagrid(IQ_c = seq(from = min(mortality$IQ_c), to = max(mortality$IQ_c)))) %>%
-  get_draws() %>% 
+  get_draws() %>%
     ggplot(aes(y = draw, x = IQ_c)) +
-  stat_lineribbon(.width = c(.95), alpha = .4) + geom_point(data = mortality, 
+  stat_lineribbon(.width = c(.95), alpha = .4) + geom_point(data = mortality,
                aes(y = NOT.premature),
                alpha = .3)
 ```
 
-## epred vs prediction vs linear prediction
+## epred vs prediction vs linear prediction {.smaller}
 
 -   When we want to create fitted values we run into an extra complication. Do we want to plot probabilities (original metric) or logits (our transformed metric)? We haven't had to deal with this prior because we didn't do any transformations with a Gaussian normal.
 
--   epred: give me the expectation on the response scale\
+-   epred: the expected value on the response scale (here, a probability)
 
--   linpred: give me the expectation on the model's scale\
+-   linpred: the linear predictor on the link scale (here, log odds)
 
--   predict: give me a new observation (on the response scale)
+-   predict: a simulated new observation on the response scale (here, a 0 or 1)
 
-------------------------------------------------------------------------
+## The model, again
 
 $$y_i \sim \operatorname{Binomial} (n, p_i)$$
 
 $$logit(p_i) = \alpha + \beta (x_i - \bar x)$$
 
-------------------------------------------------------------------------
+## epred vs linpred
 
 ```{r}
 #| code-fold: true
 epred <- mortality %>%
   data_grid(IQ_c, .model = mortality) %>%
-  add_epred_draws(glm.4) %>% 
-  ungroup() %>% 
+  add_epred_draws(glm.4) %>%
+  ungroup() %>%
   select(.epred)
 
 linpred <-mortality %>%
   data_grid(IQ_c, .model = mortality) %>%
-  add_linpred_draws(glm.4) %>% 
-  ungroup() %>% 
+  add_linpred_draws(glm.4) %>%
+  ungroup() %>%
   select(.linpred)
 
-cbind(epred,linpred ) 
+cbind(epred,linpred )
 ```
 
-------------------------------------------------------------------------
+## Linear predictor (logit scale)
 
 ```{r}
 #| code-fold: true
@@ -459,14 +459,14 @@ cbind(epred,linpred )
 mortality %>%
   data_grid(IQ_c = seq_range(IQ_c, n = 100)) %>%
   add_linpred_draws(glm.4) %>%
-  sample_draws(100) %>% 
-    ggplot(aes(y = .value, x = IQ_c)) +
+  sample_draws(100) %>%
+    ggplot(aes(x = IQ_c)) +
   geom_line(aes(y = .linpred, group = .draw),
-            color = "grey50", size = 1/3, alpha = 2/3) +
-  ylab("logit") 
+            color = "grey50", linewidth = 1/3, alpha = 2/3) +
+  ylab("logit")
 ```
 
-------------------------------------------------------------------------
+## Link vs response scale with marginaleffects
 
 ```{r}
 predictions(glm.4, newdata = datagrid(IQ_c = c(-3.73, 0, 3.73)), type = "link")
@@ -480,7 +480,7 @@ predictions(glm.4, newdata = datagrid(IQ_c = c(-3.73, 0, 3.73)))
 
 -   When you are predicting more than two groups (aka categorical regression aka maximum entropy classifier)
 
--   Uses a multi-nomial distribution, which is a parent of the binomial distribution. Like the binomial but with more events.
+-   Uses a categorical (multinomial) distribution, the generalization of the binomial. Like the binomial but with more events.
 
 -   Need to construct K - 1 linear models for K events, similar to constructing number of dummy variables
 
@@ -496,8 +496,8 @@ Career choice predicted by salary
 
 ```{r}
 #| code-fold: true
-#| 
-library(rethinking)
+#|
+softmax <- function(...) { x <- c(...); exp(x) / sum(exp(x)) }  # same as rethinking::softmax
 
 # simulate career choices among 500 individuals
 n      <- 500           # number of individuals
@@ -517,20 +517,20 @@ set.seed(123)
 for(i in 1:n) career[i] <- sample(1:3, size = 1, prob = p)
 
 d <-
-  tibble(career = career) %>% 
+  tibble(career = career) %>%
   mutate(career_income = ifelse(career == 3, 5, career))
 
 d %>%
   ggplot(aes(x = career)) +
-  geom_bar(size = 0)
+  geom_bar()
 
 ```
 
-------------------------------------------------------------------------
+## K − 1 linear models
 
 For K categories, we estimate K -1 linear models. Think of a logistic regression where K = 2, we fit just a single regression model. Here we are doing multiple regression models simultaneously within the same model.
 
-------------------------------------------------------------------------
+## Intercept-only categorical model
 
 Intercept only model, where we will get two intercepts, because it is like we have two models
 
@@ -547,31 +547,31 @@ glm.5 <-
       file = "glm.5")
 ```
 
-------------------------------------------------------------------------
+## `glm.5` summary
 
 ```{r}
 summary(glm.5)
 ```
 
-------------------------------------------------------------------------
+## Back to probabilities
 
 ```{r}
 #| code-fold: true
-glm.5 %>% 
-  spread_draws(b_mu1_Intercept, b_mu2_Intercept) %>% 
-  mutate(b_mu3_Intercept = 0) %>% 
+glm.5 %>%
+  spread_draws(b_mu1_Intercept, b_mu2_Intercept) %>%
+  mutate(b_mu3_Intercept = 0) %>%
   mutate(p1 = exp(b_mu1_Intercept) / (exp(b_mu1_Intercept) + exp(b_mu2_Intercept) + exp(b_mu3_Intercept)),
          p2 = exp(b_mu2_Intercept) / (exp(b_mu1_Intercept) + exp(b_mu2_Intercept) + exp(b_mu3_Intercept)),
-         p3 = exp(b_mu3_Intercept) / (exp(b_mu1_Intercept) + exp(b_mu2_Intercept) + exp(b_mu3_Intercept))) %>% 
-  pivot_longer(p1:p3) %>% 
-  group_by(name) %>% 
-  mean_qi(value) %>% 
+         p3 = exp(b_mu3_Intercept) / (exp(b_mu1_Intercept) + exp(b_mu2_Intercept) + exp(b_mu3_Intercept))) %>%
+  pivot_longer(p1:p3) %>%
+  group_by(name) %>%
+  mean_qi(value) %>%
   mutate_if(is.double, round, digits = 2)
 ```
 
 The same probabilities that we simulated with!
 
-------------------------------------------------------------------------
+## Interpreting the intercepts
 
 mu1_Intercept coefficient is -2.01. What does that mean? Remember refcat = 3
 
@@ -594,6 +594,7 @@ mu2_Intercept coefficient is -1.57. What does that mean?
 
 ```{r}
 #| code-fold: true
+set.seed(123)
 b      <- c(-2, 0, 2)
 family_income <- runif(n)
 
@@ -606,13 +607,13 @@ for (i in 1:n) {
 }
 
 d <-
-  tibble(career = career) %>% 
+  tibble(career = career) %>%
   mutate(family_income = family_income)
 d
 
 ```
 
-------------------------------------------------------------------------
+## Categorical model with a predictor
 
 ```{r}
 
@@ -624,26 +625,19 @@ glm.6 <-
                 prior(normal(0, .5), class = b, dpar = mu1),
                 prior(normal(0, .5), class = b, dpar = mu2)),
       iter = 2000, warmup = 1000, cores = 4, chains = 4,
-      data = d, 
+      data = d,
       backend = "cmdstanr",
       file = "glm.6")
 
 ```
 
-------------------------------------------------------------------------
+## `glm.6` summary
 
 ```{r}
 summary(glm.6)
 ```
 
-------------------------------------------------------------------------
-
-```{r}
-# from BRMS
-conditional_effects(glm.6, categorical = TRUE)
-```
-
-------------------------------------------------------------------------
+## Predictions by family income
 
 ```{r}
 #| code-fold: true
@@ -652,43 +646,43 @@ predictions(glm.6,by = "family_income")
 
 ```
 
-------------------------------------------------------------------------
+## Predicted probabilities by career
 
 ```{r}
 #| code-fold: true
 plot_predictions(glm.6, condition = "family_income", type = "response") + facet_wrap(~group)
 ```
 
-------------------------------------------------------------------------
+## All careers on one plot
 
 ```{r}
 #| code-fold: true
 plot_predictions(glm.6, condition = c("family_income", "group"), type = "response")
 ```
 
-------------------------------------------------------------------------
+## On the link scale
 
 ```{r}
 plot_predictions(glm.6, condition = c("family_income", "group"), type = "link")
 ```
 
-------------------------------------------------------------------------
+## Predictions with uncertainty
 
 ```{r}
 #| code-fold: true
-predictions(glm.6,by = "family_income") %>% 
-  posterior_draws() %>% 
+predictions(glm.6,by = "family_income") %>%
+  get_draws() %>%
   ggplot(aes(x = family_income, y = draw, group = group)) +
   stat_lineribbon(.width = .95, alpha = .4)
 ```
 
-------------------------------------------------------------------------
+## Average predicted probabilities
 
 ```{r}
 avg_predictions(glm.6,type = "response")
 ```
 
-------------------------------------------------------------------------
+## Predictions for every row
 
 ```{r}
 glm6_pred <- predictions(glm.6)
@@ -705,22 +699,27 @@ Often the DGP of our data are complex in that there could be multiple reasons so
 
 $$Y \sim \textrm{NB}(\mu,\phi)$$
 
-------------------------------------------------------------------------
+## Gamma-Poisson
 
 -   The Poisson distribution has just one parameter and presumes the mean/rate is associated with the spread. The negative binomial distribution relaxes this assumption and estimates the shape ($\phi$) of a gamma distribution (also an exponential family distribution) to describe the Poisson rates across cases.
 
 -   The gamma distribution is a non-negative, continuous, two-parameter probability distribution.
 
-------------------------------------------------------------------------
+## The NB as a mixture
 
-$$Y \sim \textrm{Pois}(\theta) \\
-\theta \sim \textrm{gamma}(\mu, \frac{\phi}{1-\phi})$$
+$$
+\begin{aligned}
+Y_i &\sim \textrm{Poisson}(\theta_i) \\
+\theta_i &\sim \textrm{Gamma}(\text{shape} = \phi,\ \text{rate} = \phi / \mu)
+\end{aligned}
+\quad \Longleftrightarrow \quad
+Y_i \sim \textrm{NB}(\mu, \phi)
+$$
 
-$$Y \sim \textrm{NB}(\mu,\phi)$$
+-   $\mu$ is the mean count; $\phi$ (brms calls it `shape`) controls overdispersion
+-   $\text{Var}(Y) = \mu + \mu^2/\phi$: small $\phi$ = lots of extra variance; as $\phi \to \infty$ it becomes a Poisson
 
-$$\mu \text{ is the rate paramter}$$ $$\phi \text{ is the shape paramter}$$
-
-------------------------------------------------------------------------
+## Many gamma shapes
 
 -   There are multiple ways (different parameter definitions) to define the distribution. This gets confusing. For now just notice that many forms can be taken for the gamma distribution
 
@@ -731,10 +730,10 @@ ggplot(data = tibble(x = seq(from = 0, to = 60, by = .1)),
   geom_area() +
   scale_x_continuous(NULL) +
   scale_y_continuous(NULL, breaks = NULL) +
-  coord_cartesian(xlim = c(0, 30)) 
+  coord_cartesian(xlim = c(0, 30))
 ```
 
-------------------------------------------------------------------------
+## Gamma with shape = 10
 
 ```{r}
 #| code-fold: true
@@ -743,16 +742,22 @@ ggplot(data = tibble(x = seq(from = 0, to = 60, by = .1)),
   geom_area() +
   scale_x_continuous(NULL) +
   scale_y_continuous(NULL, breaks = NULL) +
-  coord_cartesian(xlim = c(0, 30)) 
+  coord_cartesian(xlim = c(0, 30))
 ```
 
-## roach example
+## Roach example
 
-y – number of roaches caught. roach1 – pretreatment number of roaches. treatment – dummy for treatment senior – dummy for elderly residents exposure2 – number of days
+-   y: number of roaches caught
+-   roach1: pretreatment number of roaches
+-   treatment: 1 = pest-control treatment, 0 = control
+-   senior: 1 = building restricted to elderly residents
+-   exposure2: number of days the traps were out (relative to the standard period)
+
+## The roach data {.smaller}
 
 ```{r}
 #| code-fold: true
-roach <- read_csv("https://github.com/TuringLang/TuringGLM.jl/raw/main/data/roaches.csv")
+roach <- read_csv("roaches.csv")  # also at https://bayes27.netlify.app/roaches.csv
 roach
 ```
 
@@ -769,8 +774,8 @@ glm.7 <-
       prior = c(prior(normal(2, 3), class = b, coef = "Intercept"),
                 prior(normal(0, 1), class = b)),
       iter = 2000, warmup = 1000, cores = 4, chains = 4,
-      sample_prior = T,
-      data = roach, 
+      sample_prior = "yes",
+      data = roach,
       backend = "cmdstanr",
       file = "glm.7")
 
@@ -779,25 +784,25 @@ glm.7 <-
 
 ## Why 0 + Intercept?
 
--   The default (1 + ...) assumes centered predictors to estimate the standard intercept
+-   With the default `1 + ...`, brms centers the predictors behind the scenes, so your `class = Intercept` prior is a prior for the outcome *at the predictors' means* (the summary converts it back for you).
 
--   0 + Intercept prevents automatic centering, allowing the intercept to represent the expectation when all predictors are at their original (non-centered) values
+-   With `0 + Intercept + ...`, the intercept is a regular coefficient (`class = b, coef = "Intercept"`), and its prior is for the outcome when all predictors are 0.
 
--   For most situations, this doesn't matter, but when we get into more complex models (hello GLM, we should use this!)
+-   Use `0 + Intercept` when "all predictors = 0" is the value you can actually set a prior for (here: no roaches before, control group).
 
-------------------------------------------------------------------------
+## `glm.7` summary
 
 ```{r}
 summary(glm.7)
 ```
 
-------------------------------------------------------------------------
+## Average predictions by treatment
 
 ```{r}
 predictions(glm.7,by = "treatment")
 ```
 
-------------------------------------------------------------------------
+## Predictions on the response scale
 
 These predictions are on the original scale
 
@@ -805,7 +810,7 @@ These predictions are on the original scale
 predictions(glm.7)
 ```
 
-------------------------------------------------------------------------
+## Predictions on the link scale
 
 These predictions are on the log link scale.
 
@@ -813,75 +818,78 @@ These predictions are on the log link scale.
 predictions(glm.7, type = "link")
 ```
 
-------------------------------------------------------------------------
+## Prediction by hand {.smaller}
 
 ```{r}
 predictions(glm.7, newdata = datagrid(roach1 = 10, treatment = unique))
 ```
 
-```{r}
-3.04 + .01*10 + -0.54*1
-```
+By hand, for roach1 = 10 in the treatment group:
 
 ```{r}
-exp(3.14)
+b <- fixef(glm.7)[, "Estimate"]
+log_rate <- b["Intercept"] + b["roach1"] * 10 + b["treatment"] * 1
+c(log_rate = log_rate, rate = exp(log_rate))
 ```
 
 ```{r}
 predictions(glm.7, newdata = datagrid(roach1 = 10, treatment = unique), type = "link")
 ```
 
-------------------------------------------------------------------------
+## Posterior predictive check: Poisson
 
 ```{r}
 pp_check(glm.7)
 ```
 
-------------------------------------------------------------------------
+## Predicted roaches by pretreatment count
 
 ```{r}
 #| code-fold: true
-predictions(glm.7,by = c("roach1", "treatment")) %>% 
-  posterior_draws() %>%
-  mutate(treatment = as.factor(treatment)) %>% 
+predictions(glm.7,by = c("roach1", "treatment")) %>%
+  get_draws() %>%
+  mutate(treatment = as.factor(treatment)) %>%
   ggplot(aes(x = roach1, y = draw, color = treatment)) +
   stat_lineribbon(.width = .95, alpha = .4) + ylab("roaches")
 ```
 
-------------------------------------------------------------------------
+## Treatment effect at the mean
 
 ```{r}
-slopes(glm.7, variables = "treatment", newdata = "mean")
+comparisons(glm.7, variables = "treatment", newdata = "mean")
 ```
 
-## offsets
+## Offsets {.smaller}
 
 Because we are counting numbers it assumes that the time period of counting is the same across observations. However, this may not be the case.
 
-Luckily, the Poisson (and other count distributions) assume that the rate of events is constant in time (or space) we can control for it.
+Luckily, the Poisson (and other count distributions) assume that the rate of events is constant in time (or space), so we can adjust for it.
 
-These are called offsets, and we tell {brms} that we are going to include such a variable as they are more similar to weights rather than a variable we want to control for
+$$\log(\lambda_i) = \log(\text{exposure}_i) + \beta_0 + \beta_1 x_i \quad\Rightarrow\quad \lambda_i = \text{exposure}_i \times e^{\beta_0 + \beta_1 x_i}$$
 
-------------------------------------------------------------------------
+This is an offset: a term with its coefficient fixed at 1. Because of the log link, the offset is the **log** of exposure, `offset(log(exposure2))`, and the other coefficients are now about the rate per unit of exposure.
+
+## Poisson with an offset
 
 ```{r}
 
 
 glm.7o <-
   brm(family = poisson,
-      y ~ 0 + Intercept + roach1 + treatment + offset(exposure2),
+      y ~ 0 + Intercept + roach1 + treatment + offset(log(exposure2)),
       prior = c(prior(normal(2, 3), class = b, coef = "Intercept"),
                 prior(normal(0, 1), class = b)),
-      iter = 4000, warmup = 2000, cores = 4, chains = 4,
-      data = roach, 
+      iter = 2000, warmup = 1000, cores = 4, chains = 4,
+      data = roach,
+      save_pars = save_pars(all = TRUE), # for loo(moment_match = TRUE) later
       backend = "cmdstanr",
-      file = "glm.7o")
+      file = "glm.7o2")
 
 
 
 ```
 
-------------------------------------------------------------------------
+## `glm.7o` summary
 
 Note the offset is not a coefficient.
 
@@ -889,24 +897,24 @@ Note the offset is not a coefficient.
 summary(glm.7o)
 ```
 
-------------------------------------------------------------------------
+## Predictions with the offset
 
 ```{r}
 #| code-fold: true
-predictions(glm.7o, newdata = datagrid(roach1 = unique, treatment = unique)) %>% 
-  posterior_draws() %>%
-  mutate(treatment = as.factor(treatment)) %>% 
+predictions(glm.7o, newdata = datagrid(roach1 = unique, treatment = unique)) %>%
+  get_draws() %>%
+  mutate(treatment = as.factor(treatment)) %>%
   ggplot(aes(x = roach1, y = draw, color = treatment)) +
   stat_lineribbon(.width = .95, alpha = .4) + ylab("roaches")
 ```
 
-------------------------------------------------------------------------
+## Posterior predictive check with the offset
 
 ```{r}
 pp_check(glm.7o)
 ```
 
-------------------------------------------------------------------------
+## Negative binomial model
 
 Negative binomial (Gamma Poisson) model
 
@@ -919,8 +927,8 @@ glm.8 <-
       prior = c(prior(normal(2, 3), class = b, coef = "Intercept"),
                 prior(normal(0, 1), class = b)),
       iter = 2000, warmup = 1000, cores = 4, chains = 4,
-      sample_prior = T,
-      data = roach, 
+      sample_prior = "yes",
+      data = roach,
       backend = "cmdstanr",
       file = "glm.8")
 
@@ -928,26 +936,26 @@ glm.8 <-
 
 ```
 
-------------------------------------------------------------------------
+## `glm.8` summary
 
 ```{r}
 summary(glm.8)
 ```
 
-------------------------------------------------------------------------
+## Posterior predictive check: NB
 
 ```{r}
 predictions(glm.8,
-            type = "prediction")  %>% 
-  posterior_draws() %>% 
-    sample_draws(50, draw = "drawid") %>% 
+            type = "prediction")  %>%
+  get_draws() %>%
+    sample_draws(50, draw = "drawid") %>%
     ggplot(aes(draw, group = drawid)) +
    geom_line(stat = "density", alpha = .1) +
   geom_density(aes(y))+
   theme_classic()
 ```
 
-------------------------------------------------------------------------
+## NB with tighter priors
 
 ```{r}
 #| code-fold: true
@@ -960,8 +968,8 @@ glm.8b <-
                 prior(normal(0, .5), class = b),
                 prior(exponential(1), class = shape)),
       iter = 2000, warmup = 1000, cores = 4, chains = 4,
-      sample_prior = T,
-      data = roach, 
+      sample_prior = "yes",
+      data = roach,
       file = "glm.8b",
       backend = "cmdstanr")
 
@@ -969,26 +977,26 @@ glm.8b <-
 
 ```
 
-------------------------------------------------------------------------
+## Posterior predictive check: `glm.8b`
 
 ```{r}
 predictions(glm.8b,
-            type = "prediction")  %>% 
-  posterior_draws() %>% 
-    sample_draws(50, draw = "drawid") %>% 
+            type = "prediction")  %>%
+  get_draws() %>%
+    sample_draws(50, draw = "drawid") %>%
     ggplot(aes(draw, group = drawid)) +
    geom_line(stat = "density", alpha = .1) +
   geom_density(aes(y))+ xlim(0,100) +
   theme_classic()
 ```
 
-------------------------------------------------------------------------
+## `glm.8b` summary
 
 ```{r}
 summary(glm.8b)
 ```
 
-------------------------------------------------------------------------
+## NB vs Poisson predictions
 
 ```{r}
 predictions(glm.8b,by = "treatment")
@@ -998,81 +1006,91 @@ predictions(glm.8b,by = "treatment")
 predictions(glm.7,by = "treatment")
 ```
 
-------------------------------------------------------------------------
+## Treatment effects compared {.smaller}
 
-Findings across marginal are less different. Why?
+The treatment effect (on the count scale) from each model, for a household with average pretreatment roaches:
 
 ```{r}
-slopes(glm.8b, variables = "treatment", newdata = "mean")
+comparisons(glm.8b, variables = "treatment", newdata = "mean")
 ```
 
 ```{r}
-slopes(glm.7, variables = "treatment", newdata = "mean")
+comparisons(glm.7, variables = "treatment", newdata = "mean")
 ```
 
-------------------------------------------------------------------------
+## AME vs MEM {.smaller}
 
-*predictions(glm.8b,by = "treatment")* generates predictions by feeding the model with the original data, then collapse to averages. This is called the Average marginal effects (AME)
+-   `avg_comparisons(model, variables = "treatment")`: compute the treatment effect for every row of the real data, then average. This is the **average marginal effect (AME)**.
 
-*slopes(glm.7, variables = "treatment", newdata = "mean")* collapses data to averages, then generate predictions by feeding the model those averages. This is called Marginal effects at the mean (MEM).
+-   `comparisons(model, variables = "treatment", newdata = "mean")`: set the other predictors to their means, then compute the effect once. This is the **marginal effect at the mean (MEM)**.
 
-Both are okay, in economics/poli sci/epi they tend to use AME whereas in psych and datascience most use MEM (this is what tidymodels and what emmeans use)
+-   In a Gaussian model without interactions they're the same. With a nonlinear link they differ, because the effect on the count scale depends on where you start. AME is the usual default in economics, political science and epidemiology; emmeans-style output is closer to MEM.
 
-------------------------------------------------------------------------
+## AME for the NB model
+
+```{r}
+avg_comparisons(glm.8b, variables = "treatment")
+```
+
+## Predictions for every row: NB {.smaller}
 
 ```{r}
 predictions(glm.8b)
 ```
 
+## Predictions for every row: Poisson {.smaller}
+
 ```{r}
 predictions(glm.7)
 ```
 
-------------------------------------------------------------------------
+## The roach data
 
 ```{r}
 describe(roach)
 ```
 
-------------------------------------------------------------------------
+## Predictions at chosen roach1 values: NB {.smaller}
 
 ```{r}
 predictions(glm.8b, newdata = datagrid(roach1 = c(0,10,100,450), treatment = unique))
 ```
 
+## Predictions at chosen roach1 values: Poisson {.smaller}
+
 ```{r}
 predictions(glm.7, newdata = datagrid(roach1 = c(0,10,100,450), treatment = unique))
 ```
 
-------------------------------------------------------------------------
+## NB predictions across roach1
 
 ```{r}
 #| code-fold: true
-predictions(glm.8b, newdata = datagrid(roach1 = seq(from = min(roach$roach1), to = max(roach$roach1)), treatment = unique)) %>% 
-  posterior_draws() %>%
-  mutate(treatment = as.factor(treatment)) %>% 
+predictions(glm.8b, newdata = datagrid(roach1 = seq(from = min(roach$roach1), to = max(roach$roach1)), treatment = unique)) %>%
+  get_draws() %>%
+  mutate(treatment = as.factor(treatment)) %>%
   ggplot(aes(x = roach1, y = draw, color = treatment)) +
   stat_lineribbon(.width = .95, alpha = .4) + ylab("roaches")
 ```
 
-------------------------------------------------------------------------
+## Poisson predictions across roach1
 
 ```{r}
 #| code-fold: true
-predictions(glm.7,by = c("roach1", "treatment")) %>% 
-  posterior_draws() %>%
-  mutate(treatment = as.factor(treatment)) %>% 
+predictions(glm.7,by = c("roach1", "treatment")) %>%
+  get_draws() %>%
+  mutate(treatment = as.factor(treatment)) %>%
   ggplot(aes(x = roach1, y = draw, color = treatment)) +
   stat_lineribbon(.width = .95, alpha = .4) + ylab("roaches")
 ```
 
-------------------------------------------------------------------------
+## NB predictions, zoomed in
 
 ```{r}
 #| code-fold: true
-predictions(glm.8b,by = c("roach1", "treatment")) %>% 
-  posterior_draws() %>%
-  mutate(treatment = as.factor(treatment)) %>% 
+predictions(glm.8b,by = c("roach1", "treatment")) %>%
+  get_draws() %>%
+  mutate(treatment = as.factor(treatment)) %>%
   ggplot(aes(x = roach1, y = draw, color = treatment)) +
   stat_lineribbon(.width = .95, alpha = .4) + ylab("roaches") +ylim(0,400)
 ```
@@ -1108,7 +1126,7 @@ zips <-tibble(drink = factor(drink, levels = 1:0), y = y, x = x2)
 
 ggplot(data = zips, aes(x = y)) +
   geom_histogram(aes(fill = drink),
-                 binwidth = 1, size = 1/10, color = "grey92") +
+                 binwidth = 1, linewidth = 1/10, color = "grey92") +
   scale_fill_manual(values = 1:2) +
   xlab("Manuscripts completed") +
   theme(legend.position = "none")
@@ -1116,42 +1134,42 @@ ggplot(data = zips, aes(x = y)) +
 
 ## ZIP Zero inflated poisson
 
-p = the probability of drinking (vs working). If drinking we know no manuscripts are created. If working, manuscripts still may not be created. That rate is modeled through lambda as a poisson, and a bernulli with a p
+p = the probability of drinking (vs working). If drinking we know no manuscripts are created. If working, manuscripts still may not be created. The count is modeled as a Poisson with rate λ, and drinking as a Bernoulli with probability p
 
 $$\operatorname{Pr} (y = 0 | p, \lambda)  = \operatorname{Pr} (\text{drink} | p) + \operatorname{Pr} (\text{work} | p) \times \operatorname{Pr} (0 | \lambda)$$ $$= p + (1 - p) \exp (- \lambda)$$
 
-------------------------------------------------------------------------
+## Zeros and non-zeros
 
-The probability of observing a zero is the probability that the monks didn’t drink OR the probability that the monks worked AND failed to finish anything
+The probability of observing a zero is the probability that the monks drank, OR the probability that the monks worked AND failed to finish anything
 
 $$\operatorname{Pr} (y | y > 0, p, \lambda) = $$ $$ \operatorname{Pr} (\text{drink} | p) (0) + \operatorname{Pr} (\text{work} | p) \operatorname{Pr} (y | \lambda) = (1 - p) \frac {\lambda^y \exp (- \lambda)}{y!}$$ Since drinking monks never produce, the expression above is the chance the monks both work (1-p), and finish y manuscripts
 
-------------------------------------------------------------------------
+## The ZIP model
 
 $$y_i  \sim \operatorname{ZIPoisson} (p_i, \lambda_i)$$ $$\operatorname{logit} (p_i)      = \alpha_p + \beta_p x_i$$ $$\log (\lambda_i)  = \alpha_\lambda + \beta_\lambda x_i$$
 
-------------------------------------------------------------------------
+## Intercept-only ZIP
 
 ```{r}
-glm.9 <- 
+glm.9 <-
   brm(family = zero_inflated_poisson,
       y ~ 1,
       prior = c(prior(normal(-1.5, 1), class = Intercept),
-                prior(beta(2, 6), class = zi)), 
+                prior(beta(2, 6), class = zi)),
       iter = 2000, warmup = 1000, chains = 4, cores = 4,
       data = zips,
       backend = "cmdstanr",
       file = "glm.9")
 ```
 
-------------------------------------------------------------------------
+## Priors for zi
 
 ```{r}
 #| code-fold: true
 zip.priors <-
   c(prior(beta(1, 1), class = zi),
     prior(beta(2, 6), class = zi))
-zip.priors %>% 
+zip.priors %>%
   parse_dist(prior) %>%
   ggplot(aes(y = prior, dist = .dist, args = .args, fill = prior)) +
   stat_dist_halfeye(.width = .95) +
@@ -1160,21 +1178,21 @@ zip.priors %>%
   theme(legend.position = "none")
 ```
 
-------------------------------------------------------------------------
+## `glm.9` summary {.smaller}
 
-Noe: When there are no predictors for zi, the brms default is to use the identity link. With predictors it will use logit, so you will have to use what you know about logs to correctly interpret. exp(-.02) = .98
+Note: when there are no predictors for zi, brms estimates zi directly as a probability (identity link). With predictors it uses a logit link, so interpret those coefficients like a logistic regression. The count part uses a log link: an Intercept of −.02 means λ = exp(−.02) ≈ .98 manuscripts per working day (we simulated 1).
 
 ```{r}
 summary(glm.9)
 ```
 
-------------------------------------------------------------------------
+## Predictors for both parts
 
 Adding predictors. Do not necessarily need to have the same predictors for each process. One can predict the excess zeros, the other can predict the counts.
 
 ```{r}
-glm.10 <- 
-  brm(bf(y ~ 1 + x, 
+glm.10 <-
+  brm(bf(y ~ 1 + x,
       zi ~ 1 + x),
       family = zero_inflated_poisson,
       iter = 2000, warmup = 1000, chains = 4, cores = 4,
@@ -1183,7 +1201,7 @@ glm.10 <-
       file = "glm.10a")
 ```
 
-------------------------------------------------------------------------
+## `glm.10` summary
 
 ```{r}
 summary(glm.10)
@@ -1191,168 +1209,192 @@ summary(glm.10)
 
 Often the associations can go in different directions (because they are modeling different processes!)
 
-------------------------------------------------------------------------
+## Plotting both parts
 
 ```{r}
-conditional_effects(glm.10)
-
+#| code-fold: true
+plot_predictions(glm.10, condition = "x") + labs(y = "expected manuscripts") +
+plot_predictions(glm.10, condition = "x", dpar = "zi") + labs(y = "zi: Pr(structural zero)")
 ```
 
 
-## revist roaches
+## Revisit roaches
 
 ```{r}
 #| code-fold: true
 
 glm.8c <-
   brm(family = zero_inflated_poisson,
-      y ~ 0 + Intercept + roach1 + treatment + offset(exposure2),
+      y ~ 0 + Intercept + roach1 + treatment + offset(log(exposure2)),
       prior = c(prior(normal(2, 1), class = b, coef = "Intercept"),
                 prior(normal(0, .5), class = b),
-                prior(exponential(1), class = zi)),
-      iter = 4000, warmup = 2000, cores = 4, chains = 4,
-      sample_prior = T,
-      data = roach, 
-      file = "glm.8c",
+                prior(beta(1, 1), class = zi)),
+      iter = 2000, warmup = 1000, cores = 4, chains = 4,
+      init = 0, # random inits up to ±2 make exp(b * 450 roaches) explode
+      save_pars = save_pars(all = TRUE),
+      data = roach,
+      file = "glm.8c2",
       backend = "cmdstanr")
 ```
 
-------------------------------------------------------------------------
+## `glm.8c` summary
 
 ```{r}
 summary(glm.8c)
 ```
 
-------------------------------------------------------------------------
+## Posterior predictive check: ZIP
 
 ```{r}
 predictions(glm.8c,
-            type = "prediction")  %>% 
-  posterior_draws() %>% 
-    sample_draws(50, draw = "drawid") %>% 
+            type = "prediction")  %>%
+  get_draws() %>%
+    sample_draws(50, draw = "drawid") %>%
     ggplot(aes(draw, group = drawid)) +
    geom_line(stat = "density", alpha = .1) +
-  geom_density(aes(y))+ xlim(0,100)
+  geom_density(aes(y))+ xlim(0,100) +
   theme_classic()
 ```
 
-------------------------------------------------------------------------
+## Predictors for the zero part too
 
 ```{r}
 #| code-fold: true
 
 glm.8d <-
-  brm(bf(family = zero_inflated_poisson,
-      y ~ 0 + Intercept + roach1 + treatment + offset(exposure2),
-      zi ~ 0 + Intercept + roach1 + treatment +  offset(exposure2)),
-      iter = 4000, warmup = 2000, cores = 4, chains = 4,
-      data = roach, 
-      file = "glm.8d",
+  brm(bf(y ~ 0 + Intercept + roach1 + treatment + offset(log(exposure2)),
+         zi ~ 0 + Intercept + roach1 + treatment),
+      family = zero_inflated_poisson,
+      prior = c(prior(normal(2, 1), class = b, coef = "Intercept"),
+                prior(normal(0, .5), class = b),
+                prior(normal(0, 1), class = b, dpar = "zi")),
+      iter = 2000, warmup = 1000, cores = 4, chains = 4,
+      init = 0,
+      save_pars = save_pars(all = TRUE),
+      data = roach,
+      file = "glm.8d3",
       backend = "cmdstanr")
 ```
 
-------------------------------------------------------------------------
+## `glm.8d` summary
 
 ```{r}
 summary(glm.8d)
 ```
 
-------------------------------------------------------------------------
+## Posterior predictive check: `glm.8d`
 
 ```{r}
 predictions(glm.8d,
-            type = "prediction")  %>% 
-  posterior_draws() %>% 
-    sample_draws(100, draw = "drawid") %>% 
+            type = "prediction")  %>%
+  get_draws() %>%
+    sample_draws(100, draw = "drawid") %>%
     ggplot(aes(draw, group = drawid)) +
    geom_line(stat = "density", alpha = .1) +
   geom_density(aes(y))+ xlim(0,100) +
   theme_classic()
 ```
 
-------------------------------------------------------------------------
+## `glm.8d` predictions
 
 ```{r}
 #| code-fold: true
-predictions(glm.8d,newdata = datagrid(roach1 = seq(from = min(roach$roach1), to = max(roach$roach1)), treatment = unique)) %>% 
-  posterior_draws() %>%
-  mutate(treatment = as.factor(treatment)) %>% 
+predictions(glm.8d,newdata = datagrid(roach1 = seq(from = min(roach$roach1), to = max(roach$roach1)), treatment = unique)) %>%
+  get_draws() %>%
+  mutate(treatment = as.factor(treatment)) %>%
   ggplot(aes(x = roach1, y = draw, color = treatment)) +
   stat_lineribbon(.width = .95, alpha = .4) + ylab("roaches")
 ```
 
-------------------------------------------------------------------------
+## Log-transforming roach1
 
 ```{r}
 #| code-fold: true
 
 glm.8e <-
-  brm(bf(family = zero_inflated_poisson,
-      y ~ 0 + Intercept + I(log(roach1+1)) + treatment +  offset(exposure2),
-      zi ~ 0 + Intercept + I(log(roach1+1)) + treatment +   offset(exposure2)),
-       prior = c(prior(normal(2, 1), class = b, coef = "Intercept"),
+  brm(bf(y ~ 0 + Intercept + I(log(roach1 + 1)) + treatment + offset(log(exposure2)),
+         zi ~ 0 + Intercept + I(log(roach1 + 1)) + treatment),
+      family = zero_inflated_poisson,
+      prior = c(prior(normal(2, 1), class = b, coef = "Intercept"),
                 prior(normal(0, 1), class = b),
                 prior(normal(0, 1), class = b, dpar = "zi")),
-      iter = 4000, warmup = 2000, cores = 4, chains = 4,thin = 1,
-      data = roach, 
-      file = "glm.8d2",
+      iter = 2000, warmup = 1000, cores = 4, chains = 4,
+      save_pars = save_pars(all = TRUE),
+      data = roach,
+      file = "glm.8e2",
       backend = "cmdstanr")
 ```
 
-------------------------------------------------------------------------
+## `glm.8e` summary
 
 ```{r}
 summary(glm.8e)
 ```
 
-------------------------------------------------------------------------
+## Posterior predictive check: `glm.8e`
 
 ```{r}
 predictions(glm.8e,
-            type = "prediction")  %>% 
-  posterior_draws() %>% 
-    sample_draws(100, draw = "drawid") %>% 
+            type = "prediction")  %>%
+  get_draws() %>%
+    sample_draws(100, draw = "drawid") %>%
     ggplot(aes(draw, group = drawid)) +
    geom_line(stat = "density", alpha = .1) +
   geom_density(aes(y))+ xlim(0,100) +
   theme_classic()
 ```
 
-------------------------------------------------------------------------
+## `glm.8e` predictions
 
 Big difference from before
 
 ```{r}
 #| code-fold: true
-predictions(glm.8e,newdata = datagrid(roach1 = seq(from = min(roach$roach1), to = max(roach$roach1)), treatment = unique)) %>% 
-  posterior_draws() %>%
-  mutate(treatment = as.factor(treatment)) %>% 
+predictions(glm.8e,newdata = datagrid(roach1 = seq(from = min(roach$roach1), to = max(roach$roach1)), treatment = unique)) %>%
+  get_draws() %>%
+  mutate(treatment = as.factor(treatment)) %>%
   ggplot(aes(x = roach1, y = draw, color = treatment)) +
   stat_lineribbon(.width = .95, alpha = .4) + ylab("roaches")
 ```
 
-## compare roach models
+## Compare roach models
+
+To compare fairly, all three need the same offset. `glm.8b2` is `glm.8b` plus `offset(log(exposure2))`:
 
 ```{r}
-loo_p <- loo(glm.7o, moment_match = TRUE)
-loo_nb <- loo(glm.8b, moment_match = TRUE)
+#| code-fold: true
+glm.8b2 <-
+  brm(family = negbinomial,
+      y ~ 0 + Intercept + roach1 + treatment + offset(log(exposure2)),
+      prior = c(prior(normal(2, 1), class = b, coef = "Intercept"),
+                prior(normal(0, .5), class = b),
+                prior(exponential(1), class = shape)),
+      iter = 2000, warmup = 1000, cores = 4, chains = 4,
+      save_pars = save_pars(all = TRUE),
+      data = roach,
+      file = "glm.8b2",
+      backend = "cmdstanr")
+```
+
+```{r}
+loo_p   <- loo(glm.7o, moment_match = TRUE)
+loo_nb  <- loo(glm.8b2, moment_match = TRUE)
 loo_zip <- loo(glm.8e, moment_match = TRUE)
-loo_compare(loo_p, loo_nb,loo_zip)
+loo_compare(loo_p, loo_nb, loo_zip)
 ```
 
 ## Hurdle models/zero augmented
 
-Are also mixure (two-part) models that specifies one process for zero counts and another process for positive counts. The idea is that positive counts occur once a threshold is crossed.
+Also mixture (two-part) models, which specify one process for zero counts and another process for positive counts. The idea is that positive counts occur once a threshold is crossed.
 
-------------------------------------------------------------------------
+## Intercept-only hurdle model
 
 ```{r}
-glm.11 <- 
+glm.11 <-
   brm(family = hurdle_poisson,
       y ~ 1,
-      hu ~ 1,
       prior = c(prior(normal(-1.5, 1), class = Intercept),
-               prior(beta(1, 1), class = hu)),  
+               prior(beta(1, 1), class = hu)),
       iter = 2000, warmup = 1000, chains = 4, cores = 4,
       data = zips,
       backend = "cmdstanr",
@@ -1360,23 +1402,22 @@ glm.11 <-
 
 ```
 
-------------------------------------------------------------------------
+## `glm.11` summary
 
 ```{r}
 summary(glm.11)
 ```
 
-------------------------------------------------------------------------
+## Hurdle model with a predictor
 
 ```{r}
 
-glm.11x <- 
+glm.11x <-
   brm(family = hurdle_poisson,
-      y ~ 1 +  x,
-      hu ~ 1 , 
+      y ~ 1 + x,
       prior = c(prior(normal(-1.5, 1), class = Intercept),
                prior(normal(-1.5, 3), class = b),
-                prior(beta(1, 1), class = hu)),  
+                prior(beta(1, 1), class = hu)),
       iter = 2000, warmup = 1000, chains = 4, cores = 4,
       data = zips,
       backend = "cmdstanr",
@@ -1384,24 +1425,24 @@ glm.11x <-
 
 ```
 
-------------------------------------------------------------------------
+## `glm.11x` summary
 
 ```{r}
 summary(glm.11x)
 ```
 
-------------------------------------------------------------------------
+## Expected counts with tidybayes
 
 ```{r}
 #| code-fold: true
-zips %>% 
-  data_grid(x = seq_range(x, n = 30)) %>% 
-  add_epred_draws(glm.11x) %>% 
+zips %>%
+  data_grid(x = seq_range(x, n = 30)) %>%
+  add_epred_draws(glm.11x) %>%
   ggplot(aes(x = x, y = .epred)) +
-  stat_lineribbon(.width = 0.95, alpha = .4) 
+  stat_lineribbon(.width = 0.95, alpha = .4)
 ```
 
-------------------------------------------------------------------------
+## Both parts with marginaleffects
 
 With {marginaleffects}
 
@@ -1419,7 +1460,7 @@ plot_predictions(
     labs(y = "hu")
 ```
 
-------------------------------------------------------------------------
+## Posterior predictive check: hurdle
 
 ```{r}
 pp_check(glm.11x)
@@ -1431,24 +1472,22 @@ likert scales never, sometimes, often no degree, hs degree, some college, colleg
 
 discrete, defined order, distance between categories is unknown
 
-common assumption is to treat differences as the same and model as continuous with guassian
+common assumption is to treat differences as the same and model it as continuous with a Gaussian
 
-## log cumulative odds link
+## Log cumulative odds link
 
 ```{r}
 #| code-fold: true
 
-library(rethinking)
-data(Trolley)
-trolley <- Trolley
+trolley <- read_csv("trolley.csv")  # rethinking's Trolley data; also at https://bayes27.netlify.app/trolley.csv
 p2a <-
   trolley %>%
   ggplot(aes(x = response)) +
-  geom_histogram() 
+  geom_histogram()
 p2a
 ```
 
-------------------------------------------------------------------------
+## Proportion of each response
 
 ```{r}
 #| code-fold: true
@@ -1456,22 +1495,22 @@ p2 <-
   trolley %>%
   count(response) %>%
   mutate(pr_k     = n / nrow(trolley),
-         cum_pr_k = cumsum(pr_k)) %>% 
-  ggplot(aes(x = response, y = pr_k, 
+         cum_pr_k = cumsum(pr_k)) %>%
+  ggplot(aes(x = response, y = pr_k,
              fill = response)) +
   geom_line() +
-  geom_point(shape = 21, color = "grey92", 
+  geom_point(shape = 21, color = "grey92",
              size = 2.5, stroke = 1) +
   scale_x_continuous(breaks = 1:8) +
-  scale_y_continuous(" proportion", 
+  scale_y_continuous(" proportion",
                      limits = c(0, .35)) +
   theme(axis.ticks = element_blank(),
         axis.title.y = element_text(angle = 90),
         legend.position = "none")
-p2 
+p2
 ```
 
-------------------------------------------------------------------------
+## Cumulative proportions
 
 Cumulative proportion. Each choice is larger than the previous
 
@@ -1481,14 +1520,14 @@ p2b <-
   trolley %>%
   count(response) %>%
   mutate(pr_k     = n / nrow(trolley),
-         cum_pr_k = cumsum(pr_k)) %>% 
-  ggplot(aes(x = response, y = cum_pr_k, 
+         cum_pr_k = cumsum(pr_k)) %>%
+  ggplot(aes(x = response, y = cum_pr_k,
              fill = response)) +
   geom_line() +
-  geom_point(shape = 21, color = "grey92", 
+  geom_point(shape = 21, color = "grey92",
              size = 2.5, stroke = 1) +
   scale_x_continuous(breaks = 1:8) +
-  scale_y_continuous("cumulative proportion", 
+  scale_y_continuous("cumulative proportion",
                      breaks = c(0, .25, .5, .75, 1), limits = c(0, 1.1)) +
   theme(axis.ticks = element_blank(),
         axis.title.y = element_text(angle = 90),
@@ -1497,11 +1536,11 @@ p2b <-
 p2b
 ```
 
-------------------------------------------------------------------------
+## Cumulative probability
 
 -   The cumulative probability of a value is the probability of that value or any smaller value. In the context of ordered categories, the cumulative probability of 3 is the sum of the probabilities of 3, 2, and 1
 
-------------------------------------------------------------------------
+## Probability of each response
 
 Logic: - Probability of any observation is just counting up the cumulative proportion for values to the left of the cut points.
 
@@ -1511,55 +1550,55 @@ Logic: - Probability of any observation is just counting up the cumulative propo
 
 -   Thus what is the probability of getting a 5? It is the cumulative probability of getting a 5 or less subtracting the cumulative probability of getting a 4 or less.
 
-------------------------------------------------------------------------
+## Cumulative log odds {.smaller}
 
 -   We can change this into cumulative log odds, where each response value is represented as a logit.
 
 -   This changes the x axis, making different cut points that represent the cumulative log odds of getting a 4, for example.
 
--   The cumulative log odds of getting a 7 here cannot be determined because the logit of 1 is infinity. Logit of 0 represents 50% of our values. Logit of -2 almost none, logit of +2 almost all of our values.
+-   The cumulative log odds of a 7 (or less) is infinite, because Pr(y ≤ 7) = 1. A logit of 0 means 50% of responses are at or below that cut point; −2 means about 12%; +2 means about 88%.
 
 -   Why logits? Because we want to predict an ordered outcome.
 
-------------------------------------------------------------------------
+## Estimating the cut points
 
 We want to estimate the cutpoints
 
-$$\log\left(\dfrac{Pr(y_i)}{Pr(y_i)}\right)=\log\left(\dfrac{Pr(y_i \leq k)}{1-Pr(y_i \leq k)}\right)$$
+$$\text{logit}(Pr(y_i \leq k)) = \log\left(\dfrac{Pr(y_i \leq k)}{1-Pr(y_i \leq k)}\right)$$
 
 ```{r, echo = FALSE}
 p2b +  scale_x_continuous(breaks = c(.5,2,3.5,5,6.6), labels = c(-2,-1,0,1,2)) + xlab("cumulative log odds") +  theme(axis.title.y = element_blank(), axis.text.y = element_blank())
 ```
 
-------------------------------------------------------------------------
+## Cut points as intercepts
 
-We will have intercepts for each response option, each on the log-cumulative-odds scale. They will be interpreted as the cumulative probability of each outcome.
+We will have intercepts for each response option, each on the log-cumulative-odds scale. Run through the inverse logit, they are the cumulative probability of each outcome.
 
-$\alpha_k$ is an “intercept” unique to each possible outcome value k. We estimating the probability of some response yi being equal or less than to some category. E.g., the cumulative probability of getting a 5? It is the proportion of values that are 5 or less.
+$\alpha_k$ is an “intercept” unique to each possible outcome value k. We are estimating the probability of some response $y_i$ being equal to or less than some category. E.g., the cumulative probability of getting a 5? It is the proportion of values that are 5 or less.
 
 $$\log \frac{\operatorname{Pr}(y_i \leq k)}{1 - \operatorname{Pr}(y_i \leq k)} = \alpha_k$$
 
-------------------------------------------------------------------------
+## Cut points by hand
 
 ```{r}
 #| code-fold: true
-logit <- function(x) log(x / (1 - x)) 
+logit <- function(x) log(x / (1 - x))
 trolley %>%
   count(response) %>%
   mutate(pr_k     = n / nrow(trolley),
-         cum_pr_k = cumsum(n / nrow(trolley))) %>% 
+         cum_pr_k = cumsum(n / nrow(trolley))) %>%
   mutate(alpha = logit(cum_pr_k) %>% round(digits = 2))
 ```
 
-------------------------------------------------------------------------
+## Counts, proportions, and log-cumulative-odds
 
 ```{r}
 #| code-fold: true
 
 p1 <-
-  trolley %>% 
-  ggplot(aes(x = response, fill = ..x..)) +
-  geom_histogram(binwidth = 1/4, size = 0) +
+  trolley %>%
+  ggplot(aes(x = response, fill = after_stat(x))) +
+  geom_histogram(binwidth = 1/4) +
   scale_fill_gradient(low = "grey",
                        high = "black") +
   scale_x_continuous(breaks = 1:7) +
@@ -1572,14 +1611,14 @@ p2 <-
   trolley %>%
   count(response) %>%
   mutate(pr_k     = n / nrow(trolley),
-         cum_pr_k = cumsum(pr_k)) %>% 
-  ggplot(aes(x = response, y = pr_k, 
+         cum_pr_k = cumsum(pr_k)) %>%
+  ggplot(aes(x = response, y = pr_k,
              fill = response)) +
   geom_line() +
-  geom_point(shape = 21, color = "grey92", 
+  geom_point(shape = 21, color = "grey92",
              size = 2.5, stroke = 1) +
   scale_x_continuous(breaks = 1:8) +
-  scale_y_continuous(" proportion", 
+  scale_y_continuous(" proportion",
                      limits = c(0, .35)) +
   theme(axis.ticks = element_blank(),
         axis.title.y = element_text(angle = 90),
@@ -1589,98 +1628,103 @@ p2 <-
 p3 <-
   trolley %>%
   count(response) %>%
-  mutate(cum_pr_k = cumsum(n / nrow(trolley))) %>% 
-  filter(response < 7) %>% 
+  mutate(cum_pr_k = cumsum(n / nrow(trolley))) %>%
+  filter(response < 7) %>%
   ggplot(aes(x = response, y = logit(cum_pr_k), fill = response)) +
   geom_line() +
-  geom_point(shape = 21, colour = "grey92", 
+  geom_point(shape = 21, colour = "grey92",
              size = 2.5, stroke = 1) +
   scale_x_continuous(breaks = 1:7, limits = c(1, 7)) +
   ylab("log-cumulative-odds") +
   theme(axis.ticks = element_blank(),
-        axis.title.y = element_text(angle = 90), 
+        axis.title.y = element_text(angle = 90),
         legend.position = "none")
 
-(p1 | p2 | p3) 
+(p1 | p2 | p3)
 
 ```
 
-------------------------------------------------------------------------
+## The ordered logit model
 
-$$\text{response}_i  \sim \operatorname{Categorical} (\mathbf p) $$ $$\text{logit}(p_k)  = \alpha_k + \phi $$ $$\phi               = 0 $$ $$\alpha_k           \sim \operatorname{Normal}(0, 1.5)$$
+$$
+\begin{aligned}
+\text{response}_i &\sim \operatorname{Ordered-logit}(\phi_i, \boldsymbol\alpha) \\
+\text{logit}(Pr(\text{response}_i \leq k)) &= \alpha_k - \phi_i \\
+\phi_i &= 0 \\
+\alpha_k &\sim \operatorname{Normal}(0, 1.5)
+\end{aligned}
+$$
 
-Where $\phi$ is a stand in for regression terms. Right now it is an intercept only model. $\alpha_k$ are our k intercepts, make up for #categories minus 1.
+Where $\phi$ is a stand-in for regression terms. Right now it is an intercept-only model. The $\alpha_k$ are the cut points: one fewer than the number of categories (6 for a 1–7 scale).
 
-------------------------------------------------------------------------
+## Fitting it in brms
 
-Note we specified a categorical one in the model statement. The brms code uses the term cumulative. And SR uses Ordered logit. All the same.
+SR calls this an ordered logit; brms calls it `family = cumulative` (with a logit link by default). Same model.
 
 ```{r}
-glm.12 <- 
+glm.12 <-
   brm(family = cumulative,
       response ~ 1,
       prior(normal(0, 1.5), class = Intercept),
       iter = 2000, warmup = 1000, cores = 4, chains = 4,
-      data = trolley, 
+      data = trolley,
       backend = "cmdstanr",
       file = "glm.12")
 ```
 
-------------------------------------------------------------------------
+## `glm.12` summary
 
 ```{r}
 #| code-fold: true
 summary(glm.12)
 ```
 
-------------------------------------------------------------------------
+## Back to cumulative proportions
 
 Bring back into cumulative proportions
 
 ```{r}
 #| code-fold: true
-glm.12 %>% 
-gather_draws(b_Intercept[cut]) %>% 
-  mutate(.value = inv_logit_scaled(.value)) %>% 
-  group_by(cut) %>% 
+glm.12 %>%
+gather_draws(b_Intercept[cut]) %>%
+  mutate(.value = inv_logit_scaled(.value)) %>%
+  group_by(cut) %>%
   summarise(mean = mean(.value),
             sd   = sd(.value),
             ll   = quantile(.value, probs = .025),
             ul   = quantile(.value, probs = .975))
 ```
 
-## adding predictors
+## Adding predictors {.smaller}
 
 
 $$\log \frac{\operatorname{Pr}(y_i \leq k)}{1 - \operatorname{Pr}(y_i \leq k)} =  \alpha_k - \phi_i $$
 
 
-$$ \text{response}_i  \sim \operatorname{Categorical} (\mathbf p) $$ 
-
-$$  \text{logit}(p_k)      =  \log \frac{\operatorname{Pr}(y_i \leq k)}{1 - \operatorname{Pr}(y_i \leq k)} =\alpha_k - \phi_i $$ 
+$$ \text{response}_i  \sim \operatorname{Ordered-logit} (\phi_i, \boldsymbol\alpha) $$
 
 $$\phi_i = \beta x_i$$
 
-Why is the linear model ϕ subtracted from each intercept? Because if we decrease the log-cumulative-odds of every outcome value k below the maximum, this necessarily shifts probability mass upwards towards higher outcome values. This way, a positive β value indicates that an increase in the predictor variable x results in an increase in the average response. 
+Why is the linear model ϕ subtracted from each intercept? Because if we decrease the log-cumulative-odds of every outcome value k below the maximum, this necessarily shifts probability mass upwards towards higher outcome values. This way, a positive β value indicates that an increase in the predictor variable x results in an increase in the average response.
 
 
-------------
+## Shifting the cut points
 
 ![](cumlog.gif)
 
 
-------------------------------------------------------------------------
+## The model with predictors
 
-$$ \text{response}_i  \sim \operatorname{Categorical} (\mathbf p) $$ 
-$$ \text{logit}(p_k)      = \alpha_k - \phi_i $$ 
+$$ \text{response}_i  \sim \operatorname{Ordered-logit} (\phi_i, \boldsymbol\alpha) $$
+$$ \text{logit}(Pr(\text{response}_i \leq k)) = \alpha_k - \phi_i $$
 $$  \phi_i = \beta_1 \text{action}_i + \beta_2 \text{contact}_i + \beta_3 \text{intention}_i + \beta_4 (\text{action}_i \times \text{intention}_i) + \beta_5 (\text{contact}_i \times \text{intention}_i) $$
-$$\alpha_k               \sim \operatorname{Normal}(0, 1.5) $$ 
+$$\alpha_k               \sim \operatorname{Normal}(0, 1.5) $$
 $$\beta_1, ..., \beta_5  \sim \operatorname{Normal}(0, 0.5) $$
 
-------------------------------------------------------------------------
+## Fitting `glm.13`
 
 ```{r}
-glm.13 <- 
+glm.13 <-
   brm(family = cumulative,
       response ~ 1 + action + contact + intention + intention:action + intention:contact,
       prior = c(prior(normal(0, 1.5), class = Intercept),
@@ -1691,18 +1735,18 @@ glm.13 <-
       file = "glm.13")
 ```
 
-------------------------------------------------------------------------
+## `glm.13` summary
 
 ```{r}
 summary(glm.13)
 ```
 
-------------------------------------------------------------------------
+## Coefficient posteriors
 
 ```{r}
 #| code-fold: true
-glm.13 %>% 
-gather_draws(`b_action`,`b_contact`,`b_intention`,`b_action:intention`,`b_contact:intention`) %>% 
+glm.13 %>%
+gather_draws(`b_action`,`b_contact`,`b_intention`,`b_action:intention`,`b_contact:intention`) %>%
   ggplot(aes(x = .value, y = .variable)) +
   geom_vline(xintercept = 0, alpha = 1, linetype = 3) +
   stat_gradientinterval(.width = .95, point_size = 1, shape = 1) +
@@ -1711,28 +1755,28 @@ gather_draws(`b_action`,`b_contact`,`b_intention`,`b_action:intention`,`b_contac
 
 ```
 
-------------------------------------------------------------------------
+## Predictions by action
 
 ```{r}
 #| code-fold: true
-conditional_effects(glm.13, effects = "action", categorical =TRUE)
+plot_predictions(glm.13, condition = c("action", "group"))
 ```
 
-------------------------------------------------------------------------
+## Predictions by contact
 
 ```{r}
 #| code-fold: true
-conditional_effects(glm.13, effects = "contact", categorical =TRUE)
+plot_predictions(glm.13, condition = c("contact", "group"))
 ```
 
-------------------------------------------------------------------------
+## Predictions by intention
 
 ```{r}
 #| code-fold: true
-conditional_effects(glm.13, effects = "intention", categorical =TRUE)
+plot_predictions(glm.13, condition = c("intention", "group"))
 ```
 
-------------------------------------------------------------------------
+## Average comparisons
 
 ```{r}
 #| code-fold: true
@@ -1740,15 +1784,16 @@ library(marginaleffects)
 avg_comparisons(glm.13)
 ```
 
-------------------------------------------------------------------------
+## Action's effect, by intention {.smaller}
+
+How much does action change the probability of each response, with and without intention?
 
 ```{r}
 #| code-fold: true
-library(emmeans)
-emmeans(glm.13, specs = pairwise ~ action:intention)
+avg_comparisons(glm.13, variables = "action", by = "intention")
 ```
 
-------------------------------------------------------------------------
+## Predicted response distributions: action × intention
 
 Each condition should add up to 1
 
@@ -1756,43 +1801,43 @@ Each condition should add up to 1
 #| code-fold: true
 trolley %>%
   data_grid(action = c(0,1), intention = c(0,1), contact = .5) %>%
-  mutate(x = interaction(action, intention)) %>% 
+  mutate(x = interaction(action, intention)) %>%
   mutate(x = fct_recode(as.factor(x),
                       No_A_No_I = "0.0",
                       No_A_Y_I = "0.1",
                       Y_A_No_I = "1.0",
-                      Y_A_Y_I = "1.1")) %>% 
+                      Y_A_Y_I = "1.1")) %>%
   add_epred_draws(glm.13) %>%
   ggplot(aes(x = .epred, y = .category, fill = x)) +
   stat_slab()
 ```
 
-------------------------------------------------------------------------
+## Predicted response distributions: contact × intention
 
 ```{r}
 #| code-fold: true
 trolley %>%
   data_grid(action = .5, intention = c(0,1), contact = c(0,1)) %>%
-  mutate(x = interaction(contact, intention)) %>% 
+  mutate(x = interaction(contact, intention)) %>%
   mutate(x = fct_recode(as.factor(x),
                       No_C_No_I = "0.0",
                       Y_C_No_I = "1.0",
                       No_C_Y_I = "0.1",
-                      Y_C_Y_I = "1.1")) %>% 
+                      Y_C_Y_I = "1.1")) %>%
   add_epred_draws(glm.13) %>%
   ggplot(aes(x = .epred, y = .category, fill = x)) +
   stat_slab()
 ```
 
-------------------------------------------------------------------------
+## Cumulative probabilities by condition
 
 Think as cumulative probability cut points
 
 ```{r}
 #| code-fold: true
-nd <- 
-  trolley %>% 
-  distinct(action, contact, intention) %>% 
+nd <-
+  trolley %>%
+  distinct(action, contact, intention) %>%
   mutate(combination = str_c(action, contact, intention, sep = "_"))
 
 fit.13 <-
@@ -1807,40 +1852,40 @@ fit.13 <-
         fit.13[, , 4],
         fit.13[, , 5],
         fit.13[, , 6],
-        fit.13[, , 7]) %>% 
-  data.frame() %>% 
-  set_names(pull(nd, combination)) %>% 
+        fit.13[, , 7]) %>%
+  data.frame() %>%
+  set_names(pull(nd, combination)) %>%
   mutate(response = rep(1:7, each = n() / 7),
-         iter     = rep(1:4000, times = 7)) %>% 
+         iter     = rep(1:4000, times = 7)) %>%
   pivot_longer(-c(iter, response),
                names_to = c("action", "contact", "intention"),
                names_sep = "_",
-               values_to = "pk") %>% 
+               values_to = "pk") %>%
   mutate(intention = intention %>% as.integer())
 
 levels <- c("action=0, contact=0", "action=1, contact=0", "action=0, contact=1")
 
-  fit.13 %>% 
-  filter(response < 7) %>% 
+  fit.13 %>%
+  filter(response < 7) %>%
   mutate(facet = factor(str_c("action=", action, ", contact=", contact),
-                        levels = levels)) %>% 
-  group_by(iter, facet, intention) %>% 
-  arrange(iter, facet, intention, response) %>% 
-  mutate(probability = cumsum(pk)) %>% 
-  ungroup() %>% 
-  nest(data = -iter) %>% 
-  sample_n(size = 50) %>%
-  unnest(data) %>% 
+                        levels = levels)) %>%
+  group_by(iter, facet, intention) %>%
+  arrange(iter, facet, intention, response) %>%
+  mutate(probability = cumsum(pk)) %>%
+  ungroup() %>%
+  nest(data = -iter) %>%
+  slice_sample(n = 50) %>%
+  unnest(data) %>%
 
   ggplot(aes(x = intention, y = probability)) +
   geom_line(aes(group = interaction(iter, response), color = probability),
             alpha = 1/10) +
-  geom_point(data = trolley %>%  
-               group_by(intention, contact, action) %>% 
-               count(response) %>% 
+  geom_point(data = trolley %>%
+               group_by(intention, contact, action) %>%
+               count(response) %>%
                mutate(probability = cumsum(n / sum(n)),
                       facet = factor(str_c("action=", action, ", contact=", contact),
-                                     levels = levels)) %>% 
+                                     levels = levels)) %>%
                filter(response < 7),) +
   scale_x_continuous("intention", breaks = 0:1) +
   scale_y_continuous(breaks = c(0, .5, 1), limits = c(0, 1)) +
@@ -1853,7 +1898,7 @@ levels <- c("action=0, contact=0", "action=1, contact=0", "action=0, contact=1")
 The parameter related to latent variances is called disc (short for discrimination).
 
 ```{r}
-glm.14 <- 
+glm.14 <-
   brm(family = cumulative,
       bf(response ~ 1 + action + contact + intention + intention:action + intention:contact) +
       lf(disc ~ 0 + action + contact + intention + intention:action + intention:contact, cmc = FALSE),
@@ -1865,23 +1910,23 @@ glm.14 <-
       file = "glm.14")
 ```
 
-------------------------------------------------------------------------
+## `glm.14` summary
 
 ```{r}
 summary(glm.14)
 ```
 
 
----------
+## Predicted response distributions with unequal variances
 ```{r}
 trolley %>%
   data_grid(action = .5, intention = c(0,1), contact = c(0,1)) %>%
-  mutate(x = interaction(contact, intention)) %>% 
+  mutate(x = interaction(contact, intention)) %>%
   mutate(x = fct_recode(as.factor(x),
                       No_C_No_I = "0.0",
                       Y_C_No_I = "1.0",
                       No_C_Y_I = "0.1",
-                      Y_C_Y_I = "1.1")) %>% 
+                      Y_C_Y_I = "1.1")) %>%
   add_epred_draws(glm.14) %>%
   ggplot(aes(x = .epred, y = .category, fill = x)) +
   stat_slab()
@@ -1893,50 +1938,51 @@ trolley %>%
 
 When we have multiple items we can fit latent (IRT) models
 
-$$y_i \sim \operatorname{Bernoulli} (p_{pi})$$
+$$y_{pi} \sim \operatorname{Bernoulli} (p_{pi})$$
 
-$$logit(p_{pi}) = \alpha_i\theta_p + \alpha_i\xi_i$$
+$$\text{logit}(p_{pi}) = \alpha_i(\theta_p + \xi_i) = \alpha_i\theta_p + \alpha_i\xi_i$$
 
-$$logit(p_{pi}) = \alpha_i(\theta_p + \xi_i)$$
+$\theta_p$ = person *p*'s ability, $\xi_i$ = item *i*'s easiness, $\alpha_i$ = item *i*'s discrimination. More in HW 13.
+
 ## Category specific effects
 
-Do you want to assume similar effects of your predictors across the range of your DV? Or does the effect occur only as certain differences between the categories? 
+Do you want to assume similar effects of your predictors across the range of your DV? Or does the effect occur only as certain differences between the categories?
 
 For example, predicting educational attainment. Negative peer influences may have a large effect at graduating HS but little effect compared to whether or not someone goes to graduate school.
 
 ```{r, eval = FALSE}
-Y ~ cs(X),
+brm(Y ~ cs(X), family = sratio)  # cs() works with sratio, cratio and acat, not cumulative
 ```
 
 
 
-## Sequential and Adjacent category models
+## Sequential and Adjacent category models {.smaller}
 
-For many ordinal variables, the assumption of a single underlying continuous variable, as in cumulative models, may not be appropriate. 
+For many ordinal variables, the assumption of a single underlying continuous variable, as in cumulative models, may not be appropriate.
 
-sequential: years of marriage where the marriage may continue or end by divorce, but the latter can happen only if it did not happen before. For every category k there is a latent continuous variable. 
+sequential: years of marriage where the marriage may continue or end by divorce, but the latter can happen only if it did not happen before. For every category k there is a latent continuous variable.
 
 Adjacent category (partial credit): Sequential models model the decision between Y = k and Y > k, whereas adjacent-category models model the decision
-between Y = k and Y = k + 1. Mathematically useful, lack of ordering of the threshold parameters. 
+between Y = k and Y = k + 1. Mathematically useful, lack of ordering of the threshold parameters.
 
 
 
 
 
--------------
+## Adjacent category models
 
 ![](adjacent.png)
 
 
-## Ordinal predictors
+## Ordinal predictors {.smaller}
 
 Say you have an exercise variable: (none, 1 time a month, 1 time a week, multiple times a week, everyday). How do you model? Continuous?
 
-Cant you just model ordinal predictors as a series of dummy variables? But what is we want to force the inherent order?
+Can't you just model ordinal predictors as a series of dummy variables? But what if we want to respect the inherent order?
 
-Monotonic. Think about as a compromise between continuous and dummy. We can not assume categories are equidistant with respect to their effect on the response variable (because then we would be using continuous). Instead, the distance between adjacent predictor categories (or integers) is estimated from the data and may vary across categories.
+Monotonic effects, `mo(x)` in brms. Think of it as a compromise between continuous and dummy. We do not assume categories are equidistant with respect to their effect on the response variable (because then we would be using continuous). Instead, the distance between adjacent predictor categories (or integers) is estimated from the data and may vary across categories.
 
-## extra readings
+## Extra readings
 
 https://cran.r-project.org/web/packages/brms/vignettes/brms_monotonic.html
 
