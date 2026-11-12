@@ -123,8 +123,8 @@ Note that dates and readings are tentative. Topics will likely shift; all change
 | 4  | Feb 9, 11 | Multiple regression and interactions | SR 5 & 9 | HW 3 (Feb 11) |
 | 5  | Feb 16, 18 | Markov Chain Monte Carlo estimation (MCMC) | | HW 4 (Feb 18) |
 | 6  | Feb 23, 25 | Information, NHST and model fit | SR 7 & 10 | HW 5 (Feb 25); **project plan approved by Feb 23** |
-| 7  | Mar 2, 4 | Generalized linear models | SR 11, M2M 5, AH1 | HW 6 (Mar 4) |
-| 8  | Mar 9, 11 | Generalized linear models | SR 12, AH2 | HW 7 (Mar 11) |
+| 7  | Mar 2, 4 | GLMs: logistic and multinomial regression | SR 11, M2M 5, AH1 | HW 6 (Mar 4) |
+| 8  | Mar 9, 11 | GLMs: counts and ordinal outcomes | SR 12, AH2 | HW 7 (Mar 11) |
 |    | Mar 16, 18 | *Spring break — no class* | | |
 | 9  | Mar 23, 25 | Multilevel models | SR 13, M2M 19 | HW 8 (Mar 25) |
 | 10 | Mar 30, Apr 1 | Multilevel models | SR 14, AH3 | HW 9 (Apr 1) |

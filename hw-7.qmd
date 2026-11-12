@@ -2,7 +2,7 @@
 title: "HW 7: Logistic regression"
 ---
 
-**Due:** Thursday, Mar 11 at 2:30 pm on Canvas · **Size:** full analysis · **Points:** 25 · **Covers:** [Generalized linear models](glm-7.qmd) (binomial/Bernoulli part)
+**Due:** Thursday, Mar 11 at 2:30 pm on Canvas · **Size:** full analysis · **Points:** 25 · **Covers:** [GLMs: logistic and multinomial regression](glm-7.qmd)
 
 Start from the [homework template](hw-template.qmd){download="hw-template.qmd"}, use `## Q1` to `## Q6` headings, and turn in both the `.qmd` and the rendered `.html`. Save brms fits with `file =`.
 

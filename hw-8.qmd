@@ -2,7 +2,7 @@
 title: "HW 8: Counts and ordered categories"
 ---
 
-**Due:** Thursday, Mar 25 at 2:30 pm on Canvas (this one spans spring break) · **Size:** full analysis · **Points:** 25 · **Covers:** [Generalized linear models](glm-7.qmd) (Poisson through ordinal)
+**Due:** Thursday, Mar 25 at 2:30 pm on Canvas (this one spans spring break) · **Size:** full analysis · **Points:** 25 · **Covers:** [GLMs: counts and ordinal outcomes](glm-7b.qmd)
 
 Start from the [homework template](hw-template.qmd){download="hw-template.qmd"}, use `## Q1` to `## Q6` headings, and turn in both the `.qmd` and the rendered `.html`. Save brms fits with `file =`. Some of these models take a minute or two; don't leave it for the last night of break.
 
