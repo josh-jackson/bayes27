@@ -1801,16 +1801,16 @@
   {
     "objectID": "info-6.html#this-time",
     "href": "info-6.html#this-time",
-    "title": "information",
+    "title": "Information, NHST and model fit",
     "section": "This time:",
     "text": "This time:\n\nModel and parameter evaluation.\n\nHow do we test our coefficients?\n\nHow do we choose the best model?\n\nWhat sort of indexes can we use to evaluate fit?"
   },
   {
     "objectID": "info-6.html#nhst",
     "href": "info-6.html#nhst",
-    "title": "information",
+    "title": "Information, NHST and model fit",
     "section": "NHST",
-    "text": "NHST\nBayesian typically do not use “standard” NHST. Why?\n\nThere is no sampling distribution and thus no p-values\nNHST is associated with tons of problems eg dichotomous thinking\nBecause we are interested in the posterior distribution, not a single point estimate\nModel comparison is more elegant"
+    "text": "NHST\nBayesians typically do not use “standard” NHST. Why?\n\nThere is no sampling distribution and thus no p-values\nNHST is associated with tons of problems eg dichotomous thinking\nBecause we are interested in the posterior distribution, not a single point estimate\nModel comparison is more elegant"
   },
   {
     "objectID": "info-6.html#standard-fit-indicies-and-tests",
@@ -1822,37 +1822,37 @@
   {
     "objectID": "info-6.html#what-is-likelihood",
     "href": "info-6.html#what-is-likelihood",
-    "title": "information",
+    "title": "Information, NHST and model fit",
     "section": "What is likelihood?",
-    "text": "What is likelihood?\nModel fit indexes like likelihood ratio test, AIC, BIC rely on likelihoods.\nThe distribution of the likelihood of various hypothesis. p(data | \\(\\theta\\) ). For likelihood, the data are treated as a given, and value of theta varies. L(\\(\\theta\\) | data )"
+    "text": "What is likelihood?\nModel fit indexes like likelihood ratio test, AIC, BIC rely on likelihoods.\nThe likelihood is p(data | \\(\\theta\\)), read the other way around: the data are treated as given and \\(\\theta\\) varies. We write it L(\\(\\theta\\) | data). It is not a probability distribution over \\(\\theta\\) (it needn’t integrate to 1)."
   },
   {
     "objectID": "info-6.html#log-likelihood",
     "href": "info-6.html#log-likelihood",
-    "title": "information",
+    "title": "Information, NHST and model fit",
     "section": "Log likelihood",
-    "text": "Log likelihood\n\nThe log of the likelihood is easier to work with (adding rather than multiplying small values). It will typically be negative, with higher values (closer to zero) indicating a better fitting model.\nIn frequentist estimation, the log likelihood is a single number, one that indicates the maximum, thus maximum likelihood estimation.\n\n\n\nCode\ndata &lt;- read_csv(\"https://raw.githubusercontent.com/josh-jackson/bayes/master/week3.csv\")\n\nlogLik(lm(health ~ 1 + happy, data = data))\n\n\n'log Lik.' -488.2327 (df=3)"
+    "text": "Log likelihood\n\nThe log of the likelihood is easier to work with (adding rather than multiplying small values). It will typically be negative, with higher values (closer to zero) indicating a better fitting model.\nIn frequentist estimation, the log likelihood is a single number, one that indicates the maximum, thus maximum likelihood estimation.\n\n\n\nCode\ndata &lt;- read_csv(\"week3.csv\", show_col_types = FALSE)\n\nlogLik(lm(health ~ 1 + happy, data = data))\n\n\n'log Lik.' -488.2327 (df=3)"
   },
   {
     "objectID": "info-6.html#where-is-deviance-coming-in",
     "href": "info-6.html#where-is-deviance-coming-in",
-    "title": "information",
+    "title": "Information, NHST and model fit",
     "section": "Where is deviance coming in?",
-    "text": "Where is deviance coming in?\nDeviance = -2LL (but (almost) only for logistic regression).\nFor all else, like our example, \\(ResidualDeviance=2\\times(LL(SaturatedModel)-LL(Proposed Model))\\) the saturated model cannot be assumed to be 0 (i.e. it cannot perfectly capture all of the data even if number of parameters is equal to data points)."
+    "text": "Where is deviance coming in?\nResidual deviance \\(= 2\\times(LL(\\text{saturated model}) - LL(\\text{proposed model}))\\), where the saturated model has one parameter per data point.\nFor binary logistic regression the saturated model predicts every 0/1 perfectly, so its LL = 0 and deviance = −2LL. For a Gaussian model it isn’t 0, so −2LL and the deviance glm() prints differ (for Gaussian glm(), the residual deviance is just the residual sum of squares)."
   },
   {
     "objectID": "info-6.html#leveraging-likelihoods",
     "href": "info-6.html#leveraging-likelihoods",
-    "title": "information",
+    "title": "Information, NHST and model fit",
     "section": "Leveraging likelihoods",
     "text": "Leveraging likelihoods\nWe don’t use grid approximation to calculate our posterior, but the LLs are super helpful to evaluate our model.\nHowever, this being bayes, we are going to work with something slightly different from what LLs we are used to.\nIn doing so we accomplish: 1. a principled way to choose likelihood function and 2. a way to evaluate models"
   },
   {
     "objectID": "info-6.html#information-theory",
     "href": "info-6.html#information-theory",
-    "title": "information",
+    "title": "Information, NHST and model fit",
     "section": "Information theory",
-    "text": "Information theory\n\nIdeally we want to learn something new, gain some additional information about the world. But how do you quantify learning or information? p-value?\nFirst step is to define what it means to be accurate in our predictions–cannot learn if we don’t have some criterion. We above defined accuracy as the log probability of the data.\nSecond step is to define what a perfect prediction would look like, and thus how much uncertainty we are dealing with. While the log probability of the data defines what parameter is most “accurate”, it does not tell us how much we are learning."
+    "text": "Information theory\n\nIdeally we want to learn something new, gain some additional information about the world. But how do you quantify learning or information? p-value?\nFirst step is to define what it means to be accurate in our predictions–cannot learn if we don’t have some criterion. Above we defined accuracy as the log probability of the data.\nSecond step is to define what a perfect prediction would look like, and thus how much uncertainty we are dealing with. While the log probability of the data defines what parameter is most “accurate”, it does not tell us how much we are learning."
   },
   {
     "objectID": "info-6.html#information-theory-1",
@@ -1864,16 +1864,16 @@
   {
     "objectID": "info-6.html#what-is-information",
     "href": "info-6.html#what-is-information",
-    "title": "information",
+    "title": "Information, NHST and model fit",
     "section": "What is information?",
-    "text": "What is information?\nThe basic intuition behind information theory is that learning that an unlikely event has occurred is more informative than learning that a likely event has occurred. Unlikely = informative.\ninformation(x) = -log2( p(x) ), where log() is the base-2 logarithm and p(x) is the probability of the event x. Units are bits, where 1 bit halves the possibilities.\n\n## coin flip\n -log2(.5)\n\n[1] 1\n\n\n\n# dice roll\n -log2(1/6)\n\n[1] 2.584963"
+    "text": "What is information?\nThe basic intuition behind information theory is that learning that an unlikely event has occurred is more informative than learning that a likely event has occurred. Unlikely = informative.\ninformation(x) = −log2(p(x)), where log2() is the base-2 logarithm and p(x) is the probability of the event x. Units are bits, where 1 bit halves the possibilities.\n\n## coin flip\n -log2(.5)\n\n[1] 1\n\n\n\n# dice roll\n -log2(1/6)\n\n[1] 2.584963"
   },
   {
     "objectID": "info-6.html#bits",
     "href": "info-6.html#bits",
-    "title": "information",
-    "section": "bits",
-    "text": "bits\n\nBits of information are the minimum number of questions required to determine an unknown. Bits effectively chop down the possible outcomes by a factor of 2^bit.\n\nA dice roll is 2.585 bits. Best to think about this is each bit like a yes/no question that halves the possibilities. 1. even? 2. greater than 3?\n\n~Half the time you can logically deduce with 2 questions (2 bits), but sometimes you need 3 questions, hence ~2.5 bits of info."
+    "title": "Information, NHST and model fit",
+    "section": "Bits",
+    "text": "Bits\n\nBits of information are the minimum number of questions required to determine an unknown. Bits effectively chop down the possible outcomes by a factor of 2^bit.\n\nA dice roll is 2.585 bits. Best to think about this is each bit like a yes/no question that halves the possibilities. 1. even? 2. greater than 3?\n\n~Half the time you can logically deduce with 2 questions (2 bits), but sometimes you need 3 questions, hence ~2.5 bits of info."
   },
   {
     "objectID": "info-6.html#bits-1",
@@ -1885,7 +1885,7 @@
   {
     "objectID": "info-6.html#entropy",
     "href": "info-6.html#entropy",
-    "title": "information",
+    "title": "Information, NHST and model fit",
     "section": "Entropy",
     "text": "Entropy\n\nCalculating the information for a random variable is the same as calculating the information for the probability distribution of the events for the random variable. This is called entropy.\nFlatter distributions will have higher entropy. Because all values are equally likely any one value is “surprising” and gives you more information compared to a peaked distribution.\nA peaked distribution is less surprising as it already contains a lot of information."
   },
@@ -1899,9 +1899,9 @@
   {
     "objectID": "info-6.html#maximum-information-entropy",
     "href": "info-6.html#maximum-information-entropy",
-    "title": "information",
+    "title": "Information, NHST and model fit",
     "section": "Maximum information entropy",
-    "text": "Maximum information entropy\n\nWe can use information theory to help us pick our likelihood distributions! Given what you know, what is the distribution that can arise the most ways with our data?\nMaximizing information entropy yields the flattest distribution given your data constraints. Gaussian is a maximum entropy distribution (as are uniform, binomial, exponential) when we know the meand and sd of a variable.\nIf nothing is known about a distribution (except measurement), then the distribution with the largest entropy should be chosen as the least-informative default."
+    "text": "Maximum information entropy\n\nWe can use information theory to help us pick our likelihood distributions! Given what you know, what is the distribution that can arise the most ways with our data?\nMaximizing information entropy yields the flattest distribution given your constraints. Each common distribution is the maximum entropy distribution for some set of constraints: Gaussian when all we know is the mean and variance; uniform when all we know is the range; binomial for counts of two outcomes with a constant probability; exponential for a positive quantity with a known mean.\nIf nothing is known about a distribution (except measurement), then the distribution with the largest entropy should be chosen as the least-informative default."
   },
   {
     "objectID": "info-6.html#entropy-2",
@@ -1913,37 +1913,37 @@
   {
     "objectID": "info-6.html#how-is-this-different-from-lrt",
     "href": "info-6.html#how-is-this-different-from-lrt",
-    "title": "information",
+    "title": "Information, NHST and model fit",
     "section": "How is this different from LRT?",
-    "text": "How is this different from LRT?\n\nDivergence/Deviance is a model of relative fit, but with a constant specific to the model. Log likelihoods thus only differ by a constant.\nComparing two models with LRT should yield similar scores as comparing two deviances.\n\nBut Bayesians don’t like NHST, so they sometimes leave off the -2, which only serves to allow a chi-square difference"
+    "text": "How is this different from LRT?\n\nDeviance is a measure of relative fit: the unknown truth’s term is the same constant for every model fit to the same data, so it cancels when we compare models.\nComparing two models with LRT should yield similar scores as comparing two deviances.\n\nBut Bayesians don’t like NHST, so they sometimes leave off the −2, which only serves to make differences chi-square distributed."
   },
   {
     "objectID": "info-6.html#log-pointwise-predictive-density",
     "href": "info-6.html#log-pointwise-predictive-density",
-    "title": "information",
+    "title": "Information, NHST and model fit",
     "section": "Log Pointwise Predictive Density",
-    "text": "Log Pointwise Predictive Density\nlppd = \\(\\sum_i\\) \\(\\log\\) (q_i)\n\\[lppd = \\sum_i^n \\log \\int( p(y_i| \\theta) (\\theta|y) d\\theta\\]\n\nFurther, with Bayes we need to use the entire posterior to define deviance! If not, we are throwing away information.\nOften referred to Log Pointwise Predictive Density (lpd or lppd)\nWe just went full circle to get a bayesian equivalent to log likelihood. And will thus use lppd for our model fit questions."
+    "text": "Log Pointwise Predictive Density\n\\[\\text{lppd} = \\sum_{i=1}^n \\log \\int p(y_i | \\theta)\\, p(\\theta | y)\\, d\\theta \\approx \\sum_{i=1}^n \\log \\left(\\frac{1}{S}\\sum_{s=1}^S p(y_i | \\theta_s)\\right)\\]\nIn words: for each observation, average its likelihood over the \\(S\\) posterior draws, take the log, then sum over observations.\n\nFurther, with Bayes we need to use the entire posterior to define deviance! If not, we are throwing away information.\nOften called the log pointwise predictive density (lpd or lppd)\nWe just went full circle to get a bayesian equivalent to log likelihood. And will thus use lppd for our model fit questions."
   },
   {
     "objectID": "info-6.html#two-options-for-model-comparison",
     "href": "info-6.html#two-options-for-model-comparison",
-    "title": "information",
+    "title": "Information, NHST and model fit",
     "section": "Two options for model comparison",
-    "text": "Two options for model comparison\n\nCross validation\nInformation model fit indexes\n\n\nThese are theoretically the same, but in practice seen as very different. That is, cross validation is equivalent to model fit like aic/bic"
+    "text": "Two options for model comparison\n\nCross validation\nInformation model fit indexes\n\n\nThese are often treated as very different, but they estimate the same thing: how well the model will predict new data. AIC, WAIC and LOO are approximations to (leave-one-out) cross validation."
   },
   {
     "objectID": "info-6.html#cross-validation",
     "href": "info-6.html#cross-validation",
-    "title": "information",
+    "title": "Information, NHST and model fit",
     "section": "Cross validation",
-    "text": "Cross validation\n\nCompare different models in their prediction in and out of sample (train and a test sample)\nPredictions to NEW DATA are key, as this separates the sample specific influence (irregular features) from population influence (regular features)\nIdentify the model with the lowest test set error (deviance). In frequentist we typically use MSE.\nBut leaving out data is not necessary ideal, so we split them into folds."
+    "text": "Cross validation\n\nCompare different models in their prediction in and out of sample (train and a test sample)\nPredictions to NEW DATA are key, as this separates the sample specific influence (irregular features) from population influence (regular features)\nIdentify the model with the lowest test set error (deviance). In frequentist we typically use MSE.\nBut a single hold-out sample wastes data, so we split the data into k folds, fit k times, and let each fold be the test set once."
   },
   {
     "objectID": "info-6.html#loo-psis-loo",
     "href": "info-6.html#loo-psis-loo",
-    "title": "information",
+    "title": "Information, NHST and model fit",
     "section": "LOO & PSIS-LOO",
-    "text": "LOO & PSIS-LOO\n\nLeaving out 1 observation per fold is calledLeave One Out (LOO) cross validation. Great in theory, but computationally difficult.\nPareto Smoothed Importance Sampling (PSIS). Importance is similar to “deleted residuals” where on a case by case basis we asked whether this data point impacts the posterior. Instead of rerunning your model N data points times, importance scores are used to weight each datapoint, resulting in an equivalent to LOO without actually doing LOO. Cross validation for free!"
+    "text": "LOO & PSIS-LOO\n\nLeaving out 1 observation per fold is called leave-one-out (LOO) cross validation. Great in theory, but computationally difficult.\nPareto Smoothed Importance Sampling (PSIS). Importance is similar to “deleted residuals” where on a case by case basis we asked whether this data point impacts the posterior. Instead of rerunning your model N data points times, importance scores are used to weight each datapoint, resulting in an equivalent to LOO without actually doing LOO. Cross validation for free!"
   },
   {
     "objectID": "info-6.html#psis-loo-example",
@@ -1955,16 +1955,16 @@
   {
     "objectID": "info-6.html#information-criteria",
     "href": "info-6.html#information-criteria",
-    "title": "information",
+    "title": "Information, NHST and model fit",
     "section": "Information Criteria",
-    "text": "Information Criteria\n\nAIC, BIC, WAIC, DIC, etc.\nInformation criteria are a theoretical fit for the out of sample cross validation, not unlike psis-loo\nAIC = deviance(training) + 2p (p = number of parameters). Low scores better.\nDIC (Deviance information criteria) is more flexible for Bayesian models, but assumes a multivariate Gaussian posterior"
+    "text": "Information Criteria\n\nAIC, BIC, WAIC, DIC, etc.\nInformation criteria are theoretical approximations to out-of-sample (cross-validation) fit, like PSIS-LOO\nAIC = deviance(training) + 2p (p = number of parameters). Lower is better.\nDIC (Deviance information criteria) is more flexible for Bayesian models, but assumes a multivariate Gaussian posterior"
   },
   {
     "objectID": "info-6.html#waic",
     "href": "info-6.html#waic",
-    "title": "information",
+    "title": "Information, NHST and model fit",
     "section": "WAIC",
-    "text": "WAIC\n\\[\\text{WAIC}(y, \\theta) = -2 \\big (\\text{lppd} - \\underbrace{\\sum_i \\operatorname{var}_\\theta \\log p(y_i | \\theta)}_\\text{penalty term} \\big)\\]\nlppd = log pointwise predictive density = deviance over the entire posterior\nSimilar in form to old friend: \\[\\text{AIC}(y, \\theta) = -2(\\text{llpd}) + 2p\\]"
+    "text": "WAIC\n\\[\\text{WAIC}(y, \\theta) = -2 \\big (\\text{lppd} - \\underbrace{\\sum_i \\operatorname{var}_\\theta \\log p(y_i | \\theta)}_\\text{penalty term} \\big)\\]\nlppd = log pointwise predictive density = deviance over the entire posterior\nSimilar in form to old friend: \\[\\text{AIC} = -2 \\log p(y | \\hat\\theta_{MLE}) + 2p\\]"
   },
   {
     "objectID": "info-6.html#example",
@@ -1983,30 +1983,30 @@
   {
     "objectID": "info-6.html#mimicking-nhst",
     "href": "info-6.html#mimicking-nhst",
-    "title": "information",
+    "title": "Information, NHST and model fit",
     "section": "Mimicking NHST",
-    "text": "Mimicking NHST\nIf you wanted to appease an editor/reviewer/adviser what do you do (other than teach them Bayes)?\nCIs! Predictions! Model comparisons with waic or loo! ROPE! Probability of direction! Bayes Factors!\n\n\nCode\nmr.14 &lt;- readRDS(\"mr.14.rds\")\nsummary(mr.14)\n\n\n Family: gaussian \n  Links: mu = identity; sigma = identity \nFormula: happiness ~ 1 + iv.d * SS_c \n   Data: MR (Number of observations: 118) \n  Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;\n         total post-warmup draws = 4000\n\nRegression Coefficients:\n            Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nIntercept       4.96      0.24     4.49     5.43 1.00     4484     2783\niv.dtx          0.38      0.29    -0.21     0.97 1.00     4355     2987\nSS_c            0.41      0.06     0.29     0.52 1.00     3498     3294\niv.dtx:SS_c    -0.28      0.09    -0.46    -0.10 1.00     3809     3007\n\nFurther Distributional Parameters:\n      Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nsigma     1.58      0.11     1.40     1.80 1.00     4406     2579\n\nDraws were sampled using sample(hmc). For each parameter, Bulk_ESS\nand Tail_ESS are effective sample size measures, and Rhat is the potential\nscale reduction factor on split chains (at convergence, Rhat = 1)."
+    "text": "Mimicking NHST\nIf you wanted to appease an editor/reviewer/adviser what do you do (other than teach them Bayes)?\nCIs! Predictions! Model comparisons with waic or loo! ROPE! Probability of direction! Bayes Factors!"
   },
   {
     "objectID": "info-6.html#probability-of-direction",
     "href": "info-6.html#probability-of-direction",
-    "title": "information",
+    "title": "Information, NHST and model fit",
     "section": "Probability of direction",
-    "text": "Probability of direction\nThe Probability of Direction (pd) is an index of effect existence representing the certainty with which an effect goes in a particular direction.\nSimple: only depends on the posterior distributions (unlike say Bayes Factors) Scale independent: interpretation doesn’t change with scale change Similar to p - value: interpretation has parallels, so it helps convince pesky reviewers"
+    "text": "Probability of direction\nThe Probability of Direction (pd) is an index of effect existence representing the certainty with which an effect goes in a particular direction.\n\nSimple: depends only on the posterior (unlike, say, Bayes factors)\nScale independent: interpretation doesn’t change if you rescale the variable\nSimilar to a p-value: roughly, two-sided p ≈ 2 × (1 − pd), so it helps convince pesky reviewers"
   },
   {
     "objectID": "info-6.html#how-to-calculate",
     "href": "info-6.html#how-to-calculate",
-    "title": "information",
+    "title": "Information, NHST and model fit",
     "section": "How to calculate?",
-    "text": "How to calculate?\nCompute the area under the curve (AUC) of the density curve on the other side of 0.\n\n\nCode\nlibrary(bayestestR)\np_direction(mr.14)\n\n\nProbability of Direction\n\nParameter   |     pd\n--------------------\n(Intercept) |   100%\niv.dtx      | 90.58%\nSS_c        |   100%\niv.dtx:SS_c | 99.88%"
+    "text": "How to calculate?\npd is the share of the posterior on the same side of 0 as the median (so it runs from 50% to 100%). The rest is the area on the other side of 0.\n\n\nCode\np_direction(mr.14)\n\n\nProbability of Direction\n\nParameter   |     pd\n--------------------\n(Intercept) |   100%\niv.dtx      | 90.58%\nSS_c        |   100%\niv.dtx:SS_c | 99.88%"
   },
   {
     "objectID": "info-6.html#downsides-of-pd",
     "href": "info-6.html#downsides-of-pd",
-    "title": "information",
+    "title": "Information, NHST and model fit",
     "section": "Downsides of PD",
-    "text": "Downsides of PD\n\nYou can find a high PD for an effect that is quite small. Similar to a p &lt; .05 with a large sample size. Is it still meaningful?\nLead to other NHST foibles like dichotomous thinking\nMore similar to a 1-tailed p-value if you keep alpha = .05. So maybe look at 97.5 PDs?"
+    "text": "Downsides of PD\n\nYou can find a high PD for an effect that is quite small. Similar to a p &lt; .05 with a large sample size. Is it still meaningful?\nLeads to other NHST foibles like dichotomous thinking\nMore similar to a 1-tailed p-value if you keep alpha = .05. So maybe look at 97.5 PDs?"
   },
   {
     "objectID": "info-6.html#nil-hypothesis",
@@ -2018,16 +2018,16 @@
   {
     "objectID": "info-6.html#rope",
     "href": "info-6.html#rope",
-    "title": "information",
+    "title": "Information, NHST and model fit",
     "section": "ROPE",
-    "text": "ROPE\n\nBayesian inference is not based on NHST. Rather than concluding that an effect is present when it simply differs from zero, we would conclude that the probability of being outside a specific range that can be considered as “practically no effect”.\nRegion of Practical Equivalence - a small range of parameter values that are considered to be practically equivalent to the null. E.g,. std b = [-.07, .07]\nLet the user define an area around the null value enclosing values that are equivalent to the null"
+    "text": "ROPE\n\nRather than concluding that an effect is present when it simply differs from zero, we ask how probable it is that the effect lies outside a range that counts as “practically no effect”.\nRegion of Practical Equivalence - a small range of parameter values that are considered to be practically equivalent to the null. E.g,. std b = [-.07, .07]\nLet the user define an area around the null value enclosing values that are equivalent to the null"
   },
   {
     "objectID": "info-6.html#rope-1",
     "href": "info-6.html#rope-1",
-    "title": "information",
-    "section": "ROPE",
-    "text": "ROPE\n\nWhy not just use the CI like you normally would? Because what if CI and ROPE overlap?\nThis allows you to\n\n\nhave a middle ground between accept vs reject. A range of equivalence.\nAllows one to affirm a predicted value, which is logically impossible in a standard NHST framework. Ie rather than fail to reject null, we can state given the observed data, the effect has XX% probability of being practically zero."
+    "title": "Information, NHST and model fit",
+    "section": "rope()",
+    "text": "rope()\n\nrope.1 &lt;- rope(mr.14, range = c(-0.05, 0.05))\nrope.1\n\n# Proportion of samples inside the ROPE [-0.05, 0.05]:\n\nParameter   | inside ROPE\n-------------------------\nIntercept   |      0.00 %\niv.dtx      |      5.82 %\nSS_c        |      0.00 %\niv.dtx:SS_c |      0.00 %\n\n\n\nNote how the ROPE is the same for all parameters (including the intercept!), even though they are on different scales"
   },
   {
     "objectID": "info-6.html#rope-2",
@@ -2039,35 +2039,35 @@
   {
     "objectID": "info-6.html#bayes-factors",
     "href": "info-6.html#bayes-factors",
-    "title": "information",
+    "title": "Information, NHST and model fit",
     "section": "Bayes Factors",
-    "text": "Bayes Factors\nQuantifies the support in the data for two competing statistical models. Ratio of the two marginal likelihoods of an observed outcome for these two models. E.g., how likely is a b = .2 vs b = 0, given our data. Gives relative evidence for different positions by comparing two marginal likelihoods\n\\[BF_{12} = \\frac{p(D | m = 1)}{p(D | m = 2)}\\]"
+    "text": "Bayes Factors\nQuantifies the support in the data for two competing models: the ratio of the marginal likelihoods of the observed data under each. E.g., how much more likely are our data if b ≠ 0 (with some prior) than if b = 0? It gives the relative evidence for two positions.\n\\[BF_{12} = \\frac{p(D | m = 1)}{p(D | m = 2)}\\]"
   },
   {
     "objectID": "info-6.html#proposed-cutoffs",
     "href": "info-6.html#proposed-cutoffs",
-    "title": "information",
+    "title": "Information, NHST and model fit",
     "section": "Proposed cutoffs",
     "text": "Proposed cutoffs\n\n\n\nBF10\nInterpretation\n\n\n\n\n&gt; 100\nExtreme evidence for H1\n\n\n30 - 100\nVery strong evidence for H1\n\n\n10 - 30\nStrong evidence for H1\n\n\n3 - 10\nModerate evidence for H1\n\n\n1 - 3\nAnecdotal evidence for H1\n\n\n1\nEqual evidence for H1 and H0\n\n\n1/3 - 1\nAnecdotal evidence for H0\n\n\n1/10 - 1/3\nModerate evidence for H0\n\n\n1/30 - 1/10\nStrong evidence for H0\n\n\n1/100 - 1/30\nVery strong evidence for H0\n\n\n&lt; 1/100\nExtreme evidence for H0"
   },
   {
     "objectID": "info-6.html#bf-interpretation",
     "href": "info-6.html#bf-interpretation",
-    "title": "information",
+    "title": "Information, NHST and model fit",
     "section": "BF interpretation",
     "text": "BF interpretation\n\nExtent to which the data sway our relative belief from one hypothesis to the other\nStrength of evidence from data about the hypotheses\nRelative predictive accuracy of one hypothesis over another\nHas the null hypothesis of an absence of an effect become more or less credible?"
   },
   {
     "objectID": "info-6.html#association-with-p-values",
     "href": "info-6.html#association-with-p-values",
-    "title": "information",
+    "title": "Information, NHST and model fit",
     "section": "Association with p values",
     "text": "Association with p values\n\nSimilar in that they both provide a continuous metric to compare two hypotheses\nFor a fixed sample size, p-values can be directly transformed into Bayes-Factors and vice versa, and of course into any effect size metric.\nRemember that p values are a composite of an effect size and sample size. Same is true with BF."
   },
   {
     "objectID": "info-6.html#alternative-to-p-values",
     "href": "info-6.html#alternative-to-p-values",
-    "title": "information",
+    "title": "Information, NHST and model fit",
     "section": "Alternative to p-values",
     "text": "Alternative to p-values\n\nEasier interpretation. (ratio of two likelihoods). P values are misunderstood.\nDoesn’t involve imaginary sampling distributions\nCan provide evidence in favor of a null\nWorks better as an effect size substitute than a p-value\nLess dichotomous thinking as there isn’t a BF one needs to surpass"
   },
@@ -2088,9 +2088,9 @@
   {
     "objectID": "info-6.html#shortcomings-of-bayes-factors",
     "href": "info-6.html#shortcomings-of-bayes-factors",
-    "title": "information",
+    "title": "Information, NHST and model fit",
     "section": "Shortcomings of Bayes Factors",
-    "text": "Shortcomings of Bayes Factors\n\nHeavy reliance on priors. The marginal likelihood is an average taken with respect to the prior, so bayes factors can be seen as relatively subjective\nBF provide differences between models without quantifying whether the chosen model is any good (similar issues with waic, loo, p-values)\nFavors more parsimonious models and thus is more conservative (could also be a pro)"
+    "text": "Shortcomings of Bayes Factors\n\nHeavy reliance on priors. The marginal likelihood is an average taken over the prior, so Bayes factors can be seen as relatively subjective\nBF provide differences between models without quantifying whether the chosen model is any good (similar issues with waic, loo, p-values)\nFavors more parsimonious models and thus is more conservative (could also be a pro)"
   },
   {
     "objectID": "info-6.html#shortcomings-of-bayes-factors-1",
@@ -2102,9 +2102,9 @@
   {
     "objectID": "info-6.html#multiple-comparisons",
     "href": "info-6.html#multiple-comparisons",
-    "title": "information",
-    "section": "multiple comparisons",
-    "text": "multiple comparisons\nKrushke:\nWhen comparing multiple conditions, a key goal in NHST is to keep the overall false alarm rate down to a desired maximum such as 5%. Abiding by this constraint depends on the number of comparisons that are to be made, which in turn depends on the intentions of the experimenter. In a Bayesian analysis, however, there is just one posterior distribution over the parameters that describe the conditions. That posterior distribution is unaffected by the intentions of the experimenter, and the posterior distribution can be examined from multiple perspectives however is suggested by insight and curiosity"
+    "title": "Information, NHST and model fit",
+    "section": "Multiple comparisons",
+    "text": "Multiple comparisons\nKruschke:\nWhen comparing multiple conditions, a key goal in NHST is to keep the overall false alarm rate down to a desired maximum such as 5%. Abiding by this constraint depends on the number of comparisons that are to be made, which in turn depends on the intentions of the experimenter. In a Bayesian analysis, however, there is just one posterior distribution over the parameters that describe the conditions. That posterior distribution is unaffected by the intentions of the experimenter, and the posterior distribution can be examined from multiple perspectives however is suggested by insight and curiosity"
   },
   {
     "objectID": "hw-9.html",
@@ -3637,7 +3637,7 @@
     "href": "lectures.html",
     "title": "Lectures",
     "section": "",
-    "text": "Background and introduction\nRegression part 1\nRegression part 2\nMultiple Regression\nMCMC\ninformation\nglm\nmlm\nadvanced mlm"
+    "text": "Background and introduction\nRegression part 1\nRegression part 2\nMultiple Regression\nMCMC\nInformation, NHST and model fit\nglm\nmlm\nadvanced mlm"
   },
   {
     "objectID": "mlm-8.html#mlm-review",
@@ -4387,5 +4387,509 @@
     "title": "Homework solutions",
     "section": "",
     "text": "Solutions are posted here after each homework’s due date, so check back the day after it’s due. They show one good way to do each question; yours can differ and still be right. Your graded feedback comes through Canvas.\n\n\n\n\n\n\n\n\n\nHW\nTopic\nDue\nSolutions\n\n\n\n\n1\nDistributions, priors, and counting\nJan 28\nposted after the due date\n\n\n2\nYour first brms model\nFeb 4\nposted after the due date\n\n\n3\nLines, bands, priors, and groups\nFeb 11\nposted after the due date\n\n\n4\nFactorial models and interactions\nFeb 18\nposted after the due date\n\n\n5\nWhen the chains go wild\nFeb 25\nposted after the due date\n\n\n6\nComparing models and making claims\nMar 4\nposted after the due date\n\n\n7\nLogistic regression\nMar 11\nposted after the due date\n\n\n8\nCounts and ordered categories\nMar 25\nposted after the due date\n\n\n9\nVarying intercepts and partial pooling\nApr 1\nposted after the due date\n\n\n10\nVarying slopes\nApr 8\nposted after the due date\n\n\n11\nWhen the data are uncertain too\nApr 15\nposted after the due date\n\n\n12\nModeling variability\nApr 22\nposted after the due date\n\n\n13\nYour first Stan programs\nApr 29\nposted after the due date"
+  },
+  {
+    "objectID": "info-6.html#standard-fit-indices-and-tests",
+    "href": "info-6.html#standard-fit-indices-and-tests",
+    "title": "Information, NHST and model fit",
+    "section": "Standard fit indices and tests",
+    "text": "Standard fit indices and tests\n\\(R^2\\), AIC, BIC, likelihood ratio test (LRT). Here is a Bayesian \\(R^2\\) (a whole distribution of them):"
+  },
+  {
+    "objectID": "info-6.html#a-likelihood-function",
+    "href": "info-6.html#a-likelihood-function",
+    "title": "Information, NHST and model fit",
+    "section": "A likelihood function",
+    "text": "A likelihood function\nBinomial likelihood L(\\(\\theta\\) | S = 3, N = 10)"
+  },
+  {
+    "objectID": "info-6.html#log-likelihood-intercept-only-model",
+    "href": "info-6.html#log-likelihood-intercept-only-model",
+    "title": "Information, NHST and model fit",
+    "section": "Log likelihood: intercept-only model",
+    "text": "Log likelihood: intercept-only model\n\n\nCode\nlogLik(lm(health ~ 1, data = data))\n\n\n'log Lik.' -491.4805 (df=2)\n\n\n\n\nCode\nmod.a&lt;- glm(health ~ 1 + happy, data = data)\nmod.b &lt;- glm(health ~ 1, data = data)\nanova(mod.b,mod.a, test = \"LRT\")\n\n\nAnalysis of Deviance Table\n\nModel 1: health ~ 1\nModel 2: health ~ 1 + happy\n  Resid. Df Resid. Dev Df Deviance Pr(&gt;Chi)  \n1       199       1596                       \n2       198       1545  1   51.001  0.01057 *\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\n\nCode\n# what is deviance?!"
+  },
+  {
+    "objectID": "info-6.html#likelihood-ratio-test",
+    "href": "info-6.html#likelihood-ratio-test",
+    "title": "Information, NHST and model fit",
+    "section": "Likelihood ratio test",
+    "text": "Likelihood ratio test\nIf we multiply the difference in log-likelihood by -2, it follows a \\(\\chi^2\\) distribution with 1 degrees of freedom.\n\\(LR = -2 \\ln\\left(\\frac{L(m_1)}{L(m_2)}\\right) = 2(\\text{loglik}(m_2)-\\text{loglik}(m_1))\\)\nwith degrees of freedom = the difference in number of parameters (here 1)."
+  },
+  {
+    "objectID": "info-6.html#lrt-in-r",
+    "href": "info-6.html#lrt-in-r",
+    "title": "Information, NHST and model fit",
+    "section": "LRT in R",
+    "text": "LRT in R\n\n\nCode\nlibrary(lmtest)\nlrtest(mod.b,mod.a)\n\n\nLikelihood ratio test\n\nModel 1: health ~ 1\nModel 2: health ~ 1 + happy\n  #Df  LogLik Df  Chisq Pr(&gt;Chisq)  \n1   2 -491.48                       \n2   3 -488.23  1 6.4955    0.01081 *\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\n\n\n\nCode\nchisqu &lt;- (-2*logLik(mod.b))-(-2*logLik(mod.a))\nchisqu\n\n\n'log Lik.' 6.49553 (df=2)\n\n\n\n\nCode\npchisq(chisqu, df = 1, lower.tail=FALSE)\n\n\n'log Lik.' 0.01081461 (df=2)"
+  },
+  {
+    "objectID": "info-6.html#ll-vs-deviance",
+    "href": "info-6.html#ll-vs-deviance",
+    "title": "Information, NHST and model fit",
+    "section": "−2LL vs deviance",
+    "text": "−2LL vs deviance\n\n\nCode\n-2*logLik(mod.a)\n\n\n'log Lik.' 976.4654 (df=3)\n\n\n\n\nCode\nsummary(mod.a)\n\n\n\nCall:\nglm(formula = health ~ 1 + happy, data = data)\n\nCoefficients:\n            Estimate Std. Error t value Pr(&gt;|t|)    \n(Intercept)   7.6269     0.3982  19.151   &lt;2e-16 ***\nhappy         0.3376     0.1321   2.557   0.0113 *  \n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\n(Dispersion parameter for gaussian family taken to be 7.802939)\n\n    Null deviance: 1596  on 199  degrees of freedom\nResidual deviance: 1545  on 198  degrees of freedom\nAIC: 982.47\n\nNumber of Fisher Scoring iterations: 2"
+  },
+  {
+    "objectID": "info-6.html#grid-approximation-with-likelihoods",
+    "href": "info-6.html#grid-approximation-with-likelihoods",
+    "title": "Information, NHST and model fit",
+    "section": "Grid approximation with likelihoods",
+    "text": "Grid approximation with likelihoods\nLet’s use likelihood to estimate a model. We will use grid approximation to calculate plausible parameter values.\n\n\nCode\nlibrary(psychTools)\ngalton.data &lt;- galton\ngrid &lt;-\n  crossing(mu = seq(from = 66, to = 69, length.out = 200), sigma = seq(from = 2, to = 3, length.out = 200))\ngrid\n\n\n# A tibble: 40,000 × 2\n      mu sigma\n   &lt;dbl&gt; &lt;dbl&gt;\n 1    66  2   \n 2    66  2.01\n 3    66  2.01\n 4    66  2.02\n 5    66  2.02\n 6    66  2.03\n 7    66  2.03\n 8    66  2.04\n 9    66  2.04\n10    66  2.05\n# ℹ 39,990 more rows"
+  },
+  {
+    "objectID": "info-6.html#computing-the-likelihood",
+    "href": "info-6.html#computing-the-likelihood",
+    "title": "Information, NHST and model fit",
+    "section": "Computing the likelihood",
+    "text": "Computing the likelihood\n\nAfter defining the grid space we need to calculate the likelihood.\nLikelihood of our data (each child’s height) assuming each part of our grid is true. So if we take the first line of our grid (mu = 66, sigma = 2) we can see how likely each child’s height (all 928) is with dnorm(height, 66, 2)\nWe sum the LLs across all 928 children for each spot in the grid to get the total log-likelihood for that grid spot"
+  },
+  {
+    "objectID": "info-6.html#million-calculations",
+    "href": "info-6.html#million-calculations",
+    "title": "Information, NHST and model fit",
+    "section": "37 million calculations",
+    "text": "37 million calculations\n40,000 grid points * 928 participants = 37,120,000 calculations\n\n\nCode\nlibrary(purrr)\ngrid_function &lt;- function(mu, sigma) {\n  dnorm(galton.data$child, mean = mu, sd = sigma, log = T) %&gt;%\n    sum() \n  }\n\np_grid &lt;-\n  grid %&gt;% \n  mutate(log_likelihood = map2(mu, sigma, grid_function)) %&gt;%\n  unnest(log_likelihood)\n  p_grid\n\n\n# A tibble: 40,000 × 3\n      mu sigma log_likelihood\n   &lt;dbl&gt; &lt;dbl&gt;          &lt;dbl&gt;\n 1    66  2            -2737.\n 2    66  2.01         -2733.\n 3    66  2.01         -2729.\n 4    66  2.02         -2725.\n 5    66  2.02         -2721.\n 6    66  2.03         -2718.\n 7    66  2.03         -2714.\n 8    66  2.04         -2710.\n 9    66  2.04         -2707.\n10    66  2.05         -2703.\n# ℹ 39,990 more rows"
+  },
+  {
+    "objectID": "info-6.html#the-log-likelihood-surface",
+    "href": "info-6.html#the-log-likelihood-surface",
+    "title": "Information, NHST and model fit",
+    "section": "The log-likelihood surface",
+    "text": "The log-likelihood surface\n\n\nCode\nlibrary(viridis)\np_grid %&gt;% \n  ggplot(aes(x = mu, y = sigma, fill = log_likelihood)) + \n  geom_raster(interpolate = T) +\n  scale_fill_viridis_c(option = \"C\") +\n  labs(x = expression(mu),\n       y = expression(sigma)) +\n  theme(panel.grid = element_blank())"
+  },
+  {
+    "objectID": "info-6.html#log-likelihood-for-mu",
+    "href": "info-6.html#log-likelihood-for-mu",
+    "title": "Information, NHST and model fit",
+    "section": "Log-likelihood for \\(\\mu\\)",
+    "text": "Log-likelihood for \\(\\mu\\)\n\n\nCode\n# can compute CI bc we are varying sigma (not plotted)\np_grid %&gt;% \n  ggplot(aes(x = mu, y = log_likelihood )) + \n    stat_lineribbon(.width = c(.0), alpha = .4)"
+  },
+  {
+    "objectID": "info-6.html#information-theory-cont.",
+    "href": "info-6.html#information-theory-cont.",
+    "title": "Information, NHST and model fit",
+    "section": "Information theory (cont.)",
+    "text": "Information theory (cont.)\n\nThe reduction in uncertainty by learning the outcome is how much information we have learned. If we know how much uncertainty we have we can know how much improvement is possible in our prediction.\nClaude Shannon (1916-2001) developed the field of information theory by making an analogy to bits of information (yes, the computer bit). Prior to this, information, and thus learning was poorly defined."
+  },
+  {
+    "objectID": "info-6.html#bits-and-probabilities",
+    "href": "info-6.html#bits-and-probabilities",
+    "title": "Information, NHST and model fit",
+    "section": "Bits and probabilities",
+    "text": "Bits and probabilities\n1/2^bit = probability of some event\n2^bit = 1/p\nbit = log2(1/p)\nbit = −log2(p)\nWe use bits rather than direct probabilities because it is easier to add bits than very small probabilities multiplied by other very small probabilities."
+  },
+  {
+    "objectID": "info-6.html#entropy-cont.",
+    "href": "info-6.html#entropy-cont.",
+    "title": "Information, NHST and model fit",
+    "section": "Entropy (cont.)",
+    "text": "Entropy (cont.)\n\nDistributions with more possibilities will be higher in entropy than those with fewer possibilities.\nSimilarly, flat distributions have high entropy as they provide little information\nThis is similar to how we set up priors where if we had more background “information” we would create a more narrow distribution."
+  },
+  {
+    "objectID": "info-6.html#why-the-least-informative",
+    "href": "info-6.html#why-the-least-informative",
+    "title": "Information, NHST and model fit",
+    "section": "Why the least informative?",
+    "text": "Why the least informative?\n\nWhy the least informative?\nFirst, maximizing entropy minimizes the amount of prior information built into the distribution.\nSecond, many physical systems tend to move towards maximal entropy configurations over time. Don’t fight nature!"
+  },
+  {
+    "objectID": "info-6.html#entropy-formally",
+    "href": "info-6.html#entropy-formally",
+    "title": "Information, NHST and model fit",
+    "section": "Entropy, formally",
+    "text": "Entropy, formally\n\nEntropy, H(p), tells us how hard it is to make an accurate prediction. For non-uniform distributions we take a probability-weighted sum of the log probabilities\nH(p) = \\(-\\sum p_ilog(p_i)\\)\nThink of tossing rocks into 10 buckets. Each bucket can have a probability associated with getting a rock. H(p) is maximized when the ps are equal. That is the distribution that can arise the most ways"
+  },
+  {
+    "objectID": "info-6.html#pebbles-in-buckets",
+    "href": "info-6.html#pebbles-in-buckets",
+    "title": "Information, NHST and model fit",
+    "section": "Pebbles in buckets",
+    "text": "Pebbles in buckets\n\n\nCode\nd &lt;-\n  tibble(a = c(0, 0, 10, 0, 0),\n         b = c(0, 1, 8, 1, 0),\n         c = c(0, 2, 6, 2, 0),\n         d = c(1, 2, 4, 2, 1),\n         e = 2) \n\nd %&gt;% \n  mutate(bucket = 1:5) %&gt;% \n  pivot_longer(-bucket, names_to = \"letter\", values_to = \"pebbles\") %&gt;% \n  \n  ggplot(aes(x = bucket, y = pebbles)) +\n  geom_col(width = 1/5) +\n  geom_text(aes(y = pebbles + 1, label = pebbles)) +\n  geom_text(data = tibble(\n    letter  = letters[1:5],\n    bucket  = 5.5,\n    pebbles = 10,\n    label   = str_c(c(1, 90, 1260, 37800, 113400), \n                    rep(c(\" way\", \" ways\"), times = c(1, 4)))),\n    aes(label = label), hjust = 1) +\n  scale_y_continuous(breaks = c(0, 5, 10))  +\n  facet_wrap(~letter, ncol = 2)"
+  },
+  {
+    "objectID": "info-6.html#maximum-entropy-and-likelihoods",
+    "href": "info-6.html#maximum-entropy-and-likelihoods",
+    "title": "Information, NHST and model fit",
+    "section": "Maximum entropy and likelihoods",
+    "text": "Maximum entropy and likelihoods\n\nIf all we are willing to assume about a collection of measurements is that they have a finite variance, then the Gaussian distribution represents the most conservative probability distribution to assign to those measurements.\nWith different assumptions, provided our assumptions are good ones, the principle of maximum entropy leads to distributions other than the Gaussian\nAssumptions about your DGP should specify your likelihood function. NOT YOUR OBSERVED DISTRIBUTION OF DATA."
+  },
+  {
+    "objectID": "info-6.html#kl-divergence",
+    "href": "info-6.html#kl-divergence",
+    "title": "Information, NHST and model fit",
+    "section": "KL divergence",
+    "text": "KL divergence\n\nBut how far away is our model from an accurate prediction? Divergence (not deviance) (often called Kullback–Leibler (KL) divergence) is the uncertainty created by using probabilities from one distribution to describe another target distribution.\n\n\\(D_{KL}(p, q) = \\sum_i p_i(\\log(p_i) - \\log(q_i))\\)\nwhere \\(p\\) is the true (target) distribution and \\(q\\) is our model. It is the average difference in log probability between the truth and the model, weighted by the truth. It is 0 when \\(q = p\\) and positive otherwise.\nKL divergence is foundational in many statistical and computational areas. If you take any machine learning class you will use KL divergence"
+  },
+  {
+    "objectID": "info-6.html#deviance",
+    "href": "info-6.html#deviance",
+    "title": "Information, NHST and model fit",
+    "section": "Deviance",
+    "text": "Deviance\n\nOften we do not know the target. This means we cannot look at a divergence and know if it is good or bad, but we can use them to compare different models. Throw a -2 infront of it and call it a deviance (remember this?).\n\n\\(D(q) = -2 \\sum_i \\log(q_i)\\)"
+  },
+  {
+    "objectID": "info-6.html#psis-loo-example-mr.12",
+    "href": "info-6.html#psis-loo-example-mr.12",
+    "title": "Information, NHST and model fit",
+    "section": "PSIS-LOO example: mr.12",
+    "text": "PSIS-LOO example: mr.12\n\n\nCode\nmr.12 &lt;- readRDS(\"mr.12.rds\")\nsummary(mr.12)\n\n\n Family: gaussian \n  Links: mu = identity; sigma = identity \nFormula: happiness ~ 0 + iv.d + SS_c \n   Data: MR (Number of observations: 118) \n  Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;\n         total post-warmup draws = 4000\n\nRegression Coefficients:\n            Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\niv.dcontrol     4.96      0.25     4.46     5.46 1.00     4892     3081\niv.dtx          5.36      0.19     4.99     5.73 1.00     4328     2930\nSS_c            0.29      0.05     0.20     0.38 1.00     4780     2934\n\nFurther Distributional Parameters:\n      Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nsigma     1.64      0.11     1.44     1.87 1.00     4369     3196\n\nDraws were sampled using sample(hmc). For each parameter, Bulk_ESS\nand Tail_ESS are effective sample size measures, and Rhat is the potential\nscale reduction factor on split chains (at convergence, Rhat = 1)."
+  },
+  {
+    "objectID": "info-6.html#adding-loo-to-a-model",
+    "href": "info-6.html#adding-loo-to-a-model",
+    "title": "Information, NHST and model fit",
+    "section": "Adding LOO to a model",
+    "text": "Adding LOO to a model\n\n\nCode\nmr.12 &lt;- add_criterion(mr.12, \"loo\")\nmr.12$criteria$loo\n\n\n\nComputed from 4000 by 118 log-likelihood matrix.\n\n         Estimate   SE\nelpd_loo   -228.1  6.9\np_loo         4.0  0.6\nlooic       456.2 13.7\n------\nMCSE of elpd_loo is 0.0.\nMCSE and ESS estimates assume MCMC draws (r_eff in [0.8, 1.3]).\n\nAll Pareto k estimates are good (k &lt; 0.7).\nSee help('pareto-k-diagnostic') for details."
+  },
+  {
+    "objectID": "info-6.html#reading-the-loo-output",
+    "href": "info-6.html#reading-the-loo-output",
+    "title": "Information, NHST and model fit",
+    "section": "Reading the LOO output",
+    "text": "Reading the LOO output\n\nelpd_loo: the expected log pointwise predictive density for new data (an out-of-sample lppd). Larger is better. Probabilities are always equal or less than 1, and thus log predictive probabilities are 0 or negative\np_loo is the effective number of parameters\nlooic is -2(elpd). Low scores better. Why -2? Because of chi-square history and/or for Gaussian model with known variance -2 log score is equal to squared error."
+  },
+  {
+    "objectID": "info-6.html#a-second-model-mr.11",
+    "href": "info-6.html#a-second-model-mr.11",
+    "title": "Information, NHST and model fit",
+    "section": "A second model: mr.11",
+    "text": "A second model: mr.11\n\n\nCode\nmr.11 &lt;- readRDS(\"mr.11.rds\")\nsummary(mr.11)\n\n\n Family: gaussian \n  Links: mu = identity; sigma = identity \nFormula: happiness ~ 1 + (1 | iv) \n   Data: MR (Number of observations: 118) \n  Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;\n         total post-warmup draws = 4000\n\nMultilevel Hyperparameters:\n~iv (Number of levels: 3) \n              Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nsd(Intercept)     0.48      0.53     0.01     2.01 1.01      512      418\n\nRegression Coefficients:\n          Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nIntercept     5.20      0.35     4.37     5.96 1.02      413      168\n\nFurther Distributional Parameters:\n      Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nsigma     1.90      0.12     1.68     2.17 1.00     2357     2185\n\nDraws were sampled using sample(hmc). For each parameter, Bulk_ESS\nand Tail_ESS are effective sample size measures, and Rhat is the potential\nscale reduction factor on split chains (at convergence, Rhat = 1)."
+  },
+  {
+    "objectID": "info-6.html#loo-for-mr.11",
+    "href": "info-6.html#loo-for-mr.11",
+    "title": "Information, NHST and model fit",
+    "section": "LOO for mr.11",
+    "text": "LOO for mr.11\n\n\nCode\nmr.11 &lt;- add_criterion(mr.11, \"loo\")\nloo(mr.11)\n\n\n\nComputed from 4000 by 118 log-likelihood matrix.\n\n         Estimate   SE\nelpd_loo   -245.1  8.3\np_loo         3.1  0.5\nlooic       490.1 16.7\n------\nMCSE of elpd_loo is 0.0.\nMCSE and ESS estimates assume MCMC draws (r_eff in [0.5, 1.0]).\n\nAll Pareto k estimates are good (k &lt; 0.7).\nSee help('pareto-k-diagnostic') for details."
+  },
+  {
+    "objectID": "info-6.html#comparing-models-with-loo_compare",
+    "href": "info-6.html#comparing-models-with-loo_compare",
+    "title": "Information, NHST and model fit",
+    "section": "Comparing models with loo_compare()",
+    "text": "Comparing models with loo_compare()\n\nloo_compare output rank orders models such that the best fitting model appears on top\n\n\n\nCode\nloo_compare(mr.11, mr.12, criterion = \"loo\")\n\n\n      elpd_diff se_diff\nmr.12   0.0       0.0  \nmr.11 -17.0       6.3"
+  },
+  {
+    "objectID": "info-6.html#waic-example",
+    "href": "info-6.html#waic-example",
+    "title": "Information, NHST and model fit",
+    "section": "WAIC example",
+    "text": "WAIC example\n\nwaic(mr.12)\n\n\nComputed from 4000 by 118 log-likelihood matrix.\n\n          Estimate   SE\nelpd_waic   -228.1  6.9\np_waic         4.0  0.6\nwaic         456.2 13.7\n\n\np_waic = penalty term (similar to the 2p in AIC); elpd_waic = lppd − p_waic"
+  },
+  {
+    "objectID": "info-6.html#waic-for-mr.11",
+    "href": "info-6.html#waic-for-mr.11",
+    "title": "Information, NHST and model fit",
+    "section": "WAIC for mr.11",
+    "text": "WAIC for mr.11\n\nwaic(mr.11)\n\n\nComputed from 4000 by 118 log-likelihood matrix.\n\n          Estimate   SE\nelpd_waic   -245.1  8.3\np_waic         3.1  0.5\nwaic         490.1 16.7"
+  },
+  {
+    "objectID": "info-6.html#comparing-with-waic",
+    "href": "info-6.html#comparing-with-waic",
+    "title": "Information, NHST and model fit",
+    "section": "Comparing with WAIC",
+    "text": "Comparing with WAIC\n\n\nCode\nmr.11 &lt;- add_criterion(mr.11, \"waic\")\nmr.12 &lt;- add_criterion(mr.12, \"waic\")\nloo_compare(mr.11, mr.12, criterion = \"waic\")\n\n\n      elpd_diff se_diff\nmr.12   0.0       0.0  \nmr.11 -17.0       6.3  \n\n\nNote: this looks like the LOO results, even though this is with waic. Both are computed from the lppd, so it makes sense they can be similar. It will not always be this way, however."
+  },
+  {
+    "objectID": "info-6.html#using-information-criteria",
+    "href": "info-6.html#using-information-criteria",
+    "title": "Information, NHST and model fit",
+    "section": "Using information criteria",
+    "text": "Using information criteria\n\nEach of these criteria do not have scales that are bounded by numbers (eg 0-1), nor can they be evaluated by some other number (eg SDs)\nProvide relative fit, so you need to compare different models, choosing the model with best fit\nThe criteria depend on the data, so you can only compare models fit to exactly the same observations (watch out for missing data dropping different rows)\nYou can compare non-nested models e.g. ones with non-overlapping sets of predictors"
+  },
+  {
+    "objectID": "info-6.html#posteriors-for-mr.14",
+    "href": "info-6.html#posteriors-for-mr.14",
+    "title": "Information, NHST and model fit",
+    "section": "Posteriors for mr.14",
+    "text": "Posteriors for mr.14\n\n\nCode\nmr.14 %&gt;%\n  gather_draws(b_SS_c, b_iv.dtx, `b_iv.dtx:SS_c`) %&gt;%\n  ggplot(aes(y = fct_rev(.variable), x = .value)) +\n  stat_halfeye(.width = c(.90, .5))"
+  },
+  {
+    "objectID": "info-6.html#describe_posterior",
+    "href": "info-6.html#describe_posterior",
+    "title": "Information, NHST and model fit",
+    "section": "describe_posterior()",
+    "text": "describe_posterior()\n\ndescribe_posterior(mr.14)\n\nSummary of Posterior Distribution\n\nParameter   | Median |         95% CI |     pd |          ROPE | % in ROPE\n--------------------------------------------------------------------------\n(Intercept) |   4.96 | [ 4.49,  5.43] |   100% | [-0.19, 0.19] |        0%\niv.dtx      |   0.38 | [-0.21,  0.97] | 90.58% | [-0.19, 0.19] |    23.00%\nSS_c        |   0.41 | [ 0.29,  0.52] |   100% | [-0.19, 0.19] |        0%\niv.dtx:SS_c |  -0.28 | [-0.46, -0.10] | 99.88% | [-0.19, 0.19] |    14.66%\n\nParameter   |  Rhat |     ESS\n-----------------------------\n(Intercept) | 1.000 | 4403.00\niv.dtx      | 1.001 | 4299.00\nSS_c        | 1.001 | 3428.00\niv.dtx:SS_c | 1.001 | 3779.00"
+  },
+  {
+    "objectID": "info-6.html#the-nil-hypothesis",
+    "href": "info-6.html#the-nil-hypothesis",
+    "title": "Information, NHST and model fit",
+    "section": "The nil hypothesis",
+    "text": "The nil hypothesis\n\nWith NHST you typically attempt to reject a H0 of zero. This is a point estimate. However, we know the probability of any point is zero, so conceptually a typical NHST is illogical.\nWhat we really mean when we set up a standard NHST nil hypothesis is to reject zero – OR VALUES THAT ARE EQUIVALENT TO ZERO.\nWhat are those values? In frequentist it depends on your se which is a function of your sample SD and N. We just don’t talk/think about it."
+  },
+  {
+    "objectID": "info-6.html#using-a-rope",
+    "href": "info-6.html#using-a-rope",
+    "title": "Information, NHST and model fit",
+    "section": "Using a ROPE",
+    "text": "Using a ROPE\n\nCompare our 95% (or whatever value you want) CI/HDPI to see if it overlaps with the ROPE. Some suggest using full posterior rather than a CI.\nIf this percentage is sufficiently low, the null hypothesis is rejected. If this percentage is sufficiently high, the null hypothesis is accepted.\nNote: rejecting the ROPE means rejecting all practically-null values, not just exactly 0."
+  },
+  {
+    "objectID": "info-6.html#plotting-the-rope",
+    "href": "info-6.html#plotting-the-rope",
+    "title": "Information, NHST and model fit",
+    "section": "Plotting the ROPE",
+    "text": "Plotting the ROPE\n\nplot(rope.1)"
+  },
+  {
+    "objectID": "info-6.html#a-wider-rope-99-interval",
+    "href": "info-6.html#a-wider-rope-99-interval",
+    "title": "Information, NHST and model fit",
+    "section": "A wider ROPE, 99% interval",
+    "text": "A wider ROPE, 99% interval\n\nrope(mr.14, range = c(-0.3, 0.3), ci = c(0.99))\n\n# Proportion of samples inside the ROPE [-0.30, 0.30]:\n\nParameter   | inside ROPE\n-------------------------\nIntercept   |      0.00 %\niv.dtx      |     38.43 %\nSS_c        |      2.53 %\niv.dtx:SS_c |     59.55 %"
+  },
+  {
+    "objectID": "info-6.html#plotting-the-wider-rope",
+    "href": "info-6.html#plotting-the-wider-rope",
+    "title": "Information, NHST and model fit",
+    "section": "Plotting the wider ROPE",
+    "text": "Plotting the wider ROPE\n\nrope.2 &lt;- rope(mr.14, range = c(-0.3, 0.3), ci = c(0.99))\nplot(rope.2)"
+  },
+  {
+    "objectID": "info-6.html#equivalence-test",
+    "href": "info-6.html#equivalence-test",
+    "title": "Information, NHST and model fit",
+    "section": "Equivalence test",
+    "text": "Equivalence test\n\nresult &lt;- equivalence_test(mr.14, range = c(-0.3, 0.3), ci = c(0.95))\nresult\n\n# Test for Practical Equivalence\n\n  ROPE: [-0.30 0.30]\n\nParameter   |        H0 | inside ROPE |        95% HDI\n------------------------------------------------------\nIntercept   |  Rejected |      0.00 % |   [4.49, 5.43]\niv.dtx      | Undecided |     38.55 % |  [-0.21, 0.97]\nSS_c        | Undecided |      0.53 % |   [0.29, 0.52]\niv.dtx:SS_c | Undecided |     59.95 % | [-0.46, -0.10]"
+  },
+  {
+    "objectID": "info-6.html#why-a-rope",
+    "href": "info-6.html#why-a-rope",
+    "title": "Information, NHST and model fit",
+    "section": "Why a ROPE?",
+    "text": "Why a ROPE?\n\nWhy not just use the CI like you normally would? Because what if CI and ROPE overlap?\nThis allows you to\n\n\nhave a middle ground between accept vs reject. A range of equivalence.\nAffirm a predicted value, which is logically impossible in standard NHST. That is, rather than “fail to reject the null,” we can say that, given the data, the effect has an XX% probability of being practically zero."
+  },
+  {
+    "objectID": "info-6.html#choosing-rope-values",
+    "href": "info-6.html#choosing-rope-values",
+    "title": "Information, NHST and model fit",
+    "section": "Choosing ROPE values",
+    "text": "Choosing ROPE values\n\nHow to come up with ROPE values?\nDifficult. Balance practicality with expertise judgment. DBDA: −0.1 to 0.1 of a standardized parameter (i.e., a negligible effect size, Cohen, 1988). bayestestR’s default for linear models is ±0.1 × SD(y)\n\n\nrope_range(mr.14)\n\n[1] -0.1893523  0.1893523\n\n\n\nUsually implemented when a decision needs to be made. More common in medicine than psych."
+  },
+  {
+    "objectID": "info-6.html#the-default-rope",
+    "href": "info-6.html#the-default-rope",
+    "title": "Information, NHST and model fit",
+    "section": "The default ROPE",
+    "text": "The default ROPE\n\nrope.4 &lt;- rope(mr.14)\nrope.4\n\n# Proportion of samples inside the ROPE [-0.19, 0.19]:\n\nParameter   | inside ROPE\n-------------------------\nIntercept   |      0.00 %\niv.dtx      |     23.00 %\nSS_c        |      0.00 %\niv.dtx:SS_c |     14.66 %"
+  },
+  {
+    "objectID": "info-6.html#describe_posterior-with-a-rope",
+    "href": "info-6.html#describe_posterior-with-a-rope",
+    "title": "Information, NHST and model fit",
+    "section": "describe_posterior() with a ROPE",
+    "text": "describe_posterior() with a ROPE\n\ndescribe_posterior(mr.14, test = \"ROPE\")\n\nSummary of Posterior Distribution\n\nParameter   | Median |         95% CI |          ROPE | % in ROPE |  Rhat |     ESS\n-----------------------------------------------------------------------------------\n(Intercept) |   4.96 | [ 4.49,  5.43] | [-0.19, 0.19] |        0% | 1.000 | 4403.00\niv.dtx      |   0.38 | [-0.21,  0.97] | [-0.19, 0.19] |    23.00% | 1.001 | 4299.00\nSS_c        |   0.41 | [ 0.29,  0.52] | [-0.19, 0.19] |        0% | 1.001 | 3428.00\niv.dtx:SS_c |  -0.28 | [-0.46, -0.10] | [-0.19, 0.19] |    14.66% | 1.001 | 3779.00"
+  },
+  {
+    "objectID": "info-6.html#bf-as-an-updating-factor",
+    "href": "info-6.html#bf-as-an-updating-factor",
+    "title": "Information, NHST and model fit",
+    "section": "BF as an updating factor",
+    "text": "BF as an updating factor\nCan also think of it as the factor by which some prior odds have been updated after observing the data to posterior odds. So it can be computed by dividing posterior odds by prior odds.\n\\[BF_{12}=\\frac{Posterior~Odds_{12}}{Prior~Odds_{12}}\\]"
+  },
+  {
+    "objectID": "info-6.html#a-toy-example",
+    "href": "info-6.html#a-toy-example",
+    "title": "Information, NHST and model fit",
+    "section": "A toy example",
+    "text": "A toy example\n\n\nCode\nlibrary(see)\nprior &lt;- distribution_normal(10000, mean = 0, sd = 1)\nposterior &lt;- distribution_normal(10000, mean = 1, sd = 0.7)\nbf_plot&lt;- bayesfactor_parameters(posterior, prior, direction = \"two-sided\", null = 0)\nbf_plot\n\n\nBayes Factor (Savage-Dickey density ratio)\n\nBF  \n----\n1.94\n\n* Evidence Against The Null: 0"
+  },
+  {
+    "objectID": "info-6.html#prior-vs-posterior-at-0",
+    "href": "info-6.html#prior-vs-posterior-at-0",
+    "title": "Information, NHST and model fit",
+    "section": "Prior vs posterior at 0",
+    "text": "Prior vs posterior at 0\n\n\nCode\nplot(bf_plot)"
+  },
+  {
+    "objectID": "info-6.html#reading-the-bf",
+    "href": "info-6.html#reading-the-bf",
+    "title": "Information, NHST and model fit",
+    "section": "Reading the BF",
+    "text": "Reading the BF\n\nbayesfactor_parameters(posterior, prior, direction = \"two-sided\", null = 0)\n\nBayes Factor (Savage-Dickey density ratio)\n\nBF  \n----\n1.94\n\n* Evidence Against The Null: 0\n\n\nThe prior density at 0 is about .40 and the posterior density at 0 is about .21, so BF ≈ .40 / .21 ≈ 1.9: the data are about twice as likely under “there is an effect” (with this prior) as under “the effect is exactly 0”."
+  },
+  {
+    "objectID": "info-6.html#interpreting-a-bf",
+    "href": "info-6.html#interpreting-a-bf",
+    "title": "Information, NHST and model fit",
+    "section": "Interpreting a BF",
+    "text": "Interpreting a BF\n\n\nCode\nlibrary(effectsize)\ninterpret_bf(1.95)\n\n\n[1] \"anecdotal evidence in favour of\"\n(Rules: jeffreys1961)"
+  },
+  {
+    "objectID": "info-6.html#one-major-downside",
+    "href": "info-6.html#one-major-downside",
+    "title": "Information, NHST and model fit",
+    "section": "One major downside",
+    "text": "One major downside\nFor every parameter or model test there are infinitely many Bayes factors, one for each prior. That is, there is no single Bayes factor for your analysis!\nWhen someone says the Bayes factor for this test was XX you have to ask yourself what exactly they are testing."
+  },
+  {
+    "objectID": "info-6.html#a-wider-prior",
+    "href": "info-6.html#a-wider-prior",
+    "title": "Information, NHST and model fit",
+    "section": "A wider prior",
+    "text": "A wider prior\nWhat happens if we increase our prior SD? Going from 1 to 5? Is our BF going to increase or decrease?\n\n\nCode\nprior2 &lt;- distribution_normal(10000, mean = 0, sd = 5) # this differs\nposterior2 &lt;- distribution_normal(10000, mean = 1, sd = 0.7) # exactly same\nbf_2&lt;- bayesfactor_parameters(posterior2, prior2, direction = \"two-sided\", null = 0)\nbf_2\n\n\nBayes Factor (Savage-Dickey density ratio)\n\nBF   \n-----\n0.389\n\n* Evidence Against The Null: 0"
+  },
+  {
+    "objectID": "info-6.html#the-wider-prior-plotted",
+    "href": "info-6.html#the-wider-prior-plotted",
+    "title": "Information, NHST and model fit",
+    "section": "The wider prior, plotted",
+    "text": "The wider prior, plotted\n\nplot(bf_2)"
+  },
+  {
+    "objectID": "info-6.html#the-original-for-comparison",
+    "href": "info-6.html#the-original-for-comparison",
+    "title": "Information, NHST and model fit",
+    "section": "The original, for comparison",
+    "text": "The original, for comparison\nHere was the original BF\n\nplot(bf_plot)"
+  },
+  {
+    "objectID": "info-6.html#same-data-different-bf",
+    "href": "info-6.html#same-data-different-bf",
+    "title": "Information, NHST and model fit",
+    "section": "Same data, different BF",
+    "text": "Same data, different BF\n\nbayesfactor_parameters(posterior2, prior2, direction = \"two-sided\", null = 0)\n\nBayes Factor (Savage-Dickey density ratio)\n\nBF   \n-----\n0.389\n\n* Evidence Against The Null: 0\n\n\nThis now suggests anecdotal evidence for H0, whereas before it was anecdotal evidence for H1 (BF ≈ 1.9). The posterior didn’t change at all; only the prior did."
+  },
+  {
+    "objectID": "info-6.html#a-best-guess-prior",
+    "href": "info-6.html#a-best-guess-prior",
+    "title": "Information, NHST and model fit",
+    "section": "A best-guess prior",
+    "text": "A best-guess prior\nWhat happens if our prior is a best guess rather than a regularizing prior?\n\n\nCode\nprior3 &lt;- distribution_normal(10000, mean = 1.2, sd = 1) # this differs\nposterior3 &lt;- distribution_normal(10000, mean = 1, sd = 0.7) # exactly same\nbf_3&lt;- bayesfactor_parameters(posterior3, prior3, direction = \"two-sided\", null = 0)\nbf_3\n\n\nBayes Factor (Savage-Dickey density ratio)\n\nBF   \n-----\n0.945\n\n* Evidence Against The Null: 0\n\n\nBF ≈ 1: “equal evidence for H1 and H0”"
+  },
+  {
+    "objectID": "info-6.html#the-best-guess-prior-plotted",
+    "href": "info-6.html#the-best-guess-prior-plotted",
+    "title": "Information, NHST and model fit",
+    "section": "The best-guess prior, plotted",
+    "text": "The best-guess prior, plotted\n\n\nCode\nplot(bf_3)"
+  },
+  {
+    "objectID": "info-6.html#savagedickey",
+    "href": "info-6.html#savagedickey",
+    "title": "Information, NHST and model fit",
+    "section": "Savage–Dickey",
+    "text": "Savage–Dickey\n\nThis method is called the Savage–Dickey density ratio: the posterior density at the null value divided by the prior density there (or its inverse for BF10). It looks only at the height of the two curves at one point.\nThat’s good in that it parallels NHST’s point null. It’s bad in that it says little about the rest of the posterior: where most of it sits, or how wide it is."
+  },
+  {
+    "objectID": "info-6.html#with-a-brms-model",
+    "href": "info-6.html#with-a-brms-model",
+    "title": "Information, NHST and model fit",
+    "section": "With a brms model",
+    "text": "With a brms model\nEasy to implement with brms models. You need sample_prior = \"yes\" so brms saves draws from the prior.\n\nmr.2 &lt;- \n  brm(family = gaussian,\n      happiness ~ 1 + SS_c + FQ_c,\n      prior = c(prior(normal(5, 2), class = Intercept),\n                prior(normal(0, .2), class = b, coef = SS_c),\n                prior(normal(0, .2), class = b, coef = FQ_c),\n                prior(exponential(.5), class = sigma)),\n      iter = 2000, warmup = 1000, chains = 2, cores = 2,\n      data = MR,\n      sample_prior = \"yes\",\n      file = \"mr.2\")"
+  },
+  {
+    "objectID": "info-6.html#mr.2-summary",
+    "href": "info-6.html#mr.2-summary",
+    "title": "Information, NHST and model fit",
+    "section": "mr.2 summary",
+    "text": "mr.2 summary\n\nsummary(mr.2)\n\n Family: gaussian \n  Links: mu = identity; sigma = identity \nFormula: happiness ~ 1 + SS_c + FQ_c \n   Data: MR (Number of observations: 118) \n  Draws: 2 chains, each with iter = 2000; warmup = 1000; thin = 1;\n         total post-warmup draws = 2000\n\nRegression Coefficients:\n          Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nIntercept     5.21      0.15     4.92     5.51 1.00     1970     1272\nSS_c          0.35      0.05     0.24     0.45 1.00     1933     1127\nFQ_c          0.18      0.07     0.04     0.31 1.00     1861     1530\n\nFurther Distributional Parameters:\n      Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nsigma     1.60      0.11     1.40     1.81 1.00     2119     1474\n\nDraws were sampled using sample(hmc). For each parameter, Bulk_ESS\nand Tail_ESS are effective sample size measures, and Rhat is the potential\nscale reduction factor on split chains (at convergence, Rhat = 1)."
+  },
+  {
+    "objectID": "info-6.html#bfs-for-mr.2",
+    "href": "info-6.html#bfs-for-mr.2",
+    "title": "Information, NHST and model fit",
+    "section": "BFs for mr.2",
+    "text": "BFs for mr.2\n\nbf.result &lt;- bayestestR::bayesfactor_parameters(mr.2)\nbf.result\n\nBayes Factor (Savage-Dickey density ratio)\n\nParameter   |       BF\n----------------------\n(Intercept) | 1.05e+34\nSS_c        | 6.86e+03\nFQ_c        |    10.19\n\n* Evidence Against The Null: 0"
+  },
+  {
+    "objectID": "info-6.html#plotting-the-bfs",
+    "href": "info-6.html#plotting-the-bfs",
+    "title": "Information, NHST and model fit",
+    "section": "Plotting the BFs",
+    "text": "Plotting the BFs\n\nplot(bf.result)"
+  },
+  {
+    "objectID": "info-6.html#try-with-wider-priors",
+    "href": "info-6.html#try-with-wider-priors",
+    "title": "Information, NHST and model fit",
+    "section": "Try with wider priors",
+    "text": "Try with wider priors\n\n\nCode\nmr.2b &lt;- \n  brm(family = gaussian,\n      happiness ~ 1 + SS_c + FQ_c,\n      prior = c(prior(normal(5, 2), class = Intercept),\n                prior(normal(0, 10), class = b, coef = SS_c),\n                prior(normal(0, 10), class = b, coef = FQ_c),\n                prior(exponential(.5), class = sigma)),\n      iter = 2000, warmup = 1000, chains = 2, cores = 2,\n      data = MR,\n      backend = \"cmdstanr\",\n      file = \"mr.2b\")"
+  },
+  {
+    "objectID": "info-6.html#bfs-with-wider-priors",
+    "href": "info-6.html#bfs-with-wider-priors",
+    "title": "Information, NHST and model fit",
+    "section": "BFs with wider priors",
+    "text": "BFs with wider priors\n\n\nCode\nbf.resultb &lt;- bayestestR::bayesfactor_parameters(mr.2b)\nbf.resultb\n\n\nBayes Factor (Savage-Dickey density ratio)\n\nParameter   |       BF\n----------------------\n(Intercept) | 6.09e+43\nSS_c        | 4.78e+04\nFQ_c        |    0.513\n\n* Evidence Against The Null: 0"
+  },
+  {
+    "objectID": "info-6.html#we-can-also-do-this-with-a-rope",
+    "href": "info-6.html#we-can-also-do-this-with-a-rope",
+    "title": "Information, NHST and model fit",
+    "section": "We can also do this with a ROPE!",
+    "text": "We can also do this with a ROPE!\n\nbf.result2 &lt;- bayesfactor_parameters(mr.2, null = rope_range(mr.2))\nbf.result2 \n\nBayes Factor (Null-Interval)\n\nParameter   |       BF\n----------------------\n(Intercept) | 2.96e+33\nSS_c        |   416.29\nFQ_c        |     1.43\n\n* Evidence Against The Null: [-0.189, 0.189]"
+  },
+  {
+    "objectID": "info-6.html#bf-against-an-interval-null",
+    "href": "info-6.html#bf-against-an-interval-null",
+    "title": "Information, NHST and model fit",
+    "section": "BF against an interval null",
+    "text": "BF against an interval null\nThe Bayes factor represents the degree by which the distribution mass of the posterior has shifted outside or inside the null interval relative to the prior distribution.\n\nplot(bf.result2)"
+  },
+  {
+    "objectID": "info-6.html#shortcomings-of-bayes-factors-cont.",
+    "href": "info-6.html#shortcomings-of-bayes-factors-cont.",
+    "title": "Information, NHST and model fit",
+    "section": "Shortcomings of Bayes Factors (cont.)",
+    "text": "Shortcomings of Bayes Factors (cont.)\n\nPotentially reinforces dichotomous thinking (better than p values but not by much)\nMay be used as a measure of effect size (similar shortfalls to using p as such)\nCan be completely disconnected from our typical estimation stats"
+  },
+  {
+    "objectID": "info-6.html#same-model-two-priors",
+    "href": "info-6.html#same-model-two-priors",
+    "title": "Information, NHST and model fit",
+    "section": "Same model, two priors",
+    "text": "Same model, two priors\n\n\nCode\ninfo.1 &lt;- \n  brm(family = gaussian,\n      happiness ~ 1 + SS_c + FQ_c,\n      prior = c(prior(normal(5, 2), class = Intercept),\n                prior(normal(0, 2), class = b, coef = SS_c),\n                prior(normal(0, 2), class = b, coef = FQ_c),\n                prior(exponential(1), class = sigma)),\n      iter = 2000, warmup = 1000, chains = 2, cores = 2,\n      data = MR,\n      sample_prior = \"yes\",\n      save_pars = save_pars(all = TRUE),\n      backend = \"cmdstanr\",\n      file = \"info.1\")\n\n\n\n\nCode\ninfo.2 &lt;- \n  brm(family = gaussian,\n      happiness ~ 1 + SS_c + FQ_c,\n      prior = c(prior(normal(5, 2), class = Intercept),\n                prior(normal(0, .2), class = b, coef = SS_c),\n                prior(normal(0, .2), class = b, coef = FQ_c),\n                prior(exponential(.5), class = sigma)),\n      iter = 2000, warmup = 1000, chains = 2, cores = 2,\n      data = MR,\n      sample_prior = \"yes\",\n      save_pars = save_pars(all = TRUE),\n      backend = \"cmdstanr\",\n      file = \"info.2\")"
+  },
+  {
+    "objectID": "info-6.html#their-bayes-factors",
+    "href": "info-6.html#their-bayes-factors",
+    "title": "Information, NHST and model fit",
+    "section": "Their Bayes factors",
+    "text": "Their Bayes factors\n\n\nCode\nbf.info.1 &lt;- bayestestR::bayesfactor_parameters(info.1)\nbf.info.1 \n\n\nBayes Factor (Savage-Dickey density ratio)\n\nParameter   |       BF\n----------------------\n(Intercept) | 1.31e+30\nSS_c        | 2.25e+04\nFQ_c        |     5.02\n\n* Evidence Against The Null: 0\n\n\n\n\nCode\nbf.info.2 &lt;- bayestestR::bayesfactor_parameters(info.2)\nbf.info.2\n\n\nBayes Factor (Savage-Dickey density ratio)\n\nParameter   |       BF\n----------------------\n(Intercept) | 3.20e+27\nSS_c        | 1.65e+04\nFQ_c        |    10.72\n\n* Evidence Against The Null: 0"
+  },
+  {
+    "objectID": "info-6.html#bf-plot-wide-prior-info.1",
+    "href": "info-6.html#bf-plot-wide-prior-info.1",
+    "title": "Information, NHST and model fit",
+    "section": "BF plot: wide prior (info.1)",
+    "text": "BF plot: wide prior (info.1)\n\nplot(bf.info.1)"
+  },
+  {
+    "objectID": "info-6.html#bf-plot-narrow-prior-info.2",
+    "href": "info-6.html#bf-plot-narrow-prior-info.2",
+    "title": "Information, NHST and model fit",
+    "section": "BF plot: narrow prior (info.2)",
+    "text": "BF plot: narrow prior (info.2)\n\nplot(bf.info.2)"
+  },
+  {
+    "objectID": "info-6.html#same-effects-different-bfs",
+    "href": "info-6.html#same-effects-different-bfs",
+    "title": "Information, NHST and model fit",
+    "section": "Same effects, different BFs",
+    "text": "Same effects, different BFs\nEffects are basically indistinguishable, but BFs are not.\n\n\nCode\nplot(info.1)"
+  },
+  {
+    "objectID": "info-6.html#info.2-posteriors",
+    "href": "info-6.html#info.2-posteriors",
+    "title": "Information, NHST and model fit",
+    "section": "info.2 posteriors",
+    "text": "info.2 posteriors\n\n\nCode\nplot(info.2)"
+  },
+  {
+    "objectID": "info-6.html#how-big-a-difference-matters",
+    "href": "info-6.html#how-big-a-difference-matters",
+    "title": "Information, NHST and model fit",
+    "section": "How big a difference matters?",
+    "text": "How big a difference matters?\n\n\n      elpd_diff se_diff\nmr.12   0.0       0.0  \nmr.11 -17.0       6.3  \n\n\n\nThe Stan team recommends that:\n\n\nIf |elpd_diff| &lt; 4, the models predict about equally well.\nIf it’s larger, compare it to se_diff (a rough signal-to-noise ratio).\n\n\nHere elpd_diff / se_diff = 17 / 6.3 ≈ 2.7: mr.12 is expected to predict new data clearly better."
+  },
+  {
+    "objectID": "info-6.html#running-example-mr.14",
+    "href": "info-6.html#running-example-mr.14",
+    "title": "Information, NHST and model fit",
+    "section": "Running example: mr.14",
+    "text": "Running example: mr.14\nHappiness predicted by intervention group × school success (centered).\n\n\nCode\nmr.14 &lt;- readRDS(\"mr.14.rds\")\nsummary(mr.14)\n\n\n Family: gaussian \n  Links: mu = identity; sigma = identity \nFormula: happiness ~ 1 + iv.d * SS_c \n   Data: MR (Number of observations: 118) \n  Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;\n         total post-warmup draws = 4000\n\nRegression Coefficients:\n            Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nIntercept       4.96      0.24     4.49     5.43 1.00     4484     2783\niv.dtx          0.38      0.29    -0.21     0.97 1.00     4355     2987\nSS_c            0.41      0.06     0.29     0.52 1.00     3498     3294\niv.dtx:SS_c    -0.28      0.09    -0.46    -0.10 1.00     3809     3007\n\nFurther Distributional Parameters:\n      Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nsigma     1.58      0.11     1.40     1.80 1.00     4406     2579\n\nDraws were sampled using sample(hmc). For each parameter, Bulk_ESS\nand Tail_ESS are effective sample size measures, and Rhat is the potential\nscale reduction factor on split chains (at convergence, Rhat = 1)."
   }
 ]
