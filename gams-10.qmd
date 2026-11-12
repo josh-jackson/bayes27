@@ -250,6 +250,107 @@ b %>%
 ```
 
 
+## Fitting the B-spline {.smaller}
+
+The basis functions become predictors; the model estimates one weight per basis function.
+
+$$
+\begin{aligned}
+\text{doy}_i &\sim \text{Normal}(\mu_i, \sigma) \\
+\mu_i &= \alpha + \textstyle\sum_{k=1}^{17} w_k B_{k,i} \\
+\alpha &\sim \text{Normal}(100, 10) \qquad w_k \sim \text{Normal}(0, 10) \qquad \sigma \sim \text{Exponential}(1)
+\end{aligned}
+$$
+
+```{r}
+d2 <- d2 %>% mutate(B = B)   # the 17 cubic basis functions as one matrix column
+spline.1 <-
+  brm(doy ~ 1 + B, family = gaussian, data = d2,
+      prior = c(prior(normal(100, 10), class = Intercept),
+                prior(normal(0, 10), class = b),
+                prior(exponential(1), class = sigma)),
+      iter = 2000, warmup = 1000, chains = 4, cores = 4, seed = 4,
+      backend = "cmdstanr", file = "spline.1")
+```
+
+## The fitted spline
+
+```{r}
+#| code-fold: true
+#| fig-height: 4
+fitted(spline.1) %>%
+  as_tibble() %>%
+  bind_cols(d2) %>%
+  ggplot(aes(x = year)) +
+  geom_point(aes(y = doy), colour = "#ffb7c5", alpha = .5) +
+  geom_ribbon(aes(ymin = Q2.5, ymax = Q97.5), fill = "grey40", alpha = .4) +
+  geom_line(aes(y = Estimate)) +
+  labs(y = "Day of first bloom") +
+  theme_classic(base_size = 13)
+```
+
+The wiggliness comes from our choice of 15 knots. More knots = wigglier; fewer = smoother. Can the model choose?
+
+## GAMs in brms: `s()` {.smaller}
+
+`s(x)` builds a penalized spline basis (via {mgcv}). The basis weights get a hierarchical prior whose SD, `sds()`, is *estimated*: a small `sds` shrinks the weights toward a straight line. It's partial pooling again, this time for wiggliness.
+
+```{r}
+d2 <- d2 %>% mutate(year_c = (year - mean(year)) / 100)   # centuries from the mean year
+gam.1 <-
+  brm(doy ~ 1 + s(year_c), family = gaussian, data = d2,
+      prior = c(prior(normal(100, 10), class = Intercept),
+                prior(exponential(1), class = sigma)),
+      iter = 2000, warmup = 1000, chains = 4, cores = 4, seed = 4,
+      control = list(adapt_delta = .95),
+      backend = "cmdstanr", file = "gam.1")
+```
+
+## `gam.1` summary {.smaller}
+
+```{r}
+summary(gam.1)
+```
+
+`sds(syear_c_1)` is the wiggliness. The `syear_c_1` coefficient is the linear part of the smooth; the rest of the curve lives in the penalized basis weights.
+
+## The GAM fit
+
+```{r}
+#| code-fold: true
+#| fig-height: 4
+predictions(gam.1, newdata = datagrid(year_c = seq(min(d2$year_c), max(d2$year_c), length.out = 200))) %>%
+  mutate(year = year_c * 100 + mean(d2$year)) %>%
+  ggplot(aes(x = year)) +
+  geom_point(data = d2, aes(y = doy), colour = "#ffb7c5", alpha = .5) +
+  geom_ribbon(aes(ymin = conf.low, ymax = conf.high), fill = "grey40", alpha = .4) +
+  geom_line(aes(y = estimate)) +
+  labs(y = "Day of first bloom") +
+  theme_classic(base_size = 13)
+```
+
+## More basis functions, same curve {.smaller}
+
+Give the smooth 40 basis functions instead of the default 10:
+
+```{r}
+#| code-fold: true
+gam.2 <-
+  brm(doy ~ 1 + s(year_c, k = 40), family = gaussian, data = d2,
+      prior = c(prior(normal(100, 10), class = Intercept),
+                prior(exponential(1), class = sigma)),
+      iter = 2000, warmup = 1000, chains = 4, cores = 4, seed = 4,
+      control = list(adapt_delta = .95),
+      backend = "cmdstanr", file = "gam.2")
+spline.1 <- add_criterion(spline.1, "loo")
+gam.1 <- add_criterion(gam.1, "loo")
+gam.2 <- add_criterion(gam.2, "loo")
+loo_compare(spline.1, gam.1, gam.2)
+```
+
+-   The three fits predict about equally well (differences within a couple of SEs). With `s()`, the penalty decides how wiggly the curve gets, so you don't have to agonize over the number of knots.
+-   `gam.2` had a handful of divergent transitions: smooths with many basis functions can be hard to sample. Raise `adapt_delta` (e.g., .99) before trusting it.
+
 ## A fitted spline
 
 

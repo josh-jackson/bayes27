@@ -355,6 +355,67 @@ irt.2 %>%
 ```
 
 
+## Person scores (θ) {.smaller}
+
+The person effects *are* the IRT scores: each person's θ, with its uncertainty.
+
+```{r}
+#| code-fold: true
+#| fig-height: 3.6
+theta <- irt.1 %>%
+  spread_draws(r_id[id, ]) %>%
+  median_qi(r_id) %>%
+  left_join(IRT %>% group_by(id) %>% summarise(sum_score = sum(r2 == "Y")) %>%
+              mutate(id = as.integer(as.character(id))), by = "id")
+
+ggplot(theta, aes(x = sum_score, y = r_id, ymin = .lower, ymax = .upper)) +
+  geom_pointrange(alpha = .3, size = .2) +
+  labs(x = "Sum score (number of 'yes' answers out of 24)", y = "θ from the 1PL (with 95% interval)") +
+  theme_classic(base_size = 13)
+```
+
+In a 1PL, θ is a (nonlinear) function of the sum score: everyone with the same sum score gets the same θ. Intervals are widest at the extremes, where few items are informative.
+
+## 1PL vs. 2PL item curves {.smaller}
+
+```{r}
+#| code-fold: true
+#| fig-height: 3.6
+#| fig-width: 10
+icc_1pl <- irt.1 %>%
+  spread_draws(b_Intercept, r_item[item, ], ndraws = 500) %>%
+  ungroup() %>%
+  tidyr::expand(nesting(.draw, b_Intercept, item, r_item), theta = seq(-6, 6, length.out = 60)) %>%
+  mutate(p = inv_logit_scaled(b_Intercept + r_item + theta)) %>%
+  group_by(theta, item) %>% summarise(p = mean(p), .groups = "drop") %>% mutate(model = "1PL")
+icc_2pl <- irt.2 %>%
+  spread_draws(b_delta_Intercept, b_logalpha_Intercept, r_item__logalpha[item, ], r_item__delta[item, ], ndraws = 500) %>%
+  ungroup() %>%
+  tidyr::expand(nesting(.draw, b_delta_Intercept, b_logalpha_Intercept, item, r_item__logalpha, r_item__delta),
+                theta = seq(-6, 6, length.out = 60)) %>%
+  mutate(p = inv_logit_scaled(exp(b_logalpha_Intercept + r_item__logalpha) * (b_delta_Intercept + theta + r_item__delta))) %>%
+  group_by(theta, item) %>% summarise(p = mean(p), .groups = "drop") %>% mutate(model = "2PL")
+bind_rows(icc_1pl, icc_2pl) %>%
+  ggplot(aes(x = theta, y = p, group = item)) +
+  geom_line(alpha = .5) +
+  facet_wrap(~model) +
+  labs(x = expression(theta ~ "(verbal aggression)"), y = "Pr(yes)") +
+  theme_classic(base_size = 13)
+```
+
+Same items, but in the 2PL the curves cross: some items separate low from high θ much more sharply than others.
+
+## Does discrimination earn its keep?
+
+```{r}
+#| code-fold: true
+irt.1 <- add_criterion(irt.1, "loo")
+irt.2 <- add_criterion(irt.2, "loo")
+loo_compare(irt.1, irt.2)
+```
+
+Only a small edge for the 2PL here (smaller than its SE): these items discriminate fairly similarly. On a test with a few bad items, the 2PL would matter more, and it tells you *which* items are weak either way.
+
 ## Graded Response Model
 
 From a binary setting to one with multiple, ordered response categories, as with Likert items. As in the GLM lecture, we use the cumulative likelihood (SR calls it ordered logit).
@@ -486,6 +547,133 @@ summary(irt.4)
 Pro: computerized adaptive testing (CAT); items and people on the same metric; precision can differ across the trait (rather than one reliability number); item banks; differential item functioning (DIF); linking separate tests
 
 Con: more complex, and IRT and CTT scores are often very highly correlated anyway.
+
+## Writing models in Stan {.smaller}
+
+All semester, brms has been writing Stan programs for you. Writing your own lets you fit models brms can't (custom IRT and cognitive models, the kind our lab fits), and makes the brms output less mysterious.
+
+The workflow, with {cmdstanr}:
+
+1. Write the program (a string or a `.stan` file)
+2. `cmdstan_model(write_stan_file(code))` compiles it
+3. `$sample(data = list(...))` runs the sampler
+4. `$summary()` and `as_draws_df($draws())` give you the posterior, ready for tidybayes
+
+## A Stan program has blocks {.smaller}
+
+| Block | What goes in it |
+|-------|-----------------|
+| `data` | everything you pass in: sizes, outcomes, predictors (with types and constraints) |
+| `transformed data` | (optional) things computed once from the data |
+| `parameters` | what the sampler explores, with constraints like `<lower=0>` |
+| `transformed parameters` | (optional) functions of parameters you want to keep |
+| `model` | priors and likelihood |
+| `generated quantities` | (optional) anything computed from each draw: predictions, `_rng` simulations, derived effects |
+
+-   Every variable has a declared type: `int`, `real`, `vector[N]`, `array[N] int`, …
+-   Every statement ends in `;`. Comments start with `//`.
+
+## Logistic regression in Stan {.smaller}
+
+The mortality model from the GLM lecture (`glm.4`), written by hand:
+
+```{r}
+logit_code <- "
+data {
+  int<lower=1> N;                       // number of people
+  vector[N] iq;                         // centered IQ
+  array[N] int<lower=0, upper=1> y;     // 1 = not a premature death
+  real iq_new;                          // an IQ value to predict at
+}
+parameters {
+  real alpha;                           // log odds at average IQ
+  real beta;                            // change in log odds per IQ point
+}
+model {
+  alpha ~ normal(0, 2);                 // priors
+  beta ~ normal(0, 0.5);
+  y ~ bernoulli_logit(alpha + beta * iq);  // likelihood
+}
+generated quantities {
+  real p_new = inv_logit(alpha + beta * iq_new);
+  real odds_ratio = exp(beta);
+}
+"
+```
+
+## Compile and sample
+
+```{r}
+#| message: false
+library(cmdstanr)
+mortality <- read_csv("mortality.csv", show_col_types = FALSE) %>% mutate(IQ_c = IQ - mean(IQ))
+
+logit_mod <- cmdstan_model(write_stan_file(logit_code))
+logit_fit <- logit_mod$sample(
+  data = list(N = nrow(mortality), iq = mortality$IQ_c, y = mortality$NOT.premature, iq_new = 10),
+  seed = 2027, chains = 4, parallel_chains = 4, refresh = 0)
+```
+
+## Same answer as brms {.smaller}
+
+```{r}
+logit_fit$summary(c("alpha", "beta", "p_new", "odds_ratio"))
+```
+
+```{r}
+fixef(readRDS("glm.4.rds"))  # the brms version from the GLM lecture
+```
+
+Same priors, same likelihood, same posterior (up to Monte Carlo error).
+
+## `~` vs `target +=`
+
+These two lines add the same thing to the log posterior (except constants that don't matter for sampling):
+
+```stan
+y ~ bernoulli_logit(alpha + beta * iq);
+target += bernoulli_logit_lpmf(y | alpha + beta * iq);
+```
+
+brms writes the `target +=` form. Think of the model block as adding up log prior + log likelihood, one line at a time.
+
+## Reading brms's Stan code {.smaller}
+
+```{r}
+#| eval: false
+stancode(readRDS("glm.4.rds"))
+```
+
+What to look for:
+
+-   `transformed data` **centers** the predictors (`Xc`), and the sampler works with the centered `Intercept`.
+-   `generated quantities` converts back: `b_Intercept = Intercept - dot_product(means_X, b)`. That's why your `Intercept` prior is about the outcome *at the predictor means*.
+-   The likelihood uses a fast built-in (`bernoulli_logit_glm_lpmf`), and priors go into `lprior`.
+
+## Working with the draws
+
+```{r}
+#| code-fold: true
+#| fig-height: 3.4
+library(posterior)
+as_draws_df(logit_fit$draws()) %>%
+  ggplot(aes(x = p_new)) +
+  stat_halfeye(.width = .95) +
+  labs(x = "Pr(not a premature death) at IQ 10 points above average", y = NULL) +
+  theme_classic(base_size = 13)
+```
+
+`generated quantities` did the work: every draw already has `p_new`.
+
+## From here to IRT
+
+The 2PL is the same skeleton with more indexing: a vector of abilities (`theta`), item difficulties and discriminations, and arrays saying which person and item each response belongs to. The likelihood line looks like
+
+```stan
+y ~ bernoulli_logit(a[item] .* (theta[person] - b[item]));
+```
+
+You'll write it in HW 13.
 
 ## Drift diffusion models
 

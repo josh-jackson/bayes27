@@ -628,6 +628,139 @@
 
 </div>
 <img data-src="gams-10_files/figure-revealjs/unnamed-chunk-9-1.png" width="960" class="r-stretch"></section>
+<section id="fitting-the-b-spline" class="slide level2 smaller">
+<h2>Fitting the B-spline</h2>
+<p>The basis functions become predictors; the model estimates one weight per basis function.</p>
+<p><span class="math display">\[
+\begin{aligned}
+\text{doy}_i &amp;\sim \text{Normal}(\mu_i, \sigma) \\
+\mu_i &amp;= \alpha + \textstyle\sum_{k=1}^{17} w_k B_{k,i} \\
+\alpha &amp;\sim \text{Normal}(100, 10) \qquad w_k \sim \text{Normal}(0, 10) \qquad \sigma \sim \text{Exponential}(1)
+\end{aligned}
+\]</span></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a>d2 <span class="ot">&lt;-</span> d2 <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">B =</span> B)   <span class="co"># the 17 cubic basis functions as one matrix column</span></span>
+<span id="cb12-2"><a href="#cb12-2"></a>spline<span class="fl">.1</span> <span class="ot">&lt;-</span></span>
+<span id="cb12-3"><a href="#cb12-3"></a>  <span class="fu">brm</span>(doy <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> B, <span class="at">family =</span> gaussian, <span class="at">data =</span> d2,</span>
+<span id="cb12-4"><a href="#cb12-4"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">100</span>, <span class="dv">10</span>), <span class="at">class =</span> Intercept),</span>
+<span id="cb12-5"><a href="#cb12-5"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">10</span>), <span class="at">class =</span> b),</span>
+<span id="cb12-6"><a href="#cb12-6"></a>                <span class="fu">prior</span>(<span class="fu">exponential</span>(<span class="dv">1</span>), <span class="at">class =</span> sigma)),</span>
+<span id="cb12-7"><a href="#cb12-7"></a>      <span class="at">iter =</span> <span class="dv">2000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">chains =</span> <span class="dv">4</span>, <span class="at">cores =</span> <span class="dv">4</span>, <span class="at">seed =</span> <span class="dv">4</span>,</span>
+<span id="cb12-8"><a href="#cb12-8"></a>      <span class="at">backend =</span> <span class="st">"cmdstanr"</span>, <span class="at">file =</span> <span class="st">"spline.1"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="the-fitted-spline" class="slide level2">
+<h2>The fitted spline</h2>
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1"></a><span class="fu">fitted</span>(spline<span class="fl">.1</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb13-2"><a href="#cb13-2"></a>  <span class="fu">as_tibble</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb13-3"><a href="#cb13-3"></a>  <span class="fu">bind_cols</span>(d2) <span class="sc">%&gt;%</span></span>
+<span id="cb13-4"><a href="#cb13-4"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> year)) <span class="sc">+</span></span>
+<span id="cb13-5"><a href="#cb13-5"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">y =</span> doy), <span class="at">colour =</span> <span class="st">"#ffb7c5"</span>, <span class="at">alpha =</span> .<span class="dv">5</span>) <span class="sc">+</span></span>
+<span id="cb13-6"><a href="#cb13-6"></a>  <span class="fu">geom_ribbon</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> Q2<span class="fl">.5</span>, <span class="at">ymax =</span> Q97<span class="fl">.5</span>), <span class="at">fill =</span> <span class="st">"grey40"</span>, <span class="at">alpha =</span> .<span class="dv">4</span>) <span class="sc">+</span></span>
+<span id="cb13-7"><a href="#cb13-7"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> Estimate)) <span class="sc">+</span></span>
+<span id="cb13-8"><a href="#cb13-8"></a>  <span class="fu">labs</span>(<span class="at">y =</span> <span class="st">"Day of first bloom"</span>) <span class="sc">+</span></span>
+<span id="cb13-9"><a href="#cb13-9"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">13</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+
+</div>
+<img data-src="gams-10_files/figure-revealjs/unnamed-chunk-11-1.png" width="960" class="r-stretch"><p>The wiggliness comes from our choice of 15 knots. More knots = wigglier; fewer = smoother. Can the model choose?</p>
+</section>
+<section id="gams-in-brms-s" class="slide level2 smaller">
+<h2>GAMs in brms: <code>s()</code></h2>
+<p><code>s(x)</code> builds a penalized spline basis (via {mgcv}). The basis weights get a hierarchical prior whose SD, <code>sds()</code>, is <em>estimated</em>: a small <code>sds</code> shrinks the weights toward a straight line. It’s partial pooling again, this time for wiggliness.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1"></a>d2 <span class="ot">&lt;-</span> d2 <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">year_c =</span> (year <span class="sc">-</span> <span class="fu">mean</span>(year)) <span class="sc">/</span> <span class="dv">100</span>)   <span class="co"># centuries from the mean year</span></span>
+<span id="cb14-2"><a href="#cb14-2"></a>gam<span class="fl">.1</span> <span class="ot">&lt;-</span></span>
+<span id="cb14-3"><a href="#cb14-3"></a>  <span class="fu">brm</span>(doy <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> <span class="fu">s</span>(year_c), <span class="at">family =</span> gaussian, <span class="at">data =</span> d2,</span>
+<span id="cb14-4"><a href="#cb14-4"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">100</span>, <span class="dv">10</span>), <span class="at">class =</span> Intercept),</span>
+<span id="cb14-5"><a href="#cb14-5"></a>                <span class="fu">prior</span>(<span class="fu">exponential</span>(<span class="dv">1</span>), <span class="at">class =</span> sigma)),</span>
+<span id="cb14-6"><a href="#cb14-6"></a>      <span class="at">iter =</span> <span class="dv">2000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">chains =</span> <span class="dv">4</span>, <span class="at">cores =</span> <span class="dv">4</span>, <span class="at">seed =</span> <span class="dv">4</span>,</span>
+<span id="cb14-7"><a href="#cb14-7"></a>      <span class="at">control =</span> <span class="fu">list</span>(<span class="at">adapt_delta =</span> .<span class="dv">95</span>),</span>
+<span id="cb14-8"><a href="#cb14-8"></a>      <span class="at">backend =</span> <span class="st">"cmdstanr"</span>, <span class="at">file =</span> <span class="st">"gam.1"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="gam.1-summary" class="slide level2 smaller">
+<h2><code>gam.1</code> summary</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1"></a><span class="fu">summary</span>(gam<span class="fl">.1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> Family: gaussian 
+  Links: mu = identity; sigma = identity 
+Formula: doy ~ 1 + s(year_c) 
+   Data: d (Number of observations: 827) 
+  Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;
+         total post-warmup draws = 4000
+
+Smoothing Spline Hyperparameters:
+               Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+sds(syear_c_1)    25.27      8.43    13.41    44.71 1.00     1133     1791
+
+Regression Coefficients:
+          Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+Intercept   104.54      0.21   104.12   104.94 1.00     4323     2970
+syear_c_1   -62.96     25.82  -116.91   -15.30 1.00     1984     2448
+
+Further Distributional Parameters:
+      Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+sigma     6.02      0.15     5.74     6.33 1.00     4247     2705
+
+Draws were sampled using sample(hmc). For each parameter, Bulk_ESS
+and Tail_ESS are effective sample size measures, and Rhat is the potential
+scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
+</div>
+</div>
+<p><code>sds(syear_c_1)</code> is the wiggliness. The <code>syear_c_1</code> coefficient is the linear part of the smooth; the rest of the curve lives in the penalized basis weights.</p>
+</section>
+<section id="the-gam-fit" class="slide level2">
+<h2>The GAM fit</h2>
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1"></a><span class="fu">predictions</span>(gam<span class="fl">.1</span>, <span class="at">newdata =</span> <span class="fu">datagrid</span>(<span class="at">year_c =</span> <span class="fu">seq</span>(<span class="fu">min</span>(d2<span class="sc">$</span>year_c), <span class="fu">max</span>(d2<span class="sc">$</span>year_c), <span class="at">length.out =</span> <span class="dv">200</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb17-2"><a href="#cb17-2"></a>  <span class="fu">mutate</span>(<span class="at">year =</span> year_c <span class="sc">*</span> <span class="dv">100</span> <span class="sc">+</span> <span class="fu">mean</span>(d2<span class="sc">$</span>year)) <span class="sc">%&gt;%</span></span>
+<span id="cb17-3"><a href="#cb17-3"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> year)) <span class="sc">+</span></span>
+<span id="cb17-4"><a href="#cb17-4"></a>  <span class="fu">geom_point</span>(<span class="at">data =</span> d2, <span class="fu">aes</span>(<span class="at">y =</span> doy), <span class="at">colour =</span> <span class="st">"#ffb7c5"</span>, <span class="at">alpha =</span> .<span class="dv">5</span>) <span class="sc">+</span></span>
+<span id="cb17-5"><a href="#cb17-5"></a>  <span class="fu">geom_ribbon</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> conf.low, <span class="at">ymax =</span> conf.high), <span class="at">fill =</span> <span class="st">"grey40"</span>, <span class="at">alpha =</span> .<span class="dv">4</span>) <span class="sc">+</span></span>
+<span id="cb17-6"><a href="#cb17-6"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> estimate)) <span class="sc">+</span></span>
+<span id="cb17-7"><a href="#cb17-7"></a>  <span class="fu">labs</span>(<span class="at">y =</span> <span class="st">"Day of first bloom"</span>) <span class="sc">+</span></span>
+<span id="cb17-8"><a href="#cb17-8"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">13</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+
+</div>
+<img data-src="gams-10_files/figure-revealjs/unnamed-chunk-14-1.png" width="960" class="r-stretch"></section>
+<section id="more-basis-functions-same-curve" class="slide level2 smaller">
+<h2>More basis functions, same curve</h2>
+<p>Give the smooth 40 basis functions instead of the default 10:</p>
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1"></a>gam<span class="fl">.2</span> <span class="ot">&lt;-</span></span>
+<span id="cb18-2"><a href="#cb18-2"></a>  <span class="fu">brm</span>(doy <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> <span class="fu">s</span>(year_c, <span class="at">k =</span> <span class="dv">40</span>), <span class="at">family =</span> gaussian, <span class="at">data =</span> d2,</span>
+<span id="cb18-3"><a href="#cb18-3"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">100</span>, <span class="dv">10</span>), <span class="at">class =</span> Intercept),</span>
+<span id="cb18-4"><a href="#cb18-4"></a>                <span class="fu">prior</span>(<span class="fu">exponential</span>(<span class="dv">1</span>), <span class="at">class =</span> sigma)),</span>
+<span id="cb18-5"><a href="#cb18-5"></a>      <span class="at">iter =</span> <span class="dv">2000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">chains =</span> <span class="dv">4</span>, <span class="at">cores =</span> <span class="dv">4</span>, <span class="at">seed =</span> <span class="dv">4</span>,</span>
+<span id="cb18-6"><a href="#cb18-6"></a>      <span class="at">control =</span> <span class="fu">list</span>(<span class="at">adapt_delta =</span> .<span class="dv">95</span>),</span>
+<span id="cb18-7"><a href="#cb18-7"></a>      <span class="at">backend =</span> <span class="st">"cmdstanr"</span>, <span class="at">file =</span> <span class="st">"gam.2"</span>)</span>
+<span id="cb18-8"><a href="#cb18-8"></a>spline<span class="fl">.1</span> <span class="ot">&lt;-</span> <span class="fu">add_criterion</span>(spline<span class="fl">.1</span>, <span class="st">"loo"</span>)</span>
+<span id="cb18-9"><a href="#cb18-9"></a>gam<span class="fl">.1</span> <span class="ot">&lt;-</span> <span class="fu">add_criterion</span>(gam<span class="fl">.1</span>, <span class="st">"loo"</span>)</span>
+<span id="cb18-10"><a href="#cb18-10"></a>gam<span class="fl">.2</span> <span class="ot">&lt;-</span> <span class="fu">add_criterion</span>(gam<span class="fl">.2</span>, <span class="st">"loo"</span>)</span>
+<span id="cb18-11"><a href="#cb18-11"></a><span class="fu">loo_compare</span>(spline<span class="fl">.1</span>, gam<span class="fl">.1</span>, gam<span class="fl">.2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>         elpd_diff se_diff
+spline.1  0.0       0.0   
+gam.2    -4.4       4.2   
+gam.1    -6.8       5.0   </code></pre>
+</div>
+</div>
+<ul>
+<li>The three fits predict about equally well (differences within a couple of SEs). With <code>s()</code>, the penalty decides how wiggly the curve gets, so you don’t have to agonize over the number of knots.</li>
+<li><code>gam.2</code> had a handful of divergent transitions: smooths with many basis functions can be hard to sample. Raise <code>adapt_delta</code> (e.g., .99) before trusting it.</li>
+</ul>
+</section>
 <section id="a-fitted-spline" class="slide level2">
 <h2>A fitted spline</h2>
 

@@ -8887,7 +8887,7 @@
     "href": "adv-9.html#predicting-a-new-person",
     "title": "Advanced models 1: prediction, MrP, missing data, measurement error, meta-analysis",
     "section": "Predicting a new person",
-    "text": "Predicting a new person\nDraw from the (assumed Gaussian) population distribution of random effects by asking predictions() for a new “level” of the grouping variable. This “integrates out” the random effects.\n\n\nCode\npredictions(\n    mlm.5,\n    newdata = datagrid(W.other = 0:1, ID = \"ralph\"),\n    allow_new_levels = TRUE)\n\n\n\n W.other    ID Estimate 2.5 % 97.5 %\n       0 ralph     3.16  2.17   4.14\n       1 ralph     3.47  2.64   4.34\n\nType:  response \nColumns: rowid, estimate, conf.low, conf.high, W.other, ID, PA"
+    "text": "Predicting a new person\nDraw from the (assumed Gaussian) population distribution of random effects by asking predictions() for a new “level” of the grouping variable. This “integrates out” the random effects.\n\n\nCode\npredictions(\n    mlm.5,\n    newdata = datagrid(W.other = 0:1, ID = \"ralph\"),\n    allow_new_levels = TRUE)\n\n\n\n W.other    ID Estimate 2.5 % 97.5 %\n       0 ralph     3.14  2.16   4.13\n       1 ralph     3.46  2.61   4.34\n\nType:  response \nColumns: rowid, estimate, conf.low, conf.high, W.other, ID, PA"
   },
   {
     "objectID": "adv-9.html#new-person-vs.-average-person",
@@ -8999,7 +8999,7 @@
     "href": "adv-9.html#poststratifying",
     "title": "Advanced models 1: prediction, MrP, missing data, measurement error, meta-analysis",
     "section": "Poststratifying",
-    "text": "Poststratifying\nIf we group the results by age_group and .draw, we can sum the product of the posterior predictions and the weights (prop), which will leave us with 4,000 stratified posterior draws for each of the 11 levels of age_group\n\\[\\frac{\\sum_i N_i p_i}{\\sum_i N_i}\\]"
+    "text": "Poststratifying\nFor each age group, average the predictions over every census cell in it, weighting each cell by its share of the population:\n\\[\\hat p_{\\text{age}} = \\frac{\\sum_c N_c \\, \\hat p_c}{\\sum_c N_c}\\]\nDo it draw by draw and you get a full posterior for each age group."
   },
   {
     "objectID": "adv-9.html#poststratified-estimates-by-age",
@@ -9013,7 +9013,7 @@
     "href": "adv-9.html#raw-data-vs.-mlm-vs.-mrp",
     "title": "Advanced models 1: prediction, MrP, missing data, measurement error, meta-analysis",
     "section": "Raw data vs. MLM vs. MrP",
-    "text": "Raw data vs. MLM vs. MrP\n\n\nCode\nlibrary(patchwork)\nlevels &lt;- c(\"raw data\", \"multilevel\", \"MRP\")\n\np1 &lt;-\n  # compute the proportions from the data\n  d %&gt;%\n  group_by(age_group, kept_name) %&gt;%\n  summarise(n = n()) %&gt;%\n  group_by(age_group) %&gt;%\n  mutate(prop = n/sum(n),\n         type = factor(\"raw data\", levels = levels)) %&gt;%\n  filter(kept_name == 1, age_group &lt; 80, age_group &gt; 20) %&gt;%\n  ggplot(aes(x = prop, y = age_group)) +\n  geom_point() +\n  scale_x_continuous(breaks = c(0, .5, 1), limits = c(0, 1)) +\n  facet_wrap(~type)\n\n\nnd &lt;- distinct(d, age_group) %&gt;% arrange(age_group)\n\np2 &lt;-\n  fitted(mlm.mrp,\n         re_formula = ~ (1 | age_group),\n         newdata = nd) %&gt;%\n  data.frame() %&gt;%\n  bind_cols(nd) %&gt;%\n  mutate(prop = Estimate,\n         type = factor(\"multilevel\", levels = levels)) %&gt;%\n\n  ggplot(aes(x = prop, xmin = Q2.5, xmax = Q97.5, y = age_group)) +\n  geom_pointrange(color = \"blue2\", size = 0.8, fatten = 2) +\n  scale_x_continuous(breaks = c(0, .5, 1), limits = c(0, 1)) +\n  scale_y_discrete(labels = NULL) +\n  facet_wrap(~type)\n\n\np3 &lt;-\n  pp %&gt;%\n  mutate(type = factor(\"MRP\", levels = levels)) %&gt;%\n  ggplot(aes(x = kept_name_predict, xmin = .lower, xmax = .upper, y = age_group)) +\n  geom_pointrange(color = \"orange2\", size = 0.8, fatten = 2) +\n  scale_x_continuous(breaks = c(0, .5, 1), limits = c(0, 1)) +\n  scale_y_discrete(labels = NULL) +\n  facet_wrap(~type)\n\n# combine!\n(p1 | p2 | p3) +\n  plot_annotation(title = \"Proportion of women keeping name after marriage, by age\")"
+    "text": "Raw data vs. MLM vs. MrP\n\n\nCode\nlibrary(patchwork)\nlevels &lt;- c(\"raw data\", \"multilevel\", \"MrP\")\n\np1 &lt;-\n  d %&gt;%\n  group_by(age_group, kept_name) %&gt;%\n  summarise(n = n(), .groups = \"drop_last\") %&gt;%\n  mutate(prop = n / sum(n), type = factor(\"raw data\", levels = levels)) %&gt;%\n  filter(kept_name == 1, age_group &lt; 80, age_group &gt; 20) %&gt;%\n  ggplot(aes(x = prop, y = age_group)) +\n  geom_point() +\n  scale_x_continuous(breaks = c(0, .5, 1), limits = c(0, 1)) +\n  facet_wrap(~type)\n\nnd &lt;- distinct(d, age_group) %&gt;% arrange(age_group)\np2 &lt;-\n  predictions(mlm.mrp, newdata = nd, re_formula = ~ (1 | age_group)) %&gt;%\n  mutate(type = factor(\"multilevel\", levels = levels)) %&gt;%\n  filter(age_group &lt; 80, age_group &gt; 20) %&gt;%\n  ggplot(aes(x = estimate, xmin = conf.low, xmax = conf.high, y = age_group)) +\n  geom_pointrange(color = \"#4C78A8\") +\n  scale_x_continuous(breaks = c(0, .5, 1), limits = c(0, 1)) +\n  scale_y_discrete(labels = NULL) +\n  facet_wrap(~type)\n\np3 &lt;-\n  pred %&gt;%\n  mutate(type = factor(\"MrP\", levels = levels)) %&gt;%\n  filter(age_group &lt; 80, age_group &gt; 20) %&gt;%\n  ggplot(aes(x = estimate, xmin = conf.low, xmax = conf.high, y = age_group)) +\n  geom_pointrange(color = \"#E45756\") +\n  scale_x_continuous(breaks = c(0, .5, 1), limits = c(0, 1)) +\n  scale_y_discrete(labels = NULL) +\n  facet_wrap(~type)\n\n(p1 | p2 | p3) +\n  plot_annotation(title = \"Proportion of women keeping their name after marriage, by age\")"
   },
   {
     "objectID": "adv-9.html#mrp-with-marginaleffects",
@@ -9406,5 +9406,201 @@
     "title": "Advanced models 1: prediction, MrP, missing data, measurement error, meta-analysis",
     "section": "ME.2a summary",
     "text": "ME.2a summary\n\nsummary(ME.2a)\n\n Family: MV(gaussian, gaussian) \n  Links: mu = identity; sigma = identity\n         mu = identity; sigma = identity \nFormula: schoool.success | mi(se_ss) ~ mi(happiness) \n         happiness | mi(se_happy) ~ 1 \n   Data: MI (Number of observations: 118) \n  Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;\n         total post-warmup draws = 4000\n\nRegression Coefficients:\n                           Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS\nschooolsuccess_Intercept       2.89      0.95     1.04     4.78 1.00     1750\nhappiness_Intercept            5.22      0.17     4.87     5.55 1.00     5568\nschooolsuccess_mihappiness     1.12      0.18     0.77     1.47 1.00     1712\n                           Tail_ESS\nschooolsuccess_Intercept       2510\nhappiness_Intercept            2936\nschooolsuccess_mihappiness     2618\n\nFurther Distributional Parameters:\n                     Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS\nsigma_schooolsuccess     2.04      0.27     1.53     2.61 1.00     1186\nsigma_happiness          1.69      0.14     1.44     1.97 1.00     4529\n                     Tail_ESS\nsigma_schooolsuccess     1795\nsigma_happiness          3442\n\nDraws were sampled using sample(hmc). For each parameter, Bulk_ESS\nand Tail_ESS are effective sample size measures, and Rhat is the potential\nscale reduction factor on split chains (at convergence, Rhat = 1)."
+  },
+  {
+    "objectID": "gams-10.html#fitting-the-b-spline",
+    "href": "gams-10.html#fitting-the-b-spline",
+    "title": "Generalized additive models (GAMs)",
+    "section": "Fitting the B-spline",
+    "text": "Fitting the B-spline\nThe basis functions become predictors; the model estimates one weight per basis function.\n\\[\n\\begin{aligned}\n\\text{doy}_i &\\sim \\text{Normal}(\\mu_i, \\sigma) \\\\\n\\mu_i &= \\alpha + \\textstyle\\sum_{k=1}^{17} w_k B_{k,i} \\\\\n\\alpha &\\sim \\text{Normal}(100, 10) \\qquad w_k \\sim \\text{Normal}(0, 10) \\qquad \\sigma \\sim \\text{Exponential}(1)\n\\end{aligned}\n\\]\n\nd2 &lt;- d2 %&gt;% mutate(B = B)   # the 17 cubic basis functions as one matrix column\nspline.1 &lt;-\n  brm(doy ~ 1 + B, family = gaussian, data = d2,\n      prior = c(prior(normal(100, 10), class = Intercept),\n                prior(normal(0, 10), class = b),\n                prior(exponential(1), class = sigma)),\n      iter = 2000, warmup = 1000, chains = 4, cores = 4, seed = 4,\n      backend = \"cmdstanr\", file = \"spline.1\")"
+  },
+  {
+    "objectID": "gams-10.html#the-fitted-spline",
+    "href": "gams-10.html#the-fitted-spline",
+    "title": "Generalized additive models (GAMs)",
+    "section": "The fitted spline",
+    "text": "The fitted spline\n\n\nCode\nfitted(spline.1) %&gt;%\n  as_tibble() %&gt;%\n  bind_cols(d2) %&gt;%\n  ggplot(aes(x = year)) +\n  geom_point(aes(y = doy), colour = \"#ffb7c5\", alpha = .5) +\n  geom_ribbon(aes(ymin = Q2.5, ymax = Q97.5), fill = \"grey40\", alpha = .4) +\n  geom_line(aes(y = Estimate)) +\n  labs(y = \"Day of first bloom\") +\n  theme_classic(base_size = 13)\n\n\n\nThe wiggliness comes from our choice of 15 knots. More knots = wigglier; fewer = smoother. Can the model choose?"
+  },
+  {
+    "objectID": "gams-10.html#gams-in-brms-s",
+    "href": "gams-10.html#gams-in-brms-s",
+    "title": "Generalized additive models (GAMs)",
+    "section": "GAMs in brms: s()",
+    "text": "GAMs in brms: s()\ns(x) builds a penalized spline basis (via {mgcv}). The basis weights get a hierarchical prior whose SD, sds(), is estimated: a small sds shrinks the weights toward a straight line. It’s partial pooling again, this time for wiggliness.\n\nd2 &lt;- d2 %&gt;% mutate(year_c = (year - mean(year)) / 100)   # centuries from the mean year\ngam.1 &lt;-\n  brm(doy ~ 1 + s(year_c), family = gaussian, data = d2,\n      prior = c(prior(normal(100, 10), class = Intercept),\n                prior(exponential(1), class = sigma)),\n      iter = 2000, warmup = 1000, chains = 4, cores = 4, seed = 4,\n      control = list(adapt_delta = .95),\n      backend = \"cmdstanr\", file = \"gam.1\")"
+  },
+  {
+    "objectID": "gams-10.html#gam.1-summary",
+    "href": "gams-10.html#gam.1-summary",
+    "title": "Generalized additive models (GAMs)",
+    "section": "gam.1 summary",
+    "text": "gam.1 summary\n\nsummary(gam.1)\n\n Family: gaussian \n  Links: mu = identity; sigma = identity \nFormula: doy ~ 1 + s(year_c) \n   Data: d (Number of observations: 827) \n  Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;\n         total post-warmup draws = 4000\n\nSmoothing Spline Hyperparameters:\n               Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nsds(syear_c_1)    25.27      8.43    13.41    44.71 1.00     1133     1791\n\nRegression Coefficients:\n          Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nIntercept   104.54      0.21   104.12   104.94 1.00     4323     2970\nsyear_c_1   -62.96     25.82  -116.91   -15.30 1.00     1984     2448\n\nFurther Distributional Parameters:\n      Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nsigma     6.02      0.15     5.74     6.33 1.00     4247     2705\n\nDraws were sampled using sample(hmc). For each parameter, Bulk_ESS\nand Tail_ESS are effective sample size measures, and Rhat is the potential\nscale reduction factor on split chains (at convergence, Rhat = 1).\n\n\nsds(syear_c_1) is the wiggliness. The syear_c_1 coefficient is the linear part of the smooth; the rest of the curve lives in the penalized basis weights."
+  },
+  {
+    "objectID": "gams-10.html#the-gam-fit",
+    "href": "gams-10.html#the-gam-fit",
+    "title": "Generalized additive models (GAMs)",
+    "section": "The GAM fit",
+    "text": "The GAM fit\n\n\nCode\npredictions(gam.1, newdata = datagrid(year_c = seq(min(d2$year_c), max(d2$year_c), length.out = 200))) %&gt;%\n  mutate(year = year_c * 100 + mean(d2$year)) %&gt;%\n  ggplot(aes(x = year)) +\n  geom_point(data = d2, aes(y = doy), colour = \"#ffb7c5\", alpha = .5) +\n  geom_ribbon(aes(ymin = conf.low, ymax = conf.high), fill = \"grey40\", alpha = .4) +\n  geom_line(aes(y = estimate)) +\n  labs(y = \"Day of first bloom\") +\n  theme_classic(base_size = 13)"
+  },
+  {
+    "objectID": "gams-10.html#more-basis-functions-same-curve",
+    "href": "gams-10.html#more-basis-functions-same-curve",
+    "title": "Generalized additive models (GAMs)",
+    "section": "More basis functions, same curve",
+    "text": "More basis functions, same curve\nGive the smooth 40 basis functions instead of the default 10:\n\n\nCode\ngam.2 &lt;-\n  brm(doy ~ 1 + s(year_c, k = 40), family = gaussian, data = d2,\n      prior = c(prior(normal(100, 10), class = Intercept),\n                prior(exponential(1), class = sigma)),\n      iter = 2000, warmup = 1000, chains = 4, cores = 4, seed = 4,\n      control = list(adapt_delta = .95),\n      backend = \"cmdstanr\", file = \"gam.2\")\nspline.1 &lt;- add_criterion(spline.1, \"loo\")\ngam.1 &lt;- add_criterion(gam.1, \"loo\")\ngam.2 &lt;- add_criterion(gam.2, \"loo\")\nloo_compare(spline.1, gam.1, gam.2)\n\n\n         elpd_diff se_diff\nspline.1  0.0       0.0   \ngam.2    -4.4       4.2   \ngam.1    -6.8       5.0   \n\n\n\nThe three fits predict about equally well (differences within a couple of SEs). With s(), the penalty decides how wiggly the curve gets, so you don’t have to agonize over the number of knots.\ngam.2 had a handful of divergent transitions: smooths with many basis functions can be hard to sample. Raise adapt_delta (e.g., .99) before trusting it."
+  },
+  {
+    "objectID": "adv-9b.html#let-the-model-estimate-the-correlation",
+    "href": "adv-9b.html#let-the-model-estimate-the-correlation",
+    "title": "Advanced models 2: multivariate and distributional models",
+    "section": "Let the model estimate the correlation",
+    "text": "Let the model estimate the correlation\nCorrelating posterior medians treats shrunken point estimates as if they were data and throws away their uncertainty. Instead, give the two outcomes’ person effects a shared label (|p|) so they get one correlation matrix:\n\n\nCode\nmv.2 &lt;-\n  brm(family = gaussian,\n      bf(mvbind(CON, DAN) ~ 1 + time + (1 + time |p| ID)) + set_rescor(TRUE),\n      prior = c(prior(normal(0, 1.5), class = Intercept),\n                prior(normal(0, 1.5), class = b),\n                prior(exponential(1), class = sd, resp = CON),\n                prior(exponential(1), class = sd, resp = DAN),\n                prior(lkj(2), class = cor),\n                prior(lkj(2), class = rescor)),\n      iter = 4000, warmup = 1000, chains = 4, cores = 4,\n      file = \"mv.2\",\n      backend = \"cmdstanr\",\n      data = mlm)\n\n\n\n\nCode\nmv.2 %&gt;%\n  spread_draws(cor_ID__CON_time__DAN_time) %&gt;%\n  ggplot(aes(x = cor_ID__CON_time__DAN_time)) +\n  stat_halfeye(.width = .95) +\n  xlim(-1, 1) +\n  labs(x = \"Correlation between people's CON and DAN slopes\", y = NULL) +\n  theme_classic(base_size = 13)"
+  },
+  {
+    "objectID": "adv-9b.html#what-the-model-says",
+    "href": "adv-9b.html#what-the-model-says",
+    "title": "Advanced models 2: multivariate and distributional models",
+    "section": "What the model says",
+    "text": "What the model says\n\nmv.2 %&gt;%\n  spread_draws(cor_ID__CON_time__DAN_time, cor_ID__CON_Intercept__DAN_Intercept) %&gt;%\n  median_qi(.width = .95) %&gt;%\n  select(-.width, -.point, -.interval) %&gt;%\n  pivot_longer(everything()) %&gt;%\n  mutate(value = round(value, 2))\n\n# A tibble: 6 × 2\n  name                                       value\n  &lt;chr&gt;                                      &lt;dbl&gt;\n1 cor_ID__CON_time__DAN_time                 -0.04\n2 cor_ID__CON_time__DAN_time.lower           -0.72\n3 cor_ID__CON_time__DAN_time.upper            0.69\n4 cor_ID__CON_Intercept__DAN_Intercept        0.4 \n5 cor_ID__CON_Intercept__DAN_Intercept.lower  0.08\n6 cor_ID__CON_Intercept__DAN_Intercept.upper  0.66\n\n\n\nPeople with higher CON also tend to have higher DAN (intercept correlation ≈ .4, interval above 0).\nBut the slope correlation is anywhere from about −.7 to .7: with 2–4 scans per person, the data can’t tell us whether people who change on one network change on the other. The plot of median slopes looked much more certain than it should."
+  },
+  {
+    "objectID": "adv-9b.html#reading-sigma-coefficients",
+    "href": "adv-9b.html#reading-sigma-coefficients",
+    "title": "Advanced models 2: multivariate and distributional models",
+    "section": "Reading sigma coefficients",
+    "text": "Reading sigma coefficients\nBecause sigma is on the log scale, exp() of a sigma coefficient is a ratio of SDs. From d.1b (control is the reference group):\n\nas_draws_df(d.1b) %&gt;%\n  mutate(sd_ratio_PD_vs_CTRL = exp(b_sigma_groupPD)) %&gt;%\n  median_qi(sd_ratio_PD_vs_CTRL)\n\n# A tibble: 1 × 6\n  sd_ratio_PD_vs_CTRL .lower .upper .width .point .interval\n                &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;    \n1                1.28   1.03   1.57   0.95 median qi       \n\n\nPeople with PD vary about 1.3 times as much in CON as controls do."
+  },
+  {
+    "objectID": "adv-9b.html#is-the-distributional-model-worth-it",
+    "href": "adv-9b.html#is-the-distributional-model-worth-it",
+    "title": "Advanced models 2: multivariate and distributional models",
+    "section": "Is the distributional model worth it?",
+    "text": "Is the distributional model worth it?\nCompare it with a model that has one sigma for everyone:\n\n\nCode\nd.0 &lt;-\n  brm(family = gaussian,\n      CON ~ 1 + group,\n      file = \"d.0\",\n      backend = \"cmdstanr\",\n      data = mlm)\nd.0 &lt;- add_criterion(d.0, \"loo\")\nd.1b &lt;- add_criterion(d.1b, \"loo\")\nloo_compare(d.0, d.1b)\n\n\n     elpd_diff se_diff\nd.1b  0.0       0.0   \nd.0  -1.5       2.4   \n\n\n\n\nCode\nlibrary(patchwork)\n(bayesplot::ppc_dens_overlay_grouped(mlm$CON, posterior_predict(d.0, ndraws = 50), group = mlm$group) +\n   ggtitle(\"One sigma\")) /\n(bayesplot::ppc_dens_overlay_grouped(mlm$CON, posterior_predict(d.1b, ndraws = 50), group = mlm$group) +\n   ggtitle(\"Sigma by group\"))\n\n\n\nThe SD ratio’s interval excludes 1, but LOO barely prefers the distributional model (a small difference relative to its SE). A real but small difference in spread doesn’t change predictions much. Whether you care depends on the question: if the spread itself is the hypothesis, model it."
+  },
+  {
+    "objectID": "adv-9b.html#how-different-are-peoples-sds",
+    "href": "adv-9b.html#how-different-are-peoples-sds",
+    "title": "Advanced models 2: multivariate and distributional models",
+    "section": "How different are people’s SDs?",
+    "text": "How different are people’s SDs?\nsd(sigma_Intercept) is on the log scale. Turn it into the range of residual SDs for the middle 95% of people, draw by draw:\n\nas_draws_df(melsm.2) %&gt;%\n  mutate(sd_low  = exp(b_sigma_Intercept - 1.96 * sd_record_id__sigma_Intercept),\n         sd_mid  = exp(b_sigma_Intercept),\n         sd_high = exp(b_sigma_Intercept + 1.96 * sd_record_id__sigma_Intercept)) %&gt;%\n  median_qi(sd_low, sd_mid, sd_high) %&gt;%\n  select(sd_low, sd_mid, sd_high)\n\n# A tibble: 1 × 3\n  sd_low sd_mid sd_high\n   &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt;\n1  0.118  0.457    1.77\n\n\nResidual SDs range from about 0.12 to 1.8 (standardized units) across the middle 95% of people: the least consistent people vary about 15 times as much day to day as the most consistent. The standard MLM forces this difference to zero."
+  },
+  {
+    "objectID": "adv-9b.html#is-the-melsm-worth-it",
+    "href": "adv-9b.html#is-the-melsm-worth-it",
+    "title": "Advanced models 2: multivariate and distributional models",
+    "section": "Is the MELSM worth it?",
+    "text": "Is the MELSM worth it?\n\n\nCode\n# LOO criteria were added once with add_criterion(model, \"loo\", ndraws = 2000)\n# (the full log-likelihood matrix for 13,000 observations is large)\nloo_compare(melsm.1, melsm.2)\n\n\n        elpd_diff se_diff\nmelsm.2     0.0       0.0\nmelsm.1 -4366.4     111.6\n\n\nLetting each person have their own sigma improves expected out-of-sample prediction by a lot, relative to its standard error."
+  },
+  {
+    "objectID": "adv-9.html#three-answers-to-one-question",
+    "href": "adv-9.html#three-answers-to-one-question",
+    "title": "Advanced models 1: prediction, MrP, missing data, measurement error, meta-analysis",
+    "section": "Three answers to one question",
+    "text": "Three answers to one question\n\n\nCode\nlm_full &lt;- lm(schoool.success ~ happiness, data = MI)\nlm_listwise &lt;- lm(schoool.success ~ happiness, data = MI.missing)\nimp_slope &lt;- fixef(imp.3)[\"schooolsuccess_mihappiness\", ]\n\ntibble(approach = c(\"Complete data (the truth here)\", \"Listwise deletion\", \"Imputation during fitting (imp.3)\"),\n       n_used   = c(nrow(MI), nobs(lm_listwise), nrow(MI.missing)),\n       slope    = c(coef(lm_full)[\"happiness\"], coef(lm_listwise)[\"happiness\"], imp_slope[\"Estimate\"]),\n       se       = c(summary(lm_full)$coefficients[\"happiness\", \"Std. Error\"],\n                    summary(lm_listwise)$coefficients[\"happiness\", \"Std. Error\"], imp_slope[\"Est.Error\"])) %&gt;%\n  knitr::kable(digits = 2)\n\n\n\n\n\napproach\nn_used\nslope\nse\n\n\n\n\nComplete data (the truth here)\n118\n0.88\n0.14\n\n\nListwise deletion\n57\n1.09\n0.20\n\n\nImputation during fitting (imp.3)\n118\n1.02\n0.18\n\n\n\n\n\n\nListwise deletion throws away every row with any missing value: 57 of 118 people here. Imputation keeps all 118, and its SE is smaller.\nWe deleted values completely at random, so neither approach is biased on average; in this particular sample both happen to land above the complete-data slope.\nWhen missingness depends on other variables (MAR), listwise deletion is biased; imputation that uses those variables (friendship quality and SES here) is not."
+  },
+  {
+    "objectID": "adv-9.html#average-effect-and-heterogeneity",
+    "href": "adv-9.html#average-effect-and-heterogeneity",
+    "title": "Advanced models 1: prediction, MrP, missing data, measurement error, meta-analysis",
+    "section": "Average effect and heterogeneity",
+    "text": "Average effect and heterogeneity\nTwo questions: what is the average effect (μ), and how much do true effects vary from study to study (τ)?\n\n\nCode\nas_draws_df(meta.2) %&gt;%\n  mutate(mu = b_Intercept,\n         tau_study = sd_study__Intercept,\n         tau_effect = sd_id__Intercept,\n         new_study = rnorm(n(), mu, sqrt(tau_study^2 + tau_effect^2))) %&gt;%\n  select(mu, tau_study, tau_effect, new_study) %&gt;%\n  pivot_longer(everything(), names_to = \"quantity\") %&gt;%\n  group_by(quantity) %&gt;%\n  median_qi(value) %&gt;%\n  select(quantity, median = value, lower = .lower, upper = .upper) %&gt;%\n  mutate(across(where(is.numeric), \\(x) round(x, 2)))\n\n\n# A tibble: 4 × 4\n  quantity   median lower upper\n  &lt;chr&gt;       &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;\n1 mu           0.36  0.3   0.42\n2 new_study    0.36 -0.14  0.87\n3 tau_effect   0.11  0.06  0.2 \n4 tau_study    0.23  0.15  0.29\n\n\n\nμ is the average effect of spanking in d units (positive = worse outcomes for spanked children): about .36, reliably above 0.\nThe τ’s say true effects differ quite a bit between studies and between outcomes within studies.\nnew_study: the prediction interval for the effect in the next study. It’s much wider than μ’s interval, and that is the honest answer to “what will a new study find?”"
+  },
+  {
+    "objectID": "adv-9.html#a-forest-plot",
+    "href": "adv-9.html#a-forest-plot",
+    "title": "Advanced models 1: prediction, MrP, missing data, measurement error, meta-analysis",
+    "section": "A forest plot",
+    "text": "A forest plot\n\n\nCode\nset.seed(1)\nshown &lt;- spank %&gt;% slice_sample(n = 25)\npooled &lt;- predictions(meta.2, newdata = shown)   # each effect's estimate after partial pooling\n\nggplot(pooled, aes(y = reorder(paste(study, outcome, sep = \": \"), d))) +\n  geom_vline(xintercept = fixef(meta.2)[\"Intercept\", \"Estimate\"], linetype = \"dashed\", colour = \"grey50\") +\n  geom_pointrange(aes(x = d, xmin = ll, xmax = ul), colour = \"grey60\", shape = 1) +\n  geom_pointrange(aes(x = estimate, xmin = conf.low, xmax = conf.high), colour = \"#4C78A8\",\n                  position = position_nudge(y = -.3), size = .3) +\n  labs(x = \"Cohen's d\", y = NULL,\n       caption = \"Grey: each study's reported d and 95% CI. Blue: estimate after partial pooling. Dashed: μ. 25 of 111 effects.\") +\n  theme_classic(base_size = 10) +\n  theme(plot.caption = element_text(hjust = 0))"
+  },
+  {
+    "objectID": "adv-9c.html#person-scores-θ",
+    "href": "adv-9c.html#person-scores-θ",
+    "title": "Cognitive and IRT models",
+    "section": "Person scores (θ)",
+    "text": "Person scores (θ)\nThe person effects are the IRT scores: each person’s θ, with its uncertainty.\n\n\nCode\ntheta &lt;- irt.1 %&gt;%\n  spread_draws(r_id[id, ]) %&gt;%\n  median_qi(r_id) %&gt;%\n  left_join(IRT %&gt;% group_by(id) %&gt;% summarise(sum_score = sum(r2 == \"Y\")) %&gt;%\n              mutate(id = as.integer(as.character(id))), by = \"id\")\n\nggplot(theta, aes(x = sum_score, y = r_id, ymin = .lower, ymax = .upper)) +\n  geom_pointrange(alpha = .3, size = .2) +\n  labs(x = \"Sum score (number of 'yes' answers out of 24)\", y = \"θ from the 1PL (with 95% interval)\") +\n  theme_classic(base_size = 13)\n\n\n\nIn a 1PL, θ is a (nonlinear) function of the sum score: everyone with the same sum score gets the same θ. Intervals are widest at the extremes, where few items are informative."
+  },
+  {
+    "objectID": "adv-9c.html#pl-vs.-2pl-item-curves",
+    "href": "adv-9c.html#pl-vs.-2pl-item-curves",
+    "title": "Cognitive and IRT models",
+    "section": "1PL vs. 2PL item curves",
+    "text": "1PL vs. 2PL item curves\n\n\nCode\nicc_1pl &lt;- irt.1 %&gt;%\n  spread_draws(b_Intercept, r_item[item, ], ndraws = 500) %&gt;%\n  ungroup() %&gt;%\n  tidyr::expand(nesting(.draw, b_Intercept, item, r_item), theta = seq(-6, 6, length.out = 60)) %&gt;%\n  mutate(p = inv_logit_scaled(b_Intercept + r_item + theta)) %&gt;%\n  group_by(theta, item) %&gt;% summarise(p = mean(p), .groups = \"drop\") %&gt;% mutate(model = \"1PL\")\nicc_2pl &lt;- irt.2 %&gt;%\n  spread_draws(b_delta_Intercept, b_logalpha_Intercept, r_item__logalpha[item, ], r_item__delta[item, ], ndraws = 500) %&gt;%\n  ungroup() %&gt;%\n  tidyr::expand(nesting(.draw, b_delta_Intercept, b_logalpha_Intercept, item, r_item__logalpha, r_item__delta),\n                theta = seq(-6, 6, length.out = 60)) %&gt;%\n  mutate(p = inv_logit_scaled(exp(b_logalpha_Intercept + r_item__logalpha) * (b_delta_Intercept + theta + r_item__delta))) %&gt;%\n  group_by(theta, item) %&gt;% summarise(p = mean(p), .groups = \"drop\") %&gt;% mutate(model = \"2PL\")\nbind_rows(icc_1pl, icc_2pl) %&gt;%\n  ggplot(aes(x = theta, y = p, group = item)) +\n  geom_line(alpha = .5) +\n  facet_wrap(~model) +\n  labs(x = expression(theta ~ \"(verbal aggression)\"), y = \"Pr(yes)\") +\n  theme_classic(base_size = 13)\n\n\n\nSame items, but in the 2PL the curves cross: some items separate low from high θ much more sharply than others."
+  },
+  {
+    "objectID": "adv-9c.html#does-discrimination-earn-its-keep",
+    "href": "adv-9c.html#does-discrimination-earn-its-keep",
+    "title": "Cognitive and IRT models",
+    "section": "Does discrimination earn its keep?",
+    "text": "Does discrimination earn its keep?\n\n\nCode\nirt.1 &lt;- add_criterion(irt.1, \"loo\")\nirt.2 &lt;- add_criterion(irt.2, \"loo\")\nloo_compare(irt.1, irt.2)\n\n\n      elpd_diff se_diff\nirt.2  0.0       0.0   \nirt.1 -2.3       2.5   \n\n\nOnly a small edge for the 2PL here (smaller than its SE): these items discriminate fairly similarly. On a test with a few bad items, the 2PL would matter more, and it tells you which items are weak either way."
+  },
+  {
+    "objectID": "adv-9c.html#writing-models-in-stan",
+    "href": "adv-9c.html#writing-models-in-stan",
+    "title": "Cognitive and IRT models",
+    "section": "Writing models in Stan",
+    "text": "Writing models in Stan\nAll semester, brms has been writing Stan programs for you. Writing your own lets you fit models brms can’t (custom IRT and cognitive models, the kind our lab fits), and makes the brms output less mysterious.\nThe workflow, with {cmdstanr}:\n\nWrite the program (a string or a .stan file)\ncmdstan_model(write_stan_file(code)) compiles it\n$sample(data = list(...)) runs the sampler\n$summary() and as_draws_df($draws()) give you the posterior, ready for tidybayes"
+  },
+  {
+    "objectID": "adv-9c.html#a-stan-program-has-blocks",
+    "href": "adv-9c.html#a-stan-program-has-blocks",
+    "title": "Cognitive and IRT models",
+    "section": "A Stan program has blocks",
+    "text": "A Stan program has blocks\n\n\n\n\n\n\n\nBlock\nWhat goes in it\n\n\n\n\ndata\neverything you pass in: sizes, outcomes, predictors (with types and constraints)\n\n\ntransformed data\n(optional) things computed once from the data\n\n\nparameters\nwhat the sampler explores, with constraints like &lt;lower=0&gt;\n\n\ntransformed parameters\n(optional) functions of parameters you want to keep\n\n\nmodel\npriors and likelihood\n\n\ngenerated quantities\n(optional) anything computed from each draw: predictions, _rng simulations, derived effects\n\n\n\n\nEvery variable has a declared type: int, real, vector[N], array[N] int, …\nEvery statement ends in ;. Comments start with //."
+  },
+  {
+    "objectID": "adv-9c.html#logistic-regression-in-stan",
+    "href": "adv-9c.html#logistic-regression-in-stan",
+    "title": "Cognitive and IRT models",
+    "section": "Logistic regression in Stan",
+    "text": "Logistic regression in Stan\nThe mortality model from the GLM lecture (glm.4), written by hand:\n\nlogit_code &lt;- \"\ndata {\n  int&lt;lower=1&gt; N;                       // number of people\n  vector[N] iq;                         // centered IQ\n  array[N] int&lt;lower=0, upper=1&gt; y;     // 1 = not a premature death\n  real iq_new;                          // an IQ value to predict at\n}\nparameters {\n  real alpha;                           // log odds at average IQ\n  real beta;                            // change in log odds per IQ point\n}\nmodel {\n  alpha ~ normal(0, 2);                 // priors\n  beta ~ normal(0, 0.5);\n  y ~ bernoulli_logit(alpha + beta * iq);  // likelihood\n}\ngenerated quantities {\n  real p_new = inv_logit(alpha + beta * iq_new);\n  real odds_ratio = exp(beta);\n}\n\""
+  },
+  {
+    "objectID": "adv-9c.html#compile-and-sample",
+    "href": "adv-9c.html#compile-and-sample",
+    "title": "Cognitive and IRT models",
+    "section": "Compile and sample",
+    "text": "Compile and sample\n\nlibrary(cmdstanr)\nmortality &lt;- read_csv(\"mortality.csv\", show_col_types = FALSE) %&gt;% mutate(IQ_c = IQ - mean(IQ))\n\nlogit_mod &lt;- cmdstan_model(write_stan_file(logit_code))\nlogit_fit &lt;- logit_mod$sample(\n  data = list(N = nrow(mortality), iq = mortality$IQ_c, y = mortality$NOT.premature, iq_new = 10),\n  seed = 2027, chains = 4, parallel_chains = 4, refresh = 0)\n\nRunning MCMC with 4 parallel chains...\n\nChain 1 finished in 0.1 seconds.\nChain 2 finished in 0.1 seconds.\nChain 3 finished in 0.1 seconds.\nChain 4 finished in 0.1 seconds.\n\nAll 4 chains finished successfully.\nMean chain execution time: 0.1 seconds.\nTotal execution time: 0.4 seconds."
+  },
+  {
+    "objectID": "adv-9c.html#same-answer-as-brms",
+    "href": "adv-9c.html#same-answer-as-brms",
+    "title": "Cognitive and IRT models",
+    "section": "Same answer as brms",
+    "text": "Same answer as brms\n\nlogit_fit$summary(c(\"alpha\", \"beta\", \"p_new\", \"odds_ratio\"))\n\n# A tibble: 4 × 10\n  variable     mean median     sd    mad     q5   q95  rhat ess_bulk ess_tail\n  &lt;chr&gt;       &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;\n1 alpha      1.61   1.61   0.158  0.155  1.36   1.88   1.00    2924.    2352.\n2 beta       0.0798 0.0792 0.0415 0.0411 0.0119 0.148  1.00    3055.    2581.\n3 p_new      0.911  0.917  0.0377 0.0347 0.842  0.960  1.00    2726.    2441.\n4 odds_ratio 1.08   1.08   0.0450 0.0446 1.01   1.16   1.00    3055.    2581.\n\n\n\nfixef(readRDS(\"glm.4.rds\"))  # the brms version from the GLM lecture\n\n            Estimate  Est.Error         Q2.5     Q97.5\nIntercept 1.62054625 0.15643401  1.328030000 1.9338325\nIQ_c      0.07943066 0.04230501 -0.003929468 0.1636779\n\n\nSame priors, same likelihood, same posterior (up to Monte Carlo error)."
+  },
+  {
+    "objectID": "adv-9c.html#vs-target",
+    "href": "adv-9c.html#vs-target",
+    "title": "Cognitive and IRT models",
+    "section": "~ vs target +=",
+    "text": "~ vs target +=\nThese two lines add the same thing to the log posterior (except constants that don’t matter for sampling):\ny ~ bernoulli_logit(alpha + beta * iq);\ntarget += bernoulli_logit_lpmf(y | alpha + beta * iq);\nbrms writes the target += form. Think of the model block as adding up log prior + log likelihood, one line at a time."
+  },
+  {
+    "objectID": "adv-9c.html#reading-brmss-stan-code",
+    "href": "adv-9c.html#reading-brmss-stan-code",
+    "title": "Cognitive and IRT models",
+    "section": "Reading brms’s Stan code",
+    "text": "Reading brms’s Stan code\n\nstancode(readRDS(\"glm.4.rds\"))\n\nWhat to look for:\n\ntransformed data centers the predictors (Xc), and the sampler works with the centered Intercept.\ngenerated quantities converts back: b_Intercept = Intercept - dot_product(means_X, b). That’s why your Intercept prior is about the outcome at the predictor means.\nThe likelihood uses a fast built-in (bernoulli_logit_glm_lpmf), and priors go into lprior."
+  },
+  {
+    "objectID": "adv-9c.html#working-with-the-draws",
+    "href": "adv-9c.html#working-with-the-draws",
+    "title": "Cognitive and IRT models",
+    "section": "Working with the draws",
+    "text": "Working with the draws\n\n\nCode\nlibrary(posterior)\nas_draws_df(logit_fit$draws()) %&gt;%\n  ggplot(aes(x = p_new)) +\n  stat_halfeye(.width = .95) +\n  labs(x = \"Pr(not a premature death) at IQ 10 points above average\", y = NULL) +\n  theme_classic(base_size = 13)\n\n\n\ngenerated quantities did the work: every draw already has p_new."
+  },
+  {
+    "objectID": "adv-9c.html#from-here-to-irt",
+    "href": "adv-9c.html#from-here-to-irt",
+    "title": "Cognitive and IRT models",
+    "section": "From here to IRT",
+    "text": "From here to IRT\nThe 2PL is the same skeleton with more indexing: a vector of abilities (theta), item difficulties and discriminations, and arrays saying which person and item each response belongs to. The likelihood line looks like\ny ~ bernoulli_logit(a[item] .* (theta[person] - b[item]));\nYou’ll write it in HW 13."
+  },
+  {
+    "objectID": "adv-9.html#poststratifying-with-marginaleffects",
+    "href": "adv-9.html#poststratifying-with-marginaleffects",
+    "title": "Advanced models 1: prediction, MrP, missing data, measurement error, meta-analysis",
+    "section": "Poststratifying with marginaleffects",
+    "text": "Poststratifying with marginaleffects\n{marginaleffects} does this with wts =:\n\npred &lt;- predictions(mlm.mrp,\n                    newdata = age_prop,\n                    by = \"age_group\",\n                    wts = \"prop\",\n                    allow_new_levels = TRUE)\npred\n\n\n age_group Estimate  2.5 % 97.5 %\n        25    0.174 0.1310  0.223\n        30    0.181 0.1527  0.212\n        35    0.217 0.1888  0.250\n        40    0.244 0.2084  0.285\n        45    0.278 0.2349  0.327\n        50    0.300 0.2461  0.359\n        55    0.320 0.2615  0.388\n        60    0.436 0.3588  0.518\n        65    0.559 0.4484  0.677\n        70    0.513 0.3177  0.719\n        75    0.208 0.0586  0.492\n\nType:  response \nColumns: age_group, estimate, conf.low, conf.high \n\n\n(The long way, with add_predicted_draws() on all 6,058 cells × 4,000 draws, gives the same answer and builds a 24-million-row table.)"
   }
 ]

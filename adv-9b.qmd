@@ -98,6 +98,53 @@ plot(cor_test(slope_cor, "r_ID__CON", "r_ID__DAN"))
 ```
 
 
+## Let the model estimate the correlation {.smaller}
+
+Correlating posterior *medians* treats shrunken point estimates as if they were data and throws away their uncertainty. Instead, give the two outcomes' person effects a shared label (`|p|`) so they get one correlation matrix:
+
+```{r}
+#| code-fold: true
+mv.2 <-
+  brm(family = gaussian,
+      bf(mvbind(CON, DAN) ~ 1 + time + (1 + time |p| ID)) + set_rescor(TRUE),
+      prior = c(prior(normal(0, 1.5), class = Intercept),
+                prior(normal(0, 1.5), class = b),
+                prior(exponential(1), class = sd, resp = CON),
+                prior(exponential(1), class = sd, resp = DAN),
+                prior(lkj(2), class = cor),
+                prior(lkj(2), class = rescor)),
+      iter = 4000, warmup = 1000, chains = 4, cores = 4,
+      file = "mv.2",
+      backend = "cmdstanr",
+      data = mlm)
+```
+
+```{r}
+#| code-fold: true
+#| fig-height: 3
+mv.2 %>%
+  spread_draws(cor_ID__CON_time__DAN_time) %>%
+  ggplot(aes(x = cor_ID__CON_time__DAN_time)) +
+  stat_halfeye(.width = .95) +
+  xlim(-1, 1) +
+  labs(x = "Correlation between people's CON and DAN slopes", y = NULL) +
+  theme_classic(base_size = 13)
+```
+
+## What the model says {.smaller}
+
+```{r}
+mv.2 %>%
+  spread_draws(cor_ID__CON_time__DAN_time, cor_ID__CON_Intercept__DAN_Intercept) %>%
+  median_qi(.width = .95) %>%
+  select(-.width, -.point, -.interval) %>%
+  pivot_longer(everything()) %>%
+  mutate(value = round(value, 2))
+```
+
+-   People with higher CON also tend to have higher DAN (intercept correlation ≈ .4, interval above 0).
+-   But the slope correlation is anywhere from about −.7 to .7: with 2–4 scans per person, the data can't tell us whether people who change on one network change on the other. The plot of median slopes looked much more certain than it should.
+
 ## Everything is SEM
 
 Structural equation modeling (SEM) is the most popular way to handle multiple DVs. SEM is also known as covariance structure analysis, which really means unstandardized correlations. We can fit some simple SEM models using brms!
@@ -325,6 +372,47 @@ mlm %>%
 ```
 
 
+## Reading sigma coefficients
+
+Because sigma is on the log scale, `exp()` of a sigma coefficient is a **ratio of SDs**. From `d.1b` (control is the reference group):
+
+```{r}
+as_draws_df(d.1b) %>%
+  mutate(sd_ratio_PD_vs_CTRL = exp(b_sigma_groupPD)) %>%
+  median_qi(sd_ratio_PD_vs_CTRL)
+```
+
+People with PD vary about 1.3 times as much in CON as controls do.
+
+## Is the distributional model worth it? {.smaller}
+
+Compare it with a model that has one sigma for everyone:
+
+```{r}
+#| code-fold: true
+d.0 <-
+  brm(family = gaussian,
+      CON ~ 1 + group,
+      file = "d.0",
+      backend = "cmdstanr",
+      data = mlm)
+d.0 <- add_criterion(d.0, "loo")
+d.1b <- add_criterion(d.1b, "loo")
+loo_compare(d.0, d.1b)
+```
+
+```{r}
+#| code-fold: true
+#| fig-height: 3.2
+library(patchwork)
+(bayesplot::ppc_dens_overlay_grouped(mlm$CON, posterior_predict(d.0, ndraws = 50), group = mlm$group) +
+   ggtitle("One sigma")) /
+(bayesplot::ppc_dens_overlay_grouped(mlm$CON, posterior_predict(d.1b, ndraws = 50), group = mlm$group) +
+   ggtitle("Sigma by group"))
+```
+
+The SD ratio's interval excludes 1, but LOO barely prefers the distributional model (a small difference relative to its SE). A real but small difference in spread doesn't change predictions much. Whether you care depends on the question: if the spread itself is the hypothesis, model it.
+
 ## Distributional MLMs
 
 ```{r}
@@ -509,6 +597,21 @@ melsm.2 %>%
 ```
 
 
+## How different are people's SDs? {.smaller}
+
+`sd(sigma_Intercept)` is on the log scale. Turn it into the range of residual SDs for the middle 95% of people, draw by draw:
+
+```{r}
+as_draws_df(melsm.2) %>%
+  mutate(sd_low  = exp(b_sigma_Intercept - 1.96 * sd_record_id__sigma_Intercept),
+         sd_mid  = exp(b_sigma_Intercept),
+         sd_high = exp(b_sigma_Intercept + 1.96 * sd_record_id__sigma_Intercept)) %>%
+  median_qi(sd_low, sd_mid, sd_high) %>%
+  select(sd_low, sd_mid, sd_high)
+```
+
+Residual SDs range from about 0.12 to 1.8 (standardized units) across the middle 95% of people: the least consistent people vary about 15 times as much day to day as the most consistent. The standard MLM forces this difference to zero.
+
 ## Person-specific sigmas
 
 ```{r}
@@ -558,6 +661,17 @@ ggplot(aes(x = day01, y = N_A.std)) +
 
 
 
+
+## Is the MELSM worth it?
+
+```{r}
+#| code-fold: true
+# LOO criteria were added once with add_criterion(model, "loo", ndraws = 2000)
+# (the full log-likelihood matrix for 13,000 observations is large)
+loo_compare(melsm.1, melsm.2)
+```
+
+Letting each person have their own sigma improves expected out-of-sample prediction by a lot, relative to its standard error.
 
 ## Time as a predictor of sigma
 
