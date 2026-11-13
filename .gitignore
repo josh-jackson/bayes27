@@ -15,3 +15,5 @@
 _environment.local
 
 /_*.local
+
+**/*.quarto_ipynb

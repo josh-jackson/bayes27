@@ -111,8 +111,7 @@ $LR = -2 \ln\left(\frac{L(m_1)}{L(m_2)}\right) = 2(\text{loglik}(m_2)-\text{logl
 
 with degrees of freedom = the difference in number of parameters (here 1).
 
-## LRT in R
-
+## LRT in R {.smaller}
 ```{r}
 #| code-fold: true
 library(lmtest)
@@ -148,8 +147,7 @@ For binary logistic regression the saturated model predicts every 0/1 perfectly,
 summary(mod.a)
 ```
 
-## Grid approximation with likelihoods
-
+## Grid approximation with likelihoods {.smaller}
 Let's use likelihood to estimate a model. We will use grid approximation to calculate plausible parameter values.
 
 ```{r}

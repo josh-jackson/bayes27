@@ -22,7 +22,7 @@ Quarto website for a graduate Bayesian statistics course (psychology). Lectures 
 ## Workflow
 - Instructor's planning notes live in the Obsidian vault at `~/Library/Mobile Documents/iCloud~md~obsidian/Documents/Pmad lab/Teaching/Bayesian Statistics/` — read `Bayes Revision Notes.md` before revising a lecture, and tick items off there when done (with the instructor's OK).
 - Render a single file: `quarto render <file>.qmd`; full site: `quarto render`. Preview: `quarto preview`.
-- This Mac has two R installs: CRAN R 4.4 (`/usr/local/bin/R`, has brms/tidybayes/cmdstanr; RStudio uses it) and Homebrew R 4.6 (first on PATH, no course packages). `_environment.local` (gitignored) sets `QUARTO_R=/usr/local/bin/R` so terminal renders use CRAN R. Use `/usr/local/bin/Rscript` for ad-hoc R from the shell.
+- This Mac has two R installs: CRAN R 4.6.2 (`/usr/local/bin/R`, has brms/tidybayes/cmdstanr; RStudio uses it; R 4.4 and its old library are still in R.framework but not the default) and Homebrew R 4.6 (first on PATH, no course packages). Quarto is 1.11. `_environment.local` (gitignored) sets `QUARTO_R=/usr/local/bin/R` so terminal renders use CRAN R. Use `/usr/local/bin/Rscript` for ad-hoc R from the shell.
 - After fitting or refitting any model, run `./backup-fits.sh` (copies new/changed `.rds` files to Box `Bayesian Statistics/BayesSpring27/fits`; never deletes).
 - Never refit a long model or delete `.rds` fits without asking.
 - **Never push without asking** — pushing publishes to students via Netlify. Commit in small, described steps.

@@ -859,7 +859,8 @@ $$\text{Anxiety}_i \sim \text{Normal}(\mu_i, \sigma)$$
 $$
 \begin{aligned}
 \mu_i = \beta_0 &+ \beta_1\,\text{conditionTx}_i + \beta_2\,\text{SupportLevelmed}_i + \beta_3\,\text{SupportLevelhigh}_i \\
-&+ \beta_4\,(\text{conditionTx} \times \text{SupportLevelmed})_i + \beta_5\,(\text{conditionTx} \times \text{SupportLevelhigh})_i
+&+ \beta_4\,(\text{conditionTx} \times \text{SupportLevelmed})_i \\
+&+ \beta_5\,(\text{conditionTx} \times \text{SupportLevelhigh})_i
 \end{aligned}
 $$
 
@@ -1347,8 +1348,7 @@ mr.15 <-
 summary(mr.15)
 ```
 
-## graphing interactions
-
+## graphing interactions {.smaller}
 ```{r}
 library(psych)
 describe(MR$FQ_c)

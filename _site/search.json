@@ -39,14 +39,14 @@
     "href": "bayes-1.html#a-different-estimation-algorithm",
     "title": "Intro",
     "section": "1. A different estimation algorithm",
-    "text": "1. A different estimation algorithm\n\n\nOLS i.e. \\(min\\sum(Y_{i}-\\hat{Y})^{2}\\)\nR uses QR decomposition, Newton Raphson, Fisher Scoring, SVR, etc – not this equation.\nMore advanced stats use an even different algorithm (e.g., maximum likelihood)\nSo why use bayesian algo? Always works. Fewer assumptions. Lots o’ tricks: Regularization in model, imputation in model, etc."
+    "text": "1. A different estimation algorithm\n\nOLS i.e. \\(min\\sum(Y_{i}-\\hat{Y})^{2}\\)\nR uses QR decomposition, Newton Raphson, Fisher Scoring, SVR, etc – not this equation.\nMore advanced stats use an even different algorithm (e.g., maximum likelihood)\nSo why use bayesian algo? Always works. Fewer assumptions. Lots o’ tricks: Regularization in model, imputation in model, etc."
   },
   {
     "objectID": "bayes-1.html#think-of-results-in-terms-of-distributions",
     "href": "bayes-1.html#think-of-results-in-terms-of-distributions",
     "title": "Intro",
     "section": "2. Think of results in terms of distributions",
-    "text": "2. Think of results in terms of distributions\n\n\nResults are typically thought of as an estimate and an SE\nIndicates a “best guess” ie mean/median/mode and the imprecision related to it\nIf this guess is far away from zero (and imprecision not large), then it is “significant”\nWe know that if we repeated this again we won’t get the same answer (estimate), but likely in between our CIs"
+    "text": "2. Think of results in terms of distributions\n\nResults are typically thought of as an estimate and an SE\nIndicates a “best guess” ie mean/median/mode and the imprecision related to it\nIf this guess is far away from zero (and imprecision not large), then it is “significant”\nWe know that if we repeated this again we won’t get the same answer (estimate), but likely in between our CIs"
   },
   {
     "objectID": "bayes-1.html#first-bayes-example",
@@ -151,7 +151,7 @@
     "href": "bayes-1.html#be-comfortable-integrating-prior-knowledge",
     "title": "Intro",
     "section": "3. Be comfortable integrating prior knowledge",
-    "text": "3. Be comfortable integrating prior knowledge\n\nPriors insert knowledge you have outside of your data into your model\nThis can seem “subjective” as opposed to the more “objective” way of letting the data speak.\n\n\n\nWe will mostly not “tip the scales” towards an outcome we want.\nMost of the time the prior knowledge constrains plausible or implausible range of values e.g. we know an effect size of a million is very unlikely.\nOften priors don’t matter…"
+    "text": "3. Be comfortable integrating prior knowledge\n\nPriors insert knowledge you have outside of your data into your model\nThis can seem “subjective” as opposed to the more “objective” way of letting the data speak.\n\n\nWe will mostly not “tip the scales” towards an outcome we want.\nMost of the time the prior knowledge constrains plausible or implausible range of values e.g. we know an effect size of a million is very unlikely.\nOften priors don’t matter…"
   },
   {
     "objectID": "bayes-1.html#okay-so-what-does-this-mean",
@@ -242,14 +242,14 @@
     "href": "bayes-1.html#what-is-confusing",
     "title": "Intro",
     "section": "What is confusing:",
-    "text": "What is confusing:\n\n\nIs it a philosophically different framework? p( \\({H_0}\\) | D) vs p(D | \\({H_0}\\) ) but it doesn’t really matter. Bayesian just means using the algorithm, and again, most of us don’t have strong algo preferences. Assuming a flat prior basically makes p( \\({H_0}\\) |d) = p( D | \\({H_0}\\) ) so if you want (don’t tell Bayesians) you can interpret frequentist stats as Bayesian. And that means CIs too! (don’t tell frequentists)\nWhy don’t we do this already? Isn’t frequentist better? History doesn’t progress due to fair and even fights (i.e. the correct doesn’t always prevail). Computation limitations and Fisher held progress back."
+    "text": "What is confusing:\n\nIs it a philosophically different framework? p( \\({H_0}\\) | D) vs p(D | \\({H_0}\\) ) but it doesn’t really matter. Bayesian just means using the algorithm, and again, most of us don’t have strong algo preferences. Assuming a flat prior basically makes p( \\({H_0}\\) |d) = p( D | \\({H_0}\\) ) so if you want (don’t tell Bayesians) you can interpret frequentist stats as Bayesian. And that means CIs too! (don’t tell frequentists)\nWhy don’t we do this already? Isn’t frequentist better? History doesn’t progress due to fair and even fights (i.e. the correct doesn’t always prevail). Computation limitations and Fisher held progress back."
   },
   {
     "objectID": "bayes-1.html#what-is-confusing-1",
     "href": "bayes-1.html#what-is-confusing-1",
     "title": "Intro",
     "section": "What is confusing:",
-    "text": "What is confusing:\n\n\nTechnically, we don’t have p-values, but Bayesian has analogues.\nTechnically, there isn’t NHST (because no null distribution to create sampling distribution) but you can easily do “it”. Remember how model comparisons are equivalent to typical NHST tests?\nBayes Factors. Mostly garbage (imho) as they can be easily manipulated. But they have their place. BFs =/= Bayesian."
+    "text": "What is confusing:\n\nTechnically, we don’t have p-values, but Bayesian has analogues.\nTechnically, there isn’t NHST (because no null distribution to create sampling distribution) but you can easily do “it”. Remember how model comparisons are equivalent to typical NHST tests?\nBayes Factors. Mostly garbage (imho) as they can be easily manipulated. But they have their place. BFs =/= Bayesian."
   },
   {
     "objectID": "regression-2.html#goals-for-this-slide-deck",
@@ -291,7 +291,7 @@
     "href": "regression-2.html#height-data",
     "title": "Regression 1",
     "section": "Height data",
-    "text": "Height data\n\n\n\n\nCode\ngalton.data %&gt;% \nggplot(aes(x = child)) +geom_density()\n\n\n\n\n\n\n\n\nCode\nlibrary(easystats)\nreport_sample(galton.data)\n\n\n# Descriptive Statistics\n\nVariable         |      Summary\n-------------------------------\nMean parent (SD) | 68.31 (1.79)\nMean child (SD)  | 68.09 (2.52)"
+    "text": "Height data\n\n\n\n\nCode\ngalton.data %&gt;% \nggplot(aes(x = child)) +geom_density()\n\n\n\n\n\n\n\n\n\n\n\n\nCode\nlibrary(easystats)\nreport_sample(galton.data)\n\n\n# Descriptive Statistics\n\nVariable         |      Summary\n-------------------------------\nMean parent (SD) | 68.31 (1.79)\nMean child (SD)  | 68.09 (2.52)"
   },
   {
     "objectID": "regression-2.html#specify-our-model",
@@ -452,7 +452,7 @@
     "href": "regression-2.html#pairs-plot",
     "title": "Regression 1",
     "section": "Pairs plot",
-    "text": "Pairs plot\nposteriors and the covariances across draws (e.g., when the algorithm found a high value for \\(b_0\\) did it also find a high value for sigma?).\n\n\nCode\npairs(fit.1)\n\n\n\n\n\nNotice that the intercept and slope are nearly uncorrelated. That’s a payoff of centering: with an uncentered predictor, a steeper slope forces a lower intercept, and the two would be strongly negatively correlated."
+    "text": "Pairs plot\nposteriors and the covariances across draws (e.g., when the algorithm found a high value for \\(b_0\\) did it also find a high value for sigma?).\n\n\nCode\npairs(fit.1)\n\n\n\n\n\n\n\n\n\nNotice that the intercept and slope are nearly uncorrelated. That’s a payoff of centering: with an uncentered predictor, a steeper slope forces a lower intercept, and the two would be strongly negatively correlated."
   },
   {
     "objectID": "regression-2.html#what-we-do-with-the-posterior",
@@ -557,7 +557,7 @@
     "href": "regression-2.html#marginaleffects",
     "title": "Regression 1",
     "section": "{marginaleffects}",
-    "text": "{marginaleffects}\nLike modelr, it can be used for many types of models beyond Bayes. Especially helpful for generalized linear models (logistic etc)\n\n\nCode\nlibrary(marginaleffects)\ndatagrid(parent.c = seq(from = min(galton.data$parent.c), to = max(galton.data$parent.c), length.out = 10), model = fit.1)\n\n\n   rowid    child   parent.c\n1      1 68.08847 -4.3081897\n2      2 68.08847 -3.3081897\n3      3 68.08847 -2.3081897\n4      4 68.08847 -1.3081897\n5      5 68.08847 -0.3081897\n6      6 68.08847  0.6918103\n7      7 68.08847  1.6918103\n8      8 68.08847  2.6918103\n9      9 68.08847  3.6918103\n10    10 68.08847  4.6918103"
+    "text": "{marginaleffects}\nLike modelr, it can be used for many types of models beyond Bayes. Especially helpful for generalized linear models (logistic etc)\n\n\nCode\nlibrary(marginaleffects)\ndatagrid(parent.c = seq(from = min(galton.data$parent.c), to = max(galton.data$parent.c), length.out = 10), model = fit.1)\n\n\n   rowid   parent.c\n1      1 -4.3081897\n2      2 -3.3081897\n3      3 -2.3081897\n4      4 -1.3081897\n5      5 -0.3081897\n6      6  0.6918103\n7      7  1.6918103\n8      8  2.6918103\n9      9  3.6918103\n10    10  4.6918103"
   },
   {
     "objectID": "regression-2.html#feed-reference-grid-to-tidybayes",
@@ -627,7 +627,7 @@
     "href": "regression-2.html#slopes-with-marginaleffects",
     "title": "Regression 1",
     "section": "Slopes with marginaleffects",
-    "text": "Slopes with marginaleffects\nWe sometimes want to get a slope or estimate at different levels of variables (often this is called the marginal effect). From {marginaleffects} we can use the slopes() function. Note that our slope should be the same at all levels of X.\n\n\nCode\nslopes(\n  fit.1,\n  newdata = datagrid(\n    parent.c = -4.3))\n\n\n\n parent.c Estimate 2.5 % 97.5 %\n     -4.3    0.647 0.564  0.731\n\nTerm: parent.c\nType: response\nComparison: dY/dX"
+    "text": "Slopes with marginaleffects\nWe sometimes want to get a slope or estimate at different levels of variables (often this is called the marginal effect). From {marginaleffects} we can use the slopes() function. Note that our slope should be the same at all levels of X.\n\n\nCode\nslopes(\n  fit.1,\n  newdata = datagrid(\n    parent.c = -4.3))\n\n\n\n Estimate 2.5 % 97.5 %\n    0.647 0.564  0.731\n\nTerm: parent.c\nType: response\nComparison: dY/dX"
   },
   {
     "objectID": "regression-2.html#summary",
@@ -655,7 +655,7 @@
     "href": "regression-2.html#two-bands-two-questions",
     "title": "Regression 1",
     "section": "Two bands, two questions",
-    "text": "Two bands, two questions\n\n\nCode\ngrid &lt;- galton.data %&gt;% data_grid(parent.c = seq_range(parent.c, n = 20))\nggplot(galton.data, aes(x = parent.c, y = child)) +\n  stat_lineribbon(data = add_predicted_draws(grid, fit.1), aes(y = .prediction),\n                  .width = .95, fill = \"grey85\", color = NA) +\n  geom_jitter(width = .1, height = 0, alpha = .3, size = 1) +\n  stat_lineribbon(data = add_epred_draws(grid, fit.1), aes(y = .epred),\n                  .width = .95, fill = \"#0072B2\", alpha = .5, color = \"#0072B2\") +\n  labs(x = \"parent height (centered)\", y = \"child height\",\n       subtitle = \"blue: 95% band for the expected value (epred) · grey: 95% prediction band (predicted)\")\n\n\n\n\n\n\nBlue (epred): “What’s the average child height for parents this tall?” Uncertainty about the line only; shrinks as n grows.\nGrey (prediction): “How tall will this child be?” Adds σ, the person-to-person scatter; never shrinks below about ±2σ."
+    "text": "Two bands, two questions\n\n\nCode\ngrid &lt;- galton.data %&gt;% data_grid(parent.c = seq_range(parent.c, n = 20))\nggplot(galton.data, aes(x = parent.c, y = child)) +\n  stat_lineribbon(data = add_predicted_draws(grid, fit.1), aes(y = .prediction),\n                  .width = .95, fill = \"grey85\", color = NA) +\n  geom_jitter(width = .1, height = 0, alpha = .3, size = 1) +\n  stat_lineribbon(data = add_epred_draws(grid, fit.1), aes(y = .epred),\n                  .width = .95, fill = \"#0072B2\", alpha = .5, color = \"#0072B2\") +\n  labs(x = \"parent height (centered)\", y = \"child height\",\n       subtitle = \"blue: 95% band for the expected value (epred) · grey: 95% prediction band (predicted)\")\n\n\n\n\n\n\n\n\n\n\nBlue (epred): “What’s the average child height for parents this tall?” Uncertainty about the line only; shrinks as n grows.\nGrey (prediction): “How tall will this child be?” Adds σ, the person-to-person scatter; never shrinks below about ±2σ."
   },
   {
     "objectID": "regression-2.html#predicted-values-at-unit-level",
@@ -1397,14 +1397,14 @@
     "href": "info-6.html#comparing-models-with-loo_compare",
     "title": "Information, NHST and model fit",
     "section": "Comparing models with loo_compare()",
-    "text": "Comparing models with loo_compare()\n\nloo_compare output rank orders models such that the best fitting model appears on top\n\n\n\nCode\nloo_compare(mr.11, mr.12, criterion = \"loo\")\n\n\n      elpd_diff se_diff\nmr.12   0.0       0.0  \nmr.11 -17.0       6.3"
+    "text": "Comparing models with loo_compare()\n\nloo_compare output rank orders models such that the best fitting model appears on top\n\n\n\nCode\nloo_compare(mr.11, mr.12, criterion = \"loo\")\n\n\n model elpd_diff se_diff p_worse diag_diff diag_elpd\n mr.12       0.0     0.0      NA                    \n mr.11     -17.0     6.3    1.00"
   },
   {
     "objectID": "info-6.html#how-big-a-difference-matters",
     "href": "info-6.html#how-big-a-difference-matters",
     "title": "Information, NHST and model fit",
     "section": "How big a difference matters?",
-    "text": "How big a difference matters?\n\n\n      elpd_diff se_diff\nmr.12   0.0       0.0  \nmr.11 -17.0       6.3  \n\n\n\nThe Stan team recommends that:\n\n\nIf |elpd_diff| &lt; 4, the models predict about equally well.\nIf it’s larger, compare it to se_diff (a rough signal-to-noise ratio).\n\n\nHere elpd_diff / se_diff = 17 / 6.3 ≈ 2.7: mr.12 is expected to predict new data clearly better."
+    "text": "How big a difference matters?\n\n\n model elpd_diff se_diff p_worse diag_diff diag_elpd\n mr.12       0.0     0.0      NA                    \n mr.11     -17.0     6.3    1.00                    \n\n\n\nThe Stan team recommends that:\n\n\nIf |elpd_diff| &lt; 4, the models predict about equally well.\nIf it’s larger, compare it to se_diff (a rough signal-to-noise ratio).\n\n\nHere elpd_diff / se_diff = 17 / 6.3 ≈ 2.7: mr.12 is expected to predict new data clearly better."
   },
   {
     "objectID": "info-6.html#a-third-model-add-the-interaction",
@@ -1418,7 +1418,7 @@
     "href": "info-6.html#r²-always-goes-up.-does-loo",
     "title": "Information, NHST and model fit",
     "section": "R² always goes up. Does LOO?",
-    "text": "R² always goes up. Does LOO?\n\n\nCode\nmods &lt;- list(`mr.11: happiness ~ (1 | group)` = mr.11,\n             `mr.12: ~ tx + school` = mr.12,\n             `mr.14b: ~ tx * school` = mr.14b)\ntibble(model    = names(mods),\n       R2       = map_dbl(mods, ~ median(bayes_R2(.x, summary = FALSE))),\n       elpd_loo = map_dbl(mods, ~ .x$criteria$loo$estimates[\"elpd_loo\", \"Estimate\"]),\n       p_loo    = map_dbl(mods, ~ .x$criteria$loo$estimates[\"p_loo\", \"Estimate\"])) %&gt;%\n  knitr::kable(digits = 2)\n\n\n\n\n\nmodel\nR2\nelpd_loo\np_loo\n\n\n\n\nmr.11: happiness ~ (1 | group)\n0.01\n-245.07\n3.12\n\n\nmr.12: ~ tx + school\n0.27\n-228.12\n4.04\n\n\nmr.14b: ~ tx * school\n0.32\n-224.45\n5.02\n\n\n\n\n\nCode\nloo_compare(mr.11, mr.12, mr.14b)\n\n\n       elpd_diff se_diff\nmr.14b   0.0       0.0  \nmr.12   -3.7       3.4  \nmr.11  -20.6       7.3"
+    "text": "R² always goes up. Does LOO?\n\n\nCode\nmods &lt;- list(`mr.11: happiness ~ (1 | group)` = mr.11,\n             `mr.12: ~ tx + school` = mr.12,\n             `mr.14b: ~ tx * school` = mr.14b)\ntibble(model    = names(mods),\n       R2       = map_dbl(mods, ~ median(bayes_R2(.x, summary = FALSE))),\n       elpd_loo = map_dbl(mods, ~ .x$criteria$loo$estimates[\"elpd_loo\", \"Estimate\"]),\n       p_loo    = map_dbl(mods, ~ .x$criteria$loo$estimates[\"p_loo\", \"Estimate\"])) %&gt;%\n  knitr::kable(digits = 2)\n\n\n\n\n\nmodel\nR2\nelpd_loo\np_loo\n\n\n\n\nmr.11: happiness ~ (1 | group)\n0.01\n-245.07\n3.12\n\n\nmr.12: ~ tx + school\n0.27\n-228.12\n4.04\n\n\nmr.14b: ~ tx * school\n0.32\n-224.45\n5.02\n\n\n\n\n\nCode\nloo_compare(mr.11, mr.12, mr.14b)\n\n\n  model elpd_diff se_diff p_worse       diag_diff diag_elpd\n mr.14b       0.0     0.0      NA                          \n  mr.12      -3.7     3.4    0.86 |elpd_diff| &lt; 4          \n  mr.11     -20.6     7.3    1.00"
   },
   {
     "objectID": "info-6.html#reading-the-comparison",
@@ -1460,7 +1460,7 @@
     "href": "info-6.html#comparing-with-waic",
     "title": "Information, NHST and model fit",
     "section": "Comparing with WAIC",
-    "text": "Comparing with WAIC\n\n\nCode\nmr.11 &lt;- add_criterion(mr.11, \"waic\")\nmr.12 &lt;- add_criterion(mr.12, \"waic\")\nloo_compare(mr.11, mr.12, criterion = \"waic\")\n\n\n      elpd_diff se_diff\nmr.12   0.0       0.0  \nmr.11 -17.0       6.3  \n\n\nNote: this looks like the LOO results, even though this is with waic. Both are computed from the lppd, so it makes sense they can be similar. It will not always be this way, however."
+    "text": "Comparing with WAIC\n\n\nCode\nmr.11 &lt;- add_criterion(mr.11, \"waic\")\nmr.12 &lt;- add_criterion(mr.12, \"waic\")\nloo_compare(mr.11, mr.12, criterion = \"waic\")\n\n\n model elpd_diff se_diff p_worse diag_diff diag_elpd\n mr.12       0.0     0.0      NA                    \n mr.11     -17.0     6.3    1.00                    \n\n\nNote: this looks like the LOO results, even though this is with waic. Both are computed from the lppd, so it makes sense they can be similar. It will not always be this way, however."
   },
   {
     "objectID": "info-6.html#using-information-criteria",
@@ -1516,7 +1516,7 @@
     "href": "info-6.html#describe_posterior",
     "title": "Information, NHST and model fit",
     "section": "describe_posterior()",
-    "text": "describe_posterior()\n\ndescribe_posterior(mr.14b)\n\nSummary of Posterior Distribution\n\nParameter   | Median |         95% CI |     pd |          ROPE | % in ROPE\n--------------------------------------------------------------------------\n(Intercept) |   4.98 | [ 4.52,  5.43] |   100% | [-0.19, 0.19] |        0%\niv.dtx      |   0.36 | [-0.21,  0.92] | 89.33% | [-0.19, 0.19] |    26.68%\nSS_c        |   0.41 | [ 0.29,  0.52] |   100% | [-0.19, 0.19] |        0%\niv.dtx:SS_c |  -0.28 | [-0.46, -0.09] | 99.72% | [-0.19, 0.19] |    15.00%\n\nParameter   |  Rhat |  ESS\n--------------------------\n(Intercept) | 1.000 | 4541\niv.dtx      | 1.000 | 4897\nSS_c        | 1.000 | 3345\niv.dtx:SS_c | 1.000 | 3621"
+    "text": "describe_posterior()\n\ndescribe_posterior(mr.14b)\n\nSummary of Posterior Distribution\n\nParameter   | Median |         95% CI |     pd |          ROPE | % in ROPE\n--------------------------------------------------------------------------\n(Intercept) |   4.98 | [ 4.52,  5.43] |   100% | [-0.19, 0.19] |        0%\niv.dtx      |   0.36 | [-0.21,  0.92] | 89.33% | [-0.19, 0.19] |    26.68%\nSS_c        |   0.41 | [ 0.29,  0.52] |   100% | [-0.19, 0.19] |        0%\niv.dtx:SS_c |  -0.28 | [-0.46, -0.09] | 99.72% | [-0.19, 0.19] |    15.00%\n\nParameter   |  Rhat | ESS (tail)\n--------------------------------\n(Intercept) | 1.000 |       2903\niv.dtx      | 1.001 |       2700\nSS_c        | 1.000 |       2873\niv.dtx:SS_c | 1.000 |       3007"
   },
   {
     "objectID": "info-6.html#downsides-of-pd",
@@ -1600,7 +1600,7 @@
     "href": "info-6.html#equivalence-test",
     "title": "Information, NHST and model fit",
     "section": "Equivalence test",
-    "text": "Equivalence test\n\nresult &lt;- equivalence_test(mr.14b, range = c(-0.3, 0.3), ci = c(0.95))\nresult\n\n# Test for Practical Equivalence\n\n  ROPE: [-0.30 0.30]\n\nParameter   |        H0 | inside ROPE |        95% HDI\n------------------------------------------------------\nIntercept   |  Rejected |      0.00 % |   [4.52, 5.43]\niv.dtx      | Undecided |     41.58 % |  [-0.21, 0.92]\nSS_c        | Undecided |      1.45 % |   [0.29, 0.52]\niv.dtx:SS_c | Undecided |     61.08 % | [-0.46, -0.09]"
+    "text": "Equivalence test\n\nresult &lt;- equivalence_test(mr.14b, range = c(-0.3, 0.3), ci = c(0.95))\nresult\n\n# Test for Practical Equivalence\n\n  ROPE: [-0.30 0.30]\n\nParameter   |        H0 | inside ROPE |        95% ETI\n------------------------------------------------------\nIntercept   |  Rejected |      0.00 % |   [4.52, 5.43]\niv.dtx      | Undecided |     41.58 % |  [-0.21, 0.92]\nSS_c        | Undecided |      1.45 % |   [0.29, 0.52]\niv.dtx:SS_c | Undecided |     61.08 % | [-0.46, -0.09]"
   },
   {
     "objectID": "info-6.html#why-a-rope",
@@ -1628,7 +1628,7 @@
     "href": "info-6.html#describe_posterior-with-a-rope",
     "title": "Information, NHST and model fit",
     "section": "describe_posterior() with a ROPE",
-    "text": "describe_posterior() with a ROPE\n\ndescribe_posterior(mr.14b, test = \"ROPE\")\n\nSummary of Posterior Distribution\n\nParameter   | Median |         95% CI |          ROPE | % in ROPE |  Rhat |  ESS\n--------------------------------------------------------------------------------\n(Intercept) |   4.98 | [ 4.52,  5.43] | [-0.19, 0.19] |        0% | 1.000 | 4541\niv.dtx      |   0.36 | [-0.21,  0.92] | [-0.19, 0.19] |    26.68% | 1.000 | 4897\nSS_c        |   0.41 | [ 0.29,  0.52] | [-0.19, 0.19] |        0% | 1.000 | 3345\niv.dtx:SS_c |  -0.28 | [-0.46, -0.09] | [-0.19, 0.19] |    15.00% | 1.000 | 3621"
+    "text": "describe_posterior() with a ROPE\n\ndescribe_posterior(mr.14b, test = \"ROPE\")\n\nSummary of Posterior Distribution\n\nParameter   | Median |         95% CI |          ROPE | % in ROPE |  Rhat | ESS (tail)\n--------------------------------------------------------------------------------------\n(Intercept) |   4.98 | [ 4.52,  5.43] | [-0.19, 0.19] |        0% | 1.000 |       2903\niv.dtx      |   0.36 | [-0.21,  0.92] | [-0.19, 0.19] |    26.68% | 1.001 |       2700\nSS_c        |   0.41 | [ 0.29,  0.52] | [-0.19, 0.19] |        0% | 1.000 |       2873\niv.dtx:SS_c |  -0.28 | [-0.46, -0.09] | [-0.19, 0.19] |    15.00% | 1.000 |       3007"
   },
   {
     "objectID": "info-6.html#bayes-factors",
@@ -1775,7 +1775,7 @@
     "href": "info-6.html#bfs-for-mr.2",
     "title": "Information, NHST and model fit",
     "section": "BFs for mr.2",
-    "text": "BFs for mr.2\n\nbf.result &lt;- bayestestR::bayesfactor_parameters(mr.2)\nbf.result\n\nBayes Factor (Savage-Dickey density ratio)\n\nParameter   |       BF\n----------------------\n(Intercept) | 1.13e+34\nSS_c        | 6.66e+03\nFQ_c        |    10.06\n\n* Evidence Against The Null: 0"
+    "text": "BFs for mr.2\n\nbf.result &lt;- bayestestR::bayesfactor_parameters(mr.2)\nbf.result\n\nBayes Factor (Savage-Dickey density ratio)\n\nParameter   |       BF\n----------------------\n(Intercept) | 4.22e+47\nSS_c        | 2.91e+04\nFQ_c        |     9.71\n\n* Evidence Against The Null: 0"
   },
   {
     "objectID": "info-6.html#plotting-the-bfs",
@@ -1796,14 +1796,14 @@
     "href": "info-6.html#bfs-with-wider-priors",
     "title": "Information, NHST and model fit",
     "section": "BFs with wider priors",
-    "text": "BFs with wider priors\n\n\nCode\nbf.resultb &lt;- bayestestR::bayesfactor_parameters(mr.2b)\nbf.resultb\n\n\nBayes Factor (Savage-Dickey density ratio)\n\nParameter   |       BF\n----------------------\n(Intercept) | 7.76e+43\nSS_c        | 4.31e+04\nFQ_c        |    0.533\n\n* Evidence Against The Null: 0"
+    "text": "BFs with wider priors\n\n\nCode\nbf.resultb &lt;- bayestestR::bayesfactor_parameters(mr.2b)\nbf.resultb\n\n\nBayes Factor (Savage-Dickey density ratio)\n\nParameter   |       BF\n----------------------\n(Intercept) | 9.70e+45\nSS_c        | 4.84e+04\nFQ_c        |    0.507\n\n* Evidence Against The Null: 0"
   },
   {
     "objectID": "info-6.html#we-can-also-do-this-with-a-rope",
     "href": "info-6.html#we-can-also-do-this-with-a-rope",
     "title": "Information, NHST and model fit",
     "section": "We can also do this with a ROPE!",
-    "text": "We can also do this with a ROPE!\n\nbf.result2 &lt;- bayesfactor_parameters(mr.2, null = rope_range(mr.2))\nbf.result2\n\nBayes Factor (Null-Interval)\n\nParameter   |       BF\n----------------------\n(Intercept) | 2.94e+33\nSS_c        |   346.26\nFQ_c        |     1.47\n\n* Evidence Against The Null: [-0.189, 0.189]"
+    "text": "We can also do this with a ROPE!\n\nbf.result2 &lt;- bayesfactor_parameters(mr.2, null = rope_range(mr.2))\nbf.result2\n\nBayes Factor (Null-Interval)\n\nParameter   |       BF\n----------------------\n(Intercept) | 3.54e+46\nSS_c        |   571.38\nFQ_c        |     1.52\n\n* Evidence Against The Null: [-0.189, 0.189]"
   },
   {
     "objectID": "info-6.html#bf-against-an-interval-null",
@@ -1838,7 +1838,7 @@
     "href": "info-6.html#their-bayes-factors",
     "title": "Information, NHST and model fit",
     "section": "Their Bayes factors",
-    "text": "Their Bayes factors\n\n\nCode\nbf.info.1 &lt;- bayestestR::bayesfactor_parameters(info.1)\nbf.info.1\n\n\nBayes Factor (Savage-Dickey density ratio)\n\nParameter   |       BF\n----------------------\n(Intercept) | 1.28e+30\nSS_c        | 2.35e+04\nFQ_c        |     4.82\n\n* Evidence Against The Null: 0\n\n\n\n\nCode\nbf.info.2 &lt;- bayestestR::bayesfactor_parameters(info.2)\nbf.info.2\n\n\nBayes Factor (Savage-Dickey density ratio)\n\nParameter   |       BF\n----------------------\n(Intercept) | 3.42e+27\nSS_c        | 1.64e+04\nFQ_c        |     9.66\n\n* Evidence Against The Null: 0"
+    "text": "Their Bayes factors\n\n\nCode\nbf.info.1 &lt;- bayestestR::bayesfactor_parameters(info.1)\nbf.info.1\n\n\nBayes Factor (Savage-Dickey density ratio)\n\nParameter   |       BF\n----------------------\n(Intercept) | 1.52e+34\nSS_c        | 3.78e+04\nFQ_c        |     4.67\n\n* Evidence Against The Null: 0\n\n\n\n\nCode\nbf.info.2 &lt;- bayestestR::bayesfactor_parameters(info.2)\nbf.info.2\n\n\nBayes Factor (Savage-Dickey density ratio)\n\nParameter   |       BF\n----------------------\n(Intercept) | 4.06e+34\nSS_c        | 2.45e+04\nFQ_c        |    10.96\n\n* Evidence Against The Null: 0"
   },
   {
     "objectID": "info-6.html#bf-plot-wide-prior-info.1",
@@ -1866,7 +1866,7 @@
     "href": "info-6.html#why",
     "title": "Information, NHST and model fit",
     "section": "Why?",
-    "text": "Why?\n\n\nCode\ntibble(parameter = c(\"School success\", \"Friendship quality\"),\n       `BF, wide prior`   = exp(bf.info.1$log_BF[bf.info.1$Parameter %in% c(\"b_SS_c\", \"b_FQ_c\")]),\n       `BF, narrow prior` = exp(bf.info.2$log_BF[bf.info.2$Parameter %in% c(\"b_SS_c\", \"b_FQ_c\")])) %&gt;%\n  knitr::kable(digits = 1)\n\n\n\n\n\nparameter\nBF, wide prior\nBF, narrow prior\n\n\n\n\nSchool success\n23468.9\n16411.0\n\n\nFriendship quality\n4.8\n9.7\n\n\n\n\n\n\nThe BF compares “the effect is 0” to “the effect is something like the prior says.” A wide prior spreads its bets over huge slopes the data rule out, so it makes the alternative look worse.\nFor friendship quality, just narrowing the prior more than doubles the BF (4.6 → 11): “moderate” becomes “strong” with the same data. School success is so far from 0 that any prior gives an enormous BF (the numbers move, the conclusion doesn’t).\nThe posterior (and so CIs, pd and ROPE) hardly cares about the prior here. The BF cares a lot. Always report the prior along with a BF."
+    "text": "Why?\n\n\nCode\ntibble(parameter = c(\"School success\", \"Friendship quality\"),\n       `BF, wide prior`   = exp(bf.info.1$log_BF[bf.info.1$Parameter %in% c(\"b_SS_c\", \"b_FQ_c\")]),\n       `BF, narrow prior` = exp(bf.info.2$log_BF[bf.info.2$Parameter %in% c(\"b_SS_c\", \"b_FQ_c\")])) %&gt;%\n  knitr::kable(digits = 1)\n\n\n\n\n\nparameter\nBF, wide prior\nBF, narrow prior\n\n\n\n\nSchool success\n37825.9\n24472.4\n\n\nFriendship quality\n4.7\n11.0\n\n\n\n\n\n\nThe BF compares “the effect is 0” to “the effect is something like the prior says.” A wide prior spreads its bets over huge slopes the data rule out, so it makes the alternative look worse.\nFor friendship quality, just narrowing the prior more than doubles the BF (4.6 → 11): “moderate” becomes “strong” with the same data. School success is so far from 0 that any prior gives an enormous BF (the numbers move, the conclusion doesn’t).\nThe posterior (and so CIs, pd and ROPE) hardly cares about the prior here. The BF cares a lot. Always report the prior along with a BF."
   },
   {
     "objectID": "info-6.html#which-tool-answers-which-question",
@@ -2797,7 +2797,7 @@
     "href": "glm-7b.html#compare-roach-models",
     "title": "GLMs: counts and ordinal outcomes",
     "section": "Compare roach models",
-    "text": "Compare roach models\nTo compare fairly, all three need the same offset. glm.8b2 is glm.8b plus offset(log(exposure2)):\n\n\nCode\nglm.8b2 &lt;-\n  brm(family = negbinomial,\n      y ~ 0 + Intercept + roach1 + treatment + offset(log(exposure2)),\n      prior = c(prior(normal(2, 1), class = b, coef = \"Intercept\"),\n                prior(normal(0, .5), class = b),\n                prior(exponential(1), class = shape)),\n      iter = 2000, warmup = 1000, cores = 4, chains = 4,\n      save_pars = save_pars(all = TRUE),\n      data = roach,\n      file = \"glm.8b2\",\n      backend = \"cmdstanr\")\n\n\n\n# add_criterion() stores the result in the model's file, so it's only computed once\nglm.7o  &lt;- add_criterion(glm.7o, \"loo\", moment_match = TRUE)\nglm.8b2 &lt;- add_criterion(glm.8b2, \"loo\", moment_match = TRUE)\nglm.8e  &lt;- add_criterion(glm.8e, \"loo\", moment_match = TRUE)\nloo_compare(glm.7o, glm.8b2, glm.8e)\n\n        elpd_diff se_diff\nglm.8b2     0.0       0.0\nglm.8e  -3284.5     572.5\nglm.7o  -5442.6     705.6"
+    "text": "Compare roach models\nTo compare fairly, all three need the same offset. glm.8b2 is glm.8b plus offset(log(exposure2)):\n\n\nCode\nglm.8b2 &lt;-\n  brm(family = negbinomial,\n      y ~ 0 + Intercept + roach1 + treatment + offset(log(exposure2)),\n      prior = c(prior(normal(2, 1), class = b, coef = \"Intercept\"),\n                prior(normal(0, .5), class = b),\n                prior(exponential(1), class = shape)),\n      iter = 2000, warmup = 1000, cores = 4, chains = 4,\n      save_pars = save_pars(all = TRUE),\n      data = roach,\n      file = \"glm.8b2\",\n      backend = \"cmdstanr\")\n\n\n\n# add_criterion() stores the result in the model's file, so it's only computed once\nglm.7o  &lt;- add_criterion(glm.7o, \"loo\", moment_match = TRUE)\nglm.8b2 &lt;- add_criterion(glm.8b2, \"loo\", moment_match = TRUE)\nglm.8e  &lt;- add_criterion(glm.8e, \"loo\", moment_match = TRUE)\nloo_compare(glm.7o, glm.8b2, glm.8e)\n\n   model elpd_diff se_diff p_worse diag_diff diag_elpd\n glm.8b2       0.0     0.0      NA                    \n  glm.8e   -3284.5   572.5    1.00                    \n  glm.7o   -5442.6   705.6    1.00"
   },
   {
     "objectID": "glm-7b.html#checking-count-models-rootograms",
@@ -2888,7 +2888,7 @@
     "href": "glm-7b.html#do-we-need-a-zero-model-at-all",
     "title": "GLMs: counts and ordinal outcomes",
     "section": "Do we need a zero model at all?",
-    "text": "Do we need a zero model at all?\nZero-inflated and hurdle versions of the negative binomial, with the same offset and predictors as glm.8b2:\n\n\nCode\nnb_priors &lt;- c(prior(normal(2, 1), class = b, coef = \"Intercept\"),\n               prior(normal(0, .5), class = b),\n               prior(exponential(1), class = shape))\nglm.8f &lt;- brm(family = zero_inflated_negbinomial,\n              y ~ 0 + Intercept + roach1 + treatment + offset(log(exposure2)),\n              prior = c(nb_priors, prior(beta(1, 1), class = zi)),\n              iter = 2000, warmup = 1000, cores = 4, chains = 4, init = 0,\n              save_pars = save_pars(all = TRUE), data = roach, backend = \"cmdstanr\", file = \"glm.8f\")\nglm.8g &lt;- brm(family = hurdle_negbinomial,\n              y ~ 0 + Intercept + roach1 + treatment + offset(log(exposure2)),\n              prior = c(nb_priors, prior(beta(1, 1), class = hu)),\n              iter = 2000, warmup = 1000, cores = 4, chains = 4, init = 0,\n              save_pars = save_pars(all = TRUE), data = roach, backend = \"cmdstanr\", file = \"glm.8g\")\n\n\n\nglm.8f &lt;- add_criterion(glm.8f, \"loo\", moment_match = TRUE)\nglm.8g &lt;- add_criterion(glm.8g, \"loo\", moment_match = TRUE)\nloo_compare(glm.8b2, glm.8f, glm.8g)\n\n        elpd_diff se_diff\nglm.8b2   0.0       0.0  \nglm.8f   -0.5       0.6  \nglm.8g  -11.0       2.5"
+    "text": "Do we need a zero model at all?\nZero-inflated and hurdle versions of the negative binomial, with the same offset and predictors as glm.8b2:\n\n\nCode\nnb_priors &lt;- c(prior(normal(2, 1), class = b, coef = \"Intercept\"),\n               prior(normal(0, .5), class = b),\n               prior(exponential(1), class = shape))\nglm.8f &lt;- brm(family = zero_inflated_negbinomial,\n              y ~ 0 + Intercept + roach1 + treatment + offset(log(exposure2)),\n              prior = c(nb_priors, prior(beta(1, 1), class = zi)),\n              iter = 2000, warmup = 1000, cores = 4, chains = 4, init = 0,\n              save_pars = save_pars(all = TRUE), data = roach, backend = \"cmdstanr\", file = \"glm.8f\")\nglm.8g &lt;- brm(family = hurdle_negbinomial,\n              y ~ 0 + Intercept + roach1 + treatment + offset(log(exposure2)),\n              prior = c(nb_priors, prior(beta(1, 1), class = hu)),\n              iter = 2000, warmup = 1000, cores = 4, chains = 4, init = 0,\n              save_pars = save_pars(all = TRUE), data = roach, backend = \"cmdstanr\", file = \"glm.8g\")\n\n\n\nglm.8f &lt;- add_criterion(glm.8f, \"loo\", moment_match = TRUE)\nglm.8g &lt;- add_criterion(glm.8g, \"loo\", moment_match = TRUE)\nloo_compare(glm.8b2, glm.8f, glm.8g)\n\n   model elpd_diff se_diff p_worse       diag_diff diag_elpd\n glm.8b2       0.0     0.0      NA                          \n  glm.8f      -0.5     0.6    0.80 |elpd_diff| &lt; 4          \n  glm.8g     -11.0     2.5    1.00"
   },
   {
     "objectID": "glm-7b.html#often-the-nb-is-enough",
@@ -3532,7 +3532,7 @@
     "href": "mlm-8.html#comparing-the-two",
     "title": "Multilevel models 1: varying intercepts and pooling",
     "section": "Comparing the two",
-    "text": "Comparing the two\n\nmlm.1 &lt;- add_criterion(mlm.1, \"loo\")\nmlm.2 &lt;- add_criterion(mlm.2, \"loo\")\nloo_compare(mlm.1, mlm.2, criterion = \"loo\")\n\n      elpd_diff se_diff\nmlm.1   0.0       0.0  \nmlm.2 -58.2       8.9"
+    "text": "Comparing the two\n\nmlm.1 &lt;- add_criterion(mlm.1, \"loo\")\nmlm.2 &lt;- add_criterion(mlm.2, \"loo\")\nloo_compare(mlm.1, mlm.2, criterion = \"loo\")\n\n model elpd_diff se_diff p_worse diag_diff      diag_elpd\n mlm.1       0.0     0.0      NA           7 k_psis &gt; 0.7\n mlm.2     -58.2     8.9    1.00"
   },
   {
     "objectID": "mlm-8.html#same-intercept-different-meaning",
@@ -3707,7 +3707,7 @@
     "href": "mlm-8.html#comparing-no-complete-and-partial-pooling",
     "title": "Multilevel models 1: varying intercepts and pooling",
     "section": "Comparing no, complete, and partial pooling",
-    "text": "Comparing no, complete, and partial pooling\n\nmlm.id &lt;- add_criterion(mlm.id, \"loo\")\nmlm.1p &lt;- add_criterion(mlm.1p, \"loo\")\nmlm.1 &lt;- add_criterion(mlm.1, \"loo\")\nloo_compare(mlm.id, mlm.1p, mlm.1)\n\n       elpd_diff se_diff\nmlm.1    0.0       0.0  \nmlm.id -15.3       5.7  \nmlm.1p -58.2       8.9"
+    "text": "Comparing no, complete, and partial pooling\n\nmlm.id &lt;- add_criterion(mlm.id, \"loo\")\nmlm.1p &lt;- add_criterion(mlm.1p, \"loo\")\nmlm.1 &lt;- add_criterion(mlm.1, \"loo\")\nloo_compare(mlm.id, mlm.1p, mlm.1)\n\n  model elpd_diff se_diff p_worse diag_diff       diag_elpd\n  mlm.1       0.0     0.0      NA            7 k_psis &gt; 0.7\n mlm.id     -15.3     5.7    1.00           23 k_psis &gt; 0.7\n mlm.1p     -58.2     8.9    1.00"
   },
   {
     "objectID": "mlm-8.html#level-1-predictors-in-brms",
@@ -3917,7 +3917,7 @@
     "href": "mlm-8b.html#random-slopes-vs-fixed-slope",
     "title": "Multilevel models 2: varying slopes, centering, and plotting",
     "section": "Random slopes vs fixed slope",
-    "text": "Random slopes vs fixed slope\n\nmlm.3 &lt;- add_criterion(mlm.3, \"loo\")\nmlm.4 &lt;- add_criterion(mlm.4, \"loo\")\nloo_compare(mlm.3, mlm.4, criterion = \"loo\")\n\n      elpd_diff se_diff\nmlm.3  0.0       0.0   \nmlm.4 -0.5       0.5"
+    "text": "Random slopes vs fixed slope\n\nmlm.3 &lt;- add_criterion(mlm.3, \"loo\")\nmlm.4 &lt;- add_criterion(mlm.4, \"loo\")\nloo_compare(mlm.3, mlm.4, criterion = \"loo\")\n\n model elpd_diff se_diff p_worse       diag_diff      diag_elpd\n mlm.3       0.0     0.0      NA                 8 k_psis &gt; 0.7\n mlm.4      -0.5     0.5    0.84 |elpd_diff| &lt; 4 8 k_psis &gt; 0.7"
   },
   {
     "objectID": "mlm-8b.html#esm-data",
@@ -4183,7 +4183,7 @@
     "href": "adv-9.html#predicting-a-new-person",
     "title": "Advanced models 1: prediction, MrP, missing data, measurement error, meta-analysis",
     "section": "Predicting a new person",
-    "text": "Predicting a new person\nDraw from the (assumed Gaussian) population distribution of random effects by asking predictions() for a new “level” of the grouping variable. This “integrates out” the random effects.\n\n\nCode\npredictions(\n    mlm.5,\n    newdata = datagrid(W.other = 0:1, ID = \"ralph\"),\n    allow_new_levels = TRUE)\n\n\n\n W.other    ID Estimate 2.5 % 97.5 %\n       0 ralph     3.14  2.18   4.15\n       1 ralph     3.46  2.64   4.33\n\nType: response"
+    "text": "Predicting a new person\nDraw from the (assumed Gaussian) population distribution of random effects by asking predictions() for a new “level” of the grouping variable. This “integrates out” the random effects.\n\n\nCode\npredictions(\n    mlm.5,\n    newdata = datagrid(W.other = 0:1, ID = \"ralph\"),\n    allow_new_levels = TRUE)\n\n\n\n W.other    ID Estimate 2.5 % 97.5 %\n       0 ralph     3.14  2.17   4.15\n       1 ralph     3.46  2.63   4.34\n\nType: response"
   },
   {
     "objectID": "adv-9.html#new-person-vs.-average-person",
@@ -4281,7 +4281,7 @@
     "href": "adv-9.html#predictions-for-one-state",
     "title": "Advanced models 1: prediction, MrP, missing data, measurement error, meta-analysis",
     "section": "Predictions for one state",
-    "text": "Predictions for one state\n\npredictions(mlm.mrp,\n    variables = \"educ_group\",\n    newdata = datagrid(state_name = \"missouri\"))\n\n\n age_group educ_group state_name Estimate 2.5 % 97.5 %\n        35        &lt;BA   missouri    0.267 0.190  0.358\n        35        &gt;BA   missouri    0.538 0.453  0.619\n        35        BA    missouri    0.312 0.240  0.395\n\nType: response"
+    "text": "Predictions for one state\n\npredictions(mlm.mrp,\n    variables = \"educ_group\",\n    newdata = datagrid(state_name = \"missouri\"))\n\n\n educ_group age_group state_name Estimate 2.5 % 97.5 %\n        &lt;BA        35   missouri    0.267 0.190  0.358\n        &gt;BA        35   missouri    0.538 0.453  0.619\n        BA         35   missouri    0.312 0.240  0.395\n\nType: response"
   },
   {
     "objectID": "adv-9.html#census-proportions-within-age-groups",
@@ -4939,7 +4939,7 @@
     "href": "adv-9b.html#is-the-distributional-model-worth-it",
     "title": "Advanced models 2: multivariate and distributional models",
     "section": "Is the distributional model worth it?",
-    "text": "Is the distributional model worth it?\nCompare it with a model that has one sigma for everyone:\n\n\nCode\nd.0 &lt;-\n  brm(family = gaussian,\n      CON ~ 1 + group,\n      file = \"d.0\",\n      backend = \"cmdstanr\",\n      data = mlm)\nd.0 &lt;- add_criterion(d.0, \"loo\")\nd.1b &lt;- add_criterion(d.1b, \"loo\")\nloo_compare(d.0, d.1b)\n\n\n     elpd_diff se_diff\nd.1b  0.0       0.0   \nd.0  -1.5       2.4   \n\n\n\n\nCode\nlibrary(patchwork)\n(bayesplot::ppc_dens_overlay_grouped(mlm$CON, posterior_predict(d.0, ndraws = 50), group = mlm$group) +\n   ggtitle(\"One sigma\")) /\n(bayesplot::ppc_dens_overlay_grouped(mlm$CON, posterior_predict(d.1b, ndraws = 50), group = mlm$group) +\n   ggtitle(\"Sigma by group\"))\n\n\n\nThe SD ratio’s interval excludes 1, but LOO barely prefers the distributional model (a small difference relative to its SE). A real but small difference in spread doesn’t change predictions much. Whether you care depends on the question: if the spread itself is the hypothesis, model it."
+    "text": "Is the distributional model worth it?\nCompare it with a model that has one sigma for everyone:\n\n\nCode\nd.0 &lt;-\n  brm(family = gaussian,\n      CON ~ 1 + group,\n      file = \"d.0\",\n      backend = \"cmdstanr\",\n      data = mlm)\nd.0 &lt;- add_criterion(d.0, \"loo\")\nd.1b &lt;- add_criterion(d.1b, \"loo\")\nloo_compare(d.0, d.1b)\n\n\n model elpd_diff se_diff p_worse       diag_diff diag_elpd\n  d.1b       0.0     0.0      NA                          \n   d.0      -1.5     2.4    0.74 |elpd_diff| &lt; 4          \n\n\n\n\nCode\nlibrary(patchwork)\n(bayesplot::ppc_dens_overlay_grouped(mlm$CON, posterior_predict(d.0, ndraws = 50), group = mlm$group) +\n   ggtitle(\"One sigma\")) /\n(bayesplot::ppc_dens_overlay_grouped(mlm$CON, posterior_predict(d.1b, ndraws = 50), group = mlm$group) +\n   ggtitle(\"Sigma by group\"))\n\n\n\nThe SD ratio’s interval excludes 1, but LOO barely prefers the distributional model (a small difference relative to its SE). A real but small difference in spread doesn’t change predictions much. Whether you care depends on the question: if the spread itself is the hypothesis, model it."
   },
   {
     "objectID": "adv-9b.html#distributional-mlms",
@@ -5044,7 +5044,7 @@
     "href": "adv-9b.html#is-the-melsm-worth-it",
     "title": "Advanced models 2: multivariate and distributional models",
     "section": "Is the MELSM worth it?",
-    "text": "Is the MELSM worth it?\n\n\nCode\n# LOO criteria were added once with add_criterion(model, \"loo\", ndraws = 2000)\n# (the full log-likelihood matrix for 13,000 observations is large)\nloo_compare(melsm.1, melsm.2)\n\n\n        elpd_diff se_diff\nmelsm.2     0.0       0.0\nmelsm.1 -4366.4     111.6\n\n\nLetting each person have their own sigma improves expected out-of-sample prediction by a lot, relative to its standard error."
+    "text": "Is the MELSM worth it?\n\n\nCode\n# LOO criteria were added once with add_criterion(model, \"loo\", ndraws = 2000)\n# (the full log-likelihood matrix for 13,000 observations is large)\nloo_compare(melsm.1, melsm.2)\n\n\n   model elpd_diff se_diff p_worse diag_diff       diag_elpd\n melsm.2       0.0     0.0      NA           10 k_psis &gt; 0.7\n melsm.1   -4366.4   111.6    1.00                          \n\n\nLetting each person have their own sigma improves expected out-of-sample prediction by a lot, relative to its standard error."
   },
   {
     "objectID": "adv-9b.html#time-as-a-predictor-of-sigma",
@@ -5380,7 +5380,7 @@
     "href": "adv-9c.html#does-discrimination-earn-its-keep",
     "title": "Cognitive and IRT models",
     "section": "Does discrimination earn its keep?",
-    "text": "Does discrimination earn its keep?\n\n\nCode\nirt.1 &lt;- add_criterion(irt.1, \"loo\")\nirt.2 &lt;- add_criterion(irt.2, \"loo\")\nloo_compare(irt.1, irt.2)\n\n\n      elpd_diff se_diff\nirt.2  0.0       0.0   \nirt.1 -2.3       2.5   \n\n\nOnly a small edge for the 2PL here (smaller than its SE): these items discriminate fairly similarly. On a test with a few bad items, the 2PL would matter more, and it tells you which items are weak either way."
+    "text": "Does discrimination earn its keep?\n\n\nCode\nirt.1 &lt;- add_criterion(irt.1, \"loo\")\nirt.2 &lt;- add_criterion(irt.2, \"loo\")\nloo_compare(irt.1, irt.2)\n\n\n model elpd_diff se_diff p_worse       diag_diff diag_elpd\n irt.2       0.0     0.0      NA                          \n irt.1      -2.3     2.5    0.82 |elpd_diff| &lt; 4          \n\n\nOnly a small edge for the 2PL here (smaller than its SE): these items discriminate fairly similarly. On a test with a few bad items, the 2PL would matter more, and it tells you which items are weak either way."
   },
   {
     "objectID": "adv-9c.html#graded-response-model",
@@ -5499,7 +5499,7 @@
     "href": "adv-9c.html#compile-and-sample",
     "title": "Cognitive and IRT models",
     "section": "Compile and sample",
-    "text": "Compile and sample\n\nlibrary(cmdstanr)\nmortality &lt;- read_csv(\"mortality.csv\", show_col_types = FALSE) %&gt;% mutate(IQ_c = IQ - mean(IQ))\n\nlogit_mod &lt;- cmdstan_model(write_stan_file(logit_code))\nlogit_fit &lt;- logit_mod$sample(\n  data = list(N = nrow(mortality), iq = mortality$IQ_c, y = mortality$NOT.premature, iq_new = 10),\n  seed = 2027, chains = 4, parallel_chains = 4, refresh = 0)\n\nRunning MCMC with 4 parallel chains...\n\nChain 1 finished in 0.1 seconds.\nChain 2 finished in 0.1 seconds.\nChain 3 finished in 0.1 seconds.\nChain 4 finished in 0.1 seconds.\n\nAll 4 chains finished successfully.\nMean chain execution time: 0.1 seconds.\nTotal execution time: 0.3 seconds."
+    "text": "Compile and sample\n\nlibrary(cmdstanr)\nmortality &lt;- read_csv(\"mortality.csv\", show_col_types = FALSE) %&gt;% mutate(IQ_c = IQ - mean(IQ))\n\nlogit_mod &lt;- cmdstan_model(write_stan_file(logit_code))\nlogit_fit &lt;- logit_mod$sample(\n  data = list(N = nrow(mortality), iq = mortality$IQ_c, y = mortality$NOT.premature, iq_new = 10),\n  seed = 2027, chains = 4, parallel_chains = 4, refresh = 0)\n\nRunning MCMC with 4 parallel chains...\n\nChain 1 finished in 0.1 seconds.\nChain 2 finished in 0.1 seconds.\nChain 3 finished in 0.1 seconds.\nChain 4 finished in 0.1 seconds.\n\nAll 4 chains finished successfully.\nMean chain execution time: 0.1 seconds.\nTotal execution time: 0.4 seconds."
   },
   {
     "objectID": "adv-9c.html#same-answer-as-brms",
@@ -5716,7 +5716,7 @@
     "href": "gams-10.html#more-basis-functions-same-curve",
     "title": "Generalized additive models (GAMs)",
     "section": "More basis functions, same curve",
-    "text": "More basis functions, same curve\nGive the smooth 40 basis functions instead of the default 10:\n\n\nCode\ngam.2 &lt;-\n  brm(doy ~ 1 + s(year_c, k = 40), family = gaussian, data = d2,\n      prior = c(prior(normal(100, 10), class = Intercept),\n                prior(exponential(1), class = sigma)),\n      iter = 2000, warmup = 1000, chains = 4, cores = 4, seed = 4,\n      control = list(adapt_delta = .95),\n      backend = \"cmdstanr\", file = \"gam.2\")\nspline.1 &lt;- add_criterion(spline.1, \"loo\")\ngam.1 &lt;- add_criterion(gam.1, \"loo\")\ngam.2 &lt;- add_criterion(gam.2, \"loo\")\nloo_compare(spline.1, gam.1, gam.2)\n\n\n         elpd_diff se_diff\nspline.1  0.0       0.0   \ngam.2    -4.4       4.2   \ngam.1    -6.8       5.0   \n\n\n\nThe three fits predict about equally well (differences within a couple of SEs). With s(), the penalty decides how wiggly the curve gets, so you don’t have to agonize over the number of knots.\ngam.2 had a handful of divergent transitions: smooths with many basis functions can be hard to sample. Raise adapt_delta (e.g., .99) before trusting it."
+    "text": "More basis functions, same curve\nGive the smooth 40 basis functions instead of the default 10:\n\n\nCode\ngam.2 &lt;-\n  brm(doy ~ 1 + s(year_c, k = 40), family = gaussian, data = d2,\n      prior = c(prior(normal(100, 10), class = Intercept),\n                prior(exponential(1), class = sigma)),\n      iter = 2000, warmup = 1000, chains = 4, cores = 4, seed = 4,\n      control = list(adapt_delta = .95),\n      backend = \"cmdstanr\", file = \"gam.2\")\nspline.1 &lt;- add_criterion(spline.1, \"loo\")\ngam.1 &lt;- add_criterion(gam.1, \"loo\")\ngam.2 &lt;- add_criterion(gam.2, \"loo\")\nloo_compare(spline.1, gam.1, gam.2)\n\n\n    model elpd_diff se_diff p_worse diag_diff diag_elpd\n spline.1       0.0     0.0      NA                    \n    gam.2      -4.4     4.2    0.85                    \n    gam.1      -6.8     5.0    0.91                    \n\n\n\nThe three fits predict about equally well (differences within a couple of SEs). With s(), the penalty decides how wiggly the curve gets, so you don’t have to agonize over the number of knots.\ngam.2 had a handful of divergent transitions: smooths with many basis functions can be hard to sample. Raise adapt_delta (e.g., .99) before trusting it."
   },
   {
     "objectID": "gams-10.html#a-fitted-spline",
@@ -5898,7 +5898,7 @@
     "href": "hw-2.html#q6.-does-the-model-reproduce-your-data-4-points",
     "title": "HW 2: Your first brms model",
     "section": "Q6. Does the model reproduce your data? (4 points)",
-    "text": "Q6. Does the model reproduce your data? (4 points)\n\nRun pp_check() on your brms model (try a couple of type = options, e.g., \"dens_overlay\" and \"stat\").\nDescribe where the simulated data match your observed data and where they don’t. What feature of your data is the model missing, if any? (Bounded scales, skew, and ceiling effects are common culprits.) You don’t need to fix it, just diagnose it.\n\n\n\n\n\n\n\nUnder the hood: your model in Stan (optional, not graded)\n\n\n\n\n\nbrms doesn’t fit models itself: it writes a program in Stan, the language that does the sampling, and runs it. You can see that program with stancode(your_model). Take five minutes and find:\n\nThe blocks: data, parameters, transformed parameters, model, and generated quantities. What goes in each one?\nYour three priors. brms collects them as lines like lprior += normal_lpdf(b | 0, 20);. Do they match what you chose in Q2?\nYour likelihood. It’s in the model block, behind if (!prior_only) (that switch is how sample_prior = \"only\" works!).\nThe transformed data block quietly centers your predictor, and generated quantities converts the intercept back. That’s why the summary says Intercept but the draws are called b_Intercept.\n\nNothing to turn in. Later in the semester you’ll write a small Stan program yourself, and this will look familiar."
+    "text": "Q6. Does the model reproduce your data? (4 points)\n\nRun pp_check() on your brms model (try a couple of type = options, e.g., \"dens_overlay\" and \"stat\").\nDescribe where the simulated data match your observed data and where they don’t. What feature of your data is the model missing, if any? (Bounded scales, skew, and ceiling effects are common culprits.) You don’t need to fix it, just diagnose it.\n\n\n\n\n\n\n\nTipUnder the hood: your model in Stan (optional, not graded)\n\n\n\n\n\nbrms doesn’t fit models itself: it writes a program in Stan, the language that does the sampling, and runs it. You can see that program with stancode(your_model). Take five minutes and find:\n\nThe blocks: data, parameters, transformed parameters, model, and generated quantities. What goes in each one?\nYour three priors. brms collects them as lines like lprior += normal_lpdf(b | 0, 20);. Do they match what you chose in Q2?\nYour likelihood. It’s in the model block, behind if (!prior_only) (that switch is how sample_prior = \"only\" works!).\nThe transformed data block quietly centers your predictor, and generated quantities converts the intercept back. That’s why the summary says Intercept but the draws are called b_Intercept.\n\nNothing to turn in. Later in the semester you’ll write a small Stan program yourself, and this will look familiar."
   },
   {
     "objectID": "hw-3.html",
@@ -6024,7 +6024,7 @@
     "href": "hw-5.html#q3.-actually-fix-it-and-show-its-fixed",
     "title": "HW 5: When the chains go wild",
     "section": "Q3. Actually fix it, and show it’s fixed",
-    "text": "Q3. Actually fix it, and show it’s fixed\n\nFix the model. You choose how (drop the redundant predictor, combine them, or use priors that make the model identifiable), and justify your choice in a sentence or two. Which fix is best here, and why?\nShow the fixed model’s R-hat, ESS, and that there are no warnings.\nMake a supplement-ready diagnostics figure for your fixed model: trace plots and rank plots for the intercept, slope(s), and σ, combined into one figure with {patchwork}. Journals increasingly ask for these in supplementary materials. Apply the figure checklist where it makes sense: readable parameter labels (e.g., “Slope: stress” instead of b_stress), a clean theme, colorblind-safe chain colors (bayesplot’s color_scheme_set(\"viridis\") helps), a caption, and ggsave() at 6.5 inches wide.\nOne sentence: what does your fixed model say about stress and sleep?\n\n\n\n\n\n\n\nUnder the hood: where are the priors? (optional, not graded)\n\n\n\n\n\nRun stancode(m_wild) and look at the transformed parameters block, where brms lists every prior as lprior += ....\n\nWhich parameters get a prior line? (brms picked default priors for the intercept and σ based on your data.)\nWhich parameters don’t have a line at all? A parameter with no prior statement has a flat, improper prior: every value from −∞ to ∞ is equally plausible. Connect that to what you saw in Q1–Q2.\nNow run stancode() on your fixed model from Q3 (or add prior(normal(0, 1), class = b) to the wild one) and find the new line.\n\nNothing to turn in."
+    "text": "Q3. Actually fix it, and show it’s fixed\n\nFix the model. You choose how (drop the redundant predictor, combine them, or use priors that make the model identifiable), and justify your choice in a sentence or two. Which fix is best here, and why?\nShow the fixed model’s R-hat, ESS, and that there are no warnings.\nMake a supplement-ready diagnostics figure for your fixed model: trace plots and rank plots for the intercept, slope(s), and σ, combined into one figure with {patchwork}. Journals increasingly ask for these in supplementary materials. Apply the figure checklist where it makes sense: readable parameter labels (e.g., “Slope: stress” instead of b_stress), a clean theme, colorblind-safe chain colors (bayesplot’s color_scheme_set(\"viridis\") helps), a caption, and ggsave() at 6.5 inches wide.\nOne sentence: what does your fixed model say about stress and sleep?\n\n\n\n\n\n\n\nTipUnder the hood: where are the priors? (optional, not graded)\n\n\n\n\n\nRun stancode(m_wild) and look at the transformed parameters block, where brms lists every prior as lprior += ....\n\nWhich parameters get a prior line? (brms picked default priors for the intercept and σ based on your data.)\nWhich parameters don’t have a line at all? A parameter with no prior statement has a flat, improper prior: every value from −∞ to ∞ is equally plausible. Connect that to what you saw in Q1–Q2.\nNow run stancode() on your fixed model from Q3 (or add prior(normal(0, 1), class = b) to the wild one) and find the new line.\n\nNothing to turn in."
   },
   {
     "objectID": "hw-6.html",
@@ -6213,7 +6213,7 @@
     "href": "hw-9.html#q6.-publication-ready-shrinkage-figure-5-points",
     "title": "HW 9: Varying intercepts and partial pooling",
     "section": "Q6. Publication-ready shrinkage figure (5 points)",
-    "text": "Q6. Publication-ready shrinkage figure (5 points)\nMake a figure that meets the checklist showing partial pooling in action for the empty model:\n\neach person’s no-pooling estimate (raw mean) and partial-pooling estimate, connected (e.g., arrows from raw to pooled) so the shrinkage is visible;\nthe grand mean as a reference line;\nthe number of observations per person shown somehow (point size, labels, or sorting), so a reader can see that people with fewer observations shrink more;\nlabels in words and units, a stand-alone caption, ggsave() at 6.5 inches wide, and the one or two sentences you’d put in a paper to explain it.\n\n\n\n\n\n\n\nUnder the hood: how brms builds the person effects (optional, not graded)\n\n\n\n\n\nRun stancode() on your Q2 model and find these lines:\narray[M_1] vector[N_1] z_1;            // in parameters\nr_1_1 = (sd_1[1] * (z_1[1]));          // in transformed parameters\ntarget += std_normal_lpdf(z_1[1]);     // in model\nbrms doesn’t sample each person’s deviation r directly. It samples a standardized version z ~ Normal(0, 1) and multiplies by the between-person SD: r = τ × z. This is called the non-centered parameterization.\n\nMathematically, why is r = τ × z with z ~ Normal(0, 1) the same as r ~ Normal(0, τ)?\nWhy might it sample better? (Think back to HW 5: when τ is near 0, all the r’s are squeezed near 0, and the posterior gets a narrow “funnel” shape that is hard for HMC to explore. Does z have that problem?)\n\nNothing to turn in. If you’re curious, SR 13.4 covers this in detail."
+    "text": "Q6. Publication-ready shrinkage figure (5 points)\nMake a figure that meets the checklist showing partial pooling in action for the empty model:\n\neach person’s no-pooling estimate (raw mean) and partial-pooling estimate, connected (e.g., arrows from raw to pooled) so the shrinkage is visible;\nthe grand mean as a reference line;\nthe number of observations per person shown somehow (point size, labels, or sorting), so a reader can see that people with fewer observations shrink more;\nlabels in words and units, a stand-alone caption, ggsave() at 6.5 inches wide, and the one or two sentences you’d put in a paper to explain it.\n\n\n\n\n\n\n\nTipUnder the hood: how brms builds the person effects (optional, not graded)\n\n\n\n\n\nRun stancode() on your Q2 model and find these lines:\narray[M_1] vector[N_1] z_1;            // in parameters\nr_1_1 = (sd_1[1] * (z_1[1]));          // in transformed parameters\ntarget += std_normal_lpdf(z_1[1]);     // in model\nbrms doesn’t sample each person’s deviation r directly. It samples a standardized version z ~ Normal(0, 1) and multiplies by the between-person SD: r = τ × z. This is called the non-centered parameterization.\n\nMathematically, why is r = τ × z with z ~ Normal(0, 1) the same as r ~ Normal(0, τ)?\nWhy might it sample better? (Think back to HW 5: when τ is near 0, all the r’s are squeezed near 0, and the posterior gets a narrow “funnel” shape that is hard for HMC to explore. Does z have that problem?)\n\nNothing to turn in. If you’re curious, SR 13.4 covers this in detail."
   },
   {
     "objectID": "hw-10.html",
@@ -6388,7 +6388,7 @@
     "href": "hw-13.html#q5.-publication-ready-item-characteristic-curves-5-points",
     "title": "HW 13: Your first Stan programs",
     "section": "Q5. Publication-ready item characteristic curves (5 points)",
-    "text": "Q5. Publication-ready item characteristic curves (5 points)\nMake a figure that meets the checklist showing the item characteristic curves (probability of a correct answer across ability, θ from −4 to 3) for all five items, computed from your posterior draws (π = logistic(a(θ − b)), draw by draw), with 95% ribbons.\n\nLabel items clearly, use a colorblind-safe palette with a second cue, and label the x-axis in words (e.g., “Ability (θ, SD units)”).\nWrite a stand-alone caption, use ggsave() at 6.5 inches wide, and write one or two sentences on what the figure says about this test (hint: who is it good at measuring?).\n\n\n\n\n\n\n\nGoing further: from 2PL to a drift diffusion model (optional, not graded)\n\n\n\n\n\nThe same workflow scales to cognitive models. A drift diffusion model describes a speeded two-choice decision as evidence accumulating toward one of two boundaries; it predicts response times and choices together. Stan has it built in as wiener_lpdf(), and brms wraps it as family = wiener(). The Stan model has exactly the same structure as your 2PL: data, parameters (drift rate, boundary separation, non-decision time, bias), priors, and one likelihood line. If you’re headed toward cognitive modeling, try writing one for a simulated dataset (RWiener::rwiener() simulates data)."
+    "text": "Q5. Publication-ready item characteristic curves (5 points)\nMake a figure that meets the checklist showing the item characteristic curves (probability of a correct answer across ability, θ from −4 to 3) for all five items, computed from your posterior draws (π = logistic(a(θ − b)), draw by draw), with 95% ribbons.\n\nLabel items clearly, use a colorblind-safe palette with a second cue, and label the x-axis in words (e.g., “Ability (θ, SD units)”).\nWrite a stand-alone caption, use ggsave() at 6.5 inches wide, and write one or two sentences on what the figure says about this test (hint: who is it good at measuring?).\n\n\n\n\n\n\n\nTipGoing further: from 2PL to a drift diffusion model (optional, not graded)\n\n\n\n\n\nThe same workflow scales to cognitive models. A drift diffusion model describes a speeded two-choice decision as evidence accumulating toward one of two boundaries; it predicts response times and choices together. Stan has it built in as wiener_lpdf(), and brms wraps it as family = wiener(). The Stan model has exactly the same structure as your 2PL: data, parameters (drift rate, boundary separation, non-decision time, bias), priors, and one likelihood line. If you’re headed toward cognitive modeling, try writing one for a simulated dataset (RWiener::rwiener() simulates data)."
   },
   {
     "objectID": "regression-3.html#goals-for-this-section",
@@ -6864,7 +6864,7 @@
     "href": "regression-3.html#robust-vs.-non-robust-group-means",
     "title": "Regression 2",
     "section": "Robust vs. non-robust group means",
-    "text": "Robust vs. non-robust group means\n\n\nRobust\n\n\nCode\navg_predictions(h.5R, by = \"mood.group.d\") %&gt;% \n  get_draws() %&gt;% \n  ggplot(aes(x = mood.group.d, y = draw)) +\n  stat_eye() +\n  geom_point(aes(y = health), data = week3, alpha = .3) +\n  labs(y = \"health\")\n\n\n\n\n\n\nnon-robust\n\n\nCode\navg_predictions(h.3, by = \"mood.group.d\") %&gt;% \n  get_draws() %&gt;% \n  ggplot(aes(x = mood.group.d, y = draw)) +\n  stat_eye() +\n  geom_point(aes(y = health), data = week3, alpha = .3) +\n  labs(y = \"health\")"
+    "text": "Robust vs. non-robust group means\n\n\nRobust\n\n\nCode\navg_predictions(h.5R, by = \"mood.group.d\") %&gt;% \n  get_draws() %&gt;% \n  ggplot(aes(x = mood.group.d, y = draw)) +\n  stat_eye() +\n  geom_point(aes(y = health), data = week3, alpha = .3) +\n  labs(y = \"health\")\n\n\n\n\n\n\n\n\n\n\nnon-robust\n\n\nCode\navg_predictions(h.3, by = \"mood.group.d\") %&gt;% \n  get_draws() %&gt;% \n  ggplot(aes(x = mood.group.d, y = draw)) +\n  stat_eye() +\n  geom_point(aes(y = health), data = week3, alpha = .3) +\n  labs(y = \"health\")"
   },
   {
     "objectID": "regression-3.html#relaxing-equal-variance-assumption",
@@ -7417,7 +7417,7 @@
     "href": "mr-4.html#the-32-model-in-brmss-names",
     "title": "Multiple Regression",
     "section": "The 3×2 model, in brms’s names",
-    "text": "The 3×2 model, in brms’s names\n\\[\\text{Anxiety}_i \\sim \\text{Normal}(\\mu_i, \\sigma)\\]\n\\[\n\\begin{aligned}\n\\mu_i = \\beta_0 &+ \\beta_1\\,\\text{conditionTx}_i + \\beta_2\\,\\text{SupportLevelmed}_i + \\beta_3\\,\\text{SupportLevelhigh}_i \\\\\n&+ \\beta_4\\,(\\text{conditionTx} \\times \\text{SupportLevelmed})_i + \\beta_5\\,(\\text{conditionTx} \\times \\text{SupportLevelhigh})_i\n\\end{aligned}\n\\]\nEach name is a 0/1 dummy, exactly as it will appear in summary(). The reference cell (all dummies = 0) is Control with low support, so \\(\\beta_0\\) is that cell’s mean and every other coefficient is a difference from it."
+    "text": "The 3×2 model, in brms’s names\n\\[\\text{Anxiety}_i \\sim \\text{Normal}(\\mu_i, \\sigma)\\]\n\\[\n\\begin{aligned}\n\\mu_i = \\beta_0 &+ \\beta_1\\,\\text{conditionTx}_i + \\beta_2\\,\\text{SupportLevelmed}_i + \\beta_3\\,\\text{SupportLevelhigh}_i \\\\\n&+ \\beta_4\\,(\\text{conditionTx} \\times \\text{SupportLevelmed})_i \\\\\n&+ \\beta_5\\,(\\text{conditionTx} \\times \\text{SupportLevelhigh})_i\n\\end{aligned}\n\\]\nEach name is a 0/1 dummy, exactly as it will appear in summary(). The reference cell (all dummies = 0) is Control with low support, so \\(\\beta_0\\) is that cell’s mean and every other coefficient is a difference from it."
   },
   {
     "objectID": "mr-4.html#fitting-the-factorial-model",
