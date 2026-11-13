@@ -160,7 +160,7 @@ tibble(week   = 1:1000,
 
 ```{r}
 #| code-fold: true
-data <- read.csv("week3.csv") %>%   # also at https://bayes27.netlify.app/week3.csv
+data <- read.csv("week3.csv") %>%   # also at https://josh-jackson.github.io/bayes27/week3.csv
   select(-ID, -SES)
 
 library(ggExtra)
@@ -313,7 +313,7 @@ So we need to make sure that the algorithm "works" in that there are enough samp
 library(tidyverse)
 library(brms)
 
-week3 <- read.csv("week3.csv") %>%   # also at https://bayes27.netlify.app/week3.csv
+week3 <- read.csv("week3.csv") %>%   # also at https://josh-jackson.github.io/bayes27/week3.csv
   dplyr::select(-ID, -SES) %>% 
   mutate(mood.group.d = factor(mood.group) %>% 
            fct_recode("control" = "0", "tx" = "1", "tx" = "2"))

@@ -223,7 +223,7 @@
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a aria-label="1"></a>esm <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"esm.csv"</span>)  <span class="co"># also at https://bayes27.netlify.app/esm.csv</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a aria-label="1"></a>esm <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"esm.csv"</span>)  <span class="co"># also at https://josh-jackson.github.io/bayes27/esm.csv</span></span>
 <span id="cb1-2"><a aria-label="2"></a></span>
 <span id="cb1-3"><a aria-label="3"></a>esm<span class="sc">$</span>PA <span class="ot">&lt;-</span> esm<span class="sc">$</span>esm.NQ11.w1</span>
 <span id="cb1-4"><a aria-label="4"></a>esm<span class="sc">$</span>W.other <span class="ot">&lt;-</span> esm<span class="sc">$</span>esm.ST04.w1</span>
@@ -258,8 +258,8 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>
  W.other    ID Estimate 2.5 % 97.5 %
-       0 ralph     3.14  2.17   4.15
-       1 ralph     3.46  2.63   4.34
+       0 ralph     3.13  2.17   4.16
+       1 ralph     3.45  2.64   4.34
 
 Type: response</code></pre>
 </div>
@@ -1015,7 +1015,7 @@ lp__              -2.193487e+02  4.98765668 -230.46752500 -210.86327500</code></
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb48"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a aria-label="1"></a>MI <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"hw3.csv"</span>)  <span class="co"># also at https://bayes27.netlify.app/hw3.csv</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb48"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a aria-label="1"></a>MI <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"hw3.csv"</span>)  <span class="co"># also at https://josh-jackson.github.io/bayes27/hw3.csv</span></span>
 <span id="cb48-2"><a aria-label="2"></a></span>
 <span id="cb48-3"><a aria-label="3"></a><span class="fu">set.seed</span>(<span class="dv">7474</span>)</span>
 <span id="cb48-4"><a aria-label="4"></a>MI.missing <span class="ot">&lt;-</span> MI <span class="sc">%&gt;%</span></span>
@@ -1677,7 +1677,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb70"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb70-1"><a aria-label="1"></a>spank <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"spank.csv"</span>)  <span class="co"># also at https://bayes27.netlify.app/spank.csv</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb70"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb70-1"><a aria-label="1"></a>spank <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"spank.csv"</span>)  <span class="co"># also at https://josh-jackson.github.io/bayes27/spank.csv</span></span>
 <span id="cb70-2"><a aria-label="2"></a>spank <span class="ot">&lt;-</span></span>
 <span id="cb70-3"><a aria-label="3"></a>  spank <span class="sc">%&gt;%</span></span>
 <span id="cb70-4"><a aria-label="4"></a>  <span class="fu">mutate</span>(<span class="at">se =</span> (ul <span class="sc">-</span> ll) <span class="sc">/</span> <span class="fl">3.92</span>)</span>

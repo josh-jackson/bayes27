@@ -663,7 +663,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <section id="esm-data" class="slide level2">
 <h2>ESM data</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a aria-label="1"></a>esm <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"esm.csv"</span>)  <span class="co"># also at https://bayes27.netlify.app/esm.csv</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a aria-label="1"></a>esm <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"esm.csv"</span>)  <span class="co"># also at https://josh-jackson.github.io/bayes27/esm.csv</span></span>
 <span id="cb18-2"><a aria-label="2"></a>esm</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 11,540 × 89
@@ -1376,7 +1376,7 @@ W.other.gmc     0.83 0.47  1.19</code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb37"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a aria-label="1"></a>melsm <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"melsm.csv"</span>)  <span class="co"># also at https://bayes27.netlify.app/melsm.csv</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb37"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a aria-label="1"></a>melsm <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"melsm.csv"</span>)  <span class="co"># also at https://josh-jackson.github.io/bayes27/melsm.csv</span></span>
 <span id="cb37-2"><a aria-label="2"></a></span>
 <span id="cb37-3"><a aria-label="3"></a>melsm <span class="ot">&lt;-</span> melsm <span class="sc">%&gt;%</span></span>
 <span id="cb37-4"><a aria-label="4"></a>  <span class="fu">mutate</span>(<span class="at">day01 =</span> (day <span class="sc">-</span> <span class="dv">2</span>) <span class="sc">/</span> <span class="fu">max</span>((day <span class="sc">-</span> <span class="dv">2</span>)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>

@@ -99,7 +99,7 @@ GAMs offer a middle ground: they can be fit to complex, nonlinear relationships 
 ```{r}
 #| code-fold: true
 #|
-d <- read_csv("cherry_blossoms.csv")  # rethinking's cherry_blossoms; also at https://bayes27.netlify.app/cherry_blossoms.csv
+d <- read_csv("cherry_blossoms.csv")  # rethinking's cherry_blossoms; also at https://josh-jackson.github.io/bayes27/cherry_blossoms.csv
 
 d %>%
   ggplot(aes(x = year, y = doy)) +

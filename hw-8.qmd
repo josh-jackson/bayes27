@@ -12,7 +12,7 @@ The KN data: 2,136 working adults, how many jobs they've had (`numjobs`), how ma
 
 ```{r, eval = FALSE}
 library(tidyverse)
-kn <- read_csv("https://bayes27.netlify.app/KN.csv") |> select(-1)
+kn <- read_csv("https://josh-jackson.github.io/bayes27/KN.csv") |> select(-1)
 ```
 
 ## Q1. Look before you model (3 points)

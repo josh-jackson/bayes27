@@ -10,7 +10,7 @@ Start from the [homework template](hw-template.qmd){download="hw-template.qmd"},
 
 ```{r, eval = FALSE}
 library(tidyverse)
-mortality <- read_csv("https://bayes27.netlify.app/mortality.csv") |>
+mortality <- read_csv("https://josh-jackson.github.io/bayes27/mortality.csv") |>
   select(-1) |>                                   # drop the row-number column
   mutate(premature = 1 - NOT.premature,
          risky_c = Risky.behavior - mean(Risky.behavior),

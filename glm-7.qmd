@@ -147,7 +147,7 @@ gaussian, student, binomial, bernoulli, poisson, negbinomial, geometric, gamma, 
 ```{r}
 #| code-fold: true
 library(readr)
-mortality <- read_csv("mortality.csv")  # also at https://bayes27.netlify.app/mortality.csv
+mortality <- read_csv("mortality.csv")  # also at https://josh-jackson.github.io/bayes27/mortality.csv
 
 mortality <- mortality %>%
   mutate(IQ_c = IQ - mean(IQ)) %>%

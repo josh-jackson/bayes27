@@ -19,7 +19,7 @@ $${Y}_{ij} = b_{0} + b_{1}X_{ij} + ... +\epsilon_{ij}$$ where *i* refers to the 
 ## Our running example {.smaller}
 
 ```{r}
-mlm <- read.csv("mlm.csv")  # also at https://bayes27.netlify.app/mlm.csv
+mlm <- read.csv("mlm.csv")  # also at https://josh-jackson.github.io/bayes27/mlm.csv
 names(mlm)[names(mlm) == "group"] <- "diagnosis"  # marginaleffects reserves the name "group"
 ```
 

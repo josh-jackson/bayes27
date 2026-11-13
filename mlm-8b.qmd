@@ -349,7 +349,7 @@ loo_compare(mlm.3, mlm.4, criterion = "loo")
 ## ESM data
 
 ```{r}
-esm <- read_csv("esm.csv")  # also at https://bayes27.netlify.app/esm.csv
+esm <- read_csv("esm.csv")  # also at https://josh-jackson.github.io/bayes27/esm.csv
 esm
 ```
 
@@ -558,7 +558,7 @@ mlm.6 %>%
 
 ```{r}
 #| code-fold: true
-melsm <- read.csv("melsm.csv")  # also at https://bayes27.netlify.app/melsm.csv
+melsm <- read.csv("melsm.csv")  # also at https://josh-jackson.github.io/bayes27/melsm.csv
 
 melsm <- melsm %>%
   mutate(day01 = (day - 2) / max((day - 2)))

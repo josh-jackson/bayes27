@@ -216,7 +216,7 @@ Can you write this model equation? Assume two IVs.
 ```{r}
 #| code-fold: true
 #| 
-MR <- read.csv("hw3.csv")   # also at https://bayes27.netlify.app/hw3.csv
+MR <- read.csv("hw3.csv")   # also at https://josh-jackson.github.io/bayes27/hw3.csv
 MR <- MR %>% 
   mutate(SS_c = `schoool.success` - mean(`schoool.success`),
          FQ_c = `friendship.quality` - mean(`friendship.quality`),
@@ -842,7 +842,7 @@ cells %>%
 ## A 3×2 factorial: the data
 
 ```{r}
-anova <- read_csv("anova.csv")   # also at https://bayes27.netlify.app/anova.csv
+anova <- read_csv("anova.csv")   # also at https://josh-jackson.github.io/bayes27/anova.csv
 anova <- anova %>% 
   mutate(SupportLevel = cut(Support, breaks = c(0, 5, 10, 18), labels = c("low", "med", "high")),
          condition = factor(group)) %>%   # renamed: marginaleffects reserves the name "group"

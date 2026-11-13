@@ -76,7 +76,7 @@ Then: report `mu_new` and `y_new` with 95% intervals (why is one wider?), and us
 The LSAT data: 1,000 people answered 5 law-school-admission items, each scored correct (1) or incorrect (0). This is a classic IRT dataset. Put it in long format, one row per person × item:
 
 ```{r, eval = FALSE}
-lsat <- read_csv("https://bayes27.netlify.app/LSAT.csv") |>
+lsat <- read_csv("https://josh-jackson.github.io/bayes27/LSAT.csv") |>
   mutate(person = row_number()) |>
   pivot_longer(starts_with("item"), names_to = "item", values_to = "y") |>
   mutate(item = as.integer(str_remove(item, "item")))

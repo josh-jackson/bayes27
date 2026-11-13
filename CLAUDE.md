@@ -1,6 +1,6 @@
 # Bayesian Statistics — course website
 
-Spring 2027: classes start Tue 2027-01-19, meeting Tue/Thu 2:30–3:50. Local repo: `~/Developer/bayes27`. GitHub: josh-jackson/bayes27. Site: Netlify (publish directory `_site`, no build command).
+Spring 2027: classes start Tue 2027-01-19, meeting Tue/Thu 2:30–3:50. Local repo: `~/Developer/bayes27`. GitHub: josh-jackson/bayes27. Site: GitHub Pages at https://josh-jackson.github.io/bayes27/ (the `.github/workflows/publish.yml` workflow uploads the committed `_site/` on every push to main; no build on GitHub). Moved from Netlify in Nov 2026 because Netlify's free plan forces a badge over the slides.
 
 Quarto website for a graduate Bayesian statistics course (psychology). Lectures are revealjs slide decks with live R code that the instructor walks through in class; homework are Quarto docs. Audience: psych grad students who know regression/`lm` but are new to Bayes.
 
@@ -10,7 +10,7 @@ Quarto website for a graduate Bayesian statistics course (psychology). Lectures 
 - Lectures: `<topic>-<n>.qmd` (e.g. `glm-7.qmd`), `format: revealjs`, `slide-number: true`, `execute: echo: true`. Slides split on `##`.
 - Homework: `hw-<n>.qmd`.
 - Cached model fits: `*.rds` (e.g. `glm.8d.rds`) loaded with `readRDS()` so slides render fast. They are **gitignored** (kept only on this Mac; 2025 originals also in Box `Bayesian Statistics/BayesSpring25`). Never delete them; refit only when a model changes.
-- `_site/` — rendered output, **committed**; Netlify serves it directly (no build step on Netlify).
+- `_site/` — rendered output, **committed**; GitHub Pages serves it directly (no build step on GitHub).
 
 ## Conventions
 - Models in **brms**; summaries/plots with **tidybayes** and **marginaleffects** (preferred over brms helper functions), **tidyverse**, **patchwork**. Avoid deprecated functions.
@@ -25,5 +25,5 @@ Quarto website for a graduate Bayesian statistics course (psychology). Lectures 
 - This Mac has two R installs: CRAN R 4.6.2 (`/usr/local/bin/R`, has brms/tidybayes/cmdstanr; RStudio uses it; R 4.4 and its old library are still in R.framework but not the default) and Homebrew R 4.6 (first on PATH, no course packages). Quarto is 1.11. `_environment.local` (gitignored) sets `QUARTO_R=/usr/local/bin/R` so terminal renders use CRAN R. Use `/usr/local/bin/Rscript` for ad-hoc R from the shell.
 - After fitting or refitting any model, run `./backup-fits.sh` (copies new/changed `.rds` files to Box `Bayesian Statistics/BayesSpring27/fits`; never deletes).
 - Never refit a long model or delete `.rds` fits without asking.
-- **Never push without asking** — pushing publishes to students via Netlify. Commit in small, described steps.
+- **Never push without asking** — pushing publishes to students via GitHub Pages. Commit in small, described steps.
 - This repo is public: never commit grades, student names/work, exam answer keys, or private submission links.

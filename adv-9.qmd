@@ -31,7 +31,7 @@ Can we improve it further? Do we stick with standard MLM based predictions? What
 
 ```{r}
 #| code-fold: true
-esm <- read_csv("esm.csv")  # also at https://bayes27.netlify.app/esm.csv
+esm <- read_csv("esm.csv")  # also at https://josh-jackson.github.io/bayes27/esm.csv
 
 esm$PA <- esm$esm.NQ11.w1
 esm$W.other <- esm$esm.ST04.w1
@@ -488,7 +488,7 @@ imp.2 %>%
 
 ```{r}
 #| code-fold: true
-MI <- read.csv("hw3.csv")  # also at https://bayes27.netlify.app/hw3.csv
+MI <- read.csv("hw3.csv")  # also at https://josh-jackson.github.io/bayes27/hw3.csv
 
 set.seed(7474)
 MI.missing <- MI %>%
@@ -721,7 +721,7 @@ Hopefully you can see that meta-analyses are multilevel models as this is a hype
 ```{r}
 #| code-fold: true
 
-spank <- read.csv("spank.csv")  # also at https://bayes27.netlify.app/spank.csv
+spank <- read.csv("spank.csv")  # also at https://josh-jackson.github.io/bayes27/spank.csv
 spank <-
   spank %>%
   mutate(se = (ul - ll) / 3.92)

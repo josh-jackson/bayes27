@@ -20,7 +20,7 @@ execute:
 ```{r}
 #| code-fold: true
 library(tidyverse)
-# also at https://bayes27.netlify.app/week3.csv
+# also at https://josh-jackson.github.io/bayes27/week3.csv
 week3 <- read.csv("week3.csv") %>% 
   select(-ID, -SES)
 
@@ -951,7 +951,7 @@ This easily extends past the t-test into multi-category models
 ```{r}
 #| code-fold: true
 
-MR <- read.csv("hw3.csv")   # also at https://bayes27.netlify.app/hw3.csv
+MR <- read.csv("hw3.csv")   # also at https://josh-jackson.github.io/bayes27/hw3.csv
 
 MR <- MR %>% 
   mutate(SS_c = `schoool.success` - mean(`schoool.success`),

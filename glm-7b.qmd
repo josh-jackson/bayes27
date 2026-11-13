@@ -88,7 +88,7 @@ ggplot(data = tibble(x = seq(from = 0, to = 60, by = .1)),
 
 ```{r}
 #| code-fold: true
-roach <- read_csv("roaches.csv")  # also at https://bayes27.netlify.app/roaches.csv
+roach <- read_csv("roaches.csv")  # also at https://josh-jackson.github.io/bayes27/roaches.csv
 roach
 ```
 
@@ -867,7 +867,7 @@ common assumption is to treat differences as the same and model it as continuous
 ```{r}
 #| code-fold: true
 
-trolley <- read_csv("trolley.csv")  # rethinking's Trolley data; also at https://bayes27.netlify.app/trolley.csv
+trolley <- read_csv("trolley.csv")  # rethinking's Trolley data; also at https://josh-jackson.github.io/bayes27/trolley.csv
 p2a <-
   trolley %>%
   ggplot(aes(x = response)) +

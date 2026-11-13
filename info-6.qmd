@@ -20,7 +20,7 @@ library(tidyverse)
 library(brms)
 library(bayestestR)
 
-MR <- read.csv("hw3.csv") %>%   # also at https://bayes27.netlify.app/hw3.csv
+MR <- read.csv("hw3.csv") %>%   # also at https://josh-jackson.github.io/bayes27/hw3.csv
   mutate(SS_c = schoool.success - mean(schoool.success),
          FQ_c = friendship.quality - mean(friendship.quality),
          iv = factor(intervention.group),

@@ -418,7 +418,7 @@
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a aria-label="1"></a>MR <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"hw3.csv"</span>)   <span class="co"># also at https://bayes27.netlify.app/hw3.csv</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a aria-label="1"></a>MR <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"hw3.csv"</span>)   <span class="co"># also at https://josh-jackson.github.io/bayes27/hw3.csv</span></span>
 <span id="cb2-2"><a aria-label="2"></a>MR <span class="ot">&lt;-</span> MR <span class="sc">%&gt;%</span> </span>
 <span id="cb2-3"><a aria-label="3"></a>  <span class="fu">mutate</span>(<span class="at">SS_c =</span> <span class="st">`</span><span class="at">schoool.success</span><span class="st">`</span> <span class="sc">-</span> <span class="fu">mean</span>(<span class="st">`</span><span class="at">schoool.success</span><span class="st">`</span>),</span>
 <span id="cb2-4"><a aria-label="4"></a>         <span class="at">FQ_c =</span> <span class="st">`</span><span class="at">friendship.quality</span><span class="st">`</span> <span class="sc">-</span> <span class="fu">mean</span>(<span class="st">`</span><span class="at">friendship.quality</span><span class="st">`</span>),</span>
@@ -3651,7 +3651,7 @@ iv3:iv2highSES  0.44187375 0.4159345 -0.3616300 1.2519357</code></pre>
 <section id="a-32-factorial-the-data" class="slide level2">
 <h2>A 3×2 factorial: the data</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb77"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb77-1"><a aria-label="1"></a>anova <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"anova.csv"</span>)   <span class="co"># also at https://bayes27.netlify.app/anova.csv</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb77"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb77-1"><a aria-label="1"></a>anova <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"anova.csv"</span>)   <span class="co"># also at https://josh-jackson.github.io/bayes27/anova.csv</span></span>
 <span id="cb77-2"><a aria-label="2"></a>anova <span class="ot">&lt;-</span> anova <span class="sc">%&gt;%</span> </span>
 <span id="cb77-3"><a aria-label="3"></a>  <span class="fu">mutate</span>(<span class="at">SupportLevel =</span> <span class="fu">cut</span>(Support, <span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">18</span>), <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"low"</span>, <span class="st">"med"</span>, <span class="st">"high"</span>)),</span>
 <span id="cb77-4"><a aria-label="4"></a>         <span class="at">condition =</span> <span class="fu">factor</span>(group)) <span class="sc">%&gt;%</span>   <span class="co"># renamed: marginaleffects reserves the name "group"</span></span>
