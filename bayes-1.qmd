@@ -283,6 +283,180 @@ tidy_draws(fit.1.bayesian)
 
 -   Where Bayes differs, is that there is no ONE result, that there are many possible results that are consistent with the data
 
+## Grid approximation: counting by computer {.smaller}
+
+For one or two parameters we can compute the posterior directly, no MCMC needed:
+
+1. **Make a grid** of candidate values for the parameter (e.g., p = 0, .01, .02, …, 1)
+2. **Prior**: how plausible is each candidate before seeing the data?
+3. **Likelihood**: how likely are our data if that candidate were true? (`dbinom()`, `dnorm()`, …)
+4. **Multiply** prior × likelihood for every candidate
+5. **Normalize**: divide by the sum so the posterior adds up to 1
+
+$$\text{posterior} \propto \text{likelihood} \times \text{prior}$$
+
+The sum in step 5 is the denominator of Bayes' theorem, p(data). On a grid it's just adding up.
+
+## The grid, step by step {.smaller}
+
+Our coin again: 2 heads in 10 flips. What is p?
+
+```{r}
+coin_grid <- tibble(p = seq(from = 0, to = 1, length.out = 101)) %>%   # 1. candidates
+  mutate(prior        = 1,                                             # 2. flat prior
+         likelihood   = dbinom(2, size = 10, prob = p),                # 3. likelihood
+         unstd_post   = likelihood * prior,                            # 4. multiply
+         posterior    = unstd_post / sum(unstd_post))                  # 5. normalize
+
+coin_grid %>% slice(c(1, 11, 21, 31, 51, 81, 101))
+```
+
+## Prior × likelihood = posterior {.nostretch}
+
+```{r}
+#| code-fold: true
+#| fig-height: 2.6
+#| fig-width: 9
+#| out-width: "100%"
+coin_grid %>%
+  mutate(prior = prior / sum(prior), likelihood = likelihood / sum(likelihood)) %>%  # put all three on one scale
+  pivot_longer(c(prior, likelihood, posterior)) %>%
+  mutate(name = factor(name, levels = c("prior", "likelihood", "posterior"))) %>%
+  ggplot(aes(x = p, y = value)) +
+  geom_line(linewidth = 1) +
+  facet_wrap(~name, nrow = 1) +
+  scale_y_continuous(NULL, breaks = NULL) +
+  labs(x = "p (probability of heads)") +
+  theme_classic(base_size = 14)
+```
+
+With a flat prior the posterior has the likelihood's shape: the data alone decide. It peaks at .2 but leaves plenty of room for .1 or .4.
+
+## How fine a grid? {.nostretch}
+
+```{r}
+#| code-fold: true
+#| fig-height: 2.6
+#| fig-width: 9
+#| out-width: "100%"
+map_dfr(c(5, 20, 100), \(n) tibble(p = seq(0, 1, length.out = n)) %>%
+          mutate(posterior = dbinom(2, 10, p) / sum(dbinom(2, 10, p)),
+                 points = paste(n, "grid points"))) %>%
+  mutate(points = factor(points, levels = paste(c(5, 20, 100), "grid points"))) %>%
+  ggplot(aes(x = p, y = posterior)) +
+  geom_line() + geom_point(size = 1.2) +
+  facet_wrap(~points, nrow = 1, scales = "free_y") +
+  scale_y_continuous(NULL, breaks = NULL) +
+  theme_classic(base_size = 14)
+```
+
+More points = a better approximation. Five points is a crude sketch; a hundred is plenty for one parameter.
+
+## Change the prior, change the posterior {.smaller .nostretch}
+
+A prior that says "probably a fair-ish coin": Beta(5, 5), centered on .5.
+
+```{r}
+#| code-fold: true
+#| fig-height: 2.6
+#| fig-width: 9
+#| out-width: "100%"
+coin_grid %>%
+  mutate(prior      = dbeta(p, 5, 5),
+         unstd_post = likelihood * prior,
+         posterior  = unstd_post / sum(unstd_post),
+         prior = prior / sum(prior), likelihood = likelihood / sum(likelihood)) %>%
+  pivot_longer(c(prior, likelihood, posterior)) %>%
+  mutate(name = factor(name, levels = c("prior", "likelihood", "posterior"))) %>%
+  ggplot(aes(x = p, y = value)) +
+  geom_line(linewidth = 1) +
+  facet_wrap(~name, nrow = 1) +
+  scale_y_continuous(NULL, breaks = NULL) +
+  labs(x = "p (probability of heads)") +
+  theme_classic(base_size = 14)
+```
+
+The posterior is a compromise: the data pull toward .2, the prior pulls toward .5. With only 10 flips the prior has real influence; with 1,000 flips it would barely matter.
+
+## From a grid to a pile of guesses {.smaller .nostretch}
+
+Sample candidate values in proportion to their posterior probability, and you get draws, just like brms gives you:
+
+```{r}
+set.seed(2027)
+coin_draws <- coin_grid %>%
+  slice_sample(n = 10000, weight_by = posterior, replace = TRUE)
+
+coin_draws %>% summarise(mean = mean(p), median = median(p),
+                         lower = quantile(p, .025), upper = quantile(p, .975))
+```
+
+```{r}
+#| code-fold: true
+#| fig-height: 1.4
+#| fig-width: 9
+#| out-width: "90%"
+ggplot(coin_draws, aes(x = p)) +
+  stat_dotsinterval(quantiles = 100) +
+  scale_y_continuous(NULL, breaks = NULL) +
+  theme_classic(base_size = 14)
+```
+
+Every summary we use (means, intervals, probabilities) is just counting these guesses.
+
+## Two parameters: Galton's heights {.smaller}
+
+The same recipe for the average child height μ and the SD σ, using the priors from our brms model (μ ~ Normal(66, 5), σ ~ Exponential(.5)). Now the grid is every *combination* of μ and σ:
+
+```{r}
+height_grid <- crossing(mu    = seq(from = 67.6, to = 68.6, length.out = 150),
+                        sigma = seq(from = 2.3,  to = 2.8,  length.out = 150))
+nrow(height_grid)
+```
+
+For each combination, the log-likelihood of all 928 children's heights, plus the log prior:
+
+```{r}
+height_grid <- height_grid %>%
+  mutate(log_lik   = map2_dbl(mu, sigma, \(m, s) sum(dnorm(galton.data$child, mean = m, sd = s, log = TRUE))),
+         log_prior = dnorm(mu, 66, 5, log = TRUE) + dexp(sigma, rate = .5, log = TRUE),
+         posterior = exp(log_lik + log_prior - max(log_lik + log_prior)),   # back from logs, safely
+         posterior = posterior / sum(posterior))
+```
+
+22,500 grid points × 928 children ≈ 21 million density calculations. We work on the log scale because multiplying 928 small numbers underflows to 0.
+
+## The joint posterior of μ and σ {.nostretch}
+
+```{r}
+#| code-fold: true
+#| fig-height: 2.8
+#| fig-width: 9
+#| out-width: "100%"
+library(patchwork)
+joint <- ggplot(height_grid, aes(x = mu, y = sigma, fill = posterior)) +
+  geom_raster(interpolate = TRUE) +
+  scale_fill_viridis_c(option = "C", guide = "none") +
+  labs(x = expression(mu), y = expression(sigma)) +
+  theme_classic(base_size = 14)
+marg_mu <- height_grid %>% group_by(mu) %>% summarise(posterior = sum(posterior)) %>%
+  ggplot(aes(x = mu, y = posterior)) + geom_line(linewidth = 1) +
+  scale_y_continuous(NULL, breaks = NULL) + labs(x = expression(mu), subtitle = "posterior for μ (summed over σ)") +
+  theme_classic(base_size = 14)
+joint | marg_mu
+```
+
+The posterior for μ is centered near `r round(mean(galton.data$child), 2)` inches (the sample mean) with a 95% interval only about ±0.16 inches wide: 928 children tell us a lot. The weak prior barely matters here.
+
+## Why not always use a grid? {.smaller}
+
+-   One parameter, 100 candidates: 100 calculations
+-   Two parameters: 100 × 100 = 10,000
+-   Our regression (intercept, slope, σ): 100³ = 1,000,000
+-   A typical multilevel model with 50 parameters: 100⁵⁰. More grid points than atoms in the universe
+
+Grids are perfect for building intuition and for one or two parameters. For anything bigger we need an algorithm that spends its time where the posterior actually is, which is what MCMC does (lecture 5). What comes out is the same thing: a pile of guesses, more of them where the posterior is higher.
+
 ## 3. Be comfortable integrating prior knowledge {.smaller}
 -   Priors insert knowledge you have outside of your data into your model
 

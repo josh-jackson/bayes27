@@ -7929,5 +7929,68 @@
     "title": "Intro",
     "section": "Why priors matter",
     "text": "Why priors matter\n\nA model that makes impossible predictions prior to seeing the data isn’t too useful. Why waste the effort? We often know what values are likely, given what we know about effect sizes\nWe entertain impossible values with standard “frequentist” methods. They have implicit priors such that all values, from negative infinity to positive infinity are equally likely.\nIf we use flat (uniform) priors we get essentially the same results as a frequentist method: the posterior mode equals the maximum likelihood estimate, and the intervals are usually very close (though we interpret them differently)."
+  },
+  {
+    "objectID": "bayes-1.html#grid-approximation-counting-by-computer",
+    "href": "bayes-1.html#grid-approximation-counting-by-computer",
+    "title": "Intro",
+    "section": "Grid approximation: counting by computer",
+    "text": "Grid approximation: counting by computer\nFor one or two parameters we can compute the posterior directly, no MCMC needed:\n\nMake a grid of candidate values for the parameter (e.g., p = 0, .01, .02, …, 1)\nPrior: how plausible is each candidate before seeing the data?\nLikelihood: how likely are our data if that candidate were true? (dbinom(), dnorm(), …)\nMultiply prior × likelihood for every candidate\nNormalize: divide by the sum so the posterior adds up to 1\n\n\\[\\text{posterior} \\propto \\text{likelihood} \\times \\text{prior}\\]\nThe sum in step 5 is the denominator of Bayes’ theorem, p(data). On a grid it’s just adding up."
+  },
+  {
+    "objectID": "bayes-1.html#the-grid-step-by-step",
+    "href": "bayes-1.html#the-grid-step-by-step",
+    "title": "Intro",
+    "section": "The grid, step by step",
+    "text": "The grid, step by step\nOur coin again: 2 heads in 10 flips. What is p?\n\ncoin_grid &lt;- tibble(p = seq(from = 0, to = 1, length.out = 101)) %&gt;%   # 1. candidates\n  mutate(prior        = 1,                                             # 2. flat prior\n         likelihood   = dbinom(2, size = 10, prob = p),                # 3. likelihood\n         unstd_post   = likelihood * prior,                            # 4. multiply\n         posterior    = unstd_post / sum(unstd_post))                  # 5. normalize\n\ncoin_grid %&gt;% slice(c(1, 11, 21, 31, 51, 81, 101))\n\n# A tibble: 7 × 5\n      p prior likelihood unstd_post  posterior\n  &lt;dbl&gt; &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;\n1   0       1  0          0         0         \n2   0.1     1  0.194      0.194     0.0213    \n3   0.2     1  0.302      0.302     0.0332    \n4   0.3     1  0.233      0.233     0.0257    \n5   0.5     1  0.0439     0.0439    0.00483   \n6   0.8     1  0.0000737  0.0000737 0.00000811\n7   1       1  0          0         0"
+  },
+  {
+    "objectID": "bayes-1.html#prior-likelihood-posterior",
+    "href": "bayes-1.html#prior-likelihood-posterior",
+    "title": "Intro",
+    "section": "Prior × likelihood = posterior",
+    "text": "Prior × likelihood = posterior\n\n\nCode\ncoin_grid %&gt;%\n  mutate(prior = prior / sum(prior), likelihood = likelihood / sum(likelihood)) %&gt;%  # put all three on one scale\n  pivot_longer(c(prior, likelihood, posterior)) %&gt;%\n  mutate(name = factor(name, levels = c(\"prior\", \"likelihood\", \"posterior\"))) %&gt;%\n  ggplot(aes(x = p, y = value)) +\n  geom_line(linewidth = 1) +\n  facet_wrap(~name, nrow = 1) +\n  scale_y_continuous(NULL, breaks = NULL) +\n  labs(x = \"p (probability of heads)\") +\n  theme_classic(base_size = 14)\n\n\n\n\n\n\n\n\n\nWith a flat prior the posterior has the likelihood’s shape: the data alone decide. It peaks at .2 but leaves plenty of room for .1 or .4."
+  },
+  {
+    "objectID": "bayes-1.html#how-fine-a-grid",
+    "href": "bayes-1.html#how-fine-a-grid",
+    "title": "Intro",
+    "section": "How fine a grid?",
+    "text": "How fine a grid?\n\n\nCode\nmap_dfr(c(5, 20, 100), \\(n) tibble(p = seq(0, 1, length.out = n)) %&gt;%\n          mutate(posterior = dbinom(2, 10, p) / sum(dbinom(2, 10, p)),\n                 points = paste(n, \"grid points\"))) %&gt;%\n  mutate(points = factor(points, levels = paste(c(5, 20, 100), \"grid points\"))) %&gt;%\n  ggplot(aes(x = p, y = posterior)) +\n  geom_line() + geom_point(size = 1.2) +\n  facet_wrap(~points, nrow = 1, scales = \"free_y\") +\n  scale_y_continuous(NULL, breaks = NULL) +\n  theme_classic(base_size = 14)\n\n\n\n\n\n\n\n\n\nMore points = a better approximation. Five points is a crude sketch; a hundred is plenty for one parameter."
+  },
+  {
+    "objectID": "bayes-1.html#change-the-prior-change-the-posterior",
+    "href": "bayes-1.html#change-the-prior-change-the-posterior",
+    "title": "Intro",
+    "section": "Change the prior, change the posterior",
+    "text": "Change the prior, change the posterior\nA prior that says “probably a fair-ish coin”: Beta(5, 5), centered on .5.\n\n\nCode\ncoin_grid %&gt;%\n  mutate(prior      = dbeta(p, 5, 5),\n         unstd_post = likelihood * prior,\n         posterior  = unstd_post / sum(unstd_post),\n         prior = prior / sum(prior), likelihood = likelihood / sum(likelihood)) %&gt;%\n  pivot_longer(c(prior, likelihood, posterior)) %&gt;%\n  mutate(name = factor(name, levels = c(\"prior\", \"likelihood\", \"posterior\"))) %&gt;%\n  ggplot(aes(x = p, y = value)) +\n  geom_line(linewidth = 1) +\n  facet_wrap(~name, nrow = 1) +\n  scale_y_continuous(NULL, breaks = NULL) +\n  labs(x = \"p (probability of heads)\") +\n  theme_classic(base_size = 14)\n\n\n\n\n\n\n\n\n\nThe posterior is a compromise: the data pull toward .2, the prior pulls toward .5. With only 10 flips the prior has real influence; with 1,000 flips it would barely matter."
+  },
+  {
+    "objectID": "bayes-1.html#from-a-grid-to-a-pile-of-guesses",
+    "href": "bayes-1.html#from-a-grid-to-a-pile-of-guesses",
+    "title": "Intro",
+    "section": "From a grid to a pile of guesses",
+    "text": "From a grid to a pile of guesses\nSample candidate values in proportion to their posterior probability, and you get draws, just like brms gives you:\n\nset.seed(2027)\ncoin_draws &lt;- coin_grid %&gt;%\n  slice_sample(n = 10000, weight_by = posterior, replace = TRUE)\n\ncoin_draws %&gt;% summarise(mean = mean(p), median = median(p),\n                         lower = quantile(p, .025), upper = quantile(p, .975))\n\n# A tibble: 1 × 4\n   mean median lower upper\n  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;\n1 0.249   0.23  0.06  0.52\n\n\n\n\nCode\nggplot(coin_draws, aes(x = p)) +\n  stat_dotsinterval(quantiles = 100) +\n  scale_y_continuous(NULL, breaks = NULL) +\n  theme_classic(base_size = 14)\n\n\n\n\n\n\n\n\n\nEvery summary we use (means, intervals, probabilities) is just counting these guesses."
+  },
+  {
+    "objectID": "bayes-1.html#two-parameters-galtons-heights",
+    "href": "bayes-1.html#two-parameters-galtons-heights",
+    "title": "Intro",
+    "section": "Two parameters: Galton’s heights",
+    "text": "Two parameters: Galton’s heights\nThe same recipe for the average child height μ and the SD σ, using the priors from our brms model (μ ~ Normal(66, 5), σ ~ Exponential(.5)). Now the grid is every combination of μ and σ:\n\nheight_grid &lt;- crossing(mu    = seq(from = 67.6, to = 68.6, length.out = 150),\n                        sigma = seq(from = 2.3,  to = 2.8,  length.out = 150))\nnrow(height_grid)\n\n[1] 22500\n\n\nFor each combination, the log-likelihood of all 928 children’s heights, plus the log prior:\n\nheight_grid &lt;- height_grid %&gt;%\n  mutate(log_lik   = map2_dbl(mu, sigma, \\(m, s) sum(dnorm(galton.data$child, mean = m, sd = s, log = TRUE))),\n         log_prior = dnorm(mu, 66, 5, log = TRUE) + dexp(sigma, rate = .5, log = TRUE),\n         posterior = exp(log_lik + log_prior - max(log_lik + log_prior)),   # back from logs, safely\n         posterior = posterior / sum(posterior))\n\n22,500 grid points × 928 children ≈ 21 million density calculations. We work on the log scale because multiplying 928 small numbers underflows to 0."
+  },
+  {
+    "objectID": "bayes-1.html#the-joint-posterior-of-μ-and-σ",
+    "href": "bayes-1.html#the-joint-posterior-of-μ-and-σ",
+    "title": "Intro",
+    "section": "The joint posterior of μ and σ",
+    "text": "The joint posterior of μ and σ\n\n\nCode\nlibrary(patchwork)\njoint &lt;- ggplot(height_grid, aes(x = mu, y = sigma, fill = posterior)) +\n  geom_raster(interpolate = TRUE) +\n  scale_fill_viridis_c(option = \"C\", guide = \"none\") +\n  labs(x = expression(mu), y = expression(sigma)) +\n  theme_classic(base_size = 14)\nmarg_mu &lt;- height_grid %&gt;% group_by(mu) %&gt;% summarise(posterior = sum(posterior)) %&gt;%\n  ggplot(aes(x = mu, y = posterior)) + geom_line(linewidth = 1) +\n  scale_y_continuous(NULL, breaks = NULL) + labs(x = expression(mu), subtitle = \"posterior for μ (summed over σ)\") +\n  theme_classic(base_size = 14)\njoint | marg_mu\n\n\n\n\n\n\n\n\n\nThe posterior for μ is centered near 68.09 inches (the sample mean) with a 95% interval only about ±0.16 inches wide: 928 children tell us a lot. The weak prior barely matters here."
+  },
+  {
+    "objectID": "bayes-1.html#why-not-always-use-a-grid",
+    "href": "bayes-1.html#why-not-always-use-a-grid",
+    "title": "Intro",
+    "section": "Why not always use a grid?",
+    "text": "Why not always use a grid?\n\nOne parameter, 100 candidates: 100 calculations\nTwo parameters: 100 × 100 = 10,000\nOur regression (intercept, slope, σ): 100³ = 1,000,000\nA typical multilevel model with 50 parameters: 100⁵⁰. More grid points than atoms in the universe\n\nGrids are perfect for building intuition and for one or two parameters. For anything bigger we need an algorithm that spends its time where the posterior actually is, which is what MCMC does (lecture 5). What comes out is the same thing: a pile of guesses, more of them where the posterior is higher."
   }
 ]
