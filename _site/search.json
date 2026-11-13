@@ -7942,7 +7942,7 @@
     "href": "bayes-1.html#the-grid-step-by-step",
     "title": "Intro",
     "section": "The grid, step by step",
-    "text": "The grid, step by step\nOur coin again: 2 heads in 10 flips. What is p?\n\ncoin_grid &lt;- tibble(p = seq(from = 0, to = 1, length.out = 101)) %&gt;%   # 1. candidates\n  mutate(likelihood = dbinom(2, size = 10, prob = p))                  # 2. likelihood of our data\n\ncoin_grid %&gt;% slice(c(1, 11, 21, 31, 51, 81, 101))\n\n# A tibble: 7 × 2\n      p likelihood\n  &lt;dbl&gt;      &lt;dbl&gt;\n1   0    0        \n2   0.1  0.194    \n3   0.2  0.302    \n4   0.3  0.233    \n5   0.5  0.0439   \n6   0.8  0.0000737\n7   1    0        \n\ncoin_grid %&gt;% slice_max(likelihood)                                    # 3. the peak = MLE\n\n# A tibble: 1 × 2\n      p likelihood\n  &lt;dbl&gt;      &lt;dbl&gt;\n1   0.2      0.302"
+    "text": "The grid, step by step\nOur coin again: 2 heads in 10 flips. What is p?\n\ncoin_grid &lt;- tibble(p = seq(from = 0, to = 1, length.out = 101)) %&gt;%   # 1. possible values of p\n  mutate(likelihood = dbinom(2, size = 10, prob = p))                  # 2. likelihood of our data\n\ncoin_grid %&gt;% slice(c(1, 11, 21, 31, 51, 81, 101))\n\n# A tibble: 7 × 2\n      p likelihood\n  &lt;dbl&gt;      &lt;dbl&gt;\n1   0    0        \n2   0.1  0.194    \n3   0.2  0.302    \n4   0.3  0.233    \n5   0.5  0.0439   \n6   0.8  0.0000737\n7   1    0        \n\ncoin_grid %&gt;% slice_max(likelihood)                                    # 3. the peak = MLE\n\n# A tibble: 1 × 2\n      p likelihood\n  &lt;dbl&gt;      &lt;dbl&gt;\n1   0.2      0.302"
   },
   {
     "objectID": "bayes-1.html#prior-likelihood-posterior",
@@ -7970,7 +7970,7 @@
     "href": "bayes-1.html#from-a-grid-to-a-pile-of-guesses",
     "title": "Intro",
     "section": "From a grid to a pile of guesses",
-    "text": "From a grid to a pile of guesses\nSample candidate values in proportion to their posterior probability, and you get draws, just like brms gives you:\n\nset.seed(2027)\ncoin_draws &lt;- coin_grid %&gt;%\n  slice_sample(n = 10000, weight_by = posterior, replace = TRUE)\n\ncoin_draws %&gt;% summarise(mean = mean(p), median = median(p),\n                         lower = quantile(p, .025), upper = quantile(p, .975))\n\n# A tibble: 1 × 4\n   mean median lower upper\n  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;\n1 0.249   0.23  0.06  0.52\n\n\n\n\nCode\nggplot(coin_draws, aes(x = p)) +\n  stat_dotsinterval(quantiles = 100) +\n  scale_y_continuous(NULL, breaks = NULL) +\n  theme_classic(base_size = 14)\n\n\n\n\n\n\n\n\n\nEvery summary we use (means, intervals, probabilities) is just counting these guesses."
+    "text": "From a grid to a pile of guesses\nSample grid values in proportion to their posterior probability, and you get draws, just like brms gives you:\n\nset.seed(2027)\ncoin_draws &lt;- coin_grid %&gt;%\n  slice_sample(n = 10000, weight_by = posterior, replace = TRUE)\n\ncoin_draws %&gt;% summarise(mean = mean(p), median = median(p),\n                         lower = quantile(p, .025), upper = quantile(p, .975))\n\n# A tibble: 1 × 4\n   mean median lower upper\n  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;\n1 0.249   0.23  0.06  0.52\n\n\n\n\nCode\nggplot(coin_draws, aes(x = p)) +\n  stat_dotsinterval(quantiles = 100) +\n  scale_y_continuous(NULL, breaks = NULL) +\n  theme_classic(base_size = 14)\n\n\n\n\n\n\n\n\n\nEvery summary we use (means, intervals, probabilities) is just counting these guesses."
   },
   {
     "objectID": "bayes-1.html#two-parameters-galtons-heights",
@@ -7991,21 +7991,21 @@
     "href": "bayes-1.html#why-not-always-use-a-grid",
     "title": "Intro",
     "section": "Why not always use a grid?",
-    "text": "Why not always use a grid?\n\nOne parameter, 100 candidates: 100 calculations\nTwo parameters: 100 × 100 = 10,000\nOur regression (intercept, slope, σ): 100³ = 1,000,000\nA typical multilevel model with 50 parameters: 100⁵⁰. More grid points than atoms in the universe\n\nGrids are perfect for building intuition and for one or two parameters. For anything bigger we need an algorithm that spends its time where the posterior actually is, which is what MCMC does (lecture 5). What comes out is the same thing: a pile of guesses, more of them where the posterior is higher."
+    "text": "Why not always use a grid?\n\nOne parameter, 100 grid values: 100 calculations\nTwo parameters: 100 × 100 = 10,000\nOur regression (intercept, slope, σ): 100³ = 1,000,000\nA typical multilevel model with 50 parameters: 100⁵⁰. More grid points than atoms in the universe\n\nGrids are perfect for building intuition and for one or two parameters. For anything bigger we need an algorithm that spends its time where the posterior actually is, which is what MCMC does (lecture 5). What comes out is the same thing: a pile of guesses, more of them where the posterior is higher."
   },
   {
     "objectID": "bayes-1.html#grid-approximation-try-every-value",
     "href": "bayes-1.html#grid-approximation-try-every-value",
     "title": "Intro",
     "section": "Grid approximation: try every value",
-    "text": "Grid approximation: try every value\nMaximum likelihood, done by brute force:\n\nMake a grid of candidate values for the parameter (e.g., p = 0, .01, .02, …, 1)\nLikelihood: for each candidate, how likely are our data if that value were true? (dbinom(), dnorm(), …)\nFind the peak: the candidate with the highest likelihood is the maximum likelihood estimate (MLE)\n\nThe computer is doing the counting for us: every candidate gets a score for how consistent it is with the data."
+    "text": "Grid approximation: try every value\nMaximum likelihood, done by brute force:\n\nMake a grid of possible values for the parameter (e.g., p = 0, .01, .02, …, 1)\nLikelihood: for each grid value, how likely are our data if that value were true? (dbinom(), dnorm(), …)\nFind the peak: the grid value with the highest likelihood is the maximum likelihood estimate (MLE)\n\nThe computer is doing the counting for us: every possible value gets a score for how consistent it is with the data."
   },
   {
     "objectID": "bayes-1.html#the-likelihood-across-the-grid",
     "href": "bayes-1.html#the-likelihood-across-the-grid",
     "title": "Intro",
     "section": "The likelihood across the grid",
-    "text": "The likelihood across the grid\n\n\nCode\nggplot(coin_grid, aes(x = p, y = likelihood)) +\n  geom_line(linewidth = 1) +\n  geom_vline(xintercept = .2, linetype = \"dashed\") +\n  annotate(\"text\", x = .22, y = max(coin_grid$likelihood), label = \"MLE = .2\", hjust = 0) +\n  labs(x = \"candidate p (probability of heads)\", y = \"likelihood of 2 heads in 10\") +\n  theme_classic(base_size = 14)\n\n\n\n\n\n\n\n\n\nMaximum likelihood reports the peak, .2. But look at the whole curve: .1 or .4 are not much less consistent with the data. Keep that in mind; the whole curve is where Bayes comes in."
+    "text": "The likelihood across the grid\n\n\nCode\nggplot(coin_grid, aes(x = p, y = likelihood)) +\n  geom_line(linewidth = 1) +\n  geom_vline(xintercept = .2, linetype = \"dashed\") +\n  annotate(\"text\", x = .22, y = max(coin_grid$likelihood), label = \"MLE = .2\", hjust = 0) +\n  labs(x = \"possible values of p (probability of heads)\", y = \"likelihood of 2 heads in 10\") +\n  theme_classic(base_size = 14)\n\n\n\n\n\n\n\n\n\nMaximum likelihood reports the peak, .2. But look at the whole curve: .1 or .4 are not much less consistent with the data. Keep that in mind; the whole curve is where Bayes comes in."
   },
   {
     "objectID": "bayes-1.html#the-log-likelihood-surface",
@@ -8019,7 +8019,7 @@
     "href": "bayes-1.html#back-to-the-grid-add-a-prior",
     "title": "Intro",
     "section": "Back to the grid: add a prior",
-    "text": "Back to the grid: add a prior\nThe maximum likelihood grid needs only two more steps to become Bayes:\n\nMake a grid of candidate values\nLikelihood of the data for each candidate\nPrior: how plausible is each candidate before seeing the data?\nMultiply prior × likelihood\nNormalize: divide by the sum so the posterior adds up to 1\n\n\\[\\text{posterior} \\propto \\text{likelihood} \\times \\text{prior}\\]\nThe sum in step 5 is the denominator of Bayes’ theorem, p(data). On a grid it’s just adding up."
+    "text": "Back to the grid: add a prior\nThe maximum likelihood grid needs only two more steps to become Bayes:\n\nMake a grid of possible parameter values\nLikelihood of the data for each grid value\nPrior: how plausible is each value before seeing the data?\nMultiply prior × likelihood\nNormalize: divide by the sum so the posterior adds up to 1\n\n\\[\\text{posterior} \\propto \\text{likelihood} \\times \\text{prior}\\]\nThe sum in step 5 is the denominator of Bayes’ theorem, p(data). On a grid it’s just adding up."
   },
   {
     "objectID": "bayes-1.html#the-coin-now-with-a-prior",
@@ -8040,7 +8040,7 @@
     "href": "bayes-1.html#the-likelihood-of-a-whole-dataset",
     "title": "Intro",
     "section": "The likelihood of a whole dataset",
-    "text": "The likelihood of a whole dataset\nWith real data each observation gets its own likelihood: for a normal model, the height of the normal curve at that observation, dnorm(y, mean = μ, sd = σ). If observations are independent, the likelihood of the whole dataset is the product:\n\\[L(\\mu, \\sigma \\mid \\text{data}) = \\prod_{i=1}^{n} p(y_i \\mid \\mu, \\sigma)\\]\nFive children’s heights under the candidate μ = 68, σ = 2.5:\n\nfive &lt;- tibble(height = galton.data$child[c(1, 200, 400, 600, 800)]) %&gt;%\n  mutate(likelihood = dnorm(height, mean = 68, sd = 2.5))\nfive\n\n# A tibble: 5 × 2\n  height likelihood\n   &lt;dbl&gt;      &lt;dbl&gt;\n1   61.7    0.00667\n2   66.2    0.123  \n3   67.2    0.152  \n4   69.2    0.142  \n5   71.2    0.0703 \n\nprod(five$likelihood)\n\n[1] 1.245285e-06"
+    "text": "The likelihood of a whole dataset\nWith real data each observation gets its own likelihood: for a normal model, the height of the normal curve at that observation, dnorm(y, mean = μ, sd = σ). If observations are independent, the likelihood of the whole dataset is the product:\n\\[L(\\mu, \\sigma \\mid \\text{data}) = \\prod_{i=1}^{n} p(y_i \\mid \\mu, \\sigma)\\]\nFive children’s heights if μ = 68 and σ = 2.5:\n\nfive &lt;- tibble(height = galton.data$child[c(1, 200, 400, 600, 800)]) %&gt;%\n  mutate(likelihood = dnorm(height, mean = 68, sd = 2.5))\nfive\n\n# A tibble: 5 × 2\n  height likelihood\n   &lt;dbl&gt;      &lt;dbl&gt;\n1   61.7    0.00667\n2   66.2    0.123  \n3   67.2    0.152  \n4   69.2    0.142  \n5   71.2    0.0703 \n\nprod(five$likelihood)\n\n[1] 1.245285e-06"
   },
   {
     "objectID": "bayes-1.html#which-candidate-fits-better",
@@ -8054,7 +8054,7 @@
     "href": "bayes-1.html#why-log",
     "title": "Intro",
     "section": "Why log?",
-    "text": "Why log?\nEach likelihood is a small number (0.007 to 0.16 here). Multiply 928 of them:\n\nprod(dnorm(galton.data$child, mean = 68, sd = 2.5))\n\n[1] 0\n\n\nExactly 0? The true value is about \\(10^{-944}\\), far smaller than the smallest number a computer can store (about \\(10^{-308}\\)). So we take logs:\n\\[\\log L = \\log \\prod_{i} p(y_i \\mid \\theta) = \\sum_{i} \\log p(y_i \\mid \\theta)\\]\n\nProducts become sums, and adding numbers like −2 or −5 never underflows\nSame peak: log is always increasing, so the candidate with the highest likelihood also has the highest log-likelihood\nLog-likelihoods are negative (logs of numbers below 1). Closer to 0 = better fit\ndnorm(..., log = TRUE) returns the log directly (more accurate than log(dnorm(...)))"
+    "text": "Why log?\nEach likelihood is a small number (0.007 to 0.16 here). Multiply 928 of them:\n\nprod(dnorm(galton.data$child, mean = 68, sd = 2.5))\n\n[1] 0\n\n\nExactly 0? The true value is about \\(10^{-944}\\), far smaller than the smallest number a computer can store (about \\(10^{-308}\\)). So we take logs:\n\\[\\log L = \\log \\prod_{i} p(y_i \\mid \\theta) = \\sum_{i} \\log p(y_i \\mid \\theta)\\]\n\nProducts become sums, and adding numbers like −2 or −5 never underflows\nSame peak: log is always increasing, so the parameter value with the highest likelihood also has the highest log-likelihood\nLog-likelihoods are negative (logs of numbers below 1). Closer to 0 = better fit\ndnorm(..., log = TRUE) returns the log directly (more accurate than log(dnorm(...)))"
   },
   {
     "objectID": "bayes-1.html#the-log-likelihood-of-one-candidate",
@@ -8075,14 +8075,14 @@
     "href": "bayes-1.html#maximum-likelihood-pick-the-best-score",
     "title": "Intro",
     "section": "Maximum likelihood: pick the best score",
-    "text": "Maximum likelihood: pick the best score\n\nThe likelihood curve scores every candidate p by how consistent it is with the data\nMaximum likelihood reports the candidate with the highest score (the peak) as the estimate, plus a standard error for how sharp the peak is\nThis is how most of the models you’ve run were estimated: logistic regression, multilevel models, SEM\nNext: do it ourselves, by brute force, so you can see exactly what the software does"
+    "text": "Maximum likelihood: pick the best score\n\nThe likelihood curve scores every possible value of p by how consistent it is with the data\nMaximum likelihood reports the value with the highest score (the peak) as the estimate, plus a standard error for how sharp the peak is\nThis is how most of the models you’ve run were estimated: logistic regression, multilevel models, SEM\nNext: do it ourselves, by brute force, so you can see exactly what the software does"
   },
   {
     "objectID": "bayes-1.html#maximum-likelihood-keeps-one-value",
     "href": "bayes-1.html#maximum-likelihood-keeps-one-value",
     "title": "Intro",
     "section": "Maximum likelihood keeps one value",
-    "text": "Maximum likelihood keeps one value\nWhat maximum likelihood gives you: the peak (68.09) and a standard error. The uncertainty is about imaginary repeated samples: “if we redid the study many times, estimates would vary this much.” It is not a statement about which values of μ are plausible for our data.\nSo why not just use the whole likelihood curve as our distribution of plausible values? Because it isn’t one:\n\nIt answers “how likely are the data, if μ were this?”, not “how plausible is this μ, given the data?”\nIt doesn’t add up to 1 across the candidates, so it can’t be read as probabilities\nIt has no way to use what we already knew before collecting the data"
+    "text": "Maximum likelihood keeps one value\nWhat maximum likelihood gives you: the peak (68.09) and a standard error. The uncertainty is about imaginary repeated samples: “if we redid the study many times, estimates would vary this much.” It is not a statement about which values of μ are plausible for our data.\nSo why not just use the whole likelihood curve as our distribution of plausible values? Because it isn’t one:\n\nIt answers “how likely are the data, if μ were this?”, not “how plausible is this μ, given the data?”\nIt doesn’t add up to 1 across the possible values, so it can’t be read as probabilities\nIt has no way to use what we already knew before collecting the data"
   },
   {
     "objectID": "bayes-1.html#from-likelihood-to-a-distribution",
@@ -8090,5 +8090,19 @@
     "title": "Intro",
     "section": "From likelihood to a distribution",
     "text": "From likelihood to a distribution\nTo turn “how well does each value explain the data” into “how plausible is each value,” Bayes’ theorem says we need one more ingredient:\n\\[\\underbrace{p(\\theta \\mid \\text{data})}_{\\text{posterior: a distribution}} \\;\\propto\\; \\underbrace{p(\\text{data} \\mid \\theta)}_{\\text{likelihood: our grid}} \\times \\underbrace{p(\\theta)}_{\\text{prior}}\\]\nThat missing piece is the prior: point 3."
+  },
+  {
+    "objectID": "bayes-1.html#which-parameter-values-fit-better",
+    "href": "bayes-1.html#which-parameter-values-fit-better",
+    "title": "Intro",
+    "section": "Which parameter values fit better?",
+    "text": "Which parameter values fit better?\n\n\nCode\ncompare_values &lt;- tibble(mu = c(66, 68), label = c(\"μ = 66, σ = 2.5\", \"μ = 68, σ = 2.5\")) %&gt;%\n  mutate(loglik = map_dbl(mu, \\(m) sum(dnorm(galton.data$child, m, 2.5, log = TRUE))),\n         label = paste0(label, \"\\nlog-likelihood = \", round(loglik)))\ncurves &lt;- compare_values %&gt;% crossing(height = seq(60, 76, by = .1)) %&gt;% mutate(density = dnorm(height, mu, 2.5))\nggplot() +\n  geom_histogram(data = galton.data, aes(x = child, y = after_stat(density)), binwidth = 1, fill = \"grey80\", colour = \"white\") +\n  geom_line(data = curves, aes(x = height, y = density), linewidth = 1, colour = \"#0072B2\") +\n  facet_wrap(~label) +\n  labs(x = \"child height (inches)\", y = NULL) +\n  theme_classic(base_size = 13)\n\n\n\n\n\n\n\n\n\nA set of parameter values fits well when its curve is high where the data are. μ = 66 puts many children out in its tail, where the curve is low, so its log-likelihood is much lower. Maximum likelihood looks for the values with the highest one."
+  },
+  {
+    "objectID": "bayes-1.html#the-log-likelihood-of-one-set-of-values",
+    "href": "bayes-1.html#the-log-likelihood-of-one-set-of-values",
+    "title": "Intro",
+    "section": "The log-likelihood of one set of values",
+    "text": "The log-likelihood of one set of values\nFor one (μ, σ) pair: compute each child’s log density, then add them up.\n\ngalton.data %&gt;%\n  mutate(log_lik = dnorm(child, mean = 68, sd = 2.5, log = TRUE)) %&gt;%\n  select(child, log_lik) %&gt;%\n  slice(c(1, 200, 400, 600, 800))   # the same five children\n\n  child   log_lik\n1  61.7 -5.010429\n2  66.2 -2.094429\n3  67.2 -1.886429\n4  69.2 -1.950429\n5  71.2 -2.654429\n\nsum(dnorm(galton.data$child, mean = 68, sd = 2.5, log = TRUE))\n\n[1] -2173.85\n\n\nThat one number is the score for μ = 68, σ = 2.5. A grid approximation computes it for every grid value and looks for the highest."
   }
 ]

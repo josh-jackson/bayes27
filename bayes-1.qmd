@@ -229,8 +229,8 @@ tibble(p = seq(0.01, 0.99, by = 0.01)) %>%
 
 ## Maximum likelihood: pick the best score {.smaller}
 
--   The likelihood curve scores every candidate p by how consistent it is with the data
--   **Maximum likelihood** reports the candidate with the highest score (the peak) as *the* estimate, plus a standard error for how sharp the peak is
+-   The likelihood curve scores every possible value of p by how consistent it is with the data
+-   **Maximum likelihood** reports the value with the highest score (the peak) as *the* estimate, plus a standard error for how sharp the peak is
 -   This is how most of the models you've run were estimated: logistic regression, multilevel models, SEM
 -   Next: do it ourselves, by brute force, so you can see exactly what the software does
 
@@ -238,18 +238,18 @@ tibble(p = seq(0.01, 0.99, by = 0.01)) %>%
 
 Maximum likelihood, done by brute force:
 
-1. **Make a grid** of candidate values for the parameter (e.g., p = 0, .01, .02, …, 1)
-2. **Likelihood**: for each candidate, how likely are our data if that value were true? (`dbinom()`, `dnorm()`, …)
-3. **Find the peak**: the candidate with the highest likelihood is the maximum likelihood estimate (MLE)
+1. **Make a grid** of possible values for the parameter (e.g., p = 0, .01, .02, …, 1)
+2. **Likelihood**: for each grid value, how likely are our data if that value were true? (`dbinom()`, `dnorm()`, …)
+3. **Find the peak**: the grid value with the highest likelihood is the maximum likelihood estimate (MLE)
 
-The computer is doing the counting for us: every candidate gets a score for how consistent it is with the data.
+The computer is doing the counting for us: every possible value gets a score for how consistent it is with the data.
 
 ## The grid, step by step {.smaller}
 
 Our coin again: 2 heads in 10 flips. What is p?
 
 ```{r}
-coin_grid <- tibble(p = seq(from = 0, to = 1, length.out = 101)) %>%   # 1. candidates
+coin_grid <- tibble(p = seq(from = 0, to = 1, length.out = 101)) %>%   # 1. possible values of p
   mutate(likelihood = dbinom(2, size = 10, prob = p))                  # 2. likelihood of our data
 
 coin_grid %>% slice(c(1, 11, 21, 31, 51, 81, 101))
@@ -267,7 +267,7 @@ ggplot(coin_grid, aes(x = p, y = likelihood)) +
   geom_line(linewidth = 1) +
   geom_vline(xintercept = .2, linetype = "dashed") +
   annotate("text", x = .22, y = max(coin_grid$likelihood), label = "MLE = .2", hjust = 0) +
-  labs(x = "candidate p (probability of heads)", y = "likelihood of 2 heads in 10") +
+  labs(x = "possible values of p (probability of heads)", y = "likelihood of 2 heads in 10") +
   theme_classic(base_size = 14)
 ```
 
@@ -297,7 +297,7 @@ With real data each observation gets its own likelihood: for a normal model, the
 
 $$L(\mu, \sigma \mid \text{data}) = \prod_{i=1}^{n} p(y_i \mid \mu, \sigma)$$
 
-Five children's heights under the candidate μ = 68, σ = 2.5:
+Five children's heights if μ = 68 and σ = 2.5:
 
 ```{r}
 five <- tibble(height = galton.data$child[c(1, 200, 400, 600, 800)]) %>%
@@ -306,17 +306,17 @@ five
 prod(five$likelihood)
 ```
 
-## Which candidate fits better? {.nostretch .smaller}
+## Which parameter values fit better? {.nostretch .smaller}
 
 ```{r}
 #| code-fold: true
 #| fig-height: 2.4
 #| fig-width: 9
 #| out-width: "100%"
-cands <- tibble(mu = c(66, 68), label = c("candidate: μ = 66, σ = 2.5", "candidate: μ = 68, σ = 2.5")) %>%
+compare_values <- tibble(mu = c(66, 68), label = c("μ = 66, σ = 2.5", "μ = 68, σ = 2.5")) %>%
   mutate(loglik = map_dbl(mu, \(m) sum(dnorm(galton.data$child, m, 2.5, log = TRUE))),
          label = paste0(label, "\nlog-likelihood = ", round(loglik)))
-curves <- cands %>% crossing(height = seq(60, 76, by = .1)) %>% mutate(density = dnorm(height, mu, 2.5))
+curves <- compare_values %>% crossing(height = seq(60, 76, by = .1)) %>% mutate(density = dnorm(height, mu, 2.5))
 ggplot() +
   geom_histogram(data = galton.data, aes(x = child, y = after_stat(density)), binwidth = 1, fill = "grey80", colour = "white") +
   geom_line(data = curves, aes(x = height, y = density), linewidth = 1, colour = "#0072B2") +
@@ -325,7 +325,7 @@ ggplot() +
   theme_classic(base_size = 13)
 ```
 
-A candidate fits well when its curve is *high where the data are*. μ = 66 puts many children out in its tail, where the curve is low, so its log-likelihood is much lower. Maximum likelihood looks for the candidate with the highest one.
+A set of parameter values fits well when its curve is *high where the data are*. μ = 66 puts many children out in its tail, where the curve is low, so its log-likelihood is much lower. Maximum likelihood looks for the values with the highest one.
 
 ## Why log? {.smaller}
 
@@ -340,11 +340,11 @@ Exactly 0? The true value is about $10^{`r round(sum(dnorm(galton.data$child, 68
 $$\log L = \log \prod_{i} p(y_i \mid \theta) = \sum_{i} \log p(y_i \mid \theta)$$
 
 -   **Products become sums**, and adding numbers like −2 or −5 never underflows
--   **Same peak**: log is always increasing, so the candidate with the highest likelihood also has the highest log-likelihood
+-   **Same peak**: log is always increasing, so the parameter value with the highest likelihood also has the highest log-likelihood
 -   Log-likelihoods are **negative** (logs of numbers below 1). Closer to 0 = better fit
 -   `dnorm(..., log = TRUE)` returns the log directly (more accurate than `log(dnorm(...))`)
 
-## The log-likelihood of one candidate {.smaller}
+## The log-likelihood of one set of values {.smaller}
 
 For one (μ, σ) pair: compute each child's log density, then add them up.
 
@@ -357,7 +357,7 @@ galton.data %>%
 sum(dnorm(galton.data$child, mean = 68, sd = 2.5, log = TRUE))
 ```
 
-That one number is the score for the candidate μ = 68, σ = 2.5. A grid approximation computes it for *every* candidate and looks for the highest.
+That one number is the score for μ = 68, σ = 2.5. A grid approximation computes it for *every* grid value and looks for the highest.
 
 ## Two parameters: Galton's heights {.smaller}
 
@@ -409,7 +409,7 @@ What maximum likelihood gives you: the peak (68.09) and a standard error. The un
 So why not just use the whole likelihood curve as our distribution of plausible values? Because it isn't one:
 
 -   It answers "how likely are **the data**, if μ were this?", not "how plausible is **this μ**, given the data?"
--   It doesn't add up to 1 across the candidates, so it can't be read as probabilities
+-   It doesn't add up to 1 across the possible values, so it can't be read as probabilities
 -   It has no way to use what we already knew before collecting the data
 
 ## From likelihood to a distribution
@@ -567,9 +567,9 @@ p(data) can be ignored for most purposes: it's a normalizing constant (the same 
 
 The maximum likelihood grid needs only two more steps to become Bayes:
 
-1. Make a grid of candidate values
-2. Likelihood of the data for each candidate
-3. **Prior**: how plausible is each candidate before seeing the data?
+1. Make a grid of possible parameter values
+2. Likelihood of the data for each grid value
+3. **Prior**: how plausible is each value before seeing the data?
 4. **Multiply** prior × likelihood
 5. **Normalize**: divide by the sum so the posterior adds up to 1
 
@@ -637,7 +637,7 @@ The posterior is a compromise: the data pull toward .2, the prior pulls toward .
 
 ## From a grid to a pile of guesses {.smaller .nostretch}
 
-Sample candidate values in proportion to their posterior probability, and you get draws, just like brms gives you:
+Sample grid values in proportion to their posterior probability, and you get draws, just like brms gives you:
 
 ```{r}
 set.seed(2027)
@@ -695,7 +695,7 @@ Centered near `r round(mean(galton.data$child), 2)` inches with a 95% interval o
 
 ## Why not always use a grid? {.smaller}
 
--   One parameter, 100 candidates: 100 calculations
+-   One parameter, 100 grid values: 100 calculations
 -   Two parameters: 100 × 100 = 10,000
 -   Our regression (intercept, slope, σ): 100³ = 1,000,000
 -   A typical multilevel model with 50 parameters: 100⁵⁰. More grid points than atoms in the universe

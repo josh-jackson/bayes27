@@ -473,8 +473,8 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <section id="maximum-likelihood-pick-the-best-score" class="slide level2 smaller">
 <h2>Maximum likelihood: pick the best score</h2>
 <ul>
-<li>The likelihood curve scores every candidate p by how consistent it is with the data</li>
-<li><strong>Maximum likelihood</strong> reports the candidate with the highest score (the peak) as <em>the</em> estimate, plus a standard error for how sharp the peak is</li>
+<li>The likelihood curve scores every possible value of p by how consistent it is with the data</li>
+<li><strong>Maximum likelihood</strong> reports the value with the highest score (the peak) as <em>the</em> estimate, plus a standard error for how sharp the peak is</li>
 <li>This is how most of the models you’ve run were estimated: logistic regression, multilevel models, SEM</li>
 <li>Next: do it ourselves, by brute force, so you can see exactly what the software does</li>
 </ul>
@@ -483,17 +483,17 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <h2>Grid approximation: try every value</h2>
 <p>Maximum likelihood, done by brute force:</p>
 <ol type="1">
-<li><strong>Make a grid</strong> of candidate values for the parameter (e.g., p = 0, .01, .02, …, 1)</li>
-<li><strong>Likelihood</strong>: for each candidate, how likely are our data if that value were true? (<code>dbinom()</code>, <code>dnorm()</code>, …)</li>
-<li><strong>Find the peak</strong>: the candidate with the highest likelihood is the maximum likelihood estimate (MLE)</li>
+<li><strong>Make a grid</strong> of possible values for the parameter (e.g., p = 0, .01, .02, …, 1)</li>
+<li><strong>Likelihood</strong>: for each grid value, how likely are our data if that value were true? (<code>dbinom()</code>, <code>dnorm()</code>, …)</li>
+<li><strong>Find the peak</strong>: the grid value with the highest likelihood is the maximum likelihood estimate (MLE)</li>
 </ol>
-<p>The computer is doing the counting for us: every candidate gets a score for how consistent it is with the data.</p>
+<p>The computer is doing the counting for us: every possible value gets a score for how consistent it is with the data.</p>
 </section>
 <section id="the-grid-step-by-step" class="slide level2 smaller">
 <h2>The grid, step by step</h2>
 <p>Our coin again: 2 heads in 10 flips. What is p?</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a aria-label="1"></a>coin_grid <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">p =</span> <span class="fu">seq</span>(<span class="at">from =</span> <span class="dv">0</span>, <span class="at">to =</span> <span class="dv">1</span>, <span class="at">length.out =</span> <span class="dv">101</span>)) <span class="sc">%&gt;%</span>   <span class="co"># 1. candidates</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a aria-label="1"></a>coin_grid <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">p =</span> <span class="fu">seq</span>(<span class="at">from =</span> <span class="dv">0</span>, <span class="at">to =</span> <span class="dv">1</span>, <span class="at">length.out =</span> <span class="dv">101</span>)) <span class="sc">%&gt;%</span>   <span class="co"># 1. possible values of p</span></span>
 <span id="cb11-2"><a aria-label="2"></a>  <span class="fu">mutate</span>(<span class="at">likelihood =</span> <span class="fu">dbinom</span>(<span class="dv">2</span>, <span class="at">size =</span> <span class="dv">10</span>, <span class="at">prob =</span> p))                  <span class="co"># 2. likelihood of our data</span></span>
 <span id="cb11-3"><a aria-label="3"></a></span>
 <span id="cb11-4"><a aria-label="4"></a>coin_grid <span class="sc">%&gt;%</span> <span class="fu">slice</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">11</span>, <span class="dv">21</span>, <span class="dv">31</span>, <span class="dv">51</span>, <span class="dv">81</span>, <span class="dv">101</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -527,7 +527,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <span id="cb15-2"><a aria-label="2"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
 <span id="cb15-3"><a aria-label="3"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> .<span class="dv">2</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
 <span id="cb15-4"><a aria-label="4"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> .<span class="dv">22</span>, <span class="at">y =</span> <span class="fu">max</span>(coin_grid<span class="sc">$</span>likelihood), <span class="at">label =</span> <span class="st">"MLE = .2"</span>, <span class="at">hjust =</span> <span class="dv">0</span>) <span class="sc">+</span></span>
-<span id="cb15-5"><a aria-label="5"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"candidate p (probability of heads)"</span>, <span class="at">y =</span> <span class="st">"likelihood of 2 heads in 10"</span>) <span class="sc">+</span></span>
+<span id="cb15-5"><a aria-label="5"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"possible values of p (probability of heads)"</span>, <span class="at">y =</span> <span class="st">"likelihood of 2 heads in 10"</span>) <span class="sc">+</span></span>
 <span id="cb15-6"><a aria-label="6"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">14</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
@@ -567,7 +567,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <h2>The likelihood of a whole dataset</h2>
 <p>With real data each observation gets its own likelihood: for a normal model, the <strong>height of the normal curve at that observation</strong>, <code>dnorm(y, mean = μ, sd = σ)</code>. If observations are independent, the likelihood of the whole dataset is the <strong>product</strong>:</p>
 <p><span class="math display">\[L(\mu, \sigma \mid \text{data}) = \prod_{i=1}^{n} p(y_i \mid \mu, \sigma)\]</span></p>
-<p>Five children’s heights under the candidate μ = 68, σ = 2.5:</p>
+<p>Five children’s heights if μ = 68 and σ = 2.5:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a aria-label="1"></a>five <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">height =</span> galton.data<span class="sc">$</span>child[<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">200</span>, <span class="dv">400</span>, <span class="dv">600</span>, <span class="dv">800</span>)]) <span class="sc">%&gt;%</span></span>
 <span id="cb17-2"><a aria-label="2"></a>  <span class="fu">mutate</span>(<span class="at">likelihood =</span> <span class="fu">dnorm</span>(height, <span class="at">mean =</span> <span class="dv">68</span>, <span class="at">sd =</span> <span class="fl">2.5</span>))</span>
@@ -588,15 +588,15 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </div>
 </div>
 </section>
-<section id="which-candidate-fits-better" class="slide level2 nostretch smaller">
-<h2>Which candidate fits better?</h2>
+<section id="which-parameter-values-fit-better" class="slide level2 nostretch smaller">
+<h2>Which parameter values fit better?</h2>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a aria-label="1"></a>cands <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">mu =</span> <span class="fu">c</span>(<span class="dv">66</span>, <span class="dv">68</span>), <span class="at">label =</span> <span class="fu">c</span>(<span class="st">"candidate: μ = 66, σ = 2.5"</span>, <span class="st">"candidate: μ = 68, σ = 2.5"</span>)) <span class="sc">%&gt;%</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a aria-label="1"></a>compare_values <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">mu =</span> <span class="fu">c</span>(<span class="dv">66</span>, <span class="dv">68</span>), <span class="at">label =</span> <span class="fu">c</span>(<span class="st">"μ = 66, σ = 2.5"</span>, <span class="st">"μ = 68, σ = 2.5"</span>)) <span class="sc">%&gt;%</span></span>
 <span id="cb21-2"><a aria-label="2"></a>  <span class="fu">mutate</span>(<span class="at">loglik =</span> <span class="fu">map_dbl</span>(mu, \(m) <span class="fu">sum</span>(<span class="fu">dnorm</span>(galton.data<span class="sc">$</span>child, m, <span class="fl">2.5</span>, <span class="at">log =</span> <span class="cn">TRUE</span>))),</span>
 <span id="cb21-3"><a aria-label="3"></a>         <span class="at">label =</span> <span class="fu">paste0</span>(label, <span class="st">"</span><span class="sc">\n</span><span class="st">log-likelihood = "</span>, <span class="fu">round</span>(loglik)))</span>
-<span id="cb21-4"><a aria-label="4"></a>curves <span class="ot">&lt;-</span> cands <span class="sc">%&gt;%</span> <span class="fu">crossing</span>(<span class="at">height =</span> <span class="fu">seq</span>(<span class="dv">60</span>, <span class="dv">76</span>, <span class="at">by =</span> .<span class="dv">1</span>)) <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">density =</span> <span class="fu">dnorm</span>(height, mu, <span class="fl">2.5</span>))</span>
+<span id="cb21-4"><a aria-label="4"></a>curves <span class="ot">&lt;-</span> compare_values <span class="sc">%&gt;%</span> <span class="fu">crossing</span>(<span class="at">height =</span> <span class="fu">seq</span>(<span class="dv">60</span>, <span class="dv">76</span>, <span class="at">by =</span> .<span class="dv">1</span>)) <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">density =</span> <span class="fu">dnorm</span>(height, mu, <span class="fl">2.5</span>))</span>
 <span id="cb21-5"><a aria-label="5"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
 <span id="cb21-6"><a aria-label="6"></a>  <span class="fu">geom_histogram</span>(<span class="at">data =</span> galton.data, <span class="fu">aes</span>(<span class="at">x =</span> child, <span class="at">y =</span> <span class="fu">after_stat</span>(density)), <span class="at">binwidth =</span> <span class="dv">1</span>, <span class="at">fill =</span> <span class="st">"grey80"</span>, <span class="at">colour =</span> <span class="st">"white"</span>) <span class="sc">+</span></span>
 <span id="cb21-7"><a aria-label="7"></a>  <span class="fu">geom_line</span>(<span class="at">data =</span> curves, <span class="fu">aes</span>(<span class="at">x =</span> height, <span class="at">y =</span> density), <span class="at">linewidth =</span> <span class="dv">1</span>, <span class="at">colour =</span> <span class="st">"#0072B2"</span>) <span class="sc">+</span></span>
@@ -612,7 +612,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </div>
 </div>
 </div>
-<p>A candidate fits well when its curve is <em>high where the data are</em>. μ = 66 puts many children out in its tail, where the curve is low, so its log-likelihood is much lower. Maximum likelihood looks for the candidate with the highest one.</p>
+<p>A set of parameter values fits well when its curve is <em>high where the data are</em>. μ = 66 puts many children out in its tail, where the curve is low, so its log-likelihood is much lower. Maximum likelihood looks for the values with the highest one.</p>
 </section>
 <section id="why-log" class="slide level2 smaller">
 <h2>Why log?</h2>
@@ -627,13 +627,13 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <p><span class="math display">\[\log L = \log \prod_{i} p(y_i \mid \theta) = \sum_{i} \log p(y_i \mid \theta)\]</span></p>
 <ul>
 <li><strong>Products become sums</strong>, and adding numbers like −2 or −5 never underflows</li>
-<li><strong>Same peak</strong>: log is always increasing, so the candidate with the highest likelihood also has the highest log-likelihood</li>
+<li><strong>Same peak</strong>: log is always increasing, so the parameter value with the highest likelihood also has the highest log-likelihood</li>
 <li>Log-likelihoods are <strong>negative</strong> (logs of numbers below 1). Closer to 0 = better fit</li>
 <li><code>dnorm(..., log = TRUE)</code> returns the log directly (more accurate than <code>log(dnorm(...))</code>)</li>
 </ul>
 </section>
-<section id="the-log-likelihood-of-one-candidate" class="slide level2 smaller">
-<h2>The log-likelihood of one candidate</h2>
+<section id="the-log-likelihood-of-one-set-of-values" class="slide level2 smaller">
+<h2>The log-likelihood of one set of values</h2>
 <p>For one (μ, σ) pair: compute each child’s log density, then add them up.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a aria-label="1"></a>galton.data <span class="sc">%&gt;%</span></span>
@@ -653,7 +653,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <pre><code>[1] -2173.85</code></pre>
 </div>
 </div>
-<p>That one number is the score for the candidate μ = 68, σ = 2.5. A grid approximation computes it for <em>every</em> candidate and looks for the highest.</p>
+<p>That one number is the score for μ = 68, σ = 2.5. A grid approximation computes it for <em>every</em> grid value and looks for the highest.</p>
 </section>
 <section id="two-parameters-galtons-heights" class="slide level2 smaller">
 <h2>Two parameters: Galton’s heights</h2>
@@ -714,7 +714,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <p>So why not just use the whole likelihood curve as our distribution of plausible values? Because it isn’t one:</p>
 <ul>
 <li>It answers “how likely are <strong>the data</strong>, if μ were this?”, not “how plausible is <strong>this μ</strong>, given the data?”</li>
-<li>It doesn’t add up to 1 across the candidates, so it can’t be read as probabilities</li>
+<li>It doesn’t add up to 1 across the possible values, so it can’t be read as probabilities</li>
 <li>It has no way to use what we already knew before collecting the data</li>
 </ul>
 </section>
@@ -872,9 +872,9 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <h2>Back to the grid: add a prior</h2>
 <p>The maximum likelihood grid needs only two more steps to become Bayes:</p>
 <ol type="1">
-<li>Make a grid of candidate values</li>
-<li>Likelihood of the data for each candidate</li>
-<li><strong>Prior</strong>: how plausible is each candidate before seeing the data?</li>
+<li>Make a grid of possible parameter values</li>
+<li>Likelihood of the data for each grid value</li>
+<li><strong>Prior</strong>: how plausible is each value before seeing the data?</li>
 <li><strong>Multiply</strong> prior × likelihood</li>
 <li><strong>Normalize</strong>: divide by the sum so the posterior adds up to 1</li>
 </ol>
@@ -962,7 +962,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </section>
 <section id="from-a-grid-to-a-pile-of-guesses" class="slide level2 smaller nostretch">
 <h2>From a grid to a pile of guesses</h2>
-<p>Sample candidate values in proportion to their posterior probability, and you get draws, just like brms gives you:</p>
+<p>Sample grid values in proportion to their posterior probability, and you get draws, just like brms gives you:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a aria-label="1"></a><span class="fu">set.seed</span>(<span class="dv">2027</span>)</span>
 <span id="cb40-2"><a aria-label="2"></a>coin_draws <span class="ot">&lt;-</span> coin_grid <span class="sc">%&gt;%</span></span>
@@ -1034,7 +1034,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <section id="why-not-always-use-a-grid" class="slide level2 smaller">
 <h2>Why not always use a grid?</h2>
 <ul>
-<li>One parameter, 100 candidates: 100 calculations</li>
+<li>One parameter, 100 grid values: 100 calculations</li>
 <li>Two parameters: 100 × 100 = 10,000</li>
 <li>Our regression (intercept, slope, σ): 100³ = 1,000,000</li>
 <li>A typical multilevel model with 50 parameters: 100⁵⁰. More grid points than atoms in the universe</li>
