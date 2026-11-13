@@ -340,6 +340,74 @@ map_dfr(c(5, 20, 100), \(n) tibble(p = seq(0, 1, length.out = n)) %>%
 
 More points = a better approximation. With 5 points the best we can say is "about .25"; with 100 the peak lands on .2.
 
+## The likelihood of a whole dataset {.smaller}
+
+With real data each observation gets its own likelihood: for a normal model, the **height of the normal curve at that observation**, `dnorm(y, mean = μ, sd = σ)`. If observations are independent, the likelihood of the whole dataset is the **product**:
+
+$$L(\mu, \sigma \mid \text{data}) = \prod_{i=1}^{n} p(y_i \mid \mu, \sigma)$$
+
+Five children's heights under the candidate μ = 68, σ = 2.5:
+
+```{r}
+five <- tibble(height = galton.data$child[c(1, 200, 400, 600, 800)]) %>%
+  mutate(likelihood = dnorm(height, mean = 68, sd = 2.5))
+five
+prod(five$likelihood)
+```
+
+## Which candidate fits better? {.nostretch .smaller}
+
+```{r}
+#| code-fold: true
+#| fig-height: 2.4
+#| fig-width: 9
+#| out-width: "100%"
+cands <- tibble(mu = c(66, 68), label = c("candidate: μ = 66, σ = 2.5", "candidate: μ = 68, σ = 2.5")) %>%
+  mutate(loglik = map_dbl(mu, \(m) sum(dnorm(galton.data$child, m, 2.5, log = TRUE))),
+         label = paste0(label, "\nlog-likelihood = ", round(loglik)))
+curves <- cands %>% crossing(height = seq(60, 76, by = .1)) %>% mutate(density = dnorm(height, mu, 2.5))
+ggplot() +
+  geom_histogram(data = galton.data, aes(x = child, y = after_stat(density)), binwidth = 1, fill = "grey80", colour = "white") +
+  geom_line(data = curves, aes(x = height, y = density), linewidth = 1, colour = "#0072B2") +
+  facet_wrap(~label) +
+  labs(x = "child height (inches)", y = NULL) +
+  theme_classic(base_size = 13)
+```
+
+A candidate fits well when its curve is *high where the data are*. μ = 66 puts many children out in its tail, where the curve is low, so its log-likelihood is much lower. Maximum likelihood looks for the candidate with the highest one.
+
+## Why log? {.smaller}
+
+Each likelihood is a small number (0.007 to 0.16 here). Multiply 928 of them:
+
+```{r}
+prod(dnorm(galton.data$child, mean = 68, sd = 2.5))
+```
+
+Exactly 0? The true value is about $10^{`r round(sum(dnorm(galton.data$child, 68, 2.5, log = TRUE)) / log(10))`}$, far smaller than the smallest number a computer can store (about $10^{-308}$). So we take logs:
+
+$$\log L = \log \prod_{i} p(y_i \mid \theta) = \sum_{i} \log p(y_i \mid \theta)$$
+
+-   **Products become sums**, and adding numbers like −2 or −5 never underflows
+-   **Same peak**: log is always increasing, so the candidate with the highest likelihood also has the highest log-likelihood
+-   Log-likelihoods are **negative** (logs of numbers below 1). Closer to 0 = better fit
+-   `dnorm(..., log = TRUE)` returns the log directly (more accurate than `log(dnorm(...))`)
+
+## The log-likelihood of one candidate {.smaller}
+
+For one (μ, σ) pair: compute each child's log density, then add them up.
+
+```{r}
+galton.data %>%
+  mutate(log_lik = dnorm(child, mean = 68, sd = 2.5, log = TRUE)) %>%
+  select(child, log_lik) %>%
+  slice(c(1, 200, 400, 600, 800))   # the same five children
+
+sum(dnorm(galton.data$child, mean = 68, sd = 2.5, log = TRUE))
+```
+
+That one number is the score for the candidate μ = 68, σ = 2.5. A grid approximation computes it for *every* candidate and looks for the highest.
+
 ## Two parameters: Galton's heights {.smaller}
 
 The average child height μ and the SD σ. Now the grid is every *combination* of μ and σ:
@@ -359,7 +427,7 @@ height_grid <- height_grid %>%
 height_grid %>% slice_max(log_lik)   # the MLE
 ```
 
-22,500 combinations × 928 children ≈ 21 million calculations. We add *log* likelihoods because multiplying 928 small numbers rounds to 0.
+22,500 combinations × 928 children ≈ 21 million log densities, added up within each combination.
 
 ## The log-likelihood surface {.nostretch}
 
