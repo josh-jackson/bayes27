@@ -374,12 +374,16 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </div>
 </div>
 </section>
-<section id="how-does-the-algorithm-work" class="slide level2">
-<h2>How does the algorithm work?</h2>
-<ul>
-<li><p>Bayes formula is analytically intractable for most models (the denominator, p(data), is a high-dimensional integral), so one needs to use an algorithm</p></li>
-<li><p>Played a role in developing the thermonuclear bomb with one of the earliest computers. Published in 1953 but ignored within stats b/c it was published within a physics/chemistry journal. Took about until 1990 for desktop computers to run fast enough to do at home.</p></li>
-</ul>
+<section id="where-do-these-distributions-come-from" class="slide level2 smaller">
+<h2>Where do these distributions come from?</h2>
+<p>brms handed us a whole distribution for each parameter. To see where it comes from, we’ll build it up from something you already know:</p>
+<ol type="1">
+<li><strong>Likelihood</strong>: how well does each possible parameter value explain the data? (next)</li>
+<li><strong>Maximum likelihood</strong>: pick the single best-scoring value. This is what <code>lm()</code>, <code>glm()</code>, <code>lmer()</code> and SEM software do</li>
+<li>What maximum likelihood throws away, and why that matters for thinking in distributions (end of this section)</li>
+<li><strong>Priors</strong>: the missing piece that turns likelihoods into a distribution of plausible values (point 3)</li>
+<li><strong>MCMC</strong>: the algorithm that does all of this when the model is too big to do by hand (end of point 3, and lecture 5)</li>
+</ol>
 </section>
 <section id="what-do-you-mean-by-likely" class="slide level2 smaller">
 <h2>What do you mean by likely?</h2>
@@ -466,86 +470,13 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <li><p>Likelihood is about hypotheses with fixed data. L(<span class="math inline">\(\theta\)</span>|data) = P(data|<span class="math inline">\(\theta\)</span>) across many theta/hypotheses. We entertained many hypotheses (p), which is why we looped it.</p></li>
 </ul>
 </section>
-<section id="bayes-is-just-counting" class="slide level2">
-<h2>Bayes is just counting</h2>
-<div class="columns">
-<div class="column" style="width:30%;">
+<section id="maximum-likelihood-pick-the-best-score" class="slide level2 smaller">
+<h2>Maximum likelihood: pick the best score</h2>
 <ul>
-<li>What p is consistent with our data? The most consistent are more likely, but the less consistent are possible</li>
-</ul>
-</div><div class="column" style="width:70%;">
-<div class="cell">
-<details class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a aria-label="1"></a><span class="fu">tibble</span>(<span class="at">p =</span> <span class="fu">seq</span>(<span class="fl">0.01</span>, <span class="fl">0.99</span>, <span class="at">by =</span> <span class="fl">0.01</span>)) <span class="sc">%&gt;%</span> </span>
-<span id="cb11-2"><a aria-label="2"></a>  <span class="fu">mutate</span>(<span class="at">likelihood =</span> <span class="fu">dbinom</span>(<span class="dv">2</span>, <span class="at">size =</span> <span class="dv">10</span>, <span class="at">prob =</span> p)) <span class="sc">%&gt;%</span> </span>
-<span id="cb11-3"><a aria-label="3"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> p, <span class="at">y =</span> likelihood)) <span class="sc">+</span> </span>
-<span id="cb11-4"><a aria-label="4"></a>  <span class="fu">geom_line</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output-display">
-<div>
-<figure>
-<p><img data-src="bayes-1_files/figure-revealjs/unnamed-chunk-10-1.png" width="960"></p>
-</figure>
-</div>
-</div>
-</div>
-</div></div>
-</section>
-<section id="maximum-likelihood" class="slide level2">
-<h2>Maximum Likelihood</h2>
-<p>ML results that we often use for MLM and SEMs are similar. But instead of focusing on the entire distribution, they give us a distribution that is centered on the most likely ie “maximum”.</p>
-<p>We can fix the distribution around the mean estimate, and then try out different versions of SD for the typically assumed normal distribution, maximizing or finding the most likely value.</p>
-<p>Ultimately, what we end up with (in Bayes land) is very closely related to this ML estimate (often identical). Conceptually, though, the process is different.</p>
-</section>
-<section id="how-mcmc-explores" class="slide level2">
-<h2>How MCMC explores</h2>
-<ul>
-<li><p>The Bayesian (MCMC) algorithm tries out a bunch of parameter values. The ones that are <em>more likely</em> will appear more often.</p></li>
-<li><p>What do I mean “appear” more often? The algorithm lands on that just as our coin flipping example finds .2 to be most likely, but doesn’t rule out other possibilities.</p></li>
-</ul>
-<div class="cell">
-<details class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a aria-label="1"></a>fit.<span class="fl">1.</span>bayesian <span class="sc">%&gt;%</span> </span>
-<span id="cb12-2"><a aria-label="2"></a><span class="fu">spread_draws</span>(b_Intercept, b_parent) <span class="sc">%&gt;%</span> </span>
-<span id="cb12-3"><a aria-label="3"></a><span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> b_parent)) <span class="sc">+</span></span>
-<span id="cb12-4"><a aria-label="4"></a>  <span class="fu">stat_dotsinterval</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-
-</div>
-<img data-src="bayes-1_files/figure-revealjs/unnamed-chunk-11-1.png" width="960" class="r-stretch"></section>
-<section id="the-posterior-is-a-pile-of-guesses" class="slide level2 smaller">
-<h2>The posterior is a pile of guesses</h2>
-<p>Our posterior is literally made up of educated parameter guesses by the algorithm. Which estimates are more likely given the data?</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a aria-label="1"></a><span class="fu">tidy_draws</span>(fit.<span class="fl">1.</span>bayesian)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 4,000 × 15
-   .chain .iteration .draw b_Intercept b_parent sigma Intercept lprior   lp__
-    &lt;int&gt;      &lt;int&gt; &lt;int&gt;       &lt;dbl&gt;    &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;
- 1      1          1     1        24.7    0.636  2.27      68.2  -5.48 -2069.
- 2      1          2     2        21.7    0.678  2.23      68.0  -5.56 -2069.
- 3      1          3     3        22.1    0.673  2.09      68.1  -5.48 -2073.
- 4      1          4     4        27.1    0.601  2.36      68.2  -5.45 -2072.
- 5      1          5     5        23.0    0.661  2.30      68.2  -5.57 -2070.
- 6      1          6     6        25.5    0.622  2.21      67.9  -5.40 -2071.
- 7      1          7     7        21.9    0.676  2.18      68.0  -5.53 -2070.
- 8      1          8     8        26.8    0.605  2.31      68.1  -5.43 -2070.
- 9      1          9     9        24.7    0.634  2.26      68.0  -5.47 -2069.
-10      1         10    10        27.6    0.592  2.20      68.0  -5.33 -2070.
-# ℹ 3,990 more rows
-# ℹ 6 more variables: accept_stat__ &lt;dbl&gt;, treedepth__ &lt;dbl&gt;, stepsize__ &lt;dbl&gt;,
-#   divergent__ &lt;dbl&gt;, n_leapfrog__ &lt;dbl&gt;, energy__ &lt;dbl&gt;</code></pre>
-</div>
-</div>
-</section>
-<section id="bayesian-analysis-is-just-counting" class="slide level2 smaller">
-<h2>Bayesian analysis is just counting</h2>
-<ul>
-<li><p>Bayesian analysis counts all ways that something can happen (according to assumptions/model). Assumptions with more ways that are consistent with data are more plausible.</p></li>
-<li><p>This method is not demonstrably different than standard approaches. Standard likelihood approaches use the values that are most consistent with the data as an estimate. Try out all possible numbers and then tells you which <em>one</em> is most likely.</p></li>
-<li><p>Where Bayes differs, is that there is no ONE result, that there are many possible results that are consistent with the data</p></li>
+<li>The likelihood curve scores every candidate p by how consistent it is with the data</li>
+<li><strong>Maximum likelihood</strong> reports the candidate with the highest score (the peak) as <em>the</em> estimate, plus a standard error for how sharp the peak is</li>
+<li>This is how most of the models you’ve run were estimated: logistic regression, multilevel models, SEM</li>
+<li>Next: do it ourselves, by brute force, so you can see exactly what the software does</li>
 </ul>
 </section>
 <section id="grid-approximation-try-every-value" class="slide level2 smaller">
@@ -562,10 +493,10 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <h2>The grid, step by step</h2>
 <p>Our coin again: 2 heads in 10 flips. What is p?</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a aria-label="1"></a>coin_grid <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">p =</span> <span class="fu">seq</span>(<span class="at">from =</span> <span class="dv">0</span>, <span class="at">to =</span> <span class="dv">1</span>, <span class="at">length.out =</span> <span class="dv">101</span>)) <span class="sc">%&gt;%</span>   <span class="co"># 1. candidates</span></span>
-<span id="cb15-2"><a aria-label="2"></a>  <span class="fu">mutate</span>(<span class="at">likelihood =</span> <span class="fu">dbinom</span>(<span class="dv">2</span>, <span class="at">size =</span> <span class="dv">10</span>, <span class="at">prob =</span> p))                  <span class="co"># 2. likelihood of our data</span></span>
-<span id="cb15-3"><a aria-label="3"></a></span>
-<span id="cb15-4"><a aria-label="4"></a>coin_grid <span class="sc">%&gt;%</span> <span class="fu">slice</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">11</span>, <span class="dv">21</span>, <span class="dv">31</span>, <span class="dv">51</span>, <span class="dv">81</span>, <span class="dv">101</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a aria-label="1"></a>coin_grid <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">p =</span> <span class="fu">seq</span>(<span class="at">from =</span> <span class="dv">0</span>, <span class="at">to =</span> <span class="dv">1</span>, <span class="at">length.out =</span> <span class="dv">101</span>)) <span class="sc">%&gt;%</span>   <span class="co"># 1. candidates</span></span>
+<span id="cb11-2"><a aria-label="2"></a>  <span class="fu">mutate</span>(<span class="at">likelihood =</span> <span class="fu">dbinom</span>(<span class="dv">2</span>, <span class="at">size =</span> <span class="dv">10</span>, <span class="at">prob =</span> p))                  <span class="co"># 2. likelihood of our data</span></span>
+<span id="cb11-3"><a aria-label="3"></a></span>
+<span id="cb11-4"><a aria-label="4"></a>coin_grid <span class="sc">%&gt;%</span> <span class="fu">slice</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">11</span>, <span class="dv">21</span>, <span class="dv">31</span>, <span class="dv">51</span>, <span class="dv">81</span>, <span class="dv">101</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 7 × 2
       p likelihood
@@ -578,7 +509,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 6   0.8  0.0000737
 7   1    0        </code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a aria-label="1"></a>coin_grid <span class="sc">%&gt;%</span> <span class="fu">slice_max</span>(likelihood)                                    <span class="co"># 3. the peak = MLE</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a aria-label="1"></a>coin_grid <span class="sc">%&gt;%</span> <span class="fu">slice_max</span>(likelihood)                                    <span class="co"># 3. the peak = MLE</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 1 × 2
       p likelihood
@@ -592,17 +523,17 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a aria-label="1"></a><span class="fu">ggplot</span>(coin_grid, <span class="fu">aes</span>(<span class="at">x =</span> p, <span class="at">y =</span> likelihood)) <span class="sc">+</span></span>
-<span id="cb19-2"><a aria-label="2"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb19-3"><a aria-label="3"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> .<span class="dv">2</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
-<span id="cb19-4"><a aria-label="4"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> .<span class="dv">22</span>, <span class="at">y =</span> <span class="fu">max</span>(coin_grid<span class="sc">$</span>likelihood), <span class="at">label =</span> <span class="st">"MLE = .2"</span>, <span class="at">hjust =</span> <span class="dv">0</span>) <span class="sc">+</span></span>
-<span id="cb19-5"><a aria-label="5"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"candidate p (probability of heads)"</span>, <span class="at">y =</span> <span class="st">"likelihood of 2 heads in 10"</span>) <span class="sc">+</span></span>
-<span id="cb19-6"><a aria-label="6"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">14</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a aria-label="1"></a><span class="fu">ggplot</span>(coin_grid, <span class="fu">aes</span>(<span class="at">x =</span> p, <span class="at">y =</span> likelihood)) <span class="sc">+</span></span>
+<span id="cb15-2"><a aria-label="2"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb15-3"><a aria-label="3"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> .<span class="dv">2</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
+<span id="cb15-4"><a aria-label="4"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> .<span class="dv">22</span>, <span class="at">y =</span> <span class="fu">max</span>(coin_grid<span class="sc">$</span>likelihood), <span class="at">label =</span> <span class="st">"MLE = .2"</span>, <span class="at">hjust =</span> <span class="dv">0</span>) <span class="sc">+</span></span>
+<span id="cb15-5"><a aria-label="5"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"candidate p (probability of heads)"</span>, <span class="at">y =</span> <span class="st">"likelihood of 2 heads in 10"</span>) <span class="sc">+</span></span>
+<span id="cb15-6"><a aria-label="6"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">14</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
 <figure>
-<p><img data-src="bayes-1_files/figure-revealjs/unnamed-chunk-14-1.png" style="width:100.0%"></p>
+<p><img data-src="bayes-1_files/figure-revealjs/unnamed-chunk-11-1.png" style="width:100.0%"></p>
 </figure>
 </div>
 </div>
@@ -614,18 +545,18 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a aria-label="1"></a><span class="fu">map_dfr</span>(<span class="fu">c</span>(<span class="dv">5</span>, <span class="dv">20</span>, <span class="dv">100</span>), \(n) <span class="fu">tibble</span>(<span class="at">p =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="at">length.out =</span> n)) <span class="sc">%&gt;%</span></span>
-<span id="cb20-2"><a aria-label="2"></a>          <span class="fu">mutate</span>(<span class="at">likelihood =</span> <span class="fu">dbinom</span>(<span class="dv">2</span>, <span class="dv">10</span>, p), <span class="at">points =</span> <span class="fu">paste</span>(n, <span class="st">"grid points"</span>))) <span class="sc">%&gt;%</span></span>
-<span id="cb20-3"><a aria-label="3"></a>  <span class="fu">mutate</span>(<span class="at">points =</span> <span class="fu">factor</span>(points, <span class="at">levels =</span> <span class="fu">paste</span>(<span class="fu">c</span>(<span class="dv">5</span>, <span class="dv">20</span>, <span class="dv">100</span>), <span class="st">"grid points"</span>))) <span class="sc">%&gt;%</span></span>
-<span id="cb20-4"><a aria-label="4"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> p, <span class="at">y =</span> likelihood)) <span class="sc">+</span></span>
-<span id="cb20-5"><a aria-label="5"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span> <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
-<span id="cb20-6"><a aria-label="6"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>points, <span class="at">nrow =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb20-7"><a aria-label="7"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">14</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a aria-label="1"></a><span class="fu">map_dfr</span>(<span class="fu">c</span>(<span class="dv">5</span>, <span class="dv">20</span>, <span class="dv">100</span>), \(n) <span class="fu">tibble</span>(<span class="at">p =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="at">length.out =</span> n)) <span class="sc">%&gt;%</span></span>
+<span id="cb16-2"><a aria-label="2"></a>          <span class="fu">mutate</span>(<span class="at">likelihood =</span> <span class="fu">dbinom</span>(<span class="dv">2</span>, <span class="dv">10</span>, p), <span class="at">points =</span> <span class="fu">paste</span>(n, <span class="st">"grid points"</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb16-3"><a aria-label="3"></a>  <span class="fu">mutate</span>(<span class="at">points =</span> <span class="fu">factor</span>(points, <span class="at">levels =</span> <span class="fu">paste</span>(<span class="fu">c</span>(<span class="dv">5</span>, <span class="dv">20</span>, <span class="dv">100</span>), <span class="st">"grid points"</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb16-4"><a aria-label="4"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> p, <span class="at">y =</span> likelihood)) <span class="sc">+</span></span>
+<span id="cb16-5"><a aria-label="5"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span> <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
+<span id="cb16-6"><a aria-label="6"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>points, <span class="at">nrow =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb16-7"><a aria-label="7"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">14</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
 <figure>
-<p><img data-src="bayes-1_files/figure-revealjs/unnamed-chunk-15-1.png" style="width:100.0%"></p>
+<p><img data-src="bayes-1_files/figure-revealjs/unnamed-chunk-12-1.png" style="width:100.0%"></p>
 </figure>
 </div>
 </div>
@@ -638,9 +569,9 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <p><span class="math display">\[L(\mu, \sigma \mid \text{data}) = \prod_{i=1}^{n} p(y_i \mid \mu, \sigma)\]</span></p>
 <p>Five children’s heights under the candidate μ = 68, σ = 2.5:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a aria-label="1"></a>five <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">height =</span> galton.data<span class="sc">$</span>child[<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">200</span>, <span class="dv">400</span>, <span class="dv">600</span>, <span class="dv">800</span>)]) <span class="sc">%&gt;%</span></span>
-<span id="cb21-2"><a aria-label="2"></a>  <span class="fu">mutate</span>(<span class="at">likelihood =</span> <span class="fu">dnorm</span>(height, <span class="at">mean =</span> <span class="dv">68</span>, <span class="at">sd =</span> <span class="fl">2.5</span>))</span>
-<span id="cb21-3"><a aria-label="3"></a>five</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a aria-label="1"></a>five <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">height =</span> galton.data<span class="sc">$</span>child[<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">200</span>, <span class="dv">400</span>, <span class="dv">600</span>, <span class="dv">800</span>)]) <span class="sc">%&gt;%</span></span>
+<span id="cb17-2"><a aria-label="2"></a>  <span class="fu">mutate</span>(<span class="at">likelihood =</span> <span class="fu">dnorm</span>(height, <span class="at">mean =</span> <span class="dv">68</span>, <span class="at">sd =</span> <span class="fl">2.5</span>))</span>
+<span id="cb17-3"><a aria-label="3"></a>five</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 5 × 2
   height likelihood
@@ -651,7 +582,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 4   69.2    0.142  
 5   71.2    0.0703 </code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a aria-label="1"></a><span class="fu">prod</span>(five<span class="sc">$</span>likelihood)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a aria-label="1"></a><span class="fu">prod</span>(five<span class="sc">$</span>likelihood)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 1.245285e-06</code></pre>
 </div>
@@ -662,21 +593,21 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a aria-label="1"></a>cands <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">mu =</span> <span class="fu">c</span>(<span class="dv">66</span>, <span class="dv">68</span>), <span class="at">label =</span> <span class="fu">c</span>(<span class="st">"candidate: μ = 66, σ = 2.5"</span>, <span class="st">"candidate: μ = 68, σ = 2.5"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb25-2"><a aria-label="2"></a>  <span class="fu">mutate</span>(<span class="at">loglik =</span> <span class="fu">map_dbl</span>(mu, \(m) <span class="fu">sum</span>(<span class="fu">dnorm</span>(galton.data<span class="sc">$</span>child, m, <span class="fl">2.5</span>, <span class="at">log =</span> <span class="cn">TRUE</span>))),</span>
-<span id="cb25-3"><a aria-label="3"></a>         <span class="at">label =</span> <span class="fu">paste0</span>(label, <span class="st">"</span><span class="sc">\n</span><span class="st">log-likelihood = "</span>, <span class="fu">round</span>(loglik)))</span>
-<span id="cb25-4"><a aria-label="4"></a>curves <span class="ot">&lt;-</span> cands <span class="sc">%&gt;%</span> <span class="fu">crossing</span>(<span class="at">height =</span> <span class="fu">seq</span>(<span class="dv">60</span>, <span class="dv">76</span>, <span class="at">by =</span> .<span class="dv">1</span>)) <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">density =</span> <span class="fu">dnorm</span>(height, mu, <span class="fl">2.5</span>))</span>
-<span id="cb25-5"><a aria-label="5"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
-<span id="cb25-6"><a aria-label="6"></a>  <span class="fu">geom_histogram</span>(<span class="at">data =</span> galton.data, <span class="fu">aes</span>(<span class="at">x =</span> child, <span class="at">y =</span> <span class="fu">after_stat</span>(density)), <span class="at">binwidth =</span> <span class="dv">1</span>, <span class="at">fill =</span> <span class="st">"grey80"</span>, <span class="at">colour =</span> <span class="st">"white"</span>) <span class="sc">+</span></span>
-<span id="cb25-7"><a aria-label="7"></a>  <span class="fu">geom_line</span>(<span class="at">data =</span> curves, <span class="fu">aes</span>(<span class="at">x =</span> height, <span class="at">y =</span> density), <span class="at">linewidth =</span> <span class="dv">1</span>, <span class="at">colour =</span> <span class="st">"#0072B2"</span>) <span class="sc">+</span></span>
-<span id="cb25-8"><a aria-label="8"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>label) <span class="sc">+</span></span>
-<span id="cb25-9"><a aria-label="9"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"child height (inches)"</span>, <span class="at">y =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
-<span id="cb25-10"><a aria-label="10"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">13</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a aria-label="1"></a>cands <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">mu =</span> <span class="fu">c</span>(<span class="dv">66</span>, <span class="dv">68</span>), <span class="at">label =</span> <span class="fu">c</span>(<span class="st">"candidate: μ = 66, σ = 2.5"</span>, <span class="st">"candidate: μ = 68, σ = 2.5"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb21-2"><a aria-label="2"></a>  <span class="fu">mutate</span>(<span class="at">loglik =</span> <span class="fu">map_dbl</span>(mu, \(m) <span class="fu">sum</span>(<span class="fu">dnorm</span>(galton.data<span class="sc">$</span>child, m, <span class="fl">2.5</span>, <span class="at">log =</span> <span class="cn">TRUE</span>))),</span>
+<span id="cb21-3"><a aria-label="3"></a>         <span class="at">label =</span> <span class="fu">paste0</span>(label, <span class="st">"</span><span class="sc">\n</span><span class="st">log-likelihood = "</span>, <span class="fu">round</span>(loglik)))</span>
+<span id="cb21-4"><a aria-label="4"></a>curves <span class="ot">&lt;-</span> cands <span class="sc">%&gt;%</span> <span class="fu">crossing</span>(<span class="at">height =</span> <span class="fu">seq</span>(<span class="dv">60</span>, <span class="dv">76</span>, <span class="at">by =</span> .<span class="dv">1</span>)) <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">density =</span> <span class="fu">dnorm</span>(height, mu, <span class="fl">2.5</span>))</span>
+<span id="cb21-5"><a aria-label="5"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb21-6"><a aria-label="6"></a>  <span class="fu">geom_histogram</span>(<span class="at">data =</span> galton.data, <span class="fu">aes</span>(<span class="at">x =</span> child, <span class="at">y =</span> <span class="fu">after_stat</span>(density)), <span class="at">binwidth =</span> <span class="dv">1</span>, <span class="at">fill =</span> <span class="st">"grey80"</span>, <span class="at">colour =</span> <span class="st">"white"</span>) <span class="sc">+</span></span>
+<span id="cb21-7"><a aria-label="7"></a>  <span class="fu">geom_line</span>(<span class="at">data =</span> curves, <span class="fu">aes</span>(<span class="at">x =</span> height, <span class="at">y =</span> density), <span class="at">linewidth =</span> <span class="dv">1</span>, <span class="at">colour =</span> <span class="st">"#0072B2"</span>) <span class="sc">+</span></span>
+<span id="cb21-8"><a aria-label="8"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>label) <span class="sc">+</span></span>
+<span id="cb21-9"><a aria-label="9"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"child height (inches)"</span>, <span class="at">y =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb21-10"><a aria-label="10"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">13</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
 <figure>
-<p><img data-src="bayes-1_files/figure-revealjs/unnamed-chunk-17-1.png" style="width:100.0%"></p>
+<p><img data-src="bayes-1_files/figure-revealjs/unnamed-chunk-14-1.png" style="width:100.0%"></p>
 </figure>
 </div>
 </div>
@@ -687,7 +618,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <h2>Why log?</h2>
 <p>Each likelihood is a small number (0.007 to 0.16 here). Multiply 928 of them:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a aria-label="1"></a><span class="fu">prod</span>(<span class="fu">dnorm</span>(galton.data<span class="sc">$</span>child, <span class="at">mean =</span> <span class="dv">68</span>, <span class="at">sd =</span> <span class="fl">2.5</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a aria-label="1"></a><span class="fu">prod</span>(<span class="fu">dnorm</span>(galton.data<span class="sc">$</span>child, <span class="at">mean =</span> <span class="dv">68</span>, <span class="at">sd =</span> <span class="fl">2.5</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0</code></pre>
 </div>
@@ -705,10 +636,10 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <h2>The log-likelihood of one candidate</h2>
 <p>For one (μ, σ) pair: compute each child’s log density, then add them up.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a aria-label="1"></a>galton.data <span class="sc">%&gt;%</span></span>
-<span id="cb28-2"><a aria-label="2"></a>  <span class="fu">mutate</span>(<span class="at">log_lik =</span> <span class="fu">dnorm</span>(child, <span class="at">mean =</span> <span class="dv">68</span>, <span class="at">sd =</span> <span class="fl">2.5</span>, <span class="at">log =</span> <span class="cn">TRUE</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb28-3"><a aria-label="3"></a>  <span class="fu">select</span>(child, log_lik) <span class="sc">%&gt;%</span></span>
-<span id="cb28-4"><a aria-label="4"></a>  <span class="fu">slice</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">200</span>, <span class="dv">400</span>, <span class="dv">600</span>, <span class="dv">800</span>))   <span class="co"># the same five children</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a aria-label="1"></a>galton.data <span class="sc">%&gt;%</span></span>
+<span id="cb24-2"><a aria-label="2"></a>  <span class="fu">mutate</span>(<span class="at">log_lik =</span> <span class="fu">dnorm</span>(child, <span class="at">mean =</span> <span class="dv">68</span>, <span class="at">sd =</span> <span class="fl">2.5</span>, <span class="at">log =</span> <span class="cn">TRUE</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb24-3"><a aria-label="3"></a>  <span class="fu">select</span>(child, log_lik) <span class="sc">%&gt;%</span></span>
+<span id="cb24-4"><a aria-label="4"></a>  <span class="fu">slice</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">200</span>, <span class="dv">400</span>, <span class="dv">600</span>, <span class="dv">800</span>))   <span class="co"># the same five children</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>  child   log_lik
 1  61.7 -5.010429
@@ -717,7 +648,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 4  69.2 -1.950429
 5  71.2 -2.654429</code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a aria-label="1"></a><span class="fu">sum</span>(<span class="fu">dnorm</span>(galton.data<span class="sc">$</span>child, <span class="at">mean =</span> <span class="dv">68</span>, <span class="at">sd =</span> <span class="fl">2.5</span>, <span class="at">log =</span> <span class="cn">TRUE</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a aria-label="1"></a><span class="fu">sum</span>(<span class="fu">dnorm</span>(galton.data<span class="sc">$</span>child, <span class="at">mean =</span> <span class="dv">68</span>, <span class="at">sd =</span> <span class="fl">2.5</span>, <span class="at">log =</span> <span class="cn">TRUE</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] -2173.85</code></pre>
 </div>
@@ -728,19 +659,19 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <h2>Two parameters: Galton’s heights</h2>
 <p>The average child height μ and the SD σ. Now the grid is every <em>combination</em> of μ and σ:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a aria-label="1"></a>height_grid <span class="ot">&lt;-</span> <span class="fu">crossing</span>(<span class="at">mu    =</span> <span class="fu">seq</span>(<span class="at">from =</span> <span class="fl">67.6</span>, <span class="at">to =</span> <span class="fl">68.6</span>, <span class="at">length.out =</span> <span class="dv">150</span>),</span>
-<span id="cb32-2"><a aria-label="2"></a>                        <span class="at">sigma =</span> <span class="fu">seq</span>(<span class="at">from =</span> <span class="fl">2.3</span>,  <span class="at">to =</span> <span class="fl">2.8</span>,  <span class="at">length.out =</span> <span class="dv">150</span>))</span>
-<span id="cb32-3"><a aria-label="3"></a><span class="fu">nrow</span>(height_grid)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a aria-label="1"></a>height_grid <span class="ot">&lt;-</span> <span class="fu">crossing</span>(<span class="at">mu    =</span> <span class="fu">seq</span>(<span class="at">from =</span> <span class="fl">67.6</span>, <span class="at">to =</span> <span class="fl">68.6</span>, <span class="at">length.out =</span> <span class="dv">150</span>),</span>
+<span id="cb28-2"><a aria-label="2"></a>                        <span class="at">sigma =</span> <span class="fu">seq</span>(<span class="at">from =</span> <span class="fl">2.3</span>,  <span class="at">to =</span> <span class="fl">2.8</span>,  <span class="at">length.out =</span> <span class="dv">150</span>))</span>
+<span id="cb28-3"><a aria-label="3"></a><span class="fu">nrow</span>(height_grid)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 22500</code></pre>
 </div>
 </div>
 <p>For each combination, the log-likelihood of all 928 children’s heights:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a aria-label="1"></a>height_grid <span class="ot">&lt;-</span> height_grid <span class="sc">%&gt;%</span></span>
-<span id="cb34-2"><a aria-label="2"></a>  <span class="fu">mutate</span>(<span class="at">log_lik =</span> <span class="fu">map2_dbl</span>(mu, sigma, \(m, s) <span class="fu">sum</span>(<span class="fu">dnorm</span>(galton.data<span class="sc">$</span>child, <span class="at">mean =</span> m, <span class="at">sd =</span> s, <span class="at">log =</span> <span class="cn">TRUE</span>))))</span>
-<span id="cb34-3"><a aria-label="3"></a></span>
-<span id="cb34-4"><a aria-label="4"></a>height_grid <span class="sc">%&gt;%</span> <span class="fu">slice_max</span>(log_lik)   <span class="co"># the MLE</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a aria-label="1"></a>height_grid <span class="ot">&lt;-</span> height_grid <span class="sc">%&gt;%</span></span>
+<span id="cb30-2"><a aria-label="2"></a>  <span class="fu">mutate</span>(<span class="at">log_lik =</span> <span class="fu">map2_dbl</span>(mu, sigma, \(m, s) <span class="fu">sum</span>(<span class="fu">dnorm</span>(galton.data<span class="sc">$</span>child, <span class="at">mean =</span> m, <span class="at">sd =</span> s, <span class="at">log =</span> <span class="cn">TRUE</span>))))</span>
+<span id="cb30-3"><a aria-label="3"></a></span>
+<span id="cb30-4"><a aria-label="4"></a>height_grid <span class="sc">%&gt;%</span> <span class="fu">slice_max</span>(log_lik)   <span class="co"># the MLE</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 1 × 3
      mu sigma log_lik
@@ -755,27 +686,43 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a aria-label="1"></a><span class="fu">library</span>(patchwork)</span>
-<span id="cb36-2"><a aria-label="2"></a>surface <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(height_grid, <span class="fu">aes</span>(<span class="at">x =</span> mu, <span class="at">y =</span> sigma, <span class="at">fill =</span> log_lik)) <span class="sc">+</span></span>
-<span id="cb36-3"><a aria-label="3"></a>  <span class="fu">geom_raster</span>(<span class="at">interpolate =</span> <span class="cn">TRUE</span>) <span class="sc">+</span></span>
-<span id="cb36-4"><a aria-label="4"></a>  <span class="fu">scale_fill_viridis_c</span>(<span class="at">option =</span> <span class="st">"C"</span>, <span class="at">guide =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
-<span id="cb36-5"><a aria-label="5"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="fu">expression</span>(mu), <span class="at">y =</span> <span class="fu">expression</span>(sigma)) <span class="sc">+</span></span>
-<span id="cb36-6"><a aria-label="6"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">14</span>)</span>
-<span id="cb36-7"><a aria-label="7"></a>profile_mu <span class="ot">&lt;-</span> height_grid <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(mu) <span class="sc">%&gt;%</span> <span class="fu">summarise</span>(<span class="at">log_lik =</span> <span class="fu">max</span>(log_lik)) <span class="sc">%&gt;%</span></span>
-<span id="cb36-8"><a aria-label="8"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> mu, <span class="at">y =</span> log_lik)) <span class="sc">+</span> <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb36-9"><a aria-label="9"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="fu">expression</span>(mu), <span class="at">y =</span> <span class="st">"log-likelihood"</span>, <span class="at">subtitle =</span> <span class="st">"best log-likelihood for each μ"</span>) <span class="sc">+</span></span>
-<span id="cb36-10"><a aria-label="10"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">14</span>)</span>
-<span id="cb36-11"><a aria-label="11"></a>surface <span class="sc">|</span> profile_mu</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a aria-label="1"></a><span class="fu">library</span>(patchwork)</span>
+<span id="cb32-2"><a aria-label="2"></a>surface <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(height_grid, <span class="fu">aes</span>(<span class="at">x =</span> mu, <span class="at">y =</span> sigma, <span class="at">fill =</span> log_lik)) <span class="sc">+</span></span>
+<span id="cb32-3"><a aria-label="3"></a>  <span class="fu">geom_raster</span>(<span class="at">interpolate =</span> <span class="cn">TRUE</span>) <span class="sc">+</span></span>
+<span id="cb32-4"><a aria-label="4"></a>  <span class="fu">scale_fill_viridis_c</span>(<span class="at">option =</span> <span class="st">"C"</span>, <span class="at">guide =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
+<span id="cb32-5"><a aria-label="5"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="fu">expression</span>(mu), <span class="at">y =</span> <span class="fu">expression</span>(sigma)) <span class="sc">+</span></span>
+<span id="cb32-6"><a aria-label="6"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">14</span>)</span>
+<span id="cb32-7"><a aria-label="7"></a>profile_mu <span class="ot">&lt;-</span> height_grid <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(mu) <span class="sc">%&gt;%</span> <span class="fu">summarise</span>(<span class="at">log_lik =</span> <span class="fu">max</span>(log_lik)) <span class="sc">%&gt;%</span></span>
+<span id="cb32-8"><a aria-label="8"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> mu, <span class="at">y =</span> log_lik)) <span class="sc">+</span> <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb32-9"><a aria-label="9"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="fu">expression</span>(mu), <span class="at">y =</span> <span class="st">"log-likelihood"</span>, <span class="at">subtitle =</span> <span class="st">"best log-likelihood for each μ"</span>) <span class="sc">+</span></span>
+<span id="cb32-10"><a aria-label="10"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">14</span>)</span>
+<span id="cb32-11"><a aria-label="11"></a>surface <span class="sc">|</span> profile_mu</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
 <figure>
-<p><img data-src="bayes-1_files/figure-revealjs/unnamed-chunk-22-1.png" style="width:100.0%"></p>
+<p><img data-src="bayes-1_files/figure-revealjs/unnamed-chunk-19-1.png" style="width:100.0%"></p>
 </figure>
 </div>
 </div>
 </div>
 <p>The peak sits at the sample mean (68.09) and SD (2.52): for a normal model, those <em>are</em> the maximum likelihood estimates. We’ll come back to this grid once we have priors.</p>
+</section>
+<section id="maximum-likelihood-keeps-one-value" class="slide level2 smaller">
+<h2>Maximum likelihood keeps one value</h2>
+<p>What maximum likelihood gives you: the peak (68.09) and a standard error. The uncertainty is about <strong>imaginary repeated samples</strong>: “if we redid the study many times, estimates would vary this much.” It is not a statement about which values of μ are plausible <em>for our data</em>.</p>
+<p>So why not just use the whole likelihood curve as our distribution of plausible values? Because it isn’t one:</p>
+<ul>
+<li>It answers “how likely are <strong>the data</strong>, if μ were this?”, not “how plausible is <strong>this μ</strong>, given the data?”</li>
+<li>It doesn’t add up to 1 across the candidates, so it can’t be read as probabilities</li>
+<li>It has no way to use what we already knew before collecting the data</li>
+</ul>
+</section>
+<section id="from-likelihood-to-a-distribution" class="slide level2">
+<h2>From likelihood to a distribution</h2>
+<p>To turn “how well does each value explain the data” into “how plausible is each value,” Bayes’ theorem says we need one more ingredient:</p>
+<p><span class="math display">\[\underbrace{p(\theta \mid \text{data})}_{\text{posterior: a distribution}} \;\propto\; \underbrace{p(\text{data} \mid \theta)}_{\text{likelihood: our grid}} \times \underbrace{p(\theta)}_{\text{prior}}\]</span></p>
+<p>That missing piece is the <strong>prior</strong>: point 3.</p>
 </section>
 <section id="be-comfortable-integrating-prior-knowledge" class="slide level2 smaller">
 <h2>3. Be comfortable integrating prior knowledge</h2>
@@ -804,20 +751,20 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb37"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a aria-label="1"></a>p<span class="fl">.0</span> <span class="ot">&lt;-</span></span>
-<span id="cb37-2"><a aria-label="2"></a>  <span class="fu">tibble</span>(<span class="at">x =</span> <span class="fu">seq</span>(<span class="at">from =</span> <span class="dv">40</span>, <span class="at">to =</span> <span class="dv">100</span>, <span class="at">by =</span> .<span class="dv">1</span>)) <span class="sc">%&gt;%</span> </span>
-<span id="cb37-3"><a aria-label="3"></a>  </span>
-<span id="cb37-4"><a aria-label="4"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">y =</span> <span class="fu">dnorm</span>(x, <span class="at">mean =</span> <span class="dv">66</span>, <span class="at">sd =</span> <span class="dv">5</span>))) <span class="sc">+</span></span>
-<span id="cb37-5"><a aria-label="5"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span></span>
-<span id="cb37-6"><a aria-label="6"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">seq</span>(<span class="at">from =</span> <span class="dv">40</span>, <span class="at">to =</span> <span class="dv">100</span>, <span class="at">by =</span> <span class="dv">10</span>)) <span class="sc">+</span></span>
-<span id="cb37-7"><a aria-label="7"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"mu ~ dnorm(66, 5)"</span>,</span>
-<span id="cb37-8"><a aria-label="8"></a>       <span class="at">y =</span> <span class="st">"density"</span>)</span>
-<span id="cb37-9"><a aria-label="9"></a></span>
-<span id="cb37-10"><a aria-label="10"></a>p<span class="fl">.0</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a aria-label="1"></a>p<span class="fl">.0</span> <span class="ot">&lt;-</span></span>
+<span id="cb33-2"><a aria-label="2"></a>  <span class="fu">tibble</span>(<span class="at">x =</span> <span class="fu">seq</span>(<span class="at">from =</span> <span class="dv">40</span>, <span class="at">to =</span> <span class="dv">100</span>, <span class="at">by =</span> .<span class="dv">1</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb33-3"><a aria-label="3"></a>  </span>
+<span id="cb33-4"><a aria-label="4"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">y =</span> <span class="fu">dnorm</span>(x, <span class="at">mean =</span> <span class="dv">66</span>, <span class="at">sd =</span> <span class="dv">5</span>))) <span class="sc">+</span></span>
+<span id="cb33-5"><a aria-label="5"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span></span>
+<span id="cb33-6"><a aria-label="6"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">seq</span>(<span class="at">from =</span> <span class="dv">40</span>, <span class="at">to =</span> <span class="dv">100</span>, <span class="at">by =</span> <span class="dv">10</span>)) <span class="sc">+</span></span>
+<span id="cb33-7"><a aria-label="7"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"mu ~ dnorm(66, 5)"</span>,</span>
+<span id="cb33-8"><a aria-label="8"></a>       <span class="at">y =</span> <span class="st">"density"</span>)</span>
+<span id="cb33-9"><a aria-label="9"></a></span>
+<span id="cb33-10"><a aria-label="10"></a>p<span class="fl">.0</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
 </div>
-<img data-src="bayes-1_files/figure-revealjs/unnamed-chunk-23-1.png" width="960" class="r-stretch"></section>
+<img data-src="bayes-1_files/figure-revealjs/unnamed-chunk-20-1.png" width="960" class="r-stretch"></section>
 <section id="what-prior-for-the-slope" class="slide level2">
 <h2>What prior for the slope?</h2>
 <ul>
@@ -831,53 +778,53 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a aria-label="1"></a>N10 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(<span class="fu">data.frame</span>(<span class="at">x =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">35</span>, <span class="dv">35</span>)), <span class="fu">aes</span>(x)) <span class="sc">+</span></span>
-<span id="cb38-2"><a aria-label="2"></a>  <span class="fu">stat_function</span>(<span class="at">fun =</span> dnorm, <span class="at">n =</span> <span class="dv">100</span>, <span class="at">args =</span> <span class="fu">list</span>(<span class="dv">0</span>, <span class="dv">10</span>))<span class="sc">+</span></span>
-<span id="cb38-3"><a aria-label="3"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"B ~ Normal(0, 10)"</span>)</span>
-<span id="cb38-4"><a aria-label="4"></a></span>
-<span id="cb38-5"><a aria-label="5"></a>N5 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(<span class="fu">data.frame</span>(<span class="at">x =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">35</span>, <span class="dv">35</span>)), <span class="fu">aes</span>(x)) <span class="sc">+</span></span>
-<span id="cb38-6"><a aria-label="6"></a>  <span class="fu">stat_function</span>(<span class="at">fun =</span> dnorm, <span class="at">n =</span> <span class="dv">100</span>, <span class="at">args =</span> <span class="fu">list</span>(<span class="dv">0</span>, <span class="dv">5</span>)) <span class="sc">+</span></span>
-<span id="cb38-7"><a aria-label="7"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"B ~ Normal(0, 5)"</span>)</span>
-<span id="cb38-8"><a aria-label="8"></a></span>
-<span id="cb38-9"><a aria-label="9"></a>N1 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(<span class="fu">data.frame</span>(<span class="at">x =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">35</span>, <span class="dv">35</span>)), <span class="fu">aes</span>(x)) <span class="sc">+</span></span>
-<span id="cb38-10"><a aria-label="10"></a>  <span class="fu">stat_function</span>(<span class="at">fun =</span> dnorm, <span class="at">n =</span> <span class="dv">100</span>, <span class="at">args =</span> <span class="fu">list</span>(<span class="dv">0</span>, <span class="dv">1</span>)) <span class="sc">+</span></span>
-<span id="cb38-11"><a aria-label="11"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">" B ~ Normal(0, 1)"</span>)</span>
-<span id="cb38-12"><a aria-label="12"></a></span>
-<span id="cb38-13"><a aria-label="13"></a>N2 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(<span class="fu">data.frame</span>(<span class="at">x =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">35</span>, <span class="dv">35</span>)), <span class="fu">aes</span>(x)) <span class="sc">+</span></span>
-<span id="cb38-14"><a aria-label="14"></a>  <span class="fu">stat_function</span>(<span class="at">fun =</span> dnorm, <span class="at">n =</span> <span class="dv">100</span>, <span class="at">args =</span> <span class="fu">list</span>(<span class="dv">0</span>, <span class="dv">2</span>)) <span class="sc">+</span></span>
-<span id="cb38-15"><a aria-label="15"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"B ~ Normal(0, 2)"</span>)</span>
-<span id="cb38-16"><a aria-label="16"></a></span>
-<span id="cb38-17"><a aria-label="17"></a><span class="fu">library</span>(patchwork)</span>
-<span id="cb38-18"><a aria-label="18"></a></span>
-<span id="cb38-19"><a aria-label="19"></a>(N10 <span class="sc">|</span> N5 )<span class="sc">/</span></span>
-<span id="cb38-20"><a aria-label="20"></a>  (N1 <span class="sc">|</span> N2 )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a aria-label="1"></a>N10 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(<span class="fu">data.frame</span>(<span class="at">x =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">35</span>, <span class="dv">35</span>)), <span class="fu">aes</span>(x)) <span class="sc">+</span></span>
+<span id="cb34-2"><a aria-label="2"></a>  <span class="fu">stat_function</span>(<span class="at">fun =</span> dnorm, <span class="at">n =</span> <span class="dv">100</span>, <span class="at">args =</span> <span class="fu">list</span>(<span class="dv">0</span>, <span class="dv">10</span>))<span class="sc">+</span></span>
+<span id="cb34-3"><a aria-label="3"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"B ~ Normal(0, 10)"</span>)</span>
+<span id="cb34-4"><a aria-label="4"></a></span>
+<span id="cb34-5"><a aria-label="5"></a>N5 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(<span class="fu">data.frame</span>(<span class="at">x =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">35</span>, <span class="dv">35</span>)), <span class="fu">aes</span>(x)) <span class="sc">+</span></span>
+<span id="cb34-6"><a aria-label="6"></a>  <span class="fu">stat_function</span>(<span class="at">fun =</span> dnorm, <span class="at">n =</span> <span class="dv">100</span>, <span class="at">args =</span> <span class="fu">list</span>(<span class="dv">0</span>, <span class="dv">5</span>)) <span class="sc">+</span></span>
+<span id="cb34-7"><a aria-label="7"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"B ~ Normal(0, 5)"</span>)</span>
+<span id="cb34-8"><a aria-label="8"></a></span>
+<span id="cb34-9"><a aria-label="9"></a>N1 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(<span class="fu">data.frame</span>(<span class="at">x =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">35</span>, <span class="dv">35</span>)), <span class="fu">aes</span>(x)) <span class="sc">+</span></span>
+<span id="cb34-10"><a aria-label="10"></a>  <span class="fu">stat_function</span>(<span class="at">fun =</span> dnorm, <span class="at">n =</span> <span class="dv">100</span>, <span class="at">args =</span> <span class="fu">list</span>(<span class="dv">0</span>, <span class="dv">1</span>)) <span class="sc">+</span></span>
+<span id="cb34-11"><a aria-label="11"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">" B ~ Normal(0, 1)"</span>)</span>
+<span id="cb34-12"><a aria-label="12"></a></span>
+<span id="cb34-13"><a aria-label="13"></a>N2 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(<span class="fu">data.frame</span>(<span class="at">x =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">35</span>, <span class="dv">35</span>)), <span class="fu">aes</span>(x)) <span class="sc">+</span></span>
+<span id="cb34-14"><a aria-label="14"></a>  <span class="fu">stat_function</span>(<span class="at">fun =</span> dnorm, <span class="at">n =</span> <span class="dv">100</span>, <span class="at">args =</span> <span class="fu">list</span>(<span class="dv">0</span>, <span class="dv">2</span>)) <span class="sc">+</span></span>
+<span id="cb34-15"><a aria-label="15"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"B ~ Normal(0, 2)"</span>)</span>
+<span id="cb34-16"><a aria-label="16"></a></span>
+<span id="cb34-17"><a aria-label="17"></a><span class="fu">library</span>(patchwork)</span>
+<span id="cb34-18"><a aria-label="18"></a></span>
+<span id="cb34-19"><a aria-label="19"></a>(N10 <span class="sc">|</span> N5 )<span class="sc">/</span></span>
+<span id="cb34-20"><a aria-label="20"></a>  (N1 <span class="sc">|</span> N2 )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
 </div>
-<img data-src="bayes-1_files/figure-revealjs/unnamed-chunk-24-1.png" width="960" class="r-stretch"></section>
+<img data-src="bayes-1_files/figure-revealjs/unnamed-chunk-21-1.png" width="960" class="r-stretch"></section>
 <section id="okay-so-what-does-this-mean" class="slide level2">
 <h2>Okay so what does this mean?</h2>
 <p>It means, <em>BEFORE WE SEE THE DATA</em> we are comfortable with different regression lines. For N(0,5) this is what we would expect:</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb39"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a aria-label="1"></a>pp <span class="ot">&lt;-</span></span>
-<span id="cb39-2"><a aria-label="2"></a>  <span class="fu">tibble</span>(<span class="at">n =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">100</span>,</span>
-<span id="cb39-3"><a aria-label="3"></a>         <span class="at">a =</span> <span class="fu">rnorm</span>(<span class="dv">100</span>, <span class="at">mean =</span> <span class="dv">66</span>, <span class="at">sd =</span> <span class="dv">5</span>),</span>
-<span id="cb39-4"><a aria-label="4"></a>         <span class="at">b =</span> <span class="fu">rnorm</span>(<span class="dv">100</span>, <span class="at">mean =</span> <span class="dv">0</span>,   <span class="at">sd =</span> <span class="dv">5</span>)) <span class="sc">%&gt;%</span> </span>
-<span id="cb39-5"><a aria-label="5"></a>  <span class="fu">expand</span>(<span class="fu">nesting</span>(n, a, b), <span class="at">height =</span> <span class="fu">range</span>(galton.data<span class="sc">$</span>parent)) <span class="sc">%&gt;%</span>   </span>
-<span id="cb39-6"><a aria-label="6"></a>  <span class="fu">mutate</span>(<span class="at">c.height =</span> a <span class="sc">+</span> b <span class="sc">*</span> (height <span class="sc">-</span> <span class="fu">mean</span>(galton.data<span class="sc">$</span>parent))) </span>
-<span id="cb39-7"><a aria-label="7"></a></span>
-<span id="cb39-8"><a aria-label="8"></a>g.pp <span class="ot">&lt;-</span> pp <span class="sc">%&gt;%</span> </span>
-<span id="cb39-9"><a aria-label="9"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> height, <span class="at">y =</span> c.height, <span class="at">group =</span> n)) <span class="sc">+</span></span>
-<span id="cb39-10"><a aria-label="10"></a>  <span class="fu">geom_line</span>(<span class="at">alpha =</span> <span class="dv">1</span><span class="sc">/</span><span class="dv">10</span>) <span class="sc">+</span></span>
-<span id="cb39-11"><a aria-label="11"></a>  <span class="fu">coord_cartesian</span>(<span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">36</span>, <span class="dv">96</span>)) </span>
-<span id="cb39-12"><a aria-label="12"></a></span>
-<span id="cb39-13"><a aria-label="13"></a>g.pp</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a aria-label="1"></a>pp <span class="ot">&lt;-</span></span>
+<span id="cb35-2"><a aria-label="2"></a>  <span class="fu">tibble</span>(<span class="at">n =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">100</span>,</span>
+<span id="cb35-3"><a aria-label="3"></a>         <span class="at">a =</span> <span class="fu">rnorm</span>(<span class="dv">100</span>, <span class="at">mean =</span> <span class="dv">66</span>, <span class="at">sd =</span> <span class="dv">5</span>),</span>
+<span id="cb35-4"><a aria-label="4"></a>         <span class="at">b =</span> <span class="fu">rnorm</span>(<span class="dv">100</span>, <span class="at">mean =</span> <span class="dv">0</span>,   <span class="at">sd =</span> <span class="dv">5</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb35-5"><a aria-label="5"></a>  <span class="fu">expand</span>(<span class="fu">nesting</span>(n, a, b), <span class="at">height =</span> <span class="fu">range</span>(galton.data<span class="sc">$</span>parent)) <span class="sc">%&gt;%</span>   </span>
+<span id="cb35-6"><a aria-label="6"></a>  <span class="fu">mutate</span>(<span class="at">c.height =</span> a <span class="sc">+</span> b <span class="sc">*</span> (height <span class="sc">-</span> <span class="fu">mean</span>(galton.data<span class="sc">$</span>parent))) </span>
+<span id="cb35-7"><a aria-label="7"></a></span>
+<span id="cb35-8"><a aria-label="8"></a>g.pp <span class="ot">&lt;-</span> pp <span class="sc">%&gt;%</span> </span>
+<span id="cb35-9"><a aria-label="9"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> height, <span class="at">y =</span> c.height, <span class="at">group =</span> n)) <span class="sc">+</span></span>
+<span id="cb35-10"><a aria-label="10"></a>  <span class="fu">geom_line</span>(<span class="at">alpha =</span> <span class="dv">1</span><span class="sc">/</span><span class="dv">10</span>) <span class="sc">+</span></span>
+<span id="cb35-11"><a aria-label="11"></a>  <span class="fu">coord_cartesian</span>(<span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">36</span>, <span class="dv">96</span>)) </span>
+<span id="cb35-12"><a aria-label="12"></a></span>
+<span id="cb35-13"><a aria-label="13"></a>g.pp</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
 </div>
-<img data-src="bayes-1_files/figure-revealjs/unnamed-chunk-25-1.png" width="960" class="r-stretch"></section>
+<img data-src="bayes-1_files/figure-revealjs/unnamed-chunk-22-1.png" width="960" class="r-stretch"></section>
 <section id="okay-so-why-is-this-important" class="slide level2 smaller">
 <h2>Okay so why is this important?</h2>
 <ul>
@@ -937,12 +884,12 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <section id="the-coin-now-with-a-prior" class="slide level2 smaller">
 <h2>The coin, now with a prior</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a aria-label="1"></a>coin_grid <span class="ot">&lt;-</span> coin_grid <span class="sc">%&gt;%</span>                       <span class="co"># the grid from earlier</span></span>
-<span id="cb40-2"><a aria-label="2"></a>  <span class="fu">mutate</span>(<span class="at">prior      =</span> <span class="dv">1</span>,                         <span class="co"># 3. flat prior: every p equally plausible</span></span>
-<span id="cb40-3"><a aria-label="3"></a>         <span class="at">unstd_post =</span> likelihood <span class="sc">*</span> prior,        <span class="co"># 4. multiply</span></span>
-<span id="cb40-4"><a aria-label="4"></a>         <span class="at">posterior  =</span> unstd_post <span class="sc">/</span> <span class="fu">sum</span>(unstd_post))  <span class="co"># 5. normalize</span></span>
-<span id="cb40-5"><a aria-label="5"></a></span>
-<span id="cb40-6"><a aria-label="6"></a>coin_grid <span class="sc">%&gt;%</span> <span class="fu">slice</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">11</span>, <span class="dv">21</span>, <span class="dv">31</span>, <span class="dv">51</span>, <span class="dv">81</span>, <span class="dv">101</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a aria-label="1"></a>coin_grid <span class="ot">&lt;-</span> coin_grid <span class="sc">%&gt;%</span>                       <span class="co"># the grid from earlier</span></span>
+<span id="cb36-2"><a aria-label="2"></a>  <span class="fu">mutate</span>(<span class="at">prior      =</span> <span class="dv">1</span>,                         <span class="co"># 3. flat prior: every p equally plausible</span></span>
+<span id="cb36-3"><a aria-label="3"></a>         <span class="at">unstd_post =</span> likelihood <span class="sc">*</span> prior,        <span class="co"># 4. multiply</span></span>
+<span id="cb36-4"><a aria-label="4"></a>         <span class="at">posterior  =</span> unstd_post <span class="sc">/</span> <span class="fu">sum</span>(unstd_post))  <span class="co"># 5. normalize</span></span>
+<span id="cb36-5"><a aria-label="5"></a></span>
+<span id="cb36-6"><a aria-label="6"></a>coin_grid <span class="sc">%&gt;%</span> <span class="fu">slice</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">11</span>, <span class="dv">21</span>, <span class="dv">31</span>, <span class="dv">51</span>, <span class="dv">81</span>, <span class="dv">101</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 7 × 5
       p likelihood prior unstd_post  posterior
@@ -962,21 +909,21 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a aria-label="1"></a>coin_grid <span class="sc">%&gt;%</span></span>
-<span id="cb42-2"><a aria-label="2"></a>  <span class="fu">mutate</span>(<span class="at">prior =</span> prior <span class="sc">/</span> <span class="fu">sum</span>(prior), <span class="at">likelihood =</span> likelihood <span class="sc">/</span> <span class="fu">sum</span>(likelihood)) <span class="sc">%&gt;%</span>  <span class="co"># put all three on one scale</span></span>
-<span id="cb42-3"><a aria-label="3"></a>  <span class="fu">pivot_longer</span>(<span class="fu">c</span>(prior, likelihood, posterior)) <span class="sc">%&gt;%</span></span>
-<span id="cb42-4"><a aria-label="4"></a>  <span class="fu">mutate</span>(<span class="at">name =</span> <span class="fu">factor</span>(name, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"prior"</span>, <span class="st">"likelihood"</span>, <span class="st">"posterior"</span>))) <span class="sc">%&gt;%</span></span>
-<span id="cb42-5"><a aria-label="5"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> p, <span class="at">y =</span> value)) <span class="sc">+</span></span>
-<span id="cb42-6"><a aria-label="6"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb42-7"><a aria-label="7"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>name, <span class="at">nrow =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb42-8"><a aria-label="8"></a>  <span class="fu">scale_y_continuous</span>(<span class="cn">NULL</span>, <span class="at">breaks =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
-<span id="cb42-9"><a aria-label="9"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"p (probability of heads)"</span>) <span class="sc">+</span></span>
-<span id="cb42-10"><a aria-label="10"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">14</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a aria-label="1"></a>coin_grid <span class="sc">%&gt;%</span></span>
+<span id="cb38-2"><a aria-label="2"></a>  <span class="fu">mutate</span>(<span class="at">prior =</span> prior <span class="sc">/</span> <span class="fu">sum</span>(prior), <span class="at">likelihood =</span> likelihood <span class="sc">/</span> <span class="fu">sum</span>(likelihood)) <span class="sc">%&gt;%</span>  <span class="co"># put all three on one scale</span></span>
+<span id="cb38-3"><a aria-label="3"></a>  <span class="fu">pivot_longer</span>(<span class="fu">c</span>(prior, likelihood, posterior)) <span class="sc">%&gt;%</span></span>
+<span id="cb38-4"><a aria-label="4"></a>  <span class="fu">mutate</span>(<span class="at">name =</span> <span class="fu">factor</span>(name, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"prior"</span>, <span class="st">"likelihood"</span>, <span class="st">"posterior"</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb38-5"><a aria-label="5"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> p, <span class="at">y =</span> value)) <span class="sc">+</span></span>
+<span id="cb38-6"><a aria-label="6"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb38-7"><a aria-label="7"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>name, <span class="at">nrow =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb38-8"><a aria-label="8"></a>  <span class="fu">scale_y_continuous</span>(<span class="cn">NULL</span>, <span class="at">breaks =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb38-9"><a aria-label="9"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"p (probability of heads)"</span>) <span class="sc">+</span></span>
+<span id="cb38-10"><a aria-label="10"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">14</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
 <figure>
-<p><img data-src="bayes-1_files/figure-revealjs/unnamed-chunk-27-1.png" style="width:100.0%"></p>
+<p><img data-src="bayes-1_files/figure-revealjs/unnamed-chunk-24-1.png" style="width:100.0%"></p>
 </figure>
 </div>
 </div>
@@ -989,24 +936,24 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb43"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a aria-label="1"></a>coin_grid <span class="sc">%&gt;%</span></span>
-<span id="cb43-2"><a aria-label="2"></a>  <span class="fu">mutate</span>(<span class="at">prior      =</span> <span class="fu">dbeta</span>(p, <span class="dv">5</span>, <span class="dv">5</span>),</span>
-<span id="cb43-3"><a aria-label="3"></a>         <span class="at">unstd_post =</span> likelihood <span class="sc">*</span> prior,</span>
-<span id="cb43-4"><a aria-label="4"></a>         <span class="at">posterior  =</span> unstd_post <span class="sc">/</span> <span class="fu">sum</span>(unstd_post),</span>
-<span id="cb43-5"><a aria-label="5"></a>         <span class="at">prior =</span> prior <span class="sc">/</span> <span class="fu">sum</span>(prior), <span class="at">likelihood =</span> likelihood <span class="sc">/</span> <span class="fu">sum</span>(likelihood)) <span class="sc">%&gt;%</span></span>
-<span id="cb43-6"><a aria-label="6"></a>  <span class="fu">pivot_longer</span>(<span class="fu">c</span>(prior, likelihood, posterior)) <span class="sc">%&gt;%</span></span>
-<span id="cb43-7"><a aria-label="7"></a>  <span class="fu">mutate</span>(<span class="at">name =</span> <span class="fu">factor</span>(name, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"prior"</span>, <span class="st">"likelihood"</span>, <span class="st">"posterior"</span>))) <span class="sc">%&gt;%</span></span>
-<span id="cb43-8"><a aria-label="8"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> p, <span class="at">y =</span> value)) <span class="sc">+</span></span>
-<span id="cb43-9"><a aria-label="9"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb43-10"><a aria-label="10"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>name, <span class="at">nrow =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb43-11"><a aria-label="11"></a>  <span class="fu">scale_y_continuous</span>(<span class="cn">NULL</span>, <span class="at">breaks =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
-<span id="cb43-12"><a aria-label="12"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"p (probability of heads)"</span>) <span class="sc">+</span></span>
-<span id="cb43-13"><a aria-label="13"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">14</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb39"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a aria-label="1"></a>coin_grid <span class="sc">%&gt;%</span></span>
+<span id="cb39-2"><a aria-label="2"></a>  <span class="fu">mutate</span>(<span class="at">prior      =</span> <span class="fu">dbeta</span>(p, <span class="dv">5</span>, <span class="dv">5</span>),</span>
+<span id="cb39-3"><a aria-label="3"></a>         <span class="at">unstd_post =</span> likelihood <span class="sc">*</span> prior,</span>
+<span id="cb39-4"><a aria-label="4"></a>         <span class="at">posterior  =</span> unstd_post <span class="sc">/</span> <span class="fu">sum</span>(unstd_post),</span>
+<span id="cb39-5"><a aria-label="5"></a>         <span class="at">prior =</span> prior <span class="sc">/</span> <span class="fu">sum</span>(prior), <span class="at">likelihood =</span> likelihood <span class="sc">/</span> <span class="fu">sum</span>(likelihood)) <span class="sc">%&gt;%</span></span>
+<span id="cb39-6"><a aria-label="6"></a>  <span class="fu">pivot_longer</span>(<span class="fu">c</span>(prior, likelihood, posterior)) <span class="sc">%&gt;%</span></span>
+<span id="cb39-7"><a aria-label="7"></a>  <span class="fu">mutate</span>(<span class="at">name =</span> <span class="fu">factor</span>(name, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"prior"</span>, <span class="st">"likelihood"</span>, <span class="st">"posterior"</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb39-8"><a aria-label="8"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> p, <span class="at">y =</span> value)) <span class="sc">+</span></span>
+<span id="cb39-9"><a aria-label="9"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb39-10"><a aria-label="10"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>name, <span class="at">nrow =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb39-11"><a aria-label="11"></a>  <span class="fu">scale_y_continuous</span>(<span class="cn">NULL</span>, <span class="at">breaks =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb39-12"><a aria-label="12"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"p (probability of heads)"</span>) <span class="sc">+</span></span>
+<span id="cb39-13"><a aria-label="13"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">14</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
 <figure>
-<p><img data-src="bayes-1_files/figure-revealjs/unnamed-chunk-28-1.png" style="width:100.0%"></p>
+<p><img data-src="bayes-1_files/figure-revealjs/unnamed-chunk-25-1.png" style="width:100.0%"></p>
 </figure>
 </div>
 </div>
@@ -1017,12 +964,12 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <h2>From a grid to a pile of guesses</h2>
 <p>Sample candidate values in proportion to their posterior probability, and you get draws, just like brms gives you:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb44"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a aria-label="1"></a><span class="fu">set.seed</span>(<span class="dv">2027</span>)</span>
-<span id="cb44-2"><a aria-label="2"></a>coin_draws <span class="ot">&lt;-</span> coin_grid <span class="sc">%&gt;%</span></span>
-<span id="cb44-3"><a aria-label="3"></a>  <span class="fu">slice_sample</span>(<span class="at">n =</span> <span class="dv">10000</span>, <span class="at">weight_by =</span> posterior, <span class="at">replace =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb44-4"><a aria-label="4"></a></span>
-<span id="cb44-5"><a aria-label="5"></a>coin_draws <span class="sc">%&gt;%</span> <span class="fu">summarise</span>(<span class="at">mean =</span> <span class="fu">mean</span>(p), <span class="at">median =</span> <span class="fu">median</span>(p),</span>
-<span id="cb44-6"><a aria-label="6"></a>                         <span class="at">lower =</span> <span class="fu">quantile</span>(p, .<span class="dv">025</span>), <span class="at">upper =</span> <span class="fu">quantile</span>(p, .<span class="dv">975</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a aria-label="1"></a><span class="fu">set.seed</span>(<span class="dv">2027</span>)</span>
+<span id="cb40-2"><a aria-label="2"></a>coin_draws <span class="ot">&lt;-</span> coin_grid <span class="sc">%&gt;%</span></span>
+<span id="cb40-3"><a aria-label="3"></a>  <span class="fu">slice_sample</span>(<span class="at">n =</span> <span class="dv">10000</span>, <span class="at">weight_by =</span> posterior, <span class="at">replace =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb40-4"><a aria-label="4"></a></span>
+<span id="cb40-5"><a aria-label="5"></a>coin_draws <span class="sc">%&gt;%</span> <span class="fu">summarise</span>(<span class="at">mean =</span> <span class="fu">mean</span>(p), <span class="at">median =</span> <span class="fu">median</span>(p),</span>
+<span id="cb40-6"><a aria-label="6"></a>                         <span class="at">lower =</span> <span class="fu">quantile</span>(p, .<span class="dv">025</span>), <span class="at">upper =</span> <span class="fu">quantile</span>(p, .<span class="dv">975</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 1 × 4
    mean median lower upper
@@ -1033,15 +980,15 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb46"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a aria-label="1"></a><span class="fu">ggplot</span>(coin_draws, <span class="fu">aes</span>(<span class="at">x =</span> p)) <span class="sc">+</span></span>
-<span id="cb46-2"><a aria-label="2"></a>  <span class="fu">stat_dotsinterval</span>(<span class="at">quantiles =</span> <span class="dv">100</span>) <span class="sc">+</span></span>
-<span id="cb46-3"><a aria-label="3"></a>  <span class="fu">scale_y_continuous</span>(<span class="cn">NULL</span>, <span class="at">breaks =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
-<span id="cb46-4"><a aria-label="4"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">14</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a aria-label="1"></a><span class="fu">ggplot</span>(coin_draws, <span class="fu">aes</span>(<span class="at">x =</span> p)) <span class="sc">+</span></span>
+<span id="cb42-2"><a aria-label="2"></a>  <span class="fu">stat_dotsinterval</span>(<span class="at">quantiles =</span> <span class="dv">100</span>) <span class="sc">+</span></span>
+<span id="cb42-3"><a aria-label="3"></a>  <span class="fu">scale_y_continuous</span>(<span class="cn">NULL</span>, <span class="at">breaks =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb42-4"><a aria-label="4"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">14</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
 <figure>
-<p><img data-src="bayes-1_files/figure-revealjs/unnamed-chunk-30-1.png" style="width:90.0%"></p>
+<p><img data-src="bayes-1_files/figure-revealjs/unnamed-chunk-27-1.png" style="width:90.0%"></p>
 </figure>
 </div>
 </div>
@@ -1052,10 +999,10 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <h2>Galton’s heights, with priors</h2>
 <p>Same grid as before, plus the priors from our brms model: μ ~ Normal(66, 5), σ ~ Exponential(.5). On the log scale, multiplying becomes adding:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb47"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a aria-label="1"></a>height_grid <span class="ot">&lt;-</span> height_grid <span class="sc">%&gt;%</span>                  <span class="co"># the log-likelihood grid from earlier</span></span>
-<span id="cb47-2"><a aria-label="2"></a>  <span class="fu">mutate</span>(<span class="at">log_prior =</span> <span class="fu">dnorm</span>(mu, <span class="dv">66</span>, <span class="dv">5</span>, <span class="at">log =</span> <span class="cn">TRUE</span>) <span class="sc">+</span> <span class="fu">dexp</span>(sigma, <span class="at">rate =</span> .<span class="dv">5</span>, <span class="at">log =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb47-3"><a aria-label="3"></a>         <span class="at">posterior =</span> <span class="fu">exp</span>(log_lik <span class="sc">+</span> log_prior <span class="sc">-</span> <span class="fu">max</span>(log_lik <span class="sc">+</span> log_prior)),   <span class="co"># back from logs, safely</span></span>
-<span id="cb47-4"><a aria-label="4"></a>         <span class="at">posterior =</span> posterior <span class="sc">/</span> <span class="fu">sum</span>(posterior))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb43"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a aria-label="1"></a>height_grid <span class="ot">&lt;-</span> height_grid <span class="sc">%&gt;%</span>                  <span class="co"># the log-likelihood grid from earlier</span></span>
+<span id="cb43-2"><a aria-label="2"></a>  <span class="fu">mutate</span>(<span class="at">log_prior =</span> <span class="fu">dnorm</span>(mu, <span class="dv">66</span>, <span class="dv">5</span>, <span class="at">log =</span> <span class="cn">TRUE</span>) <span class="sc">+</span> <span class="fu">dexp</span>(sigma, <span class="at">rate =</span> .<span class="dv">5</span>, <span class="at">log =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb43-3"><a aria-label="3"></a>         <span class="at">posterior =</span> <span class="fu">exp</span>(log_lik <span class="sc">+</span> log_prior <span class="sc">-</span> <span class="fu">max</span>(log_lik <span class="sc">+</span> log_prior)),   <span class="co"># back from logs, safely</span></span>
+<span id="cb43-4"><a aria-label="4"></a>         <span class="at">posterior =</span> posterior <span class="sc">/</span> <span class="fu">sum</span>(posterior))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="the-joint-posterior-of-μ-and-σ" class="slide level2 nostretch smaller">
@@ -1063,21 +1010,21 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb48"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a aria-label="1"></a>joint <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(height_grid, <span class="fu">aes</span>(<span class="at">x =</span> mu, <span class="at">y =</span> sigma, <span class="at">fill =</span> posterior)) <span class="sc">+</span></span>
-<span id="cb48-2"><a aria-label="2"></a>  <span class="fu">geom_raster</span>(<span class="at">interpolate =</span> <span class="cn">TRUE</span>) <span class="sc">+</span></span>
-<span id="cb48-3"><a aria-label="3"></a>  <span class="fu">scale_fill_viridis_c</span>(<span class="at">option =</span> <span class="st">"C"</span>, <span class="at">guide =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
-<span id="cb48-4"><a aria-label="4"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="fu">expression</span>(mu), <span class="at">y =</span> <span class="fu">expression</span>(sigma)) <span class="sc">+</span></span>
-<span id="cb48-5"><a aria-label="5"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">14</span>)</span>
-<span id="cb48-6"><a aria-label="6"></a>marg_mu <span class="ot">&lt;-</span> height_grid <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(mu) <span class="sc">%&gt;%</span> <span class="fu">summarise</span>(<span class="at">posterior =</span> <span class="fu">sum</span>(posterior)) <span class="sc">%&gt;%</span></span>
-<span id="cb48-7"><a aria-label="7"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> mu, <span class="at">y =</span> posterior)) <span class="sc">+</span> <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb48-8"><a aria-label="8"></a>  <span class="fu">scale_y_continuous</span>(<span class="cn">NULL</span>, <span class="at">breaks =</span> <span class="cn">NULL</span>) <span class="sc">+</span> <span class="fu">labs</span>(<span class="at">x =</span> <span class="fu">expression</span>(mu), <span class="at">subtitle =</span> <span class="st">"posterior for μ (summed over σ)"</span>) <span class="sc">+</span></span>
-<span id="cb48-9"><a aria-label="9"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">14</span>)</span>
-<span id="cb48-10"><a aria-label="10"></a>joint <span class="sc">|</span> marg_mu</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb44"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a aria-label="1"></a>joint <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(height_grid, <span class="fu">aes</span>(<span class="at">x =</span> mu, <span class="at">y =</span> sigma, <span class="at">fill =</span> posterior)) <span class="sc">+</span></span>
+<span id="cb44-2"><a aria-label="2"></a>  <span class="fu">geom_raster</span>(<span class="at">interpolate =</span> <span class="cn">TRUE</span>) <span class="sc">+</span></span>
+<span id="cb44-3"><a aria-label="3"></a>  <span class="fu">scale_fill_viridis_c</span>(<span class="at">option =</span> <span class="st">"C"</span>, <span class="at">guide =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
+<span id="cb44-4"><a aria-label="4"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="fu">expression</span>(mu), <span class="at">y =</span> <span class="fu">expression</span>(sigma)) <span class="sc">+</span></span>
+<span id="cb44-5"><a aria-label="5"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">14</span>)</span>
+<span id="cb44-6"><a aria-label="6"></a>marg_mu <span class="ot">&lt;-</span> height_grid <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(mu) <span class="sc">%&gt;%</span> <span class="fu">summarise</span>(<span class="at">posterior =</span> <span class="fu">sum</span>(posterior)) <span class="sc">%&gt;%</span></span>
+<span id="cb44-7"><a aria-label="7"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> mu, <span class="at">y =</span> posterior)) <span class="sc">+</span> <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb44-8"><a aria-label="8"></a>  <span class="fu">scale_y_continuous</span>(<span class="cn">NULL</span>, <span class="at">breaks =</span> <span class="cn">NULL</span>) <span class="sc">+</span> <span class="fu">labs</span>(<span class="at">x =</span> <span class="fu">expression</span>(mu), <span class="at">subtitle =</span> <span class="st">"posterior for μ (summed over σ)"</span>) <span class="sc">+</span></span>
+<span id="cb44-9"><a aria-label="9"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">14</span>)</span>
+<span id="cb44-10"><a aria-label="10"></a>joint <span class="sc">|</span> marg_mu</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
 <figure>
-<p><img data-src="bayes-1_files/figure-revealjs/unnamed-chunk-32-1.png" style="width:100.0%"></p>
+<p><img data-src="bayes-1_files/figure-revealjs/unnamed-chunk-29-1.png" style="width:100.0%"></p>
 </figure>
 </div>
 </div>
@@ -1094,58 +1041,109 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </ul>
 <p>Grids are perfect for building intuition and for one or two parameters. For anything bigger we need an algorithm that spends its time where the posterior actually is, which is what MCMC does (lecture 5). What comes out is the same thing: a pile of guesses, more of them where the posterior is higher.</p>
 </section>
+<section id="how-mcmc-explores" class="slide level2 smaller">
+<h2>How MCMC explores</h2>
+<ul>
+<li><p>Markov chain Monte Carlo (MCMC) wanders through parameter values, proposing a new value, keeping it more often if prior × likelihood is higher there. The ones that are <em>more likely</em> will appear more often.</p></li>
+<li><p>What do I mean “appear” more often? It lands near the peak most often (just as .2 was the best value for the coin) but also visits less likely values, in proportion to their posterior probability. Its draws are the pile of guesses we sampled from the grid, without ever building the grid.</p></li>
+<li><p>Invented for the first computers (and the hydrogen bomb) in 1953, but published in a physics journal; statisticians mostly ignored it until desktop computers got fast enough around 1990.</p></li>
+</ul>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb45"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a aria-label="1"></a>fit.<span class="fl">1.</span>bayesian <span class="sc">%&gt;%</span> </span>
+<span id="cb45-2"><a aria-label="2"></a><span class="fu">spread_draws</span>(b_Intercept, b_parent) <span class="sc">%&gt;%</span> </span>
+<span id="cb45-3"><a aria-label="3"></a><span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> b_parent)) <span class="sc">+</span></span>
+<span id="cb45-4"><a aria-label="4"></a>  <span class="fu">stat_dotsinterval</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+
+</div>
+<img data-src="bayes-1_files/figure-revealjs/unnamed-chunk-30-1.png" width="960" class="r-stretch"></section>
+<section id="the-posterior-is-a-pile-of-guesses" class="slide level2 smaller">
+<h2>The posterior is a pile of guesses</h2>
+<p>Our posterior is literally made up of educated parameter guesses by the algorithm. Which estimates are more likely given the data?</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb46"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a aria-label="1"></a><span class="fu">tidy_draws</span>(fit.<span class="fl">1.</span>bayesian)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 4,000 × 15
+   .chain .iteration .draw b_Intercept b_parent sigma Intercept lprior   lp__
+    &lt;int&gt;      &lt;int&gt; &lt;int&gt;       &lt;dbl&gt;    &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;
+ 1      1          1     1        24.7    0.636  2.27      68.2  -5.48 -2069.
+ 2      1          2     2        21.7    0.678  2.23      68.0  -5.56 -2069.
+ 3      1          3     3        22.1    0.673  2.09      68.1  -5.48 -2073.
+ 4      1          4     4        27.1    0.601  2.36      68.2  -5.45 -2072.
+ 5      1          5     5        23.0    0.661  2.30      68.2  -5.57 -2070.
+ 6      1          6     6        25.5    0.622  2.21      67.9  -5.40 -2071.
+ 7      1          7     7        21.9    0.676  2.18      68.0  -5.53 -2070.
+ 8      1          8     8        26.8    0.605  2.31      68.1  -5.43 -2070.
+ 9      1          9     9        24.7    0.634  2.26      68.0  -5.47 -2069.
+10      1         10    10        27.6    0.592  2.20      68.0  -5.33 -2070.
+# ℹ 3,990 more rows
+# ℹ 6 more variables: accept_stat__ &lt;dbl&gt;, treedepth__ &lt;dbl&gt;, stepsize__ &lt;dbl&gt;,
+#   divergent__ &lt;dbl&gt;, n_leapfrog__ &lt;dbl&gt;, energy__ &lt;dbl&gt;</code></pre>
+</div>
+</div>
+</section>
+<section id="bayesian-analysis-is-just-counting" class="slide level2 smaller">
+<h2>Bayesian analysis is just counting</h2>
+<ul>
+<li><p>Bayesian analysis counts all ways that something can happen (according to assumptions/model). Assumptions with more ways that are consistent with data are more plausible.</p></li>
+<li><p>This is the same scoring that maximum likelihood does (try out values, see which are most consistent with the data). Maximum likelihood then reports <em>one</em> winner.</p></li>
+<li><p>Where Bayes differs, is that there is no ONE result, that there are many possible results that are consistent with the data</p></li>
+</ul>
+</section>
 <section id="combining-the-three-components" class="slide level2">
 <h2>Combining the three components</h2>
 <p>Priors influencing Posterior</p>
 
-<img data-src="bayes-1_files/figure-revealjs/unnamed-chunk-33-1.png" width="960" class="r-stretch"></section>
+<img data-src="bayes-1_files/figure-revealjs/unnamed-chunk-32-1.png" width="960" class="r-stretch"></section>
 <section id="sample-size-influence" class="slide level2">
 <h2>sample size influence</h2>
 
-<img data-src="bayes-1_files/figure-revealjs/unnamed-chunk-34-1.png" width="960" class="r-stretch"></section>
+<img data-src="bayes-1_files/figure-revealjs/unnamed-chunk-33-1.png" width="960" class="r-stretch"></section>
 <section id="todays-posterior-is-tomorrows-prior" class="slide level2">
 <h2>Today’s posterior is tomorrow’s prior</h2>
 <p>Collect data in waves: the posterior after wave 1 becomes the prior for wave 2. You end up exactly where you’d be with all the data at once.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb49"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a aria-label="1"></a>grid <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">theta =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="at">length.out =</span> <span class="dv">1000</span>))</span>
-<span id="cb49-2"><a aria-label="2"></a>norm1 <span class="ot">&lt;-</span> <span class="cf">function</span>(x) x <span class="sc">/</span> <span class="fu">sum</span>(x)</span>
-<span id="cb49-3"><a aria-label="3"></a></span>
-<span id="cb49-4"><a aria-label="4"></a>waves <span class="ot">&lt;-</span> grid <span class="sc">%&gt;%</span> </span>
-<span id="cb49-5"><a aria-label="5"></a>  <span class="fu">mutate</span>(<span class="at">prior        =</span> <span class="fu">norm1</span>(<span class="fu">dbeta</span>(theta, <span class="dv">2</span>, <span class="dv">2</span>)),</span>
-<span id="cb49-6"><a aria-label="6"></a>         <span class="at">after_wave_1 =</span> <span class="fu">norm1</span>(prior <span class="sc">*</span> <span class="fu">dbinom</span>(<span class="dv">3</span>, <span class="dv">10</span>, theta)),             <span class="co"># 3 of 10</span></span>
-<span id="cb49-7"><a aria-label="7"></a>         <span class="at">after_wave_2 =</span> <span class="fu">norm1</span>(after_wave_1 <span class="sc">*</span> <span class="fu">dbinom</span>(<span class="dv">9</span>, <span class="dv">30</span>, theta)),      <span class="co"># 9 of 30 more</span></span>
-<span id="cb49-8"><a aria-label="8"></a>         <span class="at">all_at_once  =</span> <span class="fu">norm1</span>(prior <span class="sc">*</span> <span class="fu">dbinom</span>(<span class="dv">12</span>, <span class="dv">40</span>, theta)))            <span class="co"># 12 of 40</span></span>
-<span id="cb49-9"><a aria-label="9"></a></span>
-<span id="cb49-10"><a aria-label="10"></a>waves <span class="sc">%&gt;%</span> </span>
-<span id="cb49-11"><a aria-label="11"></a>  <span class="fu">pivot_longer</span>(<span class="sc">-</span>theta) <span class="sc">%&gt;%</span> </span>
-<span id="cb49-12"><a aria-label="12"></a>  <span class="fu">mutate</span>(<span class="at">name =</span> <span class="fu">factor</span>(name, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"prior"</span>, <span class="st">"after_wave_1"</span>, <span class="st">"after_wave_2"</span>, <span class="st">"all_at_once"</span>),</span>
-<span id="cb49-13"><a aria-label="13"></a>                       <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"Prior"</span>, <span class="st">"After wave 1 (3/10)"</span>, <span class="st">"After wave 2 (+9/30)"</span>, <span class="st">"All 40 at once (12/40)"</span>))) <span class="sc">%&gt;%</span> </span>
-<span id="cb49-14"><a aria-label="14"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(theta, value, <span class="at">color =</span> name, <span class="at">linetype =</span> name, <span class="at">linewidth =</span> name)) <span class="sc">+</span></span>
-<span id="cb49-15"><a aria-label="15"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span></span>
-<span id="cb49-16"><a aria-label="16"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"grey60"</span>, <span class="st">"#E69F00"</span>, <span class="st">"#0072B2"</span>, <span class="st">"black"</span>)) <span class="sc">+</span></span>
-<span id="cb49-17"><a aria-label="17"></a>  <span class="fu">scale_linetype_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">2</span>)) <span class="sc">+</span></span>
-<span id="cb49-18"><a aria-label="18"></a>  <span class="fu">scale_linewidth_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(.<span class="dv">8</span>, .<span class="dv">8</span>, <span class="dv">2</span>, .<span class="dv">8</span>)) <span class="sc">+</span></span>
-<span id="cb49-19"><a aria-label="19"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="fu">expression</span>(theta), <span class="at">y =</span> <span class="cn">NULL</span>, <span class="at">color =</span> <span class="cn">NULL</span>, <span class="at">linetype =</span> <span class="cn">NULL</span>, <span class="at">linewidth =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
-<span id="cb49-20"><a aria-label="20"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">breaks =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
-<span id="cb49-21"><a aria-label="21"></a>  <span class="fu">guides</span>(<span class="at">color =</span> <span class="fu">guide_legend</span>(<span class="at">ncol =</span> <span class="dv">1</span>)) <span class="sc">+</span></span>
-<span id="cb49-22"><a aria-label="22"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">13</span>) <span class="sc">+</span></span>
-<span id="cb49-23"><a aria-label="23"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"right"</span>, <span class="at">legend.key.width =</span> <span class="fu">unit</span>(<span class="dv">1</span>, <span class="st">"cm"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb48"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a aria-label="1"></a>grid <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">theta =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="at">length.out =</span> <span class="dv">1000</span>))</span>
+<span id="cb48-2"><a aria-label="2"></a>norm1 <span class="ot">&lt;-</span> <span class="cf">function</span>(x) x <span class="sc">/</span> <span class="fu">sum</span>(x)</span>
+<span id="cb48-3"><a aria-label="3"></a></span>
+<span id="cb48-4"><a aria-label="4"></a>waves <span class="ot">&lt;-</span> grid <span class="sc">%&gt;%</span> </span>
+<span id="cb48-5"><a aria-label="5"></a>  <span class="fu">mutate</span>(<span class="at">prior        =</span> <span class="fu">norm1</span>(<span class="fu">dbeta</span>(theta, <span class="dv">2</span>, <span class="dv">2</span>)),</span>
+<span id="cb48-6"><a aria-label="6"></a>         <span class="at">after_wave_1 =</span> <span class="fu">norm1</span>(prior <span class="sc">*</span> <span class="fu">dbinom</span>(<span class="dv">3</span>, <span class="dv">10</span>, theta)),             <span class="co"># 3 of 10</span></span>
+<span id="cb48-7"><a aria-label="7"></a>         <span class="at">after_wave_2 =</span> <span class="fu">norm1</span>(after_wave_1 <span class="sc">*</span> <span class="fu">dbinom</span>(<span class="dv">9</span>, <span class="dv">30</span>, theta)),      <span class="co"># 9 of 30 more</span></span>
+<span id="cb48-8"><a aria-label="8"></a>         <span class="at">all_at_once  =</span> <span class="fu">norm1</span>(prior <span class="sc">*</span> <span class="fu">dbinom</span>(<span class="dv">12</span>, <span class="dv">40</span>, theta)))            <span class="co"># 12 of 40</span></span>
+<span id="cb48-9"><a aria-label="9"></a></span>
+<span id="cb48-10"><a aria-label="10"></a>waves <span class="sc">%&gt;%</span> </span>
+<span id="cb48-11"><a aria-label="11"></a>  <span class="fu">pivot_longer</span>(<span class="sc">-</span>theta) <span class="sc">%&gt;%</span> </span>
+<span id="cb48-12"><a aria-label="12"></a>  <span class="fu">mutate</span>(<span class="at">name =</span> <span class="fu">factor</span>(name, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"prior"</span>, <span class="st">"after_wave_1"</span>, <span class="st">"after_wave_2"</span>, <span class="st">"all_at_once"</span>),</span>
+<span id="cb48-13"><a aria-label="13"></a>                       <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"Prior"</span>, <span class="st">"After wave 1 (3/10)"</span>, <span class="st">"After wave 2 (+9/30)"</span>, <span class="st">"All 40 at once (12/40)"</span>))) <span class="sc">%&gt;%</span> </span>
+<span id="cb48-14"><a aria-label="14"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(theta, value, <span class="at">color =</span> name, <span class="at">linetype =</span> name, <span class="at">linewidth =</span> name)) <span class="sc">+</span></span>
+<span id="cb48-15"><a aria-label="15"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span></span>
+<span id="cb48-16"><a aria-label="16"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"grey60"</span>, <span class="st">"#E69F00"</span>, <span class="st">"#0072B2"</span>, <span class="st">"black"</span>)) <span class="sc">+</span></span>
+<span id="cb48-17"><a aria-label="17"></a>  <span class="fu">scale_linetype_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">2</span>)) <span class="sc">+</span></span>
+<span id="cb48-18"><a aria-label="18"></a>  <span class="fu">scale_linewidth_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(.<span class="dv">8</span>, .<span class="dv">8</span>, <span class="dv">2</span>, .<span class="dv">8</span>)) <span class="sc">+</span></span>
+<span id="cb48-19"><a aria-label="19"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="fu">expression</span>(theta), <span class="at">y =</span> <span class="cn">NULL</span>, <span class="at">color =</span> <span class="cn">NULL</span>, <span class="at">linetype =</span> <span class="cn">NULL</span>, <span class="at">linewidth =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb48-20"><a aria-label="20"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">breaks =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb48-21"><a aria-label="21"></a>  <span class="fu">guides</span>(<span class="at">color =</span> <span class="fu">guide_legend</span>(<span class="at">ncol =</span> <span class="dv">1</span>)) <span class="sc">+</span></span>
+<span id="cb48-22"><a aria-label="22"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">13</span>) <span class="sc">+</span></span>
+<span id="cb48-23"><a aria-label="23"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"right"</span>, <span class="at">legend.key.width =</span> <span class="fu">unit</span>(<span class="dv">1</span>, <span class="st">"cm"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
 </div>
-<img data-src="bayes-1_files/figure-revealjs/unnamed-chunk-35-1.png" style="width:100.0%" class="r-stretch"></section>
+<img data-src="bayes-1_files/figure-revealjs/unnamed-chunk-34-1.png" style="width:100.0%" class="r-stretch"></section>
 <section id="going-from-prior-to-posterior" class="slide level2">
 <h2>Going from prior to posterior</h2>
 <p>What is our regression estimate again?</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb50"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a aria-label="1"></a>fit.<span class="fl">1.</span>bayesian <span class="sc">%&gt;%</span> </span>
-<span id="cb50-2"><a aria-label="2"></a><span class="fu">spread_draws</span>(b_Intercept, b_parent) <span class="sc">%&gt;%</span> </span>
-<span id="cb50-3"><a aria-label="3"></a><span class="fu">select</span>(b_parent) <span class="sc">%&gt;%</span> </span>
-<span id="cb50-4"><a aria-label="4"></a>  <span class="fu">mode_hdi</span>(<span class="at">.width =</span> <span class="fu">c</span>(.<span class="dv">95</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb49"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a aria-label="1"></a>fit.<span class="fl">1.</span>bayesian <span class="sc">%&gt;%</span> </span>
+<span id="cb49-2"><a aria-label="2"></a><span class="fu">spread_draws</span>(b_Intercept, b_parent) <span class="sc">%&gt;%</span> </span>
+<span id="cb49-3"><a aria-label="3"></a><span class="fu">select</span>(b_parent) <span class="sc">%&gt;%</span> </span>
+<span id="cb49-4"><a aria-label="4"></a>  <span class="fu">mode_hdi</span>(<span class="at">.width =</span> <span class="fu">c</span>(.<span class="dv">95</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 1 × 6
@@ -1161,22 +1159,22 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb52"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a aria-label="1"></a>fit.<span class="fl">1.</span>bayesian <span class="sc">%&gt;%</span> </span>
-<span id="cb52-2"><a aria-label="2"></a><span class="fu">spread_draws</span>(b_Intercept, b_parent) <span class="sc">%&gt;%</span> </span>
-<span id="cb52-3"><a aria-label="3"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> b_parent)) <span class="sc">+</span></span>
-<span id="cb52-4"><a aria-label="4"></a>  <span class="fu">stat_slab</span>() <span class="sc">+</span></span>
-<span id="cb52-5"><a aria-label="5"></a>  <span class="fu">stat_function</span>(<span class="at">data =</span> <span class="fu">data.frame</span>(<span class="at">x =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">2</span>, <span class="dv">2</span>)), <span class="fu">aes</span>(x), <span class="at">fun =</span> dnorm, <span class="at">n =</span> <span class="dv">100</span>, <span class="at">args =</span> <span class="fu">list</span>(<span class="dv">0</span>, .<span class="dv">5</span>)) </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb51"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a aria-label="1"></a>fit.<span class="fl">1.</span>bayesian <span class="sc">%&gt;%</span> </span>
+<span id="cb51-2"><a aria-label="2"></a><span class="fu">spread_draws</span>(b_Intercept, b_parent) <span class="sc">%&gt;%</span> </span>
+<span id="cb51-3"><a aria-label="3"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> b_parent)) <span class="sc">+</span></span>
+<span id="cb51-4"><a aria-label="4"></a>  <span class="fu">stat_slab</span>() <span class="sc">+</span></span>
+<span id="cb51-5"><a aria-label="5"></a>  <span class="fu">stat_function</span>(<span class="at">data =</span> <span class="fu">data.frame</span>(<span class="at">x =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">2</span>, <span class="dv">2</span>)), <span class="fu">aes</span>(x), <span class="at">fun =</span> dnorm, <span class="at">n =</span> <span class="dv">100</span>, <span class="at">args =</span> <span class="fu">list</span>(<span class="dv">0</span>, .<span class="dv">5</span>)) </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
 </div>
-<img data-src="bayes-1_files/figure-revealjs/unnamed-chunk-37-1.png" width="960" class="r-stretch"></section>
+<img data-src="bayes-1_files/figure-revealjs/unnamed-chunk-36-1.png" width="960" class="r-stretch"></section>
 <section id="going-from-prior-to-posterior-2" class="slide level2">
 <h2>Going from prior to posterior</h2>
 <ul>
 <li>plausible lines prior to data –&gt; plausible lines after data</li>
 </ul>
 
-<img data-src="bayes-1_files/figure-revealjs/unnamed-chunk-38-1.png" width="960" class="r-stretch"></section>
+<img data-src="bayes-1_files/figure-revealjs/unnamed-chunk-37-1.png" width="960" class="r-stretch"></section>
 <section id="what-is-confusing" class="slide level2 smaller">
 <h2>What is confusing:</h2>
 <ul>

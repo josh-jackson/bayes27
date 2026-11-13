@@ -144,11 +144,15 @@ fit.1.bayesian %>%
 spread_draws(b_Intercept, b_parent)
 ```
 
-## How does the algorithm work?
+## Where do these distributions come from? {.smaller}
 
--   Bayes formula is analytically intractable for most models (the denominator, p(data), is a high-dimensional integral), so one needs to use an algorithm
+brms handed us a whole distribution for each parameter. To see where it comes from, we'll build it up from something you already know:
 
--   Played a role in developing the thermonuclear bomb with one of the earliest computers. Published in 1953 but ignored within stats b/c it was published within a physics/chemistry journal. Took about until 1990 for desktop computers to run fast enough to do at home.
+1. **Likelihood**: how well does each possible parameter value explain the data? (next)
+2. **Maximum likelihood**: pick the single best-scoring value. This is what `lm()`, `glm()`, `lmer()` and SEM software do
+3. What maximum likelihood throws away, and why that matters for thinking in distributions (end of this section)
+4. **Priors**: the missing piece that turns likelihoods into a distribution of plausible values (point 3)
+5. **MCMC**: the algorithm that does all of this when the model is too big to do by hand (end of point 3, and lecture 5)
 
 ## What do you mean by likely? {.smaller}
 ::::: columns
@@ -223,65 +227,12 @@ tibble(p = seq(0.01, 0.99, by = 0.01)) %>%
 - Likelihood is about hypotheses with fixed data. L($\theta$|data) = P(data|$\theta$) across many theta/hypotheses. We entertained many hypotheses (p), which is why we looped it. 
 
 
-## Bayes is just counting
+## Maximum likelihood: pick the best score {.smaller}
 
-::: columns
-::: {.column width="30%"}
-
--   What p is consistent with our data? The most consistent are more likely, but the less consistent are possible
-
-:::
-
-::: {.column width="70%"}
-```{r}
-#| code-fold: true
-tibble(p = seq(0.01, 0.99, by = 0.01)) %>% 
-  mutate(likelihood = dbinom(2, size = 10, prob = p)) %>% 
-  ggplot(aes(x = p, y = likelihood)) + 
-  geom_line()
-
-```
-
-:::
-:::::
-
-## Maximum Likelihood
-
-ML results that we often use for MLM and SEMs are similar. But instead of focusing on the entire distribution, they give us a distribution that is centered on the most likely ie "maximum".
-
-We can fix the distribution around the mean estimate, and then try out different versions of SD for the typically assumed normal distribution, maximizing or finding the most likely value.
-
-Ultimately, what we end up with (in Bayes land) is very closely related to this ML estimate (often identical). Conceptually, though, the process is different.
-
-## How MCMC explores
-
--   The Bayesian (MCMC) algorithm tries out a bunch of parameter values. The ones that are *more likely* will appear more often.
-
--   What do I mean "appear" more often? The algorithm lands on that just as our coin flipping example finds .2 to be most likely, but doesn't rule out other possibilities.
-
-```{r}
-#| code-fold: true
-
-fit.1.bayesian %>% 
-spread_draws(b_Intercept, b_parent) %>% 
-ggplot(aes(x = b_parent)) +
-  stat_dotsinterval()
-```
-
-## The posterior is a pile of guesses {.smaller}
-Our posterior is literally made up of educated parameter guesses by the algorithm. Which estimates are more likely given the data?
-
-```{r}
-
-tidy_draws(fit.1.bayesian)
-```
-
-## Bayesian analysis is just counting {.smaller}
--   Bayesian analysis counts all ways that something can happen (according to assumptions/model). Assumptions with more ways that are consistent with data are more plausible.
-
--   This method is not demonstrably different than standard approaches. Standard likelihood approaches use the values that are most consistent with the data as an estimate. Try out all possible numbers and then tells you which *one* is most likely.
-
--   Where Bayes differs, is that there is no ONE result, that there are many possible results that are consistent with the data
+-   The likelihood curve scores every candidate p by how consistent it is with the data
+-   **Maximum likelihood** reports the candidate with the highest score (the peak) as *the* estimate, plus a standard error for how sharp the peak is
+-   This is how most of the models you've run were estimated: logistic regression, multilevel models, SEM
+-   Next: do it ourselves, by brute force, so you can see exactly what the software does
 
 ## Grid approximation: try every value {.smaller}
 
@@ -450,6 +401,24 @@ surface | profile_mu
 ```
 
 The peak sits at the sample mean (`r round(mean(galton.data$child), 2)`) and SD (`r round(sd(galton.data$child), 2)`): for a normal model, those *are* the maximum likelihood estimates. We'll come back to this grid once we have priors.
+
+## Maximum likelihood keeps one value {.smaller}
+
+What maximum likelihood gives you: the peak (68.09) and a standard error. The uncertainty is about **imaginary repeated samples**: "if we redid the study many times, estimates would vary this much." It is not a statement about which values of μ are plausible *for our data*.
+
+So why not just use the whole likelihood curve as our distribution of plausible values? Because it isn't one:
+
+-   It answers "how likely are **the data**, if μ were this?", not "how plausible is **this μ**, given the data?"
+-   It doesn't add up to 1 across the candidates, so it can't be read as probabilities
+-   It has no way to use what we already knew before collecting the data
+
+## From likelihood to a distribution
+
+To turn "how well does each value explain the data" into "how plausible is each value," Bayes' theorem says we need one more ingredient:
+
+$$\underbrace{p(\theta \mid \text{data})}_{\text{posterior: a distribution}} \;\propto\; \underbrace{p(\text{data} \mid \theta)}_{\text{likelihood: our grid}} \times \underbrace{p(\theta)}_{\text{prior}}$$
+
+That missing piece is the **prior**: point 3.
 
 ## 3. Be comfortable integrating prior knowledge {.smaller}
 -   Priors insert knowledge you have outside of your data into your model
@@ -732,6 +701,38 @@ Centered near `r round(mean(galton.data$child), 2)` inches with a 95% interval o
 -   A typical multilevel model with 50 parameters: 100⁵⁰. More grid points than atoms in the universe
 
 Grids are perfect for building intuition and for one or two parameters. For anything bigger we need an algorithm that spends its time where the posterior actually is, which is what MCMC does (lecture 5). What comes out is the same thing: a pile of guesses, more of them where the posterior is higher.
+
+## How MCMC explores {.smaller}
+
+-   Markov chain Monte Carlo (MCMC) wanders through parameter values, proposing a new value, keeping it more often if prior × likelihood is higher there. The ones that are *more likely* will appear more often.
+
+-   What do I mean "appear" more often? It lands near the peak most often (just as .2 was the best value for the coin) but also visits less likely values, in proportion to their posterior probability. Its draws are the pile of guesses we sampled from the grid, without ever building the grid.
+
+-   Invented for the first computers (and the hydrogen bomb) in 1953, but published in a physics journal; statisticians mostly ignored it until desktop computers got fast enough around 1990.
+
+```{r}
+#| code-fold: true
+
+fit.1.bayesian %>% 
+spread_draws(b_Intercept, b_parent) %>% 
+ggplot(aes(x = b_parent)) +
+  stat_dotsinterval()
+```
+
+## The posterior is a pile of guesses {.smaller}
+Our posterior is literally made up of educated parameter guesses by the algorithm. Which estimates are more likely given the data?
+
+```{r}
+
+tidy_draws(fit.1.bayesian)
+```
+
+## Bayesian analysis is just counting {.smaller}
+-   Bayesian analysis counts all ways that something can happen (according to assumptions/model). Assumptions with more ways that are consistent with data are more plausible.
+
+-   This is the same scoring that maximum likelihood does (try out values, see which are most consistent with the data). Maximum likelihood then reports *one* winner.
+
+-   Where Bayes differs, is that there is no ONE result, that there are many possible results that are consistent with the data
 
 ## Combining the three components
 

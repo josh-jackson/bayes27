@@ -144,7 +144,7 @@
     "href": "bayes-1.html#bayesian-analysis-is-just-counting",
     "title": "Intro",
     "section": "Bayesian analysis is just counting",
-    "text": "Bayesian analysis is just counting\n\nBayesian analysis counts all ways that something can happen (according to assumptions/model). Assumptions with more ways that are consistent with data are more plausible.\nThis method is not demonstrably different than standard approaches. Standard likelihood approaches use the values that are most consistent with the data as an estimate. Try out all possible numbers and then tells you which one is most likely.\nWhere Bayes differs, is that there is no ONE result, that there are many possible results that are consistent with the data"
+    "text": "Bayesian analysis is just counting\n\nBayesian analysis counts all ways that something can happen (according to assumptions/model). Assumptions with more ways that are consistent with data are more plausible.\nThis is the same scoring that maximum likelihood does (try out values, see which are most consistent with the data). Maximum likelihood then reports one winner.\nWhere Bayes differs, is that there is no ONE result, that there are many possible results that are consistent with the data"
   },
   {
     "objectID": "bayes-1.html#be-comfortable-integrating-prior-knowledge",
@@ -7788,7 +7788,7 @@
     "href": "bayes-1.html#how-mcmc-explores",
     "title": "Intro",
     "section": "How MCMC explores",
-    "text": "How MCMC explores\n\nThe Bayesian (MCMC) algorithm tries out a bunch of parameter values. The ones that are more likely will appear more often.\nWhat do I mean “appear” more often? The algorithm lands on that just as our coin flipping example finds .2 to be most likely, but doesn’t rule out other possibilities.\n\n\n\nCode\nfit.1.bayesian %&gt;% \nspread_draws(b_Intercept, b_parent) %&gt;% \nggplot(aes(x = b_parent)) +\n  stat_dotsinterval()"
+    "text": "How MCMC explores\n\nMarkov chain Monte Carlo (MCMC) wanders through parameter values, proposing a new value, keeping it more often if prior × likelihood is higher there. The ones that are more likely will appear more often.\nWhat do I mean “appear” more often? It lands near the peak most often (just as .2 was the best value for the coin) but also visits less likely values, in proportion to their posterior probability. Its draws are the pile of guesses we sampled from the grid, without ever building the grid.\nInvented for the first computers (and the hydrogen bomb) in 1953, but published in a physics journal; statisticians mostly ignored it until desktop computers got fast enough around 1990.\n\n\n\nCode\nfit.1.bayesian %&gt;% \nspread_draws(b_Intercept, b_parent) %&gt;% \nggplot(aes(x = b_parent)) +\n  stat_dotsinterval()"
   },
   {
     "objectID": "bayes-1.html#the-posterior-is-a-pile-of-guesses",
@@ -8062,5 +8062,33 @@
     "title": "Intro",
     "section": "The log-likelihood of one candidate",
     "text": "The log-likelihood of one candidate\nFor one (μ, σ) pair: compute each child’s log density, then add them up.\n\ngalton.data %&gt;%\n  mutate(log_lik = dnorm(child, mean = 68, sd = 2.5, log = TRUE)) %&gt;%\n  select(child, log_lik) %&gt;%\n  slice(c(1, 200, 400, 600, 800))   # the same five children\n\n  child   log_lik\n1  61.7 -5.010429\n2  66.2 -2.094429\n3  67.2 -1.886429\n4  69.2 -1.950429\n5  71.2 -2.654429\n\nsum(dnorm(galton.data$child, mean = 68, sd = 2.5, log = TRUE))\n\n[1] -2173.85\n\n\nThat one number is the score for the candidate μ = 68, σ = 2.5. A grid approximation computes it for every candidate and looks for the highest."
+  },
+  {
+    "objectID": "bayes-1.html#where-do-these-distributions-come-from",
+    "href": "bayes-1.html#where-do-these-distributions-come-from",
+    "title": "Intro",
+    "section": "Where do these distributions come from?",
+    "text": "Where do these distributions come from?\nbrms handed us a whole distribution for each parameter. To see where it comes from, we’ll build it up from something you already know:\n\nLikelihood: how well does each possible parameter value explain the data? (next)\nMaximum likelihood: pick the single best-scoring value. This is what lm(), glm(), lmer() and SEM software do\nWhat maximum likelihood throws away, and why that matters for thinking in distributions (end of this section)\nPriors: the missing piece that turns likelihoods into a distribution of plausible values (point 3)\nMCMC: the algorithm that does all of this when the model is too big to do by hand (end of point 3, and lecture 5)"
+  },
+  {
+    "objectID": "bayes-1.html#maximum-likelihood-pick-the-best-score",
+    "href": "bayes-1.html#maximum-likelihood-pick-the-best-score",
+    "title": "Intro",
+    "section": "Maximum likelihood: pick the best score",
+    "text": "Maximum likelihood: pick the best score\n\nThe likelihood curve scores every candidate p by how consistent it is with the data\nMaximum likelihood reports the candidate with the highest score (the peak) as the estimate, plus a standard error for how sharp the peak is\nThis is how most of the models you’ve run were estimated: logistic regression, multilevel models, SEM\nNext: do it ourselves, by brute force, so you can see exactly what the software does"
+  },
+  {
+    "objectID": "bayes-1.html#maximum-likelihood-keeps-one-value",
+    "href": "bayes-1.html#maximum-likelihood-keeps-one-value",
+    "title": "Intro",
+    "section": "Maximum likelihood keeps one value",
+    "text": "Maximum likelihood keeps one value\nWhat maximum likelihood gives you: the peak (68.09) and a standard error. The uncertainty is about imaginary repeated samples: “if we redid the study many times, estimates would vary this much.” It is not a statement about which values of μ are plausible for our data.\nSo why not just use the whole likelihood curve as our distribution of plausible values? Because it isn’t one:\n\nIt answers “how likely are the data, if μ were this?”, not “how plausible is this μ, given the data?”\nIt doesn’t add up to 1 across the candidates, so it can’t be read as probabilities\nIt has no way to use what we already knew before collecting the data"
+  },
+  {
+    "objectID": "bayes-1.html#from-likelihood-to-a-distribution",
+    "href": "bayes-1.html#from-likelihood-to-a-distribution",
+    "title": "Intro",
+    "section": "From likelihood to a distribution",
+    "text": "From likelihood to a distribution\nTo turn “how well does each value explain the data” into “how plausible is each value,” Bayes’ theorem says we need one more ingredient:\n\\[\\underbrace{p(\\theta \\mid \\text{data})}_{\\text{posterior: a distribution}} \\;\\propto\\; \\underbrace{p(\\text{data} \\mid \\theta)}_{\\text{likelihood: our grid}} \\times \\underbrace{p(\\theta)}_{\\text{prior}}\\]\nThat missing piece is the prior: point 3."
   }
 ]
