@@ -109,14 +109,14 @@
     "href": "bayes-1.html#what-do-you-mean-by-likely",
     "title": "Intro",
     "section": "What do you mean by likely?",
-    "text": "What do you mean by likely?\n\n\n\nThree parameters in a binomial distribution (# successes, # of trials, probability of success).\nOften you would fix #trials and probability of success to see what # successes are most/least likely.\n\n\n\n\nCode\ndata.frame(heads = 0:10, prob = dbinom(x = 0:10, size = 10, prob = .2)) %&gt;% \n  ggplot(aes(x = factor(heads), y = prob)) +\n  geom_col(fill = \"#562457\") +\n  geom_text(aes(label = round(prob, 2), y = prob + .01),\n            position = position_dodge(.9),\n            size = 5, \n            vjust = 0) +\n  labs(title = \"Binomial Distribution of Coin Flips\",\n       subtitle = \"n = 10, p = .2\",\n       x = \"Number of Successes (Heads)\",\n       y = \"Density\") +\n  theme_classic(base_size = 16)"
+    "text": "What do you mean by likely?\n\n\n\nThree parameters in a binomial distribution (# successes, # of trials, probability of success).\nOften you would fix #trials and probability of success to see what # successes are most/least likely.\nProbability/PMF: You treat the parameters (size = n, prob = p) as fixed and known, and you vary the data (x, the number of successes)\n\n\n\n\nCode\ndata.frame(heads = 0:10, prob = dbinom(x = 0:10, size = 10, prob = .2)) %&gt;% \n  ggplot(aes(x = factor(heads), y = prob)) +\n  geom_col(fill = \"#562457\") +\n  geom_text(aes(label = round(prob, 2), y = prob + .01),\n            position = position_dodge(.9),\n            size = 5, \n            vjust = 0) +\n  labs(title = \"Binomial Distribution of Coin Flips\",\n       subtitle = \"n = 10, p = .2\",\n       x = \"Number of Successes (Heads)\",\n       y = \"Density\") +\n  theme_classic(base_size = 16)"
   },
   {
     "objectID": "bayes-1.html#most-often-we-dont-know-what-p-is",
     "href": "bayes-1.html#most-often-we-dont-know-what-p-is",
     "title": "Intro",
     "section": "Most often we don’t know what p is",
-    "text": "Most often we don’t know what p is\n\np is like the parameters we are trying to estimate in our science.\nWe do not know p, that is why we are running the experiment.\nWhat we want is p(hypothesis | data)."
+    "text": "Most often we don’t know what p is\n\np is like the parameters we are trying to estimate in our science. We do not know p, that is why we are running the experiment.\nWhat we want is p(hypothesis | data). What we have is p(data | hypothesis)\nLikelihood: You treat the observed data (x and n) as fixed, and you vary the parameter (p)"
   },
   {
     "objectID": "bayes-1.html#most-often-we-dont-know-what-p-is-1",
@@ -136,15 +136,15 @@
     "objectID": "bayes-1.html#maximum-likelihood",
     "href": "bayes-1.html#maximum-likelihood",
     "title": "Intro",
-    "section": "Maximum Likelihood",
-    "text": "Maximum Likelihood\nML results that we often use for MLM and SEMs are similar. But instead of focusing on the entire distribution, they give us a distribution that is centered on the most likely ie “maximum”.\nWe can fix the distribution around the mean estimate, and then try out different versions of SD for the typically assumed normal distribution, maximizing or finding the most likely value.\nUltimately, what we end up with (in Bayes land) is very closely related to this ML estimate (often identical). Conceptually, though, the process is different."
+    "section": "Maximum likelihood",
+    "text": "Maximum likelihood\n\nMaximum likelihood reports the value with the highest score (the peak) as the estimate, plus a standard error for how sharp the peak is\nThis is how logistic regression, multilevel models, SEM, etc are estimated.\nNext: do it ourselves, by brute force rather than an optimizer"
   },
   {
     "objectID": "bayes-1.html#bayesian-analysis-is-just-counting",
     "href": "bayes-1.html#bayesian-analysis-is-just-counting",
     "title": "Intro",
     "section": "Bayesian analysis is just counting",
-    "text": "Bayesian analysis is just counting\n\nBayesian analysis counts all ways that something can happen (according to assumptions/model). Assumptions with more ways that are consistent with data are more plausible.\nThis is the same scoring that maximum likelihood does (try out values, see which are most consistent with the data). Maximum likelihood then reports one winner.\nWhere Bayes differs, is that there is no ONE result, that there are many possible results that are consistent with the data"
+    "text": "Bayesian analysis is just counting\n\nBayesian analysis counts all ways that something can happen (according to assumptions/model). Assumptions with more ways that are consistent with data are more plausible.\nThis is the same scoring that maximum likelihood does (try out values, see which are most consistent with the data). Maximum likelihood then reports one winner.\nWhere Bayes differs, is that there is no ONE result, that there are many possible results that are consistent with the data\nML is an optimization problem (find the top), and Bayes is an integration problem (average over the whole surface)"
   },
   {
     "objectID": "bayes-1.html#be-comfortable-integrating-prior-knowledge",
@@ -7781,7 +7781,7 @@
     "href": "bayes-1.html#probability-vs.-likelihood",
     "title": "Intro",
     "section": "Probability vs. likelihood",
-    "text": "Probability vs. likelihood\n\n“Probability attaches to possible results; likelihood attaches to hypotheses”\nThe first graph assumed p = .2. Probabilities are about a fixed distribution. p( data | distribution ) or p(heads | p = .2).\nLikelihood is about hypotheses with fixed data. L(\\(\\theta\\)|data) = P(data|\\(\\theta\\)) across many theta/hypotheses. We entertained many hypotheses (p), which is why we looped it."
+    "text": "Probability vs. likelihood\n\n“Probability attaches to possible results; likelihood attaches to hypotheses”\nThe first graph assumed p = .2. Probabilities are about a fixed distribution. p( data | \\(\\theta\\) ) or p(heads | p = .2).\nLikelihood is about hypotheses with fixed data. L(\\(\\theta\\)|data) = P(data|\\(\\theta\\)) across many theta/hypotheses. We entertained many hypotheses (p/\\(\\theta\\)), which is why we looped it."
   },
   {
     "objectID": "bayes-1.html#how-mcmc-explores",
@@ -7970,7 +7970,7 @@
     "href": "bayes-1.html#from-a-grid-to-a-pile-of-guesses",
     "title": "Intro",
     "section": "From a grid to a pile of guesses",
-    "text": "From a grid to a pile of guesses\nSample grid values in proportion to their posterior probability, and you get draws, just like brms gives you:\n\nset.seed(2027)\ncoin_draws &lt;- coin_grid %&gt;%\n  slice_sample(n = 10000, weight_by = posterior, replace = TRUE)\n\ncoin_draws %&gt;% summarise(mean = mean(p), median = median(p),\n                         lower = quantile(p, .025), upper = quantile(p, .975))\n\n# A tibble: 1 × 4\n   mean median lower upper\n  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;\n1 0.249   0.23  0.06  0.52\n\n\n\n\nCode\nggplot(coin_draws, aes(x = p)) +\n  stat_dotsinterval(quantiles = 100) +\n  scale_y_continuous(NULL, breaks = NULL) +\n  theme_classic(base_size = 14)\n\n\n\n\n\n\n\n\n\nEvery summary we use (means, intervals, probabilities) is just counting these guesses."
+    "text": "From a grid to a pile of guesses\nSample grid values in proportion to their posterior probability, and you get draws (educated guesses), just like brms gives you:\n\nset.seed(2027)\ncoin_draws &lt;- coin_grid %&gt;%\n  slice_sample(n = 10000, weight_by = posterior, replace = TRUE)\n\ncoin_draws %&gt;% summarise(mean = mean(p), median = median(p),\n                         lower = quantile(p, .025), upper = quantile(p, .975))\n\n# A tibble: 1 × 4\n   mean median lower upper\n  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;\n1 0.249   0.23  0.06  0.52\n\n\n\n\nCode\nggplot(coin_draws, aes(x = p)) +\n  stat_dotsinterval(quantiles = 100) +\n  scale_y_continuous(NULL, breaks = NULL) +\n  theme_classic(base_size = 14)\n\n\n\n\n\n\n\n\n\nEvery summary we use (means, intervals, probabilities) is just counting these guesses."
   },
   {
     "objectID": "bayes-1.html#two-parameters-galtons-heights",
@@ -7998,7 +7998,7 @@
     "href": "bayes-1.html#grid-approximation-try-every-value",
     "title": "Intro",
     "section": "Grid approximation: try every value",
-    "text": "Grid approximation: try every value\nMaximum likelihood, done by brute force:\n\nMake a grid of possible values for the parameter (e.g., p = 0, .01, .02, …, 1)\nLikelihood: for each grid value, how likely are our data if that value were true? (dbinom(), dnorm(), …)\nFind the peak: the grid value with the highest likelihood is the maximum likelihood estimate (MLE)\n\nThe computer is doing the counting for us: every possible value gets a score for how consistent it is with the data."
+    "text": "Grid approximation: try every value\nMaximum likelihood, but done by brute force:\n\nMake a grid of possible values for the parameter (e.g., p = 0, .01, .02, …, 1)\nLikelihood: for each grid value, how likely are our data if that value were true? (dbinom(), dnorm(), …)\nFind the peak: the grid value with the highest likelihood is the maximum likelihood estimate (MLE)\n\nThe computer is doing the counting for us: every possible value gets a score for how consistent it is with the data."
   },
   {
     "objectID": "bayes-1.html#the-likelihood-across-the-grid",
@@ -8054,7 +8054,7 @@
     "href": "bayes-1.html#why-log",
     "title": "Intro",
     "section": "Why log?",
-    "text": "Why log?\nEach likelihood is a small number (0.007 to 0.16 here). Multiply 928 of them:\n\nprod(dnorm(galton.data$child, mean = 68, sd = 2.5))\n\n[1] 0\n\n\nExactly 0? The true value is about \\(10^{-944}\\), far smaller than the smallest number a computer can store (about \\(10^{-308}\\)). So we take logs:\n\\[\\log L = \\log \\prod_{i} p(y_i \\mid \\theta) = \\sum_{i} \\log p(y_i \\mid \\theta)\\]\n\nProducts become sums, and adding numbers like −2 or −5 never underflows\nSame peak: log is always increasing, so the parameter value with the highest likelihood also has the highest log-likelihood\nLog-likelihoods are negative (logs of numbers below 1). Closer to 0 = better fit\ndnorm(..., log = TRUE) returns the log directly (more accurate than log(dnorm(...)))"
+    "text": "Why log?\nEach likelihood is a small number (0.007 to 0.16 here). Multiply 928 of them:\n\nprod(dnorm(galton.data$child, mean = 68, sd = 2.5))\n\n[1] 0\n\n\nExactly 0? The true value is about \\(10^{-944}\\), far smaller than the smallest number a computer can store (about \\(10^{-308}\\)). So we take logs:\n\\[\\log L = \\log \\prod_{i} p(y_i \\mid \\theta) = \\sum_{i} \\log p(y_i \\mid \\theta)\\]\n\nProducts become sums\nSame peak: log is always increasing, so the parameter value with the highest likelihood also has the highest log-likelihood\nLog-likelihoods are negative (logs of numbers below 1). Closer to 0 = better fit\ndnorm(..., log = TRUE) returns the log directly (more accurate than log(dnorm(...)))"
   },
   {
     "objectID": "bayes-1.html#the-log-likelihood-of-one-candidate",
@@ -8068,7 +8068,7 @@
     "href": "bayes-1.html#where-do-these-distributions-come-from",
     "title": "Intro",
     "section": "Where do these distributions come from?",
-    "text": "Where do these distributions come from?\nbrms handed us a whole distribution for each parameter. To see where it comes from, we’ll build it up from something you already know:\n\nLikelihood: how well does each possible parameter value explain the data? (next)\nMaximum likelihood: pick the single best-scoring value. This is what lm(), glm(), lmer() and SEM software do\nWhat maximum likelihood throws away, and why that matters for thinking in distributions (end of this section)\nPriors: the missing piece that turns likelihoods into a distribution of plausible values (point 3)\nMCMC: the algorithm that does all of this when the model is too big to do by hand (end of point 3, and lecture 5)"
+    "text": "Where do these distributions come from?\nbrms handed us a whole distribution for each parameter. To see where it comes from, we’ll build it up from something you already know:\n\nLikelihood: how well does each possible parameter value explain the data? (next)\nMaximum likelihood: pick the single best-scoring value. This is what glm(), lmer() and lavaan do\nWhat maximum likelihood throws away, and why that matters for thinking in distributions (end of this section)\nPriors: the missing piece that turns likelihoods into a distribution of plausible values (point 3)\nMCMC: the algorithm that does all of this when the model is too big to do by hand (end of point 3, and lecture 5)"
   },
   {
     "objectID": "bayes-1.html#maximum-likelihood-pick-the-best-score",
@@ -8082,7 +8082,7 @@
     "href": "bayes-1.html#maximum-likelihood-keeps-one-value",
     "title": "Intro",
     "section": "Maximum likelihood keeps one value",
-    "text": "Maximum likelihood keeps one value\nWhat maximum likelihood gives you: the peak (68.09) and a standard error. The uncertainty is about imaginary repeated samples: “if we redid the study many times, estimates would vary this much.” It is not a statement about which values of μ are plausible for our data.\nSo why not just use the whole likelihood curve as our distribution of plausible values? Because it isn’t one:\n\nIt answers “how likely are the data, if μ were this?”, not “how plausible is this μ, given the data?”\nIt doesn’t add up to 1 across the possible values, so it can’t be read as probabilities\nIt has no way to use what we already knew before collecting the data"
+    "text": "Maximum likelihood keeps one value\nWhat maximum likelihood gives you: the peak (68.09) and a standard error. The uncertainty is about imaginary repeated samples: “if we redid the study many times, estimates would vary this much.” It is not a statement about which values of μ are plausible for our data.\nSo why not just use the whole likelihood curve as our distribution of plausible values? Because it isn’t one:\n\nIt answers “how likely are the data, if μ were this?”, not “how plausible is this μ, given the data?”\nIt doesn’t add up to 1 across the possible values, so it can’t be read as probabilities"
   },
   {
     "objectID": "bayes-1.html#from-likelihood-to-a-distribution",
@@ -8104,5 +8104,12 @@
     "title": "Intro",
     "section": "The log-likelihood of one set of values",
     "text": "The log-likelihood of one set of values\nFor one (μ, σ) pair: compute each child’s log density, then add them up.\n\ngalton.data %&gt;%\n  mutate(log_lik = dnorm(child, mean = 68, sd = 2.5, log = TRUE)) %&gt;%\n  select(child, log_lik) %&gt;%\n  slice(c(1, 200, 400, 600, 800))   # the same five children\n\n  child   log_lik\n1  61.7 -5.010429\n2  66.2 -2.094429\n3  67.2 -1.886429\n4  69.2 -1.950429\n5  71.2 -2.654429\n\nsum(dnorm(galton.data$child, mean = 68, sd = 2.5, log = TRUE))\n\n[1] -2173.85\n\n\nThat one number is the score for μ = 68, σ = 2.5. A grid approximation computes it for every grid value and looks for the highest."
+  },
+  {
+    "objectID": "bayes-1.html#likelihood",
+    "href": "bayes-1.html#likelihood",
+    "title": "Intro",
+    "section": "Likelihood",
+    "text": "Likelihood\n\n\n\nWe can look at what p is consistent with (or not) based on our data (2 successes in 10 trials) (Rather than assume some specific p).\n\n\n\n\nCode\ntibble(p = seq(0.01, 0.99, by = 0.01)) %&gt;% \n  mutate(likelihood = dbinom(2, size = 10, prob = p)) %&gt;% \n  ggplot(aes(x = p, y = likelihood)) + \n  geom_line()"
   }
 ]

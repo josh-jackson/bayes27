@@ -149,7 +149,7 @@ spread_draws(b_Intercept, b_parent)
 brms handed us a whole distribution for each parameter. To see where it comes from, we'll build it up from something you already know:
 
 1. **Likelihood**: how well does each possible parameter value explain the data? (next)
-2. **Maximum likelihood**: pick the single best-scoring value. This is what `lm()`, `glm()`, `lmer()` and SEM software do
+2. **Maximum likelihood**: pick the single best-scoring value. This is what `glm()`, `lmer()` and lavaan do
 3. What maximum likelihood throws away, and why that matters for thinking in distributions (end of this section)
 4. **Priors**: the missing piece that turns likelihoods into a distribution of plausible values (point 3)
 5. **MCMC**: the algorithm that does all of this when the model is too big to do by hand (end of point 3, and lecture 5)
@@ -159,6 +159,7 @@ brms handed us a whole distribution for each parameter. To see where it comes fr
 ::: {.column width="35%"}
 -   Three parameters in a binomial distribution (# successes, \# of trials, probability of success).
 -   Often you would fix #trials and probability of success to see what \# successes are most/least likely.
+- Probability/PMF: You treat the parameters (size = n, prob = p) as fixed and known, and you vary the data (x, the number of successes)
 :::
 
 ::: {.column width="65%"}
@@ -180,24 +181,16 @@ data.frame(heads = 0:10, prob = dbinom(x = 0:10, size = 10, prob = .2)) %>%
 :::
 :::::
 
-## Likelihood is a function of the parameter
-
-- Note how this is in the form of: 
-p(data | hypothesis)
-
-- "What is the probability of having x successes given a fixed probability of success?"
-
-- Good at rejecting some preconceived state of the world (is this coin fair), but not good at estimating p (what is the probability of heads for this coin?)
 
 ## Most often we don't know what p is
 
-- p is like the parameters we are trying to estimate in our science. 
+- p is like the parameters we are trying to estimate in our science.  We do not know p, that is why we are running the experiment. 
 
-- We do not know p, that is why we are running the experiment. 
+- What we want is p(hypothesis | data). What we have is p(data | hypothesis)
 
-- What we want is p(hypothesis | data). 
+- Likelihood: You treat the observed data (x and n) as fixed, and you vary the parameter (p)
 
-## Most often we don't know what p is
+## Likelihood
 
 ::::: columns
 ::: {.column width="30%"}
@@ -222,21 +215,21 @@ tibble(p = seq(0.01, 0.99, by = 0.01)) %>%
 
 - "Probability attaches to possible results; likelihood attaches to hypotheses" 
 
-- The first graph assumed p = .2. Probabilities are about a fixed distribution. p( data \| distribution ) or p(heads \| p = .2).
+- The first graph assumed p = .2. Probabilities are about a fixed distribution. p( data \| $\theta$ ) or p(heads \| p = .2).
 
-- Likelihood is about hypotheses with fixed data. L($\theta$|data) = P(data|$\theta$) across many theta/hypotheses. We entertained many hypotheses (p), which is why we looped it. 
+- Likelihood is about hypotheses with fixed data. L($\theta$|data) = P(data|$\theta$) across many theta/hypotheses. We entertained many hypotheses (p/$\theta$), which is why we looped it. 
 
 
-## Maximum likelihood: pick the best score {.smaller}
+## Maximum likelihood
 
--   The likelihood curve scores every possible value of p by how consistent it is with the data
 -   **Maximum likelihood** reports the value with the highest score (the peak) as *the* estimate, plus a standard error for how sharp the peak is
--   This is how most of the models you've run were estimated: logistic regression, multilevel models, SEM
--   Next: do it ourselves, by brute force, so you can see exactly what the software does
+-   This is how logistic regression, multilevel models, SEM, etc are estimated. 
+
+-   Next: do it ourselves, by brute force rather than an optimizer 
 
 ## Grid approximation: try every value {.smaller}
 
-Maximum likelihood, done by brute force:
+Maximum likelihood, but done by brute force:
 
 1. **Make a grid** of possible values for the parameter (e.g., p = 0, .01, .02, …, 1)
 2. **Likelihood**: for each grid value, how likely are our data if that value were true? (`dbinom()`, `dnorm()`, …)
@@ -339,7 +332,8 @@ Exactly 0? The true value is about $10^{`r round(sum(dnorm(galton.data$child, 68
 
 $$\log L = \log \prod_{i} p(y_i \mid \theta) = \sum_{i} \log p(y_i \mid \theta)$$
 
--   **Products become sums**, and adding numbers like −2 or −5 never underflows
+-   **Products become sums**
+
 -   **Same peak**: log is always increasing, so the parameter value with the highest likelihood also has the highest log-likelihood
 -   Log-likelihoods are **negative** (logs of numbers below 1). Closer to 0 = better fit
 -   `dnorm(..., log = TRUE)` returns the log directly (more accurate than `log(dnorm(...))`)
@@ -410,7 +404,7 @@ So why not just use the whole likelihood curve as our distribution of plausible 
 
 -   It answers "how likely are **the data**, if μ were this?", not "how plausible is **this μ**, given the data?"
 -   It doesn't add up to 1 across the possible values, so it can't be read as probabilities
--   It has no way to use what we already knew before collecting the data
+
 
 ## From likelihood to a distribution
 
@@ -637,7 +631,7 @@ The posterior is a compromise: the data pull toward .2, the prior pulls toward .
 
 ## From a grid to a pile of guesses {.smaller .nostretch}
 
-Sample grid values in proportion to their posterior probability, and you get draws, just like brms gives you:
+Sample grid values in proportion to their posterior probability, and you get draws (educated guesses), just like brms gives you:
 
 ```{r}
 set.seed(2027)
@@ -671,6 +665,8 @@ height_grid <- height_grid %>%                  # the log-likelihood grid from e
          posterior = exp(log_lik + log_prior - max(log_lik + log_prior)),   # back from logs, safely
          posterior = posterior / sum(posterior))
 ```
+
+
 
 ## The joint posterior of μ and σ {.nostretch .smaller}
 
@@ -733,6 +729,8 @@ tidy_draws(fit.1.bayesian)
 -   This is the same scoring that maximum likelihood does (try out values, see which are most consistent with the data). Maximum likelihood then reports *one* winner.
 
 -   Where Bayes differs, is that there is no ONE result, that there are many possible results that are consistent with the data
+
+- ML is an optimization problem (find the top), and Bayes is an integration problem (average over the whole surface)
 
 ## Combining the three components
 

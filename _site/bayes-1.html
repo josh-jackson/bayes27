@@ -379,7 +379,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <p>brms handed us a whole distribution for each parameter. To see where it comes from, we’ll build it up from something you already know:</p>
 <ol type="1">
 <li><strong>Likelihood</strong>: how well does each possible parameter value explain the data? (next)</li>
-<li><strong>Maximum likelihood</strong>: pick the single best-scoring value. This is what <code>lm()</code>, <code>glm()</code>, <code>lmer()</code> and SEM software do</li>
+<li><strong>Maximum likelihood</strong>: pick the single best-scoring value. This is what <code>glm()</code>, <code>lmer()</code> and lavaan do</li>
 <li>What maximum likelihood throws away, and why that matters for thinking in distributions (end of this section)</li>
 <li><strong>Priors</strong>: the missing piece that turns likelihoods into a distribution of plausible values (point 3)</li>
 <li><strong>MCMC</strong>: the algorithm that does all of this when the model is too big to do by hand (end of point 3, and lecture 5)</li>
@@ -392,6 +392,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <ul>
 <li>Three parameters in a binomial distribution (# successes, # of trials, probability of success).</li>
 <li>Often you would fix #trials and probability of success to see what # successes are most/least likely.</li>
+<li>Probability/PMF: You treat the parameters (size = n, prob = p) as fixed and known, and you vary the data (x, the number of successes)</li>
 </ul>
 </div><div class="column" style="width:65%;">
 <div class="cell">
@@ -420,24 +421,16 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </div>
 </div></div>
 </section>
-<section id="likelihood-is-a-function-of-the-parameter" class="slide level2">
-<h2>Likelihood is a function of the parameter</h2>
-<ul>
-<li><p>Note how this is in the form of: p(data | hypothesis)</p></li>
-<li><p>“What is the probability of having x successes given a fixed probability of success?”</p></li>
-<li><p>Good at rejecting some preconceived state of the world (is this coin fair), but not good at estimating p (what is the probability of heads for this coin?)</p></li>
-</ul>
-</section>
 <section id="most-often-we-dont-know-what-p-is" class="slide level2">
 <h2>Most often we don’t know what p is</h2>
 <ul>
-<li><p>p is like the parameters we are trying to estimate in our science.</p></li>
-<li><p>We do not know p, that is why we are running the experiment.</p></li>
-<li><p>What we want is p(hypothesis | data).</p></li>
+<li><p>p is like the parameters we are trying to estimate in our science. We do not know p, that is why we are running the experiment.</p></li>
+<li><p>What we want is p(hypothesis | data). What we have is p(data | hypothesis)</p></li>
+<li><p>Likelihood: You treat the observed data (x and n) as fixed, and you vary the parameter (p)</p></li>
 </ul>
 </section>
-<section id="most-often-we-dont-know-what-p-is-1" class="slide level2">
-<h2>Most often we don’t know what p is</h2>
+<section id="likelihood" class="slide level2">
+<h2>Likelihood</h2>
 <div class="columns">
 <div class="column" style="width:30%;">
 <ul>
@@ -466,22 +459,21 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <h2>Probability vs.&nbsp;likelihood</h2>
 <ul>
 <li><p>“Probability attaches to possible results; likelihood attaches to hypotheses”</p></li>
-<li><p>The first graph assumed p = .2. Probabilities are about a fixed distribution. p( data | distribution ) or p(heads | p = .2).</p></li>
-<li><p>Likelihood is about hypotheses with fixed data. L(<span class="math inline">\(\theta\)</span>|data) = P(data|<span class="math inline">\(\theta\)</span>) across many theta/hypotheses. We entertained many hypotheses (p), which is why we looped it.</p></li>
+<li><p>The first graph assumed p = .2. Probabilities are about a fixed distribution. p( data | <span class="math inline">\(\theta\)</span> ) or p(heads | p = .2).</p></li>
+<li><p>Likelihood is about hypotheses with fixed data. L(<span class="math inline">\(\theta\)</span>|data) = P(data|<span class="math inline">\(\theta\)</span>) across many theta/hypotheses. We entertained many hypotheses (p/<span class="math inline">\(\theta\)</span>), which is why we looped it.</p></li>
 </ul>
 </section>
-<section id="maximum-likelihood-pick-the-best-score" class="slide level2 smaller">
-<h2>Maximum likelihood: pick the best score</h2>
+<section id="maximum-likelihood" class="slide level2">
+<h2>Maximum likelihood</h2>
 <ul>
-<li>The likelihood curve scores every possible value of p by how consistent it is with the data</li>
-<li><strong>Maximum likelihood</strong> reports the value with the highest score (the peak) as <em>the</em> estimate, plus a standard error for how sharp the peak is</li>
-<li>This is how most of the models you’ve run were estimated: logistic regression, multilevel models, SEM</li>
-<li>Next: do it ourselves, by brute force, so you can see exactly what the software does</li>
+<li><p><strong>Maximum likelihood</strong> reports the value with the highest score (the peak) as <em>the</em> estimate, plus a standard error for how sharp the peak is</p></li>
+<li><p>This is how logistic regression, multilevel models, SEM, etc are estimated.</p></li>
+<li><p>Next: do it ourselves, by brute force rather than an optimizer</p></li>
 </ul>
 </section>
 <section id="grid-approximation-try-every-value" class="slide level2 smaller">
 <h2>Grid approximation: try every value</h2>
-<p>Maximum likelihood, done by brute force:</p>
+<p>Maximum likelihood, but done by brute force:</p>
 <ol type="1">
 <li><strong>Make a grid</strong> of possible values for the parameter (e.g., p = 0, .01, .02, …, 1)</li>
 <li><strong>Likelihood</strong>: for each grid value, how likely are our data if that value were true? (<code>dbinom()</code>, <code>dnorm()</code>, …)</li>
@@ -626,10 +618,10 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <p>Exactly 0? The true value is about <span class="math inline">\(10^{-944}\)</span>, far smaller than the smallest number a computer can store (about <span class="math inline">\(10^{-308}\)</span>). So we take logs:</p>
 <p><span class="math display">\[\log L = \log \prod_{i} p(y_i \mid \theta) = \sum_{i} \log p(y_i \mid \theta)\]</span></p>
 <ul>
-<li><strong>Products become sums</strong>, and adding numbers like −2 or −5 never underflows</li>
-<li><strong>Same peak</strong>: log is always increasing, so the parameter value with the highest likelihood also has the highest log-likelihood</li>
-<li>Log-likelihoods are <strong>negative</strong> (logs of numbers below 1). Closer to 0 = better fit</li>
-<li><code>dnorm(..., log = TRUE)</code> returns the log directly (more accurate than <code>log(dnorm(...))</code>)</li>
+<li><p><strong>Products become sums</strong></p></li>
+<li><p><strong>Same peak</strong>: log is always increasing, so the parameter value with the highest likelihood also has the highest log-likelihood</p></li>
+<li><p>Log-likelihoods are <strong>negative</strong> (logs of numbers below 1). Closer to 0 = better fit</p></li>
+<li><p><code>dnorm(..., log = TRUE)</code> returns the log directly (more accurate than <code>log(dnorm(...))</code>)</p></li>
 </ul>
 </section>
 <section id="the-log-likelihood-of-one-set-of-values" class="slide level2 smaller">
@@ -715,7 +707,6 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <ul>
 <li>It answers “how likely are <strong>the data</strong>, if μ were this?”, not “how plausible is <strong>this μ</strong>, given the data?”</li>
 <li>It doesn’t add up to 1 across the possible values, so it can’t be read as probabilities</li>
-<li>It has no way to use what we already knew before collecting the data</li>
 </ul>
 </section>
 <section id="from-likelihood-to-a-distribution" class="slide level2">
@@ -962,7 +953,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </section>
 <section id="from-a-grid-to-a-pile-of-guesses" class="slide level2 smaller nostretch">
 <h2>From a grid to a pile of guesses</h2>
-<p>Sample grid values in proportion to their posterior probability, and you get draws, just like brms gives you:</p>
+<p>Sample grid values in proportion to their posterior probability, and you get draws (educated guesses), just like brms gives you:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a aria-label="1"></a><span class="fu">set.seed</span>(<span class="dv">2027</span>)</span>
 <span id="cb40-2"><a aria-label="2"></a>coin_draws <span class="ot">&lt;-</span> coin_grid <span class="sc">%&gt;%</span></span>
@@ -1090,6 +1081,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <li><p>Bayesian analysis counts all ways that something can happen (according to assumptions/model). Assumptions with more ways that are consistent with data are more plausible.</p></li>
 <li><p>This is the same scoring that maximum likelihood does (try out values, see which are most consistent with the data). Maximum likelihood then reports <em>one</em> winner.</p></li>
 <li><p>Where Bayes differs, is that there is no ONE result, that there are many possible results that are consistent with the data</p></li>
+<li><p>ML is an optimization problem (find the top), and Bayes is an integration problem (average over the whole surface)</p></li>
 </ul>
 </section>
 <section id="combining-the-three-components" class="slide level2">
