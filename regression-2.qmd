@@ -1,5 +1,5 @@
 ---
-title: Regression 1
+title: Regression part 1
 format: revealjs
 slide-number: true
 editor: source
@@ -17,18 +17,18 @@ execute:
 
 We want to understand why people differ on the DV.
 
-$$ y_i \sim Normal( \mu_i , \sigma )\ $$ $$\mu_i = \beta_1  X_i $$
+$$ y_i \sim Normal( \mu_i , \sigma )\ $$ $$\mu_i = \beta_0 + \beta_1  X_i $$
 
 -   You also have a parameter that is estimated called sigma, which in R lm output is hidden under Residual Standard Error.
 
 
 ## Specify the priors
 
--   We will use this same nomenclature to describe our priors on each of the parameters we are modeling. For example, we are estimating $\beta$ and $\sigma$, and thus we need two priors.
+-   We will use this same nomenclature to describe our priors on each of the parameters we are modeling. For example, we are estimating $\beta_0$, $\beta_1$ and $\sigma$, and thus we need three priors.
 
-$$ y_i \sim Normal( \mu_i , \sigma )\ $$ $$\mu_i = \beta_1  X_i $$
+$$ y_i \sim Normal( \mu_i , \sigma )\ $$ $$\mu_i = \beta_0 + \beta_1  X_i $$
 
-$$\beta_1 \sim Normal(0, 5)\ $$ $$\sigma \sim HalfCauchy(0,10) $$
+$$\beta_0 \sim Normal(0, 10) \qquad \beta_1 \sim Normal(0, 5)$$ $$\sigma \sim HalfCauchy(0,10) $$
 
 ## priors
 
@@ -103,7 +103,7 @@ galton.data
   ggplot(aes(x = x, y = dnorm(x, mean = 68, sd = 5))) +
   geom_line() +
   scale_x_continuous(breaks = seq(from = 0, to = 100, by = 10)) +
-  labs(title = "mu ~ dnorm(68, 5)",
+  labs(title = "Intercept ~ Normal(68, 5)",
        y = "density")
 
 ```
@@ -116,7 +116,7 @@ galton.data
   ggplot(aes(x = x, y = dnorm(x, mean = 0, sd = 5))) +
   geom_line() +
   scale_x_continuous(breaks = seq(from = -15, to = 15, by = 3)) +
-  labs(title = "beta ~ dnorm(0, 5)",
+  labs(title = "slope ~ Normal(0, 5)",
        y = "density")
 ```
 
@@ -136,7 +136,7 @@ p.s
 
 ## Prior predictive: what do our priors expect?
 
--   What do our priors say about what our model expects? Easy to do in head with a simple models, but harder when we get into nonlinear and/or  multivariable models. 
+-   What do our priors say about what our model expects? Easy to do in your head with simple models, but harder when we get into nonlinear and/or  multivariable models. 
 
 -   We can take our prior and simulate what they say about our potential results.
 
@@ -298,7 +298,7 @@ Nearly identical estimates and SEs (vs. `Est.Error`). With 928 families and weak
 plot(fit.1)
 ```
 
-## lm() and brms side by side
+## The fitted line with marginaleffects
 
 ```{r}
 #| code-fold: true
@@ -313,7 +313,7 @@ plot_predictions(fit.1, condition = "parent.c", points = .3)
 
 -   Visualize with a distribution
 
--   Very simplistically, the algorithm tries different potential values. Parameter values that are more consistent with the data will come up more often, much like our coin flipping example
+-   Very simplistically, the algorithm tries different potential values. Parameter values that are more consistent with the data will come up more often, just like sampling from the grid in lecture 1 ("a pile of guesses")
 
 ## What is in the brms object? The draws
 
@@ -378,7 +378,7 @@ Notice that the intercept and slope are nearly uncorrelated. That's a payoff of 
 
 -   Anything we want to accomplish with our model is IN the posterior
 
-## Draws as a data frame
+## Plotting the slope's draws
 
 ```{r}
 #| code-fold: true
@@ -406,7 +406,7 @@ spread_draws(b_Intercept, b_parent.c) %>%
   mode_hdi(.width = c(.5, .89, .95, .99))
 ```
 
-## Plotting a parameter
+## Intervals at several widths
 
 ```{r}
 #| code-fold: true
@@ -416,7 +416,7 @@ spread_draws(b_Intercept, b_parent.c) %>%
 ggplot(aes(y = as.factor(.width), x = b_parent.c, xmin = .lower, xmax = .upper)) + geom_pointinterval() 
 ```
 
-## Plotting several parameters
+## A density with its interval
 
 ```{r}
 #| code-fold: true
@@ -467,7 +467,7 @@ fit.1 %>%
 ## Understanding our model
 
 - Looking at coefficients is sub-optimal for a number of reasons, especially when we get to more complex models. 
-- Raw parameters may be very difficult to interpret substantively. E.g., logistic. Even odd ratios are hard because odds are un-intuitive.
+- Raw parameters may be very difficult to interpret substantively. E.g., logistic. Even odds ratios are hard because odds are unintuitive.
 - We need to define the specific empirical quantity that sheds light on our research question. 
 
 
@@ -540,7 +540,7 @@ fit.1 %>%
 
 -   How did we do it? We fed our model an X that we were interested in to calculate a Y-hat.
 
--   We will be using this idea A. LOT. This isn't Bayesian specific. Instead it is a way you should think about all models. It is often VERY useful to use (e.g., getting group values when using dummy's, testing contrasts, etc).
+-   We will be using this idea A. LOT. This isn't Bayesian specific. Instead it is a way you should think about all models. It is often VERY useful to use (e.g., getting group values when using dummies, testing contrasts, etc).
 
 ## FEED your model
 
@@ -554,16 +554,16 @@ Example: \[0 and 1s\] --\>
 
 ## Feeding new data
 
-- We often pass *new* data to the model The fitted values in {broom} are taking the original Xs and feeding them into the model, and everyone gets a predicted value (which we can calculate residuals from). But *new* values are often much more helpful.
+- We often pass *new* data to the model. The fitted values in {broom} are taking the original Xs and feeding them into the model, and everyone gets a predicted value (which we can calculate residuals from). But *new* values are often much more helpful.
 
-- We already did this with our parent height at 64 example. Same with our dummy variable example where we fed 0 or 1s. Note we did not have to consider our sample size, our model doesn't really care. Just feed it what is relevant.
+- We already did this with our parent height at 64 example. Same idea when we feed 0s and 1s for a dummy variable (next lecture). Note we did not have to consider our sample size, our model doesn't really care. Just feed it what is relevant.
 
 ## How do we feed it? {.smaller}
 ::: columns
 ::: {.column width="60%"}
 First step is to get a data grid. There are many options. base::expand.grid, tidyr::expand_grid, modelr::data_grid, marginaleffects::datagrid, modelbased::visualization_grid, emmeans::ref_grid
 
-We will discuss two, which I find to be the most user friendly. 1. Modelr, which works well with tidyverse and tidybayes. 2. marginaleffects.
+We will discuss two, which I find to be the most user friendly. 1. modelr, which works well with tidyverse and tidybayes. 2. marginaleffects.
 :::
 
 ::: {.column width="40%"}
@@ -588,7 +588,7 @@ datagrid(parent.c = seq(from = min(galton.data$parent.c), to = max(galton.data$p
 
 ## Feed reference grid to tidybayes
 
-The second step after you have the data/reference grid is to feed it into the model. You may have done something similar using the 'predict' functions of base R or {lme4}. We will use the functions from {marginaleffects} or {tidybayes}, both of which operate similarly. {brms} also has a predict function, but its not as user friendly
+The second step after you have the data/reference grid is to feed it into the model. You may have done something similar using the 'predict' functions of base R or {lme4}. We will use the functions from {marginaleffects} or {tidybayes}, both of which operate similarly. {brms} also has a predict function, but it's not as user friendly
 
 ## Reading the grid {.smaller}
 1.  Notice how the predicted values are ".epred"
@@ -645,7 +645,7 @@ predictions(model = fit.1,
 galton.data %>% 
 data_grid(parent.c = seq_range(parent.c, n = 10)) %>% 
  add_epred_draws(fit.1) %>%
-  mutate(parent.c = parent.c + 68.31) %>% 
+  mutate(parent.c = parent.c + mean(galton.data$parent)) %>% 
     ggplot(aes(x = parent.c, y = child)) +
   stat_lineribbon(aes(y = .epred), .width = c(.95), color = "grey") +
   geom_point(aes(x = parent), data = galton.data)
@@ -658,7 +658,7 @@ data_grid(parent.c = seq_range(parent.c, n = 10)) %>%
 galton.data %>% 
 data_grid(parent.c = seq_range(parent.c, n = 10)) %>% 
  add_epred_draws(fit.1, ndraws = 50) %>% 
-   mutate(parent.c = parent.c + 68.31) %>% 
+   mutate(parent.c = parent.c + mean(galton.data$parent)) %>% 
   ggplot(aes(x = parent.c, y = child)) +
   geom_line(aes(y = .epred, group = .draw), alpha = .1)
 ```
@@ -753,7 +753,7 @@ One needs to ask:
 
 1.  Quantity: What is the quantity of interest? (predictions, counterfactuals, slopes)
 2.  Predictors: What predictor values are we interested in? (By defining a grid, you define what units estimates apply to)
-3.  Aggregation: Unit-level, aggregated,subgroup averages, or weighted estimates? (When we compute over a grid of predictor values, we obtain a point estimates for each row of the grid. Do we want each or do we want some summary?)
+3.  Aggregation: Unit-level, aggregated, subgroup averages, or weighted estimates? (When we compute over a grid of predictor values, we obtain a point estimate for each row of the grid. Do we want each or do we want some summary?)
 
 ## Terminology issues
 
@@ -862,7 +862,7 @@ predictions(fit.1)
 
 ## The mean grid
 
-Representative, mean grid. Which is the same as just averaging all predictions.
+Representative, mean grid: every predictor at its mean. For a linear model like this one, that's the same as averaging all the predictions (`avg_predictions()`). Once we have link functions (logistic etc.) the two differ.
 
 ```{r}
 predictions(fit.1,  newdata = "mean")
@@ -914,18 +914,19 @@ pp_check(fit.1)
 :::
 
 
-## Simulated outcomes across the grid
+## pp_check by hand
+
+Ten simulated datasets (one per draw) against the real one: same picture as `pp_check()`, built from `add_predicted_draws()`.
 
 ```{r}
 #| code-fold: true
 galton.data %>% 
- add_predicted_draws(fit.1) %>% 
-    sample_draws(10) %>% 
-    ggplot(aes(.prediction, group = .draw)) +
-   geom_line(stat = "density", alpha = .1) +
-  geom_density(aes(child, group = .draw))+
+  add_predicted_draws(fit.1, ndraws = 10) %>% 
+  ggplot(aes(.prediction, group = .draw)) +
+  geom_line(stat = "density", alpha = .3) +
+  geom_density(data = galton.data, aes(child), inherit.aes = FALSE, color = "#0072B2", linewidth = 1) +
+  labs(x = "child height", subtitle = "grey: 10 simulated datasets · blue: observed") +
   theme_classic()
-
 ```
 
 

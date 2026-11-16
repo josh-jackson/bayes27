@@ -9,7 +9,7 @@
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
   <meta name="generator" content="quarto-1.11.9">
 
-  <title>Bayesian Statistics Spring 2027 – Regression 1</title>
+  <title>Bayesian Statistics Spring 2027 – Regression part 1</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -198,7 +198,7 @@
     <div class="slides">
 
 <section id="title-slide" class="quarto-title-block center">
-  <h1 class="title">Regression 1</h1>
+  <h1 class="title">Regression part 1</h1>
 
 <div class="quarto-title-authors">
 </div>
@@ -215,7 +215,7 @@
 <section id="specify-the-model" class="slide level2">
 <h2>Specify the model</h2>
 <p>We want to understand why people differ on the DV.</p>
-<p><span class="math display">\[ y_i \sim Normal( \mu_i , \sigma )\ \]</span> <span class="math display">\[\mu_i = \beta_1  X_i \]</span></p>
+<p><span class="math display">\[ y_i \sim Normal( \mu_i , \sigma )\ \]</span> <span class="math display">\[\mu_i = \beta_0 + \beta_1  X_i \]</span></p>
 <ul>
 <li>You also have a parameter that is estimated called sigma, which in R lm output is hidden under Residual Standard Error.</li>
 </ul>
@@ -223,10 +223,10 @@
 <section id="specify-the-priors" class="slide level2">
 <h2>Specify the priors</h2>
 <ul>
-<li>We will use this same nomenclature to describe our priors on each of the parameters we are modeling. For example, we are estimating <span class="math inline">\(\beta\)</span> and <span class="math inline">\(\sigma\)</span>, and thus we need two priors.</li>
+<li>We will use this same nomenclature to describe our priors on each of the parameters we are modeling. For example, we are estimating <span class="math inline">\(\beta_0\)</span>, <span class="math inline">\(\beta_1\)</span> and <span class="math inline">\(\sigma\)</span>, and thus we need three priors.</li>
 </ul>
-<p><span class="math display">\[ y_i \sim Normal( \mu_i , \sigma )\ \]</span> <span class="math display">\[\mu_i = \beta_1  X_i \]</span></p>
-<p><span class="math display">\[\beta_1 \sim Normal(0, 5)\ \]</span> <span class="math display">\[\sigma \sim HalfCauchy(0,10) \]</span></p>
+<p><span class="math display">\[ y_i \sim Normal( \mu_i , \sigma )\ \]</span> <span class="math display">\[\mu_i = \beta_0 + \beta_1  X_i \]</span></p>
+<p><span class="math display">\[\beta_0 \sim Normal(0, 10) \qquad \beta_1 \sim Normal(0, 5)\]</span> <span class="math display">\[\sigma \sim HalfCauchy(0,10) \]</span></p>
 </section>
 <section id="priors" class="slide level2">
 <h2>priors</h2>
@@ -1256,7 +1256,7 @@ Mean child (SD)  | 68.09 (2.52)</code></pre>
 <span id="cb9-2"><a aria-label="2"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">y =</span> <span class="fu">dnorm</span>(x, <span class="at">mean =</span> <span class="dv">68</span>, <span class="at">sd =</span> <span class="dv">5</span>))) <span class="sc">+</span></span>
 <span id="cb9-3"><a aria-label="3"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span></span>
 <span id="cb9-4"><a aria-label="4"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">seq</span>(<span class="at">from =</span> <span class="dv">0</span>, <span class="at">to =</span> <span class="dv">100</span>, <span class="at">by =</span> <span class="dv">10</span>)) <span class="sc">+</span></span>
-<span id="cb9-5"><a aria-label="5"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"mu ~ dnorm(68, 5)"</span>,</span>
+<span id="cb9-5"><a aria-label="5"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Intercept ~ Normal(68, 5)"</span>,</span>
 <span id="cb9-6"><a aria-label="6"></a>       <span class="at">y =</span> <span class="st">"density"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
@@ -1271,7 +1271,7 @@ Mean child (SD)  | 68.09 (2.52)</code></pre>
 <span id="cb10-2"><a aria-label="2"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">y =</span> <span class="fu">dnorm</span>(x, <span class="at">mean =</span> <span class="dv">0</span>, <span class="at">sd =</span> <span class="dv">5</span>))) <span class="sc">+</span></span>
 <span id="cb10-3"><a aria-label="3"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span></span>
 <span id="cb10-4"><a aria-label="4"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">seq</span>(<span class="at">from =</span> <span class="sc">-</span><span class="dv">15</span>, <span class="at">to =</span> <span class="dv">15</span>, <span class="at">by =</span> <span class="dv">3</span>)) <span class="sc">+</span></span>
-<span id="cb10-5"><a aria-label="5"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"beta ~ dnorm(0, 5)"</span>,</span>
+<span id="cb10-5"><a aria-label="5"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"slope ~ Normal(0, 5)"</span>,</span>
 <span id="cb10-6"><a aria-label="6"></a>       <span class="at">y =</span> <span class="st">"density"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
@@ -1297,7 +1297,7 @@ Mean child (SD)  | 68.09 (2.52)</code></pre>
 <section id="prior-predictive-what-do-our-priors-expect" class="slide level2">
 <h2>Prior predictive: what do our priors expect?</h2>
 <ul>
-<li><p>What do our priors say about what our model expects? Easy to do in head with a simple models, but harder when we get into nonlinear and/or multivariable models.</p></li>
+<li><p>What do our priors say about what our model expects? Easy to do in your head with simple models, but harder when we get into nonlinear and/or multivariable models.</p></li>
 <li><p>We can take our prior and simulate what they say about our potential results.</p></li>
 <li><p>Our goal is to create an efficient and useful model. One that makes impossible predictions prior to seeing the data isn’t too useful.</p></li>
 </ul>
@@ -1536,8 +1536,8 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 
 </div>
 <img data-src="regression-2_files/figure-revealjs/unnamed-chunk-17-1.png" width="960" class="r-stretch"></section>
-<section id="lm-and-brms-side-by-side" class="slide level2">
-<h2>lm() and brms side by side</h2>
+<section id="the-fitted-line-with-marginaleffects" class="slide level2">
+<h2>The fitted line with marginaleffects</h2>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -1552,7 +1552,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <ul>
 <li><p>The posterior is made up of samples (often referred to as draws).</p></li>
 <li><p>Visualize with a distribution</p></li>
-<li><p>Very simplistically, the algorithm tries different potential values. Parameter values that are more consistent with the data will come up more often, much like our coin flipping example</p></li>
+<li><p>Very simplistically, the algorithm tries different potential values. Parameter values that are more consistent with the data will come up more often, just like sampling from the grid in lecture 1 (“a pile of guesses”)</p></li>
 </ul>
 </section>
 <section id="what-is-in-the-brms-object-the-draws" class="slide level2">
@@ -1700,8 +1700,8 @@ $Intercept
 <li>Anything we want to accomplish with our model is IN the posterior</li>
 </ul>
 </section>
-<section id="draws-as-a-data-frame" class="slide level2">
-<h2>Draws as a data frame</h2>
+<section id="plotting-the-slopes-draws" class="slide level2">
+<h2>Plotting the slope’s draws</h2>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -1752,8 +1752,8 @@ $Intercept
 </div>
 </div>
 </section>
-<section id="plotting-a-parameter" class="slide level2">
-<h2>Plotting a parameter</h2>
+<section id="intervals-at-several-widths" class="slide level2">
+<h2>Intervals at several widths</h2>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -1765,8 +1765,8 @@ $Intercept
 
 </div>
 <img data-src="regression-2_files/figure-revealjs/unnamed-chunk-27-1.png" width="960" class="r-stretch"></section>
-<section id="plotting-several-parameters" class="slide level2">
-<h2>Plotting several parameters</h2>
+<section id="a-density-with-its-interval" class="slide level2">
+<h2>A density with its interval</h2>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -1823,7 +1823,7 @@ $Intercept
 <h2>Understanding our model</h2>
 <ul>
 <li>Looking at coefficients is sub-optimal for a number of reasons, especially when we get to more complex models.</li>
-<li>Raw parameters may be very difficult to interpret substantively. E.g., logistic. Even odd ratios are hard because odds are un-intuitive.</li>
+<li>Raw parameters may be very difficult to interpret substantively. E.g., logistic. Even odds ratios are hard because odds are unintuitive.</li>
 <li>We need to define the specific empirical quantity that sheds light on our research question.</li>
 </ul>
 </section>
@@ -1929,7 +1929,7 @@ $Intercept
 <ul>
 <li><p>What did we do? We calculated the value of our DV when our predictor = -4.3 units under the mean (64 inches). (Basically a slice of the regression band from a few slides ago)</p></li>
 <li><p>How did we do it? We fed our model an X that we were interested in to calculate a Y-hat.</p></li>
-<li><p>We will be using this idea A. LOT. This isn’t Bayesian specific. Instead it is a way you should think about all models. It is often VERY useful to use (e.g., getting group values when using dummy’s, testing contrasts, etc).</p></li>
+<li><p>We will be using this idea A. LOT. This isn’t Bayesian specific. Instead it is a way you should think about all models. It is often VERY useful to use (e.g., getting group values when using dummies, testing contrasts, etc).</p></li>
 </ul>
 </section>
 <section id="feed-your-model" class="slide level2">
@@ -1942,8 +1942,8 @@ $Intercept
 <section id="feeding-new-data" class="slide level2">
 <h2>Feeding new data</h2>
 <ul>
-<li><p>We often pass <em>new</em> data to the model The fitted values in {broom} are taking the original Xs and feeding them into the model, and everyone gets a predicted value (which we can calculate residuals from). But <em>new</em> values are often much more helpful.</p></li>
-<li><p>We already did this with our parent height at 64 example. Same with our dummy variable example where we fed 0 or 1s. Note we did not have to consider our sample size, our model doesn’t really care. Just feed it what is relevant.</p></li>
+<li><p>We often pass <em>new</em> data to the model. The fitted values in {broom} are taking the original Xs and feeding them into the model, and everyone gets a predicted value (which we can calculate residuals from). But <em>new</em> values are often much more helpful.</p></li>
+<li><p>We already did this with our parent height at 64 example. Same idea when we feed 0s and 1s for a dummy variable (next lecture). Note we did not have to consider our sample size, our model doesn’t really care. Just feed it what is relevant.</p></li>
 </ul>
 </section>
 <section id="how-do-we-feed-it" class="slide level2 smaller">
@@ -1951,7 +1951,7 @@ $Intercept
 <div class="columns">
 <div class="column" style="width:60%;">
 <p>First step is to get a data grid. There are many options. base::expand.grid, tidyr::expand_grid, modelr::data_grid, marginaleffects::datagrid, modelbased::visualization_grid, emmeans::ref_grid</p>
-<p>We will discuss two, which I find to be the most user friendly. 1. Modelr, which works well with tidyverse and tidybayes. 2. marginaleffects.</p>
+<p>We will discuss two, which I find to be the most user friendly. 1. modelr, which works well with tidyverse and tidybayes. 2. marginaleffects.</p>
 </div><div class="column" style="width:40%;">
 <div class="cell">
 <details class="code-fold">
@@ -2004,7 +2004,7 @@ $Intercept
 </section>
 <section id="feed-reference-grid-to-tidybayes" class="slide level2">
 <h2>Feed reference grid to tidybayes</h2>
-<p>The second step after you have the data/reference grid is to feed it into the model. You may have done something similar using the ‘predict’ functions of base R or {lme4}. We will use the functions from {marginaleffects} or {tidybayes}, both of which operate similarly. {brms} also has a predict function, but its not as user friendly</p>
+<p>The second step after you have the data/reference grid is to feed it into the model. You may have done something similar using the ‘predict’ functions of base R or {lme4}. We will use the functions from {marginaleffects} or {tidybayes}, both of which operate similarly. {brms} also has a predict function, but it’s not as user friendly</p>
 </section>
 <section id="reading-the-grid" class="slide level2 smaller">
 <h2>Reading the grid</h2>
@@ -2109,7 +2109,7 @@ $Intercept
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb61"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb61-1"><a aria-label="1"></a>galton.data <span class="sc">%&gt;%</span> </span>
 <span id="cb61-2"><a aria-label="2"></a><span class="fu">data_grid</span>(<span class="at">parent.c =</span> <span class="fu">seq_range</span>(parent.c, <span class="at">n =</span> <span class="dv">10</span>)) <span class="sc">%&gt;%</span> </span>
 <span id="cb61-3"><a aria-label="3"></a> <span class="fu">add_epred_draws</span>(fit<span class="fl">.1</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb61-4"><a aria-label="4"></a>  <span class="fu">mutate</span>(<span class="at">parent.c =</span> parent.c <span class="sc">+</span> <span class="fl">68.31</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb61-4"><a aria-label="4"></a>  <span class="fu">mutate</span>(<span class="at">parent.c =</span> parent.c <span class="sc">+</span> <span class="fu">mean</span>(galton.data<span class="sc">$</span>parent)) <span class="sc">%&gt;%</span> </span>
 <span id="cb61-5"><a aria-label="5"></a>    <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> parent.c, <span class="at">y =</span> child)) <span class="sc">+</span></span>
 <span id="cb61-6"><a aria-label="6"></a>  <span class="fu">stat_lineribbon</span>(<span class="fu">aes</span>(<span class="at">y =</span> .epred), <span class="at">.width =</span> <span class="fu">c</span>(.<span class="dv">95</span>), <span class="at">color =</span> <span class="st">"grey"</span>) <span class="sc">+</span></span>
 <span id="cb61-7"><a aria-label="7"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">x =</span> parent), <span class="at">data =</span> galton.data)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -2125,7 +2125,7 @@ $Intercept
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb62"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb62-1"><a aria-label="1"></a>galton.data <span class="sc">%&gt;%</span> </span>
 <span id="cb62-2"><a aria-label="2"></a><span class="fu">data_grid</span>(<span class="at">parent.c =</span> <span class="fu">seq_range</span>(parent.c, <span class="at">n =</span> <span class="dv">10</span>)) <span class="sc">%&gt;%</span> </span>
 <span id="cb62-3"><a aria-label="3"></a> <span class="fu">add_epred_draws</span>(fit<span class="fl">.1</span>, <span class="at">ndraws =</span> <span class="dv">50</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb62-4"><a aria-label="4"></a>   <span class="fu">mutate</span>(<span class="at">parent.c =</span> parent.c <span class="sc">+</span> <span class="fl">68.31</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb62-4"><a aria-label="4"></a>   <span class="fu">mutate</span>(<span class="at">parent.c =</span> parent.c <span class="sc">+</span> <span class="fu">mean</span>(galton.data<span class="sc">$</span>parent)) <span class="sc">%&gt;%</span> </span>
 <span id="cb62-5"><a aria-label="5"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> parent.c, <span class="at">y =</span> child)) <span class="sc">+</span></span>
 <span id="cb62-6"><a aria-label="6"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> .epred, <span class="at">group =</span> .draw), <span class="at">alpha =</span> .<span class="dv">1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
@@ -2250,7 +2250,7 @@ Comparison: dY/dX</code></pre>
 <ol type="1">
 <li>Quantity: What is the quantity of interest? (predictions, counterfactuals, slopes)</li>
 <li>Predictors: What predictor values are we interested in? (By defining a grid, you define what units estimates apply to)</li>
-<li>Aggregation: Unit-level, aggregated,subgroup averages, or weighted estimates? (When we compute over a grid of predictor values, we obtain a point estimates for each row of the grid. Do we want each or do we want some summary?)</li>
+<li>Aggregation: Unit-level, aggregated, subgroup averages, or weighted estimates? (When we compute over a grid of predictor values, we obtain a point estimate for each row of the grid. Do we want each or do we want some summary?)</li>
 </ol>
 </section>
 <section id="terminology-issues" class="slide level2">
@@ -2441,7 +2441,7 @@ Type: response</code></pre>
 </section>
 <section id="the-mean-grid" class="slide level2">
 <h2>The mean grid</h2>
-<p>Representative, mean grid. Which is the same as just averaging all predictions.</p>
+<p>Representative, mean grid: every predictor at its mean. For a linear model like this one, that’s the same as averaging all the predictions (<code>avg_predictions()</code>). Once we have link functions (logistic etc.) the two differ.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb80"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb80-1"><a aria-label="1"></a><span class="fu">predictions</span>(fit<span class="fl">.1</span>,  <span class="at">newdata =</span> <span class="st">"mean"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
@@ -2514,17 +2514,18 @@ Type: response</code></pre>
 </div>
 </div></div>
 </section>
-<section id="simulated-outcomes-across-the-grid" class="slide level2">
-<h2>Simulated outcomes across the grid</h2>
+<section id="pp_check-by-hand" class="slide level2">
+<h2>pp_check by hand</h2>
+<p>Ten simulated datasets (one per draw) against the real one: same picture as <code>pp_check()</code>, built from <code>add_predicted_draws()</code>.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb88"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb88-1"><a aria-label="1"></a>galton.data <span class="sc">%&gt;%</span> </span>
-<span id="cb88-2"><a aria-label="2"></a> <span class="fu">add_predicted_draws</span>(fit<span class="fl">.1</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb88-3"><a aria-label="3"></a>    <span class="fu">sample_draws</span>(<span class="dv">10</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb88-4"><a aria-label="4"></a>    <span class="fu">ggplot</span>(<span class="fu">aes</span>(.prediction, <span class="at">group =</span> .draw)) <span class="sc">+</span></span>
-<span id="cb88-5"><a aria-label="5"></a>   <span class="fu">geom_line</span>(<span class="at">stat =</span> <span class="st">"density"</span>, <span class="at">alpha =</span> .<span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb88-6"><a aria-label="6"></a>  <span class="fu">geom_density</span>(<span class="fu">aes</span>(child, <span class="at">group =</span> .draw))<span class="sc">+</span></span>
+<span id="cb88-2"><a aria-label="2"></a>  <span class="fu">add_predicted_draws</span>(fit<span class="fl">.1</span>, <span class="at">ndraws =</span> <span class="dv">10</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb88-3"><a aria-label="3"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(.prediction, <span class="at">group =</span> .draw)) <span class="sc">+</span></span>
+<span id="cb88-4"><a aria-label="4"></a>  <span class="fu">geom_line</span>(<span class="at">stat =</span> <span class="st">"density"</span>, <span class="at">alpha =</span> .<span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb88-5"><a aria-label="5"></a>  <span class="fu">geom_density</span>(<span class="at">data =</span> galton.data, <span class="fu">aes</span>(child), <span class="at">inherit.aes =</span> <span class="cn">FALSE</span>, <span class="at">color =</span> <span class="st">"#0072B2"</span>, <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb88-6"><a aria-label="6"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"child height"</span>, <span class="at">subtitle =</span> <span class="st">"grey: 10 simulated datasets · blue: observed"</span>) <span class="sc">+</span></span>
 <span id="cb88-7"><a aria-label="7"></a>  <span class="fu">theme_classic</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
