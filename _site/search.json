@@ -298,7 +298,7 @@
     "href": "regression-2.html#specify-our-model",
     "title": "Regression part 1",
     "section": "Specify our model",
-    "text": "Specify our model\nLikelihood: \\[ \\text{C_Height}_i \\sim Normal( \\mu_i , \\sigma ) \\] Linear model: \\[\\mu_i = \\beta_0 + \\beta_1 ( \\text{P_Height}_i - {\\overline{\\mbox{P_Height}}} ) \\]\nPriors: \\[\\beta_0 \\sim Normal(68, 5)\\] \\[\\beta_1 \\sim Normal(0, 5)\\] \\[\\sigma \\sim HalfCauchy(0,1)\\]"
+    "text": "Specify our model\nLikelihood: \\[ \\text{C_Height}_i \\sim Normal( \\mu_i , \\sigma ) \\] Linear model: \\[\\mu_i = \\beta_0 + \\beta_1 ( \\text{P_Height}_i - {\\overline{\\mbox{P_Height}}} ) \\]\nPriors: \\[\\beta_0 \\sim Normal(66, 5)\\] \\[\\beta_1 \\sim Normal(0, 5)\\] \\[\\sigma \\sim Exponential(0.5)\\]\nSame intercept and \\(\\sigma\\) priors as lecture 1. The slope prior is 10 times wider than lecture 1’s, on purpose (more soon)."
   },
   {
     "objectID": "regression-2.html#centering-our-predictors",
@@ -312,7 +312,7 @@
     "href": "regression-2.html#prior-for-intercept",
     "title": "Regression part 1",
     "section": "Prior for intercept",
-    "text": "Prior for intercept\n\n\nCode\n  tibble(x = seq(from = 0, to = 100, by = .1)) %&gt;% \n  ggplot(aes(x = x, y = dnorm(x, mean = 68, sd = 5))) +\n  geom_line() +\n  scale_x_continuous(breaks = seq(from = 0, to = 100, by = 10)) +\n  labs(title = \"Intercept ~ Normal(68, 5)\",\n       y = \"density\")"
+    "text": "Prior for intercept\n\n\nCode\n  tibble(x = seq(from = 0, to = 100, by = .1)) %&gt;% \n  ggplot(aes(x = x, y = dnorm(x, mean = 66, sd = 5))) +\n  geom_line() +\n  scale_x_continuous(breaks = seq(from = 0, to = 100, by = 10)) +\n  labs(title = \"Intercept ~ Normal(66, 5)\",\n       y = \"density\")"
   },
   {
     "objectID": "regression-2.html#prior-for-regression-coefficient",
@@ -326,7 +326,7 @@
     "href": "regression-2.html#prior-for-sigma",
     "title": "Regression part 1",
     "section": "Prior for sigma",
-    "text": "Prior for sigma\n\n\nCode\np.s &lt;- ggplot(data.frame(x = c(0, 10)), aes(x)) +\n  stat_function(fun = dcauchy, n = 200, args = list(0, 1)) +\n  labs(title = \"sigma ~ HalfCauchy(0,1)\")\np.s\n\n\n\n\nWe know that standard deviations have to be positive.\nWhat is an upper bound possibility?"
+    "text": "Prior for sigma\n\n\nCode\np.s &lt;- ggplot(data.frame(x = c(0, 10)), aes(x)) +\n  stat_function(fun = dexp, n = 200, args = list(rate = .5)) +\n  labs(title = \"sigma ~ Exponential(0.5)\", y = \"density\")\np.s\n\n\n\n\nStandard deviations have to be positive, and the exponential only lives above 0. Its mean is 1/rate = 2 inches.\nWhat is an upper bound possibility? A σ of 10 would mean children routinely land 20 inches from the line.\nYou’ll see half-Cauchy priors on σ in older papers (and in earlier versions of this course). They have a much heavier tail; with this much data, either is fine."
   },
   {
     "objectID": "regression-2.html#prior-predictive-what-do-our-priors-expect",
@@ -340,14 +340,14 @@
     "href": "regression-2.html#prior-predictive-by-hand",
     "title": "Regression part 1",
     "section": "Prior predictive by hand",
-    "text": "Prior predictive by hand\nHow do we create it? We sample from the priors. Use that to create regression lines (intercept and slope). Then plot.\n\n\nCode\ntibble(n = 1:100,\n         a = rnorm(100, mean = 68, sd = 5),\n         b = rnorm(100, mean = 0,   sd = 5)) %&gt;% \n  expand(nesting(n, a, b), height = range(galton.data$parent)) %&gt;% \n  mutate(c.height = a + b * (height - mean(galton.data$parent))) %&gt;% \n   ggplot(aes(x = height, y = c.height, group = n)) +\n  geom_line(alpha = 1/10) +\n  coord_cartesian(ylim = c(36, 96))"
+    "text": "Prior predictive by hand\nHow do we create it? We sample from the priors. Use that to create regression lines (intercept and slope). Then plot.\n\n\nCode\ntibble(n = 1:100,\n         a = rnorm(100, mean = 66, sd = 5),\n         b = rnorm(100, mean = 0,   sd = 5)) %&gt;% \n  expand(nesting(n, a, b), height = range(galton.data$parent)) %&gt;% \n  mutate(c.height = a + b * (height - mean(galton.data$parent))) %&gt;% \n   ggplot(aes(x = height, y = c.height, group = n)) +\n  geom_line(alpha = 1/10) +\n  coord_cartesian(ylim = c(36, 96))"
   },
   {
     "objectID": "regression-2.html#prior-predictive-with-brms",
     "href": "regression-2.html#prior-predictive-with-brms",
     "title": "Regression part 1",
     "section": "Prior predictive with brms",
-    "text": "Prior predictive with brms\nbrms can do this for us: sample_prior = \"only\" fits the model while ignoring the data, so the “posterior” is just the prior.\n\n\nCode\nlibrary(brms)\nlibrary(tidybayes)\nlibrary(modelr)\nfit.1p &lt;- \n  brm(family = gaussian,\n      child ~ 1 + parent.c,\n      prior = c(prior(normal(68, 5), class = Intercept),\n                prior(normal(0, 5), class = b),\n                prior(cauchy(0, 1), class = sigma)),\n      data = galton.data, \n      sample_prior = \"only\",\n      backend = \"cmdstanr\",\n      iter = 1000, warmup = 500, chains = 2, cores = 2, \n      file = \"fit.1p\")\n\ngalton.data %&gt;% \n  data_grid(parent.c = seq_range(parent.c, n = 2)) %&gt;% \n  add_epred_draws(fit.1p, ndraws = 100) %&gt;% \n  ggplot(aes(x = parent.c, y = .epred, group = .draw)) +\n  geom_line(alpha = 1/10) +\n  coord_cartesian(ylim = c(36, 96)) +\n  labs(y = \"child height (prior predicted)\")"
+    "text": "Prior predictive with brms\nbrms can do this for us: sample_prior = \"only\" fits the model while ignoring the data, so the “posterior” is just the prior.\n\n\nCode\nlibrary(brms)\nlibrary(tidybayes)\nlibrary(modelr)\nfit.1p &lt;- \n  brm(family = gaussian,\n      child ~ 1 + parent.c,\n      prior = c(prior(normal(66, 5), class = Intercept),\n                prior(normal(0, 5), class = b),\n                prior(exponential(.5), class = sigma)),\n      data = galton.data, \n      sample_prior = \"only\",\n      backend = \"cmdstanr\",\n      iter = 1000, warmup = 500, chains = 2, cores = 2, \n      file = \"fit.1pb\")   # old priors: fit.1p\n\ngalton.data %&gt;% \n  data_grid(parent.c = seq_range(parent.c, n = 2)) %&gt;% \n  add_epred_draws(fit.1p, ndraws = 100) %&gt;% \n  ggplot(aes(x = parent.c, y = .epred, group = .draw)) +\n  geom_line(alpha = 1/10) +\n  coord_cartesian(ylim = c(36, 96)) +\n  labs(y = \"child height (prior predicted)\")"
   },
   {
     "objectID": "regression-2.html#prior-predictive-what-to-do-about-it",
@@ -375,7 +375,7 @@
     "href": "regression-2.html#fitting-the-model",
     "title": "Regression part 1",
     "section": "Fitting the model",
-    "text": "Fitting the model\n\nlibrary(brms)\nfit.1 &lt;- \n  brm(family = gaussian,\n      child ~ 1 + parent.c,\n      prior = c(prior(normal(68, 5), class = Intercept),\n                prior(normal(0, 5), class = b),\n                prior(cauchy(0, 1), class = sigma)),\n      data = galton.data, \n      backend = \"cmdstanr\",\n      iter = 1000, warmup = 500, chains = 2, cores = 2, \n      file = \"fit.1\")"
+    "text": "Fitting the model\n\nlibrary(brms)\nfit.1 &lt;- \n  brm(family = gaussian,\n      child ~ 1 + parent.c,\n      prior = c(prior(normal(66, 5), class = Intercept),\n                prior(normal(0, 5), class = b),\n                prior(exponential(.5), class = sigma)),\n      data = galton.data, \n      backend = \"cmdstanr\",\n      iter = 1000, warmup = 500, chains = 2, cores = 2, \n      file = \"fit.1b\")   # old priors: fit.1"
   },
   {
     "objectID": "regression-2.html#default-priors-get_prior",
@@ -389,7 +389,7 @@
     "href": "regression-2.html#the-summary",
     "title": "Regression part 1",
     "section": "The summary",
-    "text": "The summary\n\n\nCode\nsummary(fit.1)\n\n\n Family: gaussian \n  Links: mu = identity \nFormula: child ~ 1 + parent.c \n   Data: galton.data (Number of observations: 928) \n  Draws: 2 chains, each with iter = 1000; warmup = 500; thin = 1;\n         total post-warmup draws = 1000\n\nRegression Coefficients:\n          Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nIntercept    68.09      0.08    67.95    68.24 1.00      929      741\nparent.c      0.65      0.04     0.56     0.73 1.00      823      611\n\nFurther Distributional Parameters:\n      Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nsigma     2.24      0.05     2.15     2.34 1.01     1041      733\n\nDraws were sampled using sample(hmc). For each parameter, Bulk_ESS\nand Tail_ESS are effective sample size measures, and Rhat is the potential\nscale reduction factor on split chains (at convergence, Rhat = 1)."
+    "text": "The summary\n\n\nCode\nsummary(fit.1)\n\n\n Family: gaussian \n  Links: mu = identity \nFormula: child ~ 1 + parent.c \n   Data: galton.data (Number of observations: 928) \n  Draws: 2 chains, each with iter = 1000; warmup = 500; thin = 1;\n         total post-warmup draws = 1000\n\nRegression Coefficients:\n          Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nIntercept    68.09      0.07    67.95    68.22 1.01     1042      846\nparent.c      0.65      0.04     0.57     0.73 1.00      958      777\n\nFurther Distributional Parameters:\n      Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nsigma     2.24      0.05     2.14     2.34 1.00      892      670\n\nDraws were sampled using sample(hmc). For each parameter, Bulk_ESS\nand Tail_ESS are effective sample size measures, and Rhat is the potential\nscale reduction factor on split chains (at convergence, Rhat = 1)."
   },
   {
     "objectID": "regression-2.html#reading-the-summary",
@@ -417,7 +417,7 @@
     "href": "regression-2.html#what-is-in-the-brms-object-the-draws",
     "title": "Regression part 1",
     "section": "What is in the brms object? The draws",
-    "text": "What is in the brms object? The draws\nThe posterior!\n\n\nCode\nas_draws(fit.1)\n\n\n# A draws_list: 500 iterations, 2 chains, and 6 variables\n\n[chain = 1]\n$b_Intercept\n [1] 68 68 68 68 68 68 68 68 68 68\n\n$b_parent.c\n [1] 0.65 0.67 0.70 0.70 0.64 0.65 0.66 0.60 0.67 0.65\n\n$sigma\n [1] 2.2 2.3 2.3 2.3 2.3 2.2 2.2 2.2 2.2 2.3\n\n$Intercept\n [1] 68 68 68 68 68 68 68 68 68 68\n\n\n[chain = 2]\n$b_Intercept\n [1] 68 68 68 68 68 68 68 68 68 68\n\n$b_parent.c\n [1] 0.61 0.59 0.62 0.67 0.60 0.60 0.59 0.61 0.69 0.69\n\n$sigma\n [1] 2.3 2.2 2.3 2.2 2.3 2.2 2.3 2.3 2.2 2.2\n\n$Intercept\n [1] 68 68 68 68 68 68 68 68 68 68\n\n# ... with 490 more iterations, and 2 more variables"
+    "text": "What is in the brms object? The draws\nThe posterior!\n\n\nCode\nas_draws(fit.1)\n\n\n# A draws_list: 500 iterations, 2 chains, and 6 variables\n\n[chain = 1]\n$b_Intercept\n [1] 68 68 68 68 68 68 68 68 68 68\n\n$b_parent.c\n [1] 0.71 0.58 0.58 0.59 0.59 0.60 0.60 0.72 0.68 0.63\n\n$sigma\n [1] 2.3 2.2 2.3 2.2 2.2 2.3 2.3 2.2 2.3 2.2\n\n$Intercept\n [1] 68 68 68 68 68 68 68 68 68 68\n\n\n[chain = 2]\n$b_Intercept\n [1] 68 68 68 68 68 68 68 68 68 68\n\n$b_parent.c\n [1] 0.63 0.63 0.56 0.68 0.68 0.70 0.59 0.70 0.70 0.68\n\n$sigma\n [1] 2.2 2.2 2.2 2.3 2.2 2.2 2.2 2.3 2.2 2.2\n\n$Intercept\n [1] 68 68 68 68 68 68 68 68 68 68\n\n# ... with 490 more iterations, and 2 more variables"
   },
   {
     "objectID": "regression-2.html#what-is-in-the-brms-object-variable-names",
@@ -438,14 +438,14 @@
     "href": "regression-2.html#posterior-samplesdraws",
     "title": "Regression part 1",
     "section": "posterior samples/draws",
-    "text": "posterior samples/draws\n1k rows indicate 1k parameter samples (we told the algo to give us 1k). All of these parameters represent possible states of the world given our data. Parameters more consistent with the data will appear more often.\n\ntidy_draws(fit.1)\n\n# A tibble: 1,000 × 15\n   .chain .iteration .draw b_Intercept b_parent.c sigma Intercept lprior   lp__\n    &lt;int&gt;      &lt;int&gt; &lt;int&gt;       &lt;dbl&gt;      &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;\n 1      1          1     1        68.1      0.649  2.22      68.1  -7.30 -2070.\n 2      1          2     2        68.0      0.673  2.33      68.0  -7.38 -2072.\n 3      1          3     3        68.0      0.700  2.33      68.0  -7.38 -2073.\n 4      1          4     4        68.1      0.697  2.32      68.1  -7.37 -2072.\n 5      1          5     5        68.1      0.644  2.31      68.1  -7.36 -2071.\n 6      1          6     6        68.0      0.649  2.18      68.0  -7.26 -2071.\n 7      1          7     7        68.0      0.662  2.23      68.0  -7.30 -2070.\n 8      1          8     8        68.0      0.602  2.22      68.0  -7.30 -2071.\n 9      1          9     9        68.0      0.673  2.24      68.0  -7.31 -2071.\n10      1         10    10        68.2      0.652  2.25      68.2  -7.32 -2071 \n# ℹ 990 more rows\n# ℹ 6 more variables: accept_stat__ &lt;dbl&gt;, treedepth__ &lt;dbl&gt;, stepsize__ &lt;dbl&gt;,\n#   divergent__ &lt;dbl&gt;, n_leapfrog__ &lt;dbl&gt;, energy__ &lt;dbl&gt;"
+    "text": "posterior samples/draws\n1k rows indicate 1k parameter samples (we told the algo to give us 1k). All of these parameters represent possible states of the world given our data. Parameters more consistent with the data will appear more often.\n\ntidy_draws(fit.1)\n\n# A tibble: 1,000 × 15\n   .chain .iteration .draw b_Intercept b_parent.c sigma Intercept lprior   lp__\n    &lt;int&gt;      &lt;int&gt; &lt;int&gt;       &lt;dbl&gt;      &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;\n 1      1          1     1        68.1      0.706  2.25      68.1  -6.97 -2071.\n 2      1          2     2        68.1      0.583  2.23      68.1  -6.96 -2071.\n 3      1          3     3        68.0      0.583  2.27      68.0  -6.98 -2071.\n 4      1          4     4        68.1      0.593  2.24      68.1  -6.96 -2071.\n 5      1          5     5        68.1      0.593  2.24      68.1  -6.96 -2071.\n 6      1          6     6        68.2      0.598  2.26      68.2  -6.98 -2072.\n 7      1          7     7        68.1      0.605  2.27      68.1  -6.98 -2070.\n 8      1          8     8        68.1      0.716  2.23      68.1  -6.97 -2072.\n 9      1          9     9        68.2      0.675  2.27      68.2  -6.99 -2072.\n10      1         10    10        68.0      0.629  2.21      68.0  -6.94 -2071.\n# ℹ 990 more rows\n# ℹ 6 more variables: accept_stat__ &lt;dbl&gt;, treedepth__ &lt;dbl&gt;, stepsize__ &lt;dbl&gt;,\n#   divergent__ &lt;dbl&gt;, n_leapfrog__ &lt;dbl&gt;, energy__ &lt;dbl&gt;"
   },
   {
     "objectID": "regression-2.html#spread_draws",
     "href": "regression-2.html#spread_draws",
     "title": "Regression part 1",
     "section": "spread_draws",
-    "text": "spread_draws\nInstead of looking at all of our “draws” or samples for all variables we often want to look at just some of them. Spread draws is an oft used function similar to select in {dplyr}\n\nfit.1 %&gt;% \nspread_draws(b_Intercept, b_parent.c)\n\n# A tibble: 1,000 × 5\n   .chain .iteration .draw b_Intercept b_parent.c\n    &lt;int&gt;      &lt;int&gt; &lt;int&gt;       &lt;dbl&gt;      &lt;dbl&gt;\n 1      1          1     1        68.1      0.649\n 2      1          2     2        68.0      0.673\n 3      1          3     3        68.0      0.700\n 4      1          4     4        68.1      0.697\n 5      1          5     5        68.1      0.644\n 6      1          6     6        68.0      0.649\n 7      1          7     7        68.0      0.662\n 8      1          8     8        68.0      0.602\n 9      1          9     9        68.0      0.673\n10      1         10    10        68.2      0.652\n# ℹ 990 more rows"
+    "text": "spread_draws\nInstead of looking at all of our “draws” or samples for all variables we often want to look at just some of them. Spread draws is an oft used function similar to select in {dplyr}\n\nfit.1 %&gt;% \nspread_draws(b_Intercept, b_parent.c)\n\n# A tibble: 1,000 × 5\n   .chain .iteration .draw b_Intercept b_parent.c\n    &lt;int&gt;      &lt;int&gt; &lt;int&gt;       &lt;dbl&gt;      &lt;dbl&gt;\n 1      1          1     1        68.1      0.706\n 2      1          2     2        68.1      0.583\n 3      1          3     3        68.0      0.583\n 4      1          4     4        68.1      0.593\n 5      1          5     5        68.1      0.593\n 6      1          6     6        68.2      0.598\n 7      1          7     7        68.1      0.605\n 8      1          8     8        68.1      0.716\n 9      1          9     9        68.2      0.675\n10      1         10    10        68.0      0.629\n# ℹ 990 more rows"
   },
   {
     "objectID": "regression-2.html#pairs-plot",
@@ -479,8 +479,8 @@
     "objectID": "regression-2.html#prior-and-posterior-plotted-together",
     "href": "regression-2.html#prior-and-posterior-plotted-together",
     "title": "Regression part 1",
-    "section": "prior and posterior plotted together",
-    "text": "prior and posterior plotted together\n\n\nCode\nfit.1 %&gt;% \n  spread_draws(b_parent.c) %&gt;% \n  ggplot(aes(x = b_parent.c)) +\n  stat_slab() +\n  stat_function(data = data.frame(x = c(-10, 10)), aes(x), fun = dnorm, n = 100, args = list(0, 5))"
+    "section": "Prior and posterior plotted together",
+    "text": "Prior and posterior plotted together\n\n\nCode\nlibrary(patchwork)\nslope_draws &lt;- fit.1 %&gt;% spread_draws(b_parent.c)\np.wide &lt;- ggplot(slope_draws, aes(x = b_parent.c)) +\n  stat_function(fun = dnorm, args = list(0, 5), n = 500, linetype = 2, linewidth = 1, xlim = c(-15, 15)) +\n  stat_slab(aes(y = 0), normalize = \"none\", fill = \"#0072B2\") +   # actual density, same scale as the prior\n  coord_cartesian(xlim = c(-15, 15), ylim = c(0, .1)) +\n  labs(x = \"slope\", y = \"density\", subtitle = \"dashed: prior · blue: posterior\") +\n  theme_classic(base_size = 14)\np.zoom &lt;- ggplot(slope_draws, aes(x = b_parent.c)) +\n  stat_halfeye(fill = \"#0072B2\") +\n  labs(x = \"slope\", y = NULL, subtitle = \"posterior, zoomed in\") +\n  theme_classic(base_size = 14)\np.wide | p.zoom\n\n\n\n\n\n\n\n\n\nThe prior spread its bets from −10 to +10. The data put nearly all of it between 0.57 and 0.73: a silly prior, overwhelmed by 928 families."
   },
   {
     "objectID": "regression-2.html#understanding-our-model",
@@ -515,7 +515,7 @@
     "href": "regression-2.html#expected-height-at-a-64-inch-parent-by-hand",
     "title": "Regression part 1",
     "section": "Expected height at a 64-inch parent, by hand",
-    "text": "Expected height at a 64-inch parent, by hand\n\n\nIf we examine an expected/predicted mean at a certain value across all of our samples we directly compute our uncertainty. In contrast to frequentist where we have to use an ugly equation, which has big assumptions.\n\n\n\nCode\nfit.1 %&gt;% \n  spread_draws(b_Intercept,b_parent.c) %&gt;% \n  select(b_Intercept,b_parent.c) %&gt;% \n  mutate(mu_at_64 = b_Intercept + (b_parent.c * -4.3))\n\n\n# A tibble: 1,000 × 3\n   b_Intercept b_parent.c mu_at_64\n         &lt;dbl&gt;      &lt;dbl&gt;    &lt;dbl&gt;\n 1        68.1      0.649     65.3\n 2        68.0      0.673     65.1\n 3        68.0      0.700     65.0\n 4        68.1      0.697     65.1\n 5        68.1      0.644     65.4\n 6        68.0      0.649     65.2\n 7        68.0      0.662     65.2\n 8        68.0      0.602     65.4\n 9        68.0      0.673     65.1\n10        68.2      0.652     65.4\n# ℹ 990 more rows"
+    "text": "Expected height at a 64-inch parent, by hand\n\n\nIf we examine an expected/predicted mean at a certain value across all of our samples we directly compute our uncertainty. In contrast to frequentist where we have to use an ugly equation, which has big assumptions.\n\n\n\nCode\nfit.1 %&gt;% \n  spread_draws(b_Intercept,b_parent.c) %&gt;% \n  select(b_Intercept,b_parent.c) %&gt;% \n  mutate(mu_at_64 = b_Intercept + (b_parent.c * -4.3))\n\n\n# A tibble: 1,000 × 3\n   b_Intercept b_parent.c mu_at_64\n         &lt;dbl&gt;      &lt;dbl&gt;    &lt;dbl&gt;\n 1        68.1      0.706     65.0\n 2        68.1      0.583     65.6\n 3        68.0      0.583     65.5\n 4        68.1      0.593     65.5\n 5        68.1      0.593     65.5\n 6        68.2      0.598     65.6\n 7        68.1      0.605     65.5\n 8        68.1      0.716     65.1\n 9        68.2      0.675     65.3\n10        68.0      0.629     65.3\n# ℹ 990 more rows"
   },
   {
     "objectID": "regression-2.html#its-whole-posterior-distribution",
@@ -571,14 +571,14 @@
     "href": "regression-2.html#feed-reference-grid-to-marginaleffects",
     "title": "Regression part 1",
     "section": "Feed reference grid to marginaleffects",
-    "text": "Feed reference grid to marginaleffects\n\nNotice how the predicted values are “draw”\nSame number of rows. estimate and conf refer to the mean at a fixed parent.c\n\n\n\nCode\npredictions(model = fit.1,\n             datagrid(parent.c = seq(from = min(galton.data$parent.c), to = max(galton.data$parent.c), length.out = 10))) %&gt;% \n  get_draws() %&gt;%\n  as_tibble() %&gt;%\n  select(drawid, parent.c, draw, estimate, conf.low, conf.high)\n\n\n# A tibble: 10,000 × 6\n   drawid parent.c  draw estimate conf.low conf.high\n   &lt;fct&gt;     &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt;\n 1 1        -4.31   65.3     65.3     64.9      65.7\n 2 1        -3.31   66.0     65.9     65.6      66.2\n 3 1        -2.31   66.6     66.6     66.3      66.8\n 4 1        -1.31   67.3     67.2     67.1      67.4\n 5 1        -0.308  67.9     67.9     67.7      68.0\n 6 1         0.692  68.6     68.5     68.4      68.7\n 7 1         1.69   69.2     69.2     69.0      69.4\n 8 1         2.69   69.9     69.8     69.6      70.1\n 9 1         3.69   70.5     70.5     70.2      70.8\n10 1         4.69   71.2     71.1     70.7      71.6\n# ℹ 9,990 more rows"
+    "text": "Feed reference grid to marginaleffects\n\nNotice how the predicted values are “draw”\nSame number of rows. estimate and conf refer to the mean at a fixed parent.c\n\n\n\nCode\npredictions(model = fit.1,\n             datagrid(parent.c = seq(from = min(galton.data$parent.c), to = max(galton.data$parent.c), length.out = 10))) %&gt;% \n  get_draws() %&gt;%\n  as_tibble() %&gt;%\n  select(drawid, parent.c, draw, estimate, conf.low, conf.high)\n\n\n# A tibble: 10,000 × 6\n   drawid parent.c  draw estimate conf.low conf.high\n   &lt;fct&gt;     &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt;\n 1 1        -4.31   65.0     65.3     64.9      65.7\n 2 1        -3.31   65.7     65.9     65.6      66.2\n 3 1        -2.31   66.5     66.6     66.3      66.8\n 4 1        -1.31   67.2     67.2     67.1      67.4\n 5 1        -0.308  67.9     67.9     67.7      68.0\n 6 1         0.692  68.6     68.5     68.4      68.7\n 7 1         1.69   69.3     69.2     69.0      69.4\n 8 1         2.69   70.0     69.8     69.6      70.1\n 9 1         3.69   70.7     70.5     70.2      70.8\n10 1         4.69   71.4     71.1     70.7      71.5\n# ℹ 9,990 more rows"
   },
   {
     "objectID": "regression-2.html#plot-predictions-from-tidybayes",
     "href": "regression-2.html#plot-predictions-from-tidybayes",
     "title": "Regression part 1",
     "section": "plot predictions from tidybayes",
-    "text": "plot predictions from tidybayes\n\n\nCode\ngalton.data %&gt;% \ndata_grid(parent.c = seq_range(parent.c, n = 10)) %&gt;% \n add_epred_draws(fit.1) %&gt;% \n    ggplot(aes(x = parent.c, y = child)) +\n  stat_lineribbon(aes(y = .epred), .width = c(.95), color = \"grey\") +\n  geom_point(data = galton.data, size = 2)"
+    "text": "plot predictions from tidybayes\n\n\nCode\ngalton.data %&gt;% \ndata_grid(parent.c = seq_range(parent.c, n = 10)) %&gt;% \n add_epred_draws(fit.1) %&gt;% \n  mutate(parent = parent.c + mean(galton.data$parent)) %&gt;%   # back to inches for the x-axis\n    ggplot(aes(x = parent, y = child)) +\n  stat_lineribbon(aes(y = .epred), .width = c(.95), color = \"grey\") +\n  geom_point(data = galton.data, size = 2)\n\n\n\nIt’s just a data frame, so tweaks are ordinary dplyr: here, adding the mean back to put the x-axis in inches."
   },
   {
     "objectID": "regression-2.html#plot-predictions-from-marginaleffects",
@@ -627,7 +627,7 @@
     "href": "regression-2.html#slopes-with-marginaleffects",
     "title": "Regression part 1",
     "section": "Slopes with marginaleffects",
-    "text": "Slopes with marginaleffects\nWe sometimes want to get a slope or estimate at different levels of variables (often this is called the marginal effect). From {marginaleffects} we can use the slopes() function. Note that our slope should be the same at all levels of X.\n\n\nCode\nslopes(\n  fit.1,\n  newdata = datagrid(\n    parent.c = -4.3))\n\n\n\n Estimate 2.5 % 97.5 %\n    0.647 0.564  0.731\n\nTerm: parent.c\nType: response\nComparison: dY/dX"
+    "text": "Slopes with marginaleffects\nWe sometimes want to get a slope or estimate at different levels of variables (often this is called the marginal effect). From {marginaleffects} we can use the slopes() function. Note that our slope should be the same at all levels of X.\n\n\nCode\nslopes(\n  fit.1,\n  newdata = datagrid(\n    parent.c = -4.3))\n\n\n\n Estimate 2.5 % 97.5 %\n    0.646 0.571  0.732\n\nTerm: parent.c\nType: response\nComparison: dY/dX"
   },
   {
     "objectID": "regression-2.html#summary",
@@ -669,21 +669,21 @@
     "href": "regression-2.html#unit-level-predictions-the-draws",
     "title": "Regression part 1",
     "section": "Unit-level predictions: the draws",
-    "text": "Unit-level predictions: the draws\nEach .prediction feeds a parent.c value into our model and simulates a new person: \\(\\tilde{y} \\sim \\text{Normal}(\\beta_0 + \\beta_1 X, \\sigma)\\). Each row of the posterior has different values for each of the three parameters.\n\n\nCode\ngalton.data %&gt;% \ndata_grid(parent.c = seq_range(parent.c, n = 10)) %&gt;% \n  add_predicted_draws(fit.1)\n\n\n# A tibble: 10,000 × 6\n# Groups:   parent.c, .row [10]\n   parent.c  .row .chain .iteration .draw .prediction\n      &lt;dbl&gt; &lt;int&gt;  &lt;int&gt;      &lt;int&gt; &lt;int&gt;       &lt;dbl&gt;\n 1    -4.31     1     NA         NA     1        63.8\n 2    -4.31     1     NA         NA     2        65.9\n 3    -4.31     1     NA         NA     3        65.7\n 4    -4.31     1     NA         NA     4        64.0\n 5    -4.31     1     NA         NA     5        63.7\n 6    -4.31     1     NA         NA     6        64.8\n 7    -4.31     1     NA         NA     7        65.2\n 8    -4.31     1     NA         NA     8        67.9\n 9    -4.31     1     NA         NA     9        63.5\n10    -4.31     1     NA         NA    10        65.3\n# ℹ 9,990 more rows"
+    "text": "Unit-level predictions: the draws\nEach .prediction feeds a parent.c value into our model and simulates a new person: \\(\\tilde{y} \\sim \\text{Normal}(\\beta_0 + \\beta_1 X, \\sigma)\\). Each row of the posterior has different values for each of the three parameters.\n\n\nCode\ngalton.data %&gt;% \ndata_grid(parent.c = seq_range(parent.c, n = 10)) %&gt;% \n  add_predicted_draws(fit.1)\n\n\n# A tibble: 10,000 × 6\n# Groups:   parent.c, .row [10]\n   parent.c  .row .chain .iteration .draw .prediction\n      &lt;dbl&gt; &lt;int&gt;  &lt;int&gt;      &lt;int&gt; &lt;int&gt;       &lt;dbl&gt;\n 1    -4.31     1     NA         NA     1        65.9\n 2    -4.31     1     NA         NA     2        65.7\n 3    -4.31     1     NA         NA     3        66.8\n 4    -4.31     1     NA         NA     4        66.3\n 5    -4.31     1     NA         NA     5        65.4\n 6    -4.31     1     NA         NA     6        68.0\n 7    -4.31     1     NA         NA     7        65.5\n 8    -4.31     1     NA         NA     8        66.6\n 9    -4.31     1     NA         NA     9        67.2\n10    -4.31     1     NA         NA    10        68.3\n# ℹ 9,990 more rows"
   },
   {
     "objectID": "regression-2.html#unit-level-predictions-with-marginaleffects",
     "href": "regression-2.html#unit-level-predictions-with-marginaleffects",
     "title": "Regression part 1",
     "section": "Unit-level predictions with marginaleffects",
-    "text": "Unit-level predictions with marginaleffects\nmarginaleffects’ df is more compact. This is helpful when working with complex datasets, though it does result in less opportunity to sanity check.\n\n\nCode\npredictions(model = fit.1,\n            type = \"prediction\",\n             datagrid(parent.c = seq(from = min(galton.data$parent.c), to = max(galton.data$parent.c), length.out = 10)))\n\n\n\n parent.c Estimate 2.5 % 97.5 %\n   -4.308     65.5  61.0   69.5\n   -3.308     65.9  61.4   70.1\n   -2.308     66.6  62.1   71.0\n   -1.308     67.3  62.9   71.7\n   -0.308     67.9  63.4   72.4\n    0.692     68.6  64.3   73.0\n    1.692     69.1  64.8   73.6\n    2.692     69.7  65.0   74.2\n    3.692     70.5  66.4   74.8\n    4.692     71.1  66.8   75.5\n\nType: prediction"
+    "text": "Unit-level predictions with marginaleffects\nmarginaleffects’ df is more compact. This is helpful when working with complex datasets, though it does result in less opportunity to sanity check.\n\n\nCode\npredictions(model = fit.1,\n            type = \"prediction\",\n             datagrid(parent.c = seq(from = min(galton.data$parent.c), to = max(galton.data$parent.c), length.out = 10)))\n\n\n\n parent.c Estimate 2.5 % 97.5 %\n   -4.308     65.4  60.9   69.6\n   -3.308     65.9  61.4   70.1\n   -2.308     66.6  62.0   71.0\n   -1.308     67.3  63.1   71.8\n   -0.308     67.9  63.4   72.4\n    0.692     68.6  64.3   73.0\n    1.692     69.1  64.8   73.6\n    2.692     69.6  65.2   74.1\n    3.692     70.5  66.4   74.8\n    4.692     71.1  66.8   75.4\n\nType: prediction"
   },
   {
     "objectID": "regression-2.html#and-the-draws-behind-them",
     "href": "regression-2.html#and-the-draws-behind-them",
     "title": "Regression part 1",
     "section": "…and the draws behind them",
-    "text": "…and the draws behind them\nThough if you want to see the full df, then just use get_draws() (called posterior_draws() in older versions of marginaleffects).\n\n\nCode\npredictions(model = fit.1,\n            type = \"prediction\",\n             datagrid(parent.c = seq(from = min(galton.data$parent.c), to = max(galton.data$parent.c), length.out = 10))) %&gt;% \n  get_draws() %&gt;%\n  as_tibble() %&gt;%\n  select(drawid, parent.c, draw, estimate, conf.low, conf.high)\n\n\n# A tibble: 10,000 × 6\n   drawid parent.c  draw estimate conf.low conf.high\n   &lt;fct&gt;     &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt;\n 1 1        -4.31   66.1     65.3     60.8      70.1\n 2 1        -3.31   70.3     66.0     61.6      70.4\n 3 1        -2.31   64.8     66.6     62.3      71.0\n 4 1        -1.31   67.4     67.2     62.9      71.7\n 5 1        -0.308  68.1     67.9     63.5      72.4\n 6 1         0.692  65.3     68.4     63.9      73.0\n 7 1         1.69   70.0     69.2     65.0      73.3\n 8 1         2.69   69.5     69.8     65.6      74.3\n 9 1         3.69   70.7     70.6     66.4      75.3\n10 1         4.69   70.1     71.0     66.5      75.4\n# ℹ 9,990 more rows"
+    "text": "…and the draws behind them\nThough if you want to see the full df, then just use get_draws() (called posterior_draws() in older versions of marginaleffects). It’s a regular data frame, so stat_lineribbon() and friends work on it just as on the tidybayes output.\n\n\nCode\npredictions(model = fit.1,\n            type = \"prediction\",\n             datagrid(parent.c = seq(from = min(galton.data$parent.c), to = max(galton.data$parent.c), length.out = 10))) %&gt;% \n  get_draws() %&gt;%\n  as_tibble() %&gt;%\n  select(drawid, parent.c, draw, estimate, conf.low, conf.high)\n\n\n# A tibble: 10,000 × 6\n   drawid parent.c  draw estimate conf.low conf.high\n   &lt;fct&gt;     &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt;\n 1 1        -4.31   64.3     65.3     60.9      69.9\n 2 1        -3.31   67.3     66.1     61.4      70.7\n 3 1        -2.31   66.1     66.6     62.2      71.0\n 4 1        -1.31   68.0     67.2     62.9      71.7\n 5 1        -0.308  66.5     67.9     63.5      72.3\n 6 1         0.692  67.3     68.4     64.0      73.1\n 7 1         1.69   69.9     69.2     64.9      73.4\n 8 1         2.69   68.2     69.8     65.6      74.4\n 9 1         3.69   71.7     70.6     66.4      75.1\n10 1         4.69   70.7     71.0     66.7      75.2\n# ℹ 9,990 more rows"
   },
   {
     "objectID": "regression-2.html#plotted-with-tidybayes",
@@ -7851,7 +7851,7 @@
     "href": "regression-2.html#summarizing-draws",
     "title": "Regression part 1",
     "section": "Summarizing draws",
-    "text": "Summarizing draws\n\n\nCode\nfit.1 %&gt;% \nspread_draws(b_Intercept, b_parent.c) %&gt;%  \n  select(b_parent.c) %&gt;% \n  mean_qi(.width = c(.5, .89, .95, .99))\n\n\n# A tibble: 4 × 6\n  b_parent.c .lower .upper .width .point .interval\n       &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;    \n1      0.649  0.619  0.678   0.5  mean   qi       \n2      0.649  0.584  0.718   0.89 mean   qi       \n3      0.649  0.564  0.731   0.95 mean   qi       \n4      0.649  0.541  0.748   0.99 mean   qi       \n\n\n\n\nCode\nfit.1 %&gt;% \nspread_draws(b_Intercept, b_parent.c) %&gt;% \n  select(b_parent.c) %&gt;% \n  mode_hdi(.width = c(.5, .89, .95, .99))\n\n\n# A tibble: 4 × 6\n  b_parent.c .lower .upper .width .point .interval\n       &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;    \n1      0.645  0.610  0.668   0.5  mode   hdi      \n2      0.645  0.585  0.720   0.89 mode   hdi      \n3      0.645  0.570  0.734   0.95 mode   hdi      \n4      0.645  0.545  0.751   0.99 mode   hdi"
+    "text": "Summarizing draws\n\n\nCode\nfit.1 %&gt;% \nspread_draws(b_Intercept, b_parent.c) %&gt;%  \n  select(b_parent.c) %&gt;% \n  mean_qi(.width = c(.5, .89, .95, .99))\n\n\n# A tibble: 4 × 6\n  b_parent.c .lower .upper .width .point .interval\n       &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;    \n1      0.648  0.619  0.678   0.5  mean   qi       \n2      0.648  0.583  0.718   0.89 mean   qi       \n3      0.648  0.571  0.732   0.95 mean   qi       \n4      0.648  0.546  0.751   0.99 mean   qi       \n\n\n\n\nCode\nfit.1 %&gt;% \nspread_draws(b_Intercept, b_parent.c) %&gt;% \n  select(b_parent.c) %&gt;% \n  mode_hdi(.width = c(.5, .89, .95, .99))\n\n\n# A tibble: 4 × 6\n  b_parent.c .lower .upper .width .point .interval\n       &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;    \n1      0.639  0.616  0.673   0.5  mode   hdi      \n2      0.639  0.583  0.717   0.89 mode   hdi      \n3      0.639  0.573  0.734   0.95 mode   hdi      \n4      0.639  0.550  0.756   0.99 mode   hdi"
   },
   {
     "objectID": "regression-2.html#plotting-a-parameter",
@@ -7872,7 +7872,7 @@
     "href": "regression-2.html#reading-the-grid",
     "title": "Regression part 1",
     "section": "Reading the grid",
-    "text": "Reading the grid\n\nNotice how the predicted values are “.epred”\nNotice the number of rows. Where did it come from?\n\n\n\nCode\ngalton.data %&gt;% \ndata_grid(parent.c = seq_range(parent.c, n = 10)) %&gt;% \n add_epred_draws(fit.1)\n\n\n# A tibble: 10,000 × 6\n# Groups:   parent.c, .row [10]\n   parent.c  .row .chain .iteration .draw .epred\n      &lt;dbl&gt; &lt;int&gt;  &lt;int&gt;      &lt;int&gt; &lt;int&gt;  &lt;dbl&gt;\n 1    -4.31     1     NA         NA     1   65.3\n 2    -4.31     1     NA         NA     2   65.1\n 3    -4.31     1     NA         NA     3   65.0\n 4    -4.31     1     NA         NA     4   65.1\n 5    -4.31     1     NA         NA     5   65.4\n 6    -4.31     1     NA         NA     6   65.2\n 7    -4.31     1     NA         NA     7   65.2\n 8    -4.31     1     NA         NA     8   65.4\n 9    -4.31     1     NA         NA     9   65.1\n10    -4.31     1     NA         NA    10   65.4\n# ℹ 9,990 more rows"
+    "text": "Reading the grid\nStep 2: feed the grid to the model. add_epred_draws() (tidybayes) and predictions() (marginaleffects) both do this, like predict() in base R.\n\nNotice how the predicted values are “.epred”\nNotice the number of rows. Where did it come from?\n\n\n\nCode\ngalton.data %&gt;% \ndata_grid(parent.c = seq_range(parent.c, n = 10)) %&gt;% \n add_epred_draws(fit.1)\n\n\n# A tibble: 10,000 × 6\n# Groups:   parent.c, .row [10]\n   parent.c  .row .chain .iteration .draw .epred\n      &lt;dbl&gt; &lt;int&gt;  &lt;int&gt;      &lt;int&gt; &lt;int&gt;  &lt;dbl&gt;\n 1    -4.31     1     NA         NA     1   65.0\n 2    -4.31     1     NA         NA     2   65.6\n 3    -4.31     1     NA         NA     3   65.5\n 4    -4.31     1     NA         NA     4   65.5\n 5    -4.31     1     NA         NA     5   65.5\n 6    -4.31     1     NA         NA     6   65.6\n 7    -4.31     1     NA         NA     7   65.5\n 8    -4.31     1     NA         NA     8   65.1\n 9    -4.31     1     NA         NA     9   65.3\n10    -4.31     1     NA         NA    10   65.3\n# ℹ 9,990 more rows"
   },
   {
     "objectID": "regression-2.html#slopes-at-chosen-values",
@@ -7886,14 +7886,14 @@
     "href": "regression-2.html#the-default-grid-the-observed-data",
     "title": "Regression part 1",
     "section": "The default grid: the observed data",
-    "text": "The default grid: the observed data\nmarginaleffects::predictions defaults to returning “fitted” values based on full original data as the grid. Note the size of the df is the sample size\n\npredictions(fit.1)\n\n\n Estimate 2.5 % 97.5 %\n     69.5  69.3   69.8\n     68.2  68.1   68.4\n     66.3  66.0   66.5\n     65.6  65.3   66.0\n     65.3  64.9   65.7\n--- 918 rows omitted. See ?print.marginaleffects ---\n     68.9  68.7   69.1\n     68.9  68.7   69.1\n     68.9  68.7   69.1\n     68.9  68.7   69.1\n     68.9  68.7   69.1\nType: response"
+    "text": "The default grid: the observed data\nmarginaleffects::predictions defaults to returning “fitted” values based on full original data as the grid. Note the size of the df is the sample size\n\npredictions(fit.1)\n\n\n Estimate 2.5 % 97.5 %\n     69.5  69.3   69.7\n     68.2  68.1   68.3\n     66.3  66.0   66.5\n     65.6  65.3   66.0\n     65.3  64.9   65.7\n--- 918 rows omitted. See ?print.marginaleffects ---\n     68.9  68.7   69.0\n     68.9  68.7   69.0\n     68.9  68.7   69.0\n     68.9  68.7   69.0\n     68.9  68.7   69.0\nType: response"
   },
   {
     "objectID": "regression-2.html#the-mean-grid",
     "href": "regression-2.html#the-mean-grid",
     "title": "Regression part 1",
     "section": "The mean grid",
-    "text": "The mean grid\nRepresentative, mean grid: every predictor at its mean. For a linear model like this one, that’s the same as averaging all the predictions (avg_predictions()). Once we have link functions (logistic etc.) the two differ.\n\npredictions(fit.1,  newdata = \"mean\")\n\n\n Estimate 2.5 % 97.5 %\n     68.1    68   68.2\n\nType: response\n\n\n\navg_predictions(fit.1)\n\n\n Estimate 2.5 % 97.5 %\n     68.1    68   68.2\n\nType: response"
+    "text": "The mean grid\nRepresentative, mean grid: every predictor at its mean. For a linear model like this one, that’s the same as averaging all the predictions (avg_predictions()). Once we have link functions (logistic etc.) the two differ.\n\npredictions(fit.1,  newdata = \"mean\")\n\n\n Estimate 2.5 % 97.5 %\n     68.1  67.9   68.2\n\nType: response\n\n\n\navg_predictions(fit.1)\n\n\n Estimate 2.5 % 97.5 %\n     68.1  67.9   68.2\n\nType: response"
   },
   {
     "objectID": "regression-2.html#a-grid-you-choose",
@@ -8139,5 +8139,47 @@
     "title": "Regression part 1",
     "section": "pp_check by hand",
     "text": "pp_check by hand\nTen simulated datasets (one per draw) against the real one: same picture as pp_check(), built from add_predicted_draws().\n\n\nCode\ngalton.data %&gt;% \n  add_predicted_draws(fit.1, ndraws = 10) %&gt;% \n  ggplot(aes(.prediction, group = .draw)) +\n  geom_line(stat = \"density\", alpha = .3) +\n  geom_density(data = galton.data, aes(child), inherit.aes = FALSE, color = \"#0072B2\", linewidth = 1) +\n  labs(x = \"child height\", subtitle = \"grey: 10 simulated datasets · blue: observed\") +\n  theme_classic()"
+  },
+  {
+    "objectID": "regression-2.html#where-we-left-off",
+    "href": "regression-2.html#where-we-left-off",
+    "title": "Regression part 1",
+    "section": "Where we left off",
+    "text": "Where we left off\nLecture 1, in one line each:\n\nLikelihood: how probable are the data if the parameters took these values?\nGrid: try every value, score each one. Maximum likelihood keeps the top one\nPriors: multiply in what we believed beforehand; prior × likelihood ∝ posterior\nDraws: sample a pile of guesses from the posterior, more where it’s higher. MCMC does this without ever building the grid\n\nToday brms runs the MCMC for us. Everything we do afterwards is working with that pile of draws: summarizing it, plotting it, and feeding the model values to get predictions.\n\\[ y_i \\sim Normal( \\mu_i , \\sigma ) \\qquad \\mu_i = \\beta_0 + \\beta_1  X_i \\]\nThree parameters (\\(\\beta_0\\), \\(\\beta_1\\), \\(\\sigma\\)), so three priors. (\\(\\sigma\\) is what lm() calls the Residual Standard Error.)"
+  },
+  {
+    "objectID": "regression-2.html#choosing-priors",
+    "href": "regression-2.html#choosing-priors",
+    "title": "Regression part 1",
+    "section": "Choosing priors",
+    "text": "Choosing priors\nIn general we want to:\n\nCenter slopes on no effect (0). Center intercepts on a plausible value of the outcome, not on 0\nSpread: wide enough to include every plausible value, narrow enough to rule out absurd ones. The spread is where the thinking goes\nJustify each one in the units of your variables (“children are rarely more than 6 inches from average”), not with labels (“weakly informative”)\n\nPriors aren’t a license to be subjective in secret: they’re written down in the model, just like the likelihood, and anyone can criticize them or try others."
+  },
+  {
+    "objectID": "regression-2.html#these-priors-in-inches",
+    "href": "regression-2.html#these-priors-in-inches",
+    "title": "Regression part 1",
+    "section": "These priors, in inches",
+    "text": "These priors, in inches\n\n\n\n\n\n\n\nPrior\nIn words\n\n\n\n\n\\(\\beta_0 \\sim Normal(66, 5)\\)\nchildren of average-height parents average 56–76 inches (95%). Anything outside that would be a strange population\n\n\n\\(\\beta_1 \\sim Normal(0, 5)\\)\na parent 1 inch taller could mean children 10 inches taller or shorter. Deliberately silly; lecture 1’s N(0, 0.5) says ±1 inch per inch\n\n\n\\(\\sigma \\sim Exponential(0.5)\\)\nchildren scatter around the line by ~2 inches on average, 95% sure under 6. Not a foot\n\n\n\nThis is the kind of justification HW 2 Q2 wants: a sentence in the units of your variables."
+  },
+  {
+    "objectID": "regression-2.html#same-posterior-two-routes",
+    "href": "regression-2.html#same-posterior-two-routes",
+    "title": "Regression part 1",
+    "section": "Same posterior, two routes",
+    "text": "Same posterior, two routes\nLecture 1’s grid for Galton’s heights (μ and σ, same priors) vs. brms fitting child ~ 1:\n\n\nCode\nlibrary(patchwork)\nfit.0 &lt;- brm(family = gaussian, child ~ 1,\n             prior = c(prior(normal(66, 5), class = Intercept),\n                       prior(exponential(.5), class = sigma)),\n             data = galton.data, backend = \"cmdstanr\",\n             iter = 1000, warmup = 500, chains = 2, cores = 2, file = \"fit.0\")\n\n# lecture 1's grid: log-likelihood + log-prior for every (mu, sigma) combination\nheight_grid &lt;- crossing(mu    = seq(from = 67.6, to = 68.6, length.out = 150),\n                        sigma = seq(from = 2.3,  to = 2.8,  length.out = 150)) %&gt;%\n  mutate(log_post = map2_dbl(mu, sigma, \\(m, s) sum(dnorm(galton.data$child, m, s, log = TRUE))) +\n           dnorm(mu, 66, 5, log = TRUE) + dexp(sigma, rate = .5, log = TRUE),\n         post = exp(log_post - max(log_post)))\nmarginal &lt;- function(grid, par) {           # sum over the other parameter, scale to a density\n  step &lt;- diff(sort(unique(grid[[par]])))[1]\n  grid %&gt;% group_by(value = .data[[par]]) %&gt;% summarise(p = sum(post)) %&gt;% mutate(density = p / sum(p) / step)\n}\ndraws.0 &lt;- fit.0 %&gt;% spread_draws(b_Intercept, sigma)\ncompare &lt;- function(x, par, lab) {\n  ggplot(draws.0, aes(x = .data[[x]])) +\n    geom_histogram(aes(y = after_stat(density)), bins = 40, fill = \"grey80\", colour = \"white\") +\n    geom_line(data = marginal(height_grid, par), aes(x = value, y = density), colour = \"#0072B2\", linewidth = 1) +\n    labs(x = lab, y = NULL) + scale_y_continuous(breaks = NULL) + theme_classic(base_size = 14)\n}\ncompare(\"b_Intercept\", \"mu\", expression(mu)) | compare(\"sigma\", \"sigma\", expression(sigma))\n\n\n\n\n\n\n\n\n\nGrey: 1,000 MCMC draws. Blue: the grid posterior. Same answer, but MCMC never built the 22,500-row grid, which is why it still works with 3 or 300 parameters."
+  },
+  {
+    "objectID": "regression-2.html#where-do-1000-draws-come-from",
+    "href": "regression-2.html#where-do-1000-draws-come-from",
+    "title": "Regression part 1",
+    "section": "Where do 1,000 draws come from?",
+    "text": "Where do 1,000 draws come from?\n\nndraws(fit.1)\n\n[1] 1000\n\n\nchains = 2, iter = 1000, warmup = 500: each chain runs 1,000 iterations and throws away the first 500 while it finds its footing. 2 × (1000 − 500) = 1,000 draws.\n\nMore draws give a sharper picture of the same posterior: smoother histograms, more stable interval endpoints\nThey don’t give you more information about the slope. That comes from the data (928 families) and the priors. The posterior SD won’t shrink if you ask for 4,000 draws (HW 2 Q5)"
+  },
+  {
+    "objectID": "regression-2.html#pp_check-with-a-statistic",
+    "href": "regression-2.html#pp_check-with-a-statistic",
+    "title": "Regression part 1",
+    "section": "pp_check with a statistic",
+    "text": "pp_check with a statistic\ntype = \"stat\" computes one statistic for each simulated dataset and compares it with the observed value (the line):\n\n\nCode\npp_check(fit.1, type = \"stat\", stat = \"sd\") | pp_check(fit.1, type = \"stat\", stat = \"max\")\n\n\n\n\n\n\n\n\n\nPick statistics the model isn’t built to match: a normal model nearly always gets the mean and SD right. The min, max, or skew show misfits (bounded scales, ceilings). Here the max catches one: Galton’s heights were binned and top out at 73.7 inches, but the model keeps simulating taller children."
   }
 ]

@@ -13,31 +13,30 @@ execute:
 - Begin to think about how we can "feed" our model for insight and profit
 - Get used to manipulating our posterior and how it can be used to inform prior choice and model evaluation
 
-## Specify the model
+## Where we left off {.smaller}
 
-We want to understand why people differ on the DV.
+Lecture 1, in one line each:
 
-$$ y_i \sim Normal( \mu_i , \sigma )\ $$ $$\mu_i = \beta_0 + \beta_1  X_i $$
+1.  **Likelihood**: how probable are the data if the parameters took these values?
+2.  **Grid**: try every value, score each one. Maximum likelihood keeps the top one
+3.  **Priors**: multiply in what we believed beforehand; prior × likelihood ∝ posterior
+4.  **Draws**: sample a pile of guesses from the posterior, more where it's higher. MCMC does this without ever building the grid
 
--   You also have a parameter that is estimated called sigma, which in R lm output is hidden under Residual Standard Error.
+Today brms runs the MCMC for us. Everything we do afterwards is working with that pile of draws: summarizing it, plotting it, and **feeding** the model values to get predictions.
 
+$$ y_i \sim Normal( \mu_i , \sigma ) \qquad \mu_i = \beta_0 + \beta_1  X_i $$
 
-## Specify the priors
+Three parameters ($\beta_0$, $\beta_1$, $\sigma$), so three priors. ($\sigma$ is what `lm()` calls the Residual Standard Error.)
 
--   We will use this same nomenclature to describe our priors on each of the parameters we are modeling. For example, we are estimating $\beta_0$, $\beta_1$ and $\sigma$, and thus we need three priors.
-
-$$ y_i \sim Normal( \mu_i , \sigma )\ $$ $$\mu_i = \beta_0 + \beta_1  X_i $$
-
-$$\beta_0 \sim Normal(0, 10) \qquad \beta_1 \sim Normal(0, 5)$$ $$\sigma \sim HalfCauchy(0,10) $$
-
-## priors
+## Choosing priors {.smaller}
 
 In general we want to:
 
-1.  Center our priors around a null effect
-2.  Have dispersion (our accuracy metric) be a balance between not too large and not too little. This choice requires thought, whereas centering a prior around zero requires none.
+1.  **Center** slopes on no effect (0). Center intercepts on a plausible value of the *outcome*, not on 0
+2.  **Spread**: wide enough to include every plausible value, narrow enough to rule out absurd ones. The spread is where the thinking goes
+3.  **Justify each one in the units of your variables** ("children are rarely more than 6 inches from average"), not with labels ("weakly informative")
 
-This also gets around the "subjectivity in objective science" arguments against bayes.
+Priors aren't a license to be subjective in secret: they're written down in the model, just like the likelihood, and anyone can criticize them or try others.
 
 ## Example
 
@@ -84,7 +83,19 @@ report_sample(galton.data)
 
 Likelihood: $$ \text{C_Height}_i \sim Normal( \mu_i , \sigma ) $$ Linear model: $$\mu_i = \beta_0 + \beta_1 ( \text{P_Height}_i - {\overline{\mbox{P_Height}}} ) $$
 
-Priors: $$\beta_0 \sim Normal(68, 5)$$ $$\beta_1 \sim Normal(0, 5)$$ $$\sigma \sim HalfCauchy(0,1)$$
+Priors: $$\beta_0 \sim Normal(66, 5)$$ $$\beta_1 \sim Normal(0, 5)$$ $$\sigma \sim Exponential(0.5)$$
+
+Same intercept and $\sigma$ priors as lecture 1. The slope prior is 10 times wider than lecture 1's, on purpose (more soon).
+
+## These priors, in inches {.smaller}
+
+| Prior | In words |
+|-------|----------|
+| $\beta_0 \sim Normal(66, 5)$ | children of average-height parents average 56–76 inches (95%). Anything outside that would be a strange population |
+| $\beta_1 \sim Normal(0, 5)$ | a parent 1 inch taller could mean children 10 inches taller or shorter. Deliberately silly; lecture 1's N(0, 0.5) says ±1 inch per inch |
+| $\sigma \sim Exponential(0.5)$ | children scatter around the line by ~2 inches on average, 95% sure under 6. Not a foot |
+
+This is the kind of justification HW 2 Q2 wants: a sentence in the units of your variables.
 
 ## Centering our predictors
 
@@ -100,10 +111,10 @@ galton.data
 #| code-fold: true
 
   tibble(x = seq(from = 0, to = 100, by = .1)) %>% 
-  ggplot(aes(x = x, y = dnorm(x, mean = 68, sd = 5))) +
+  ggplot(aes(x = x, y = dnorm(x, mean = 66, sd = 5))) +
   geom_line() +
   scale_x_continuous(breaks = seq(from = 0, to = 100, by = 10)) +
-  labs(title = "Intercept ~ Normal(68, 5)",
+  labs(title = "Intercept ~ Normal(66, 5)",
        y = "density")
 
 ```
@@ -124,15 +135,16 @@ galton.data
 
 ```{r}
 #| code-fold: true
+#| fig-height: 3.5
 p.s <- ggplot(data.frame(x = c(0, 10)), aes(x)) +
-  stat_function(fun = dcauchy, n = 200, args = list(0, 1)) +
-  labs(title = "sigma ~ HalfCauchy(0,1)")
+  stat_function(fun = dexp, n = 200, args = list(rate = .5)) +
+  labs(title = "sigma ~ Exponential(0.5)", y = "density")
 p.s
 ```
 
--   We know that standard deviations have to be positive.
-
--   What is an upper bound possibility?
+-   Standard deviations have to be positive, and the exponential only lives above 0. Its mean is 1/rate = 2 inches.
+-   What is an upper bound possibility? A σ of 10 would mean children routinely land 20 inches from the line.
+-   You'll see half-Cauchy priors on σ in older papers (and in earlier versions of this course). They have a much heavier tail; with this much data, either is fine.
 
 ## Prior predictive: what do our priors expect?
 
@@ -149,7 +161,7 @@ How do we create it? We sample from the priors. Use that to create regression li
 ```{r}
 #| code-fold: true
 tibble(n = 1:100,
-         a = rnorm(100, mean = 68, sd = 5),
+         a = rnorm(100, mean = 66, sd = 5),
          b = rnorm(100, mean = 0,   sd = 5)) %>% 
   expand(nesting(n, a, b), height = range(galton.data$parent)) %>% 
   mutate(c.height = a + b * (height - mean(galton.data$parent))) %>% 
@@ -172,14 +184,14 @@ library(modelr)
 fit.1p <- 
   brm(family = gaussian,
       child ~ 1 + parent.c,
-      prior = c(prior(normal(68, 5), class = Intercept),
+      prior = c(prior(normal(66, 5), class = Intercept),
                 prior(normal(0, 5), class = b),
-                prior(cauchy(0, 1), class = sigma)),
+                prior(exponential(.5), class = sigma)),
       data = galton.data, 
       sample_prior = "only",
       backend = "cmdstanr",
       iter = 1000, warmup = 500, chains = 2, cores = 2, 
-      file = "fit.1p")
+      file = "fit.1pb")   # old priors: fit.1p
 
 galton.data %>% 
   data_grid(parent.c = seq_range(parent.c, n = 2)) %>% 
@@ -239,13 +251,13 @@ library(brms)
 fit.1 <- 
   brm(family = gaussian,
       child ~ 1 + parent.c,
-      prior = c(prior(normal(68, 5), class = Intercept),
+      prior = c(prior(normal(66, 5), class = Intercept),
                 prior(normal(0, 5), class = b),
-                prior(cauchy(0, 1), class = sigma)),
+                prior(exponential(.5), class = sigma)),
       data = galton.data, 
       backend = "cmdstanr",
       iter = 1000, warmup = 500, chains = 2, cores = 2, 
-      file = "fit.1")
+      file = "fit.1b")   # old priors: fit.1
 ```
 
 ## Default priors: get_prior() {.smaller}
@@ -307,6 +319,44 @@ plot_predictions(fit.1, condition = "parent.c", points = .3)
 
 ```
 
+## Same posterior, two routes {.smaller .nostretch}
+
+Lecture 1's grid for Galton's heights (μ and σ, same priors) vs. brms fitting `child ~ 1`:
+
+```{r}
+#| code-fold: true
+#| fig-height: 2.7
+#| fig-width: 9
+#| out-width: "100%"
+library(patchwork)
+fit.0 <- brm(family = gaussian, child ~ 1,
+             prior = c(prior(normal(66, 5), class = Intercept),
+                       prior(exponential(.5), class = sigma)),
+             data = galton.data, backend = "cmdstanr",
+             iter = 1000, warmup = 500, chains = 2, cores = 2, file = "fit.0")
+
+# lecture 1's grid: log-likelihood + log-prior for every (mu, sigma) combination
+height_grid <- crossing(mu    = seq(from = 67.6, to = 68.6, length.out = 150),
+                        sigma = seq(from = 2.3,  to = 2.8,  length.out = 150)) %>%
+  mutate(log_post = map2_dbl(mu, sigma, \(m, s) sum(dnorm(galton.data$child, m, s, log = TRUE))) +
+           dnorm(mu, 66, 5, log = TRUE) + dexp(sigma, rate = .5, log = TRUE),
+         post = exp(log_post - max(log_post)))
+marginal <- function(grid, par) {           # sum over the other parameter, scale to a density
+  step <- diff(sort(unique(grid[[par]])))[1]
+  grid %>% group_by(value = .data[[par]]) %>% summarise(p = sum(post)) %>% mutate(density = p / sum(p) / step)
+}
+draws.0 <- fit.0 %>% spread_draws(b_Intercept, sigma)
+compare <- function(x, par, lab) {
+  ggplot(draws.0, aes(x = .data[[x]])) +
+    geom_histogram(aes(y = after_stat(density)), bins = 40, fill = "grey80", colour = "white") +
+    geom_line(data = marginal(height_grid, par), aes(x = value, y = density), colour = "#0072B2", linewidth = 1) +
+    labs(x = lab, y = NULL) + scale_y_continuous(breaks = NULL) + theme_classic(base_size = 14)
+}
+compare("b_Intercept", "mu", expression(mu)) | compare("sigma", "sigma", expression(sigma))
+```
+
+Grey: 1,000 MCMC draws. Blue: the grid posterior. Same answer, but MCMC never built the 22,500-row grid, which is why it still works with 3 or 300 parameters.
+
 ## The posterior is made of draws
 
 -   The posterior is made up of samples (often referred to as draws).
@@ -347,6 +397,17 @@ get_variables(fit.1)
 ```{r}
 tidy_draws(fit.1)
 ```
+
+## Where do 1,000 draws come from? {.smaller}
+
+```{r}
+ndraws(fit.1)
+```
+
+`chains = 2`, `iter = 1000`, `warmup = 500`: each chain runs 1,000 iterations and throws away the first 500 while it finds its footing. 2 × (1000 − 500) = **1,000 draws**.
+
+-   More draws give a *sharper picture of the same posterior*: smoother histograms, more stable interval endpoints
+-   They don't give you more *information* about the slope. That comes from the data (928 families) and the priors. The posterior SD won't shrink if you ask for 4,000 draws (HW 2 Q5)
 
 ## spread_draws {.smaller}
 Instead of looking at all of our "draws" or samples for all variables we often want to look at just some of them. Spread draws is an oft used function similar to select in {dplyr}
@@ -453,16 +514,29 @@ bind_rows(qi = median_qi(skewed, x, .width = .95), hdi = mode_hdi(skewed, x, .wi
 
 The HDI (narrowest 95%) sits further left, toward the peak; the QI cuts equal tails and so extends further into the long right tail.
 
-## prior and posterior plotted together
+## Prior and posterior plotted together {.nostretch}
 
 ```{r}
 #| code-fold: true
-fit.1 %>% 
-  spread_draws(b_parent.c) %>% 
-  ggplot(aes(x = b_parent.c)) +
-  stat_slab() +
-  stat_function(data = data.frame(x = c(-10, 10)), aes(x), fun = dnorm, n = 100, args = list(0, 5)) 
+#| fig-height: 2.7
+#| fig-width: 9
+#| out-width: "100%"
+library(patchwork)
+slope_draws <- fit.1 %>% spread_draws(b_parent.c)
+p.wide <- ggplot(slope_draws, aes(x = b_parent.c)) +
+  stat_function(fun = dnorm, args = list(0, 5), n = 500, linetype = 2, linewidth = 1, xlim = c(-15, 15)) +
+  stat_slab(aes(y = 0), normalize = "none", fill = "#0072B2") +   # actual density, same scale as the prior
+  coord_cartesian(xlim = c(-15, 15), ylim = c(0, .1)) +
+  labs(x = "slope", y = "density", subtitle = "dashed: prior · blue: posterior") +
+  theme_classic(base_size = 14)
+p.zoom <- ggplot(slope_draws, aes(x = b_parent.c)) +
+  stat_halfeye(fill = "#0072B2") +
+  labs(x = "slope", y = NULL, subtitle = "posterior, zoomed in") +
+  theme_classic(base_size = 14)
+p.wide | p.zoom
 ```
+
+The prior spread its bets from −10 to +10. The data put nearly all of it between `r round(quantile(slope_draws$b_parent.c, .025), 2)` and `r round(quantile(slope_draws$b_parent.c, .975), 2)`: a silly prior, overwhelmed by 928 families.
 
 ## Understanding our model
 
@@ -586,11 +660,9 @@ library(marginaleffects)
 datagrid(parent.c = seq(from = min(galton.data$parent.c), to = max(galton.data$parent.c), length.out = 10), model = fit.1)
 ```
 
-## Feed reference grid to tidybayes
-
-The second step after you have the data/reference grid is to feed it into the model. You may have done something similar using the 'predict' functions of base R or {lme4}. We will use the functions from {marginaleffects} or {tidybayes}, both of which operate similarly. {brms} also has a predict function, but it's not as user friendly
-
 ## Reading the grid {.smaller}
+Step 2: feed the grid to the model. `add_epred_draws()` (tidybayes) and `predictions()` (marginaleffects) both do this, like `predict()` in base R.
+
 1.  Notice how the predicted values are ".epred"
 2.  Notice the number of rows. Where did it come from?
 
@@ -621,10 +693,13 @@ predictions(model = fit.1,
 galton.data %>% 
 data_grid(parent.c = seq_range(parent.c, n = 10)) %>% 
  add_epred_draws(fit.1) %>% 
-    ggplot(aes(x = parent.c, y = child)) +
+  mutate(parent = parent.c + mean(galton.data$parent)) %>%   # back to inches for the x-axis
+    ggplot(aes(x = parent, y = child)) +
   stat_lineribbon(aes(y = .epred), .width = c(.95), color = "grey") +
   geom_point(data = galton.data, size = 2)
 ```
+
+It's just a data frame, so tweaks are ordinary dplyr: here, adding the mean back to put the x-axis in inches.
 
 ## plot predictions from marginaleffects
 
@@ -636,19 +711,6 @@ predictions(model = fit.1,
   ggplot(aes(x = parent.c, y = child)) +
   stat_lineribbon(aes(y = draw), .width = c(.95), color = "grey") +
   geom_point(data = galton.data, size = 2)
-```
-
-## Plots are easy to tweak
-
-```{r}
-#| code-fold: true
-galton.data %>% 
-data_grid(parent.c = seq_range(parent.c, n = 10)) %>% 
- add_epred_draws(fit.1) %>%
-  mutate(parent.c = parent.c + mean(galton.data$parent)) %>% 
-    ggplot(aes(x = parent.c, y = child)) +
-  stat_lineribbon(aes(y = .epred), .width = c(.95), color = "grey") +
-  geom_point(aes(x = parent), data = galton.data)
 ```
 
 ## Confidence Band = regression lines
@@ -669,19 +731,6 @@ data_grid(parent.c = seq_range(parent.c, n = 10)) %>%
 
 - In a multiple regression there may be many different predictions we want to make e.g., health for a 50 year old, male, who has no heart history. 
 - We must choose at which value we want to make these predictions from, and to do so we specify it through the data grid. 
-
-## Feeding the model x = 64
-
-We often want to get predicted values for specific combinations of model variables. Like x = 64 inches. Rather than manually manipulate the posterior like we did before, we can feed our model the number of interest. 
-
-```{r}
-#| code-fold: true
-galton.data %>%
-data_grid(parent.c = -4.3) %>%
- add_epred_draws(fit.1) %>%
-    ggplot(aes(x = .epred)) +
-  stat_halfeye( .width = c(.95))
-```
 
 ## One quantity, three ways {.smaller}
 Expected child height for a 64-inch parent (parent.c = −4.3). Every tool does the same three steps: **get the draws → compute the quantity for each draw → summarize.**
@@ -785,21 +834,6 @@ ggplot(galton.data, aes(x = parent.c, y = child)) +
 -   **Blue (epred):** "What's the *average* child height for parents this tall?" Uncertainty about the line only; shrinks as n grows.
 -   **Grey (prediction):** "How tall will *this* child be?" Adds σ, the person-to-person scatter; never shrinks below about ±2σ.
 
-## predicted values at unit level
-
-```{r}
-#| code-fold: true
-galton.data %>% 
-data_grid(parent.c = seq_range(parent.c, n = 10)) %>% 
-  add_predicted_draws(fit.1) %>% 
-  ggplot(aes(x = parent.c, y = child)) +
-     stat_lineribbon(aes(y = .prediction), 
-                  .width = .95, 
-                  alpha = .5,
-                  show.legend = F) +
-  geom_point(data = galton.data, size = 2,alpha = .5) 
-```
-
 ## Unit-level predictions: the draws {.smaller}
 Each .prediction feeds a parent.c value into our model and simulates a new person: $\tilde{y} \sim \text{Normal}(\beta_0 + \beta_1 X, \sigma)$. Each row of the posterior has different values for each of the three parameters. 
 
@@ -822,7 +856,7 @@ predictions(model = fit.1,
 ```
 
 ## ...and the draws behind them {.smaller}
-Though if you want to see the full df, then just use `get_draws()` (called `posterior_draws()` in older versions of marginaleffects).
+Though if you want to see the full df, then just use `get_draws()` (called `posterior_draws()` in older versions of marginaleffects). It's a regular data frame, so `stat_lineribbon()` and friends work on it just as on the tidybayes output.
 
 ```{r}
 #| code-fold: true
@@ -833,24 +867,6 @@ predictions(model = fit.1,
   as_tibble() %>%
   select(drawid, parent.c, draw, estimate, conf.low, conf.high)
 
-```
-
-## ...plotted with tidybayes
-
-Which allows you to use tidybayes functions
-
-```{r}
-#| code-fold: true
-predictions(model = fit.1,
-            type = "prediction",
-             datagrid(parent.c = seq(from = min(galton.data$parent.c), to = max(galton.data$parent.c), length.out = 10))) %>% 
-  get_draws() %>% 
-  ggplot(aes(x = parent.c, y = child)) +
-     stat_lineribbon(aes(y = draw), 
-                  .width = .95, 
-                  alpha = .5,
-                  show.legend = F) +
-  geom_point(data = galton.data, size = 2,alpha = .5)
 ```
 
 ## The default grid: the observed data {.smaller}
@@ -913,6 +929,20 @@ pp_check(fit.1)
 :::
 :::
 
+
+## pp_check with a statistic {.smaller .nostretch}
+
+`type = "stat"` computes one statistic for each simulated dataset and compares it with the observed value (the line):
+
+```{r}
+#| code-fold: true
+#| fig-height: 2.4
+#| fig-width: 9
+#| out-width: "100%"
+pp_check(fit.1, type = "stat", stat = "sd") | pp_check(fit.1, type = "stat", stat = "max")
+```
+
+Pick statistics the model *isn't* built to match: a normal model nearly always gets the mean and SD right. The min, max, or skew show misfits (bounded scales, ceilings). Here the max catches one: Galton's heights were binned and top out at 73.7 inches, but the model keeps simulating taller children.
 
 ## pp_check by hand
 
