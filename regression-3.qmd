@@ -834,22 +834,19 @@ bind_rows(
 
 ```{r}
 #| code-fold: true
-#| fig-height: 3.2
+#| fig-height: 2.8
 #| fig-width: 8
 #| out-width: "85%"
 bind_rows("normal (h.3)"   = avg_predictions(h.3,  by = "mood.group.d") %>% get_draws(),
           "t, ν = 3 (h.5R)" = avg_predictions(h.5R, by = "mood.group.d") %>% get_draws(), .id = "model") %>%
   ggplot(aes(x = draw, y = mood.group.d, colour = model)) +
   stat_pointinterval(position = position_dodge(width = .4), .width = c(.66, .95)) +
-  geom_point(data = week3 %>% group_by(mood.group.d) %>% summarise(draw = median(health)),
-             aes(x = draw, y = mood.group.d), inherit.aes = FALSE, shape = 4, size = 4) +
   scale_colour_manual(values = c("#0072B2", "#D55E00")) +
-  labs(x = "group mean health (66% and 95% intervals)", y = NULL, colour = NULL,
-       caption = "× = the group's sample median") +
+  labs(x = "group mean health (66% and 95% intervals)", y = NULL, colour = NULL) +
   theme_classic(base_size = 14) + theme(legend.position = "top")
 ```
 
-Tx barely changes (`r round(fixef(h.5R)["mood.group.dtx", 1], 2)` robust vs. `r round(fixef(h.3)["mood.group.dtx", 1], 2)`). The control mean moves up (`r round(fixef(h.5R)["mood.group.dcontrol", 1], 2)` vs. `r round(fixef(h.3)["mood.group.dcontrol", 1], 2)`), toward the control group's median (`r round(median(week3$health[week3$mood.group.d == "control"]), 2)`): the t model gives less weight to a few very low health scores there. The robust intervals are a little wider.
+Nearly the same. These data have no real outliers (no one beyond 3 SD of their group, and about as many beyond 2 SD as a normal predicts; estimated ν ≈ 20), so the robust model changes little. Fixing ν = 3 still shifts the control mean slightly (`r round(fixef(h.5R)["mood.group.dcontrol", 1], 2)` vs. `r round(fixef(h.3)["mood.group.dcontrol", 1], 2)`) because it gives every score in the tails a bit less weight. Robust models earn their keep when there *are* outliers.
 
 ## relaxing equal variance assumption
 

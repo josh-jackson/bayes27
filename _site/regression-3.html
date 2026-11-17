@@ -1631,12 +1631,9 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <span id="cb94-2"><a aria-label="2"></a>          <span class="st">"t, ν = 3 (h.5R)"</span> <span class="ot">=</span> <span class="fu">avg_predictions</span>(h<span class="fl">.5</span>R, <span class="at">by =</span> <span class="st">"mood.group.d"</span>) <span class="sc">%&gt;%</span> <span class="fu">get_draws</span>(), <span class="at">.id =</span> <span class="st">"model"</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb94-3"><a aria-label="3"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> draw, <span class="at">y =</span> mood.group.d, <span class="at">colour =</span> model)) <span class="sc">+</span></span>
 <span id="cb94-4"><a aria-label="4"></a>  <span class="fu">stat_pointinterval</span>(<span class="at">position =</span> <span class="fu">position_dodge</span>(<span class="at">width =</span> .<span class="dv">4</span>), <span class="at">.width =</span> <span class="fu">c</span>(.<span class="dv">66</span>, .<span class="dv">95</span>)) <span class="sc">+</span></span>
-<span id="cb94-5"><a aria-label="5"></a>  <span class="fu">geom_point</span>(<span class="at">data =</span> week3 <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(mood.group.d) <span class="sc">%&gt;%</span> <span class="fu">summarise</span>(<span class="at">draw =</span> <span class="fu">median</span>(health)),</span>
-<span id="cb94-6"><a aria-label="6"></a>             <span class="fu">aes</span>(<span class="at">x =</span> draw, <span class="at">y =</span> mood.group.d), <span class="at">inherit.aes =</span> <span class="cn">FALSE</span>, <span class="at">shape =</span> <span class="dv">4</span>, <span class="at">size =</span> <span class="dv">4</span>) <span class="sc">+</span></span>
-<span id="cb94-7"><a aria-label="7"></a>  <span class="fu">scale_colour_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"#0072B2"</span>, <span class="st">"#D55E00"</span>)) <span class="sc">+</span></span>
-<span id="cb94-8"><a aria-label="8"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"group mean health (66% and 95% intervals)"</span>, <span class="at">y =</span> <span class="cn">NULL</span>, <span class="at">colour =</span> <span class="cn">NULL</span>,</span>
-<span id="cb94-9"><a aria-label="9"></a>       <span class="at">caption =</span> <span class="st">"× = the group's sample median"</span>) <span class="sc">+</span></span>
-<span id="cb94-10"><a aria-label="10"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">14</span>) <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"top"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb94-5"><a aria-label="5"></a>  <span class="fu">scale_colour_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"#0072B2"</span>, <span class="st">"#D55E00"</span>)) <span class="sc">+</span></span>
+<span id="cb94-6"><a aria-label="6"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"group mean health (66% and 95% intervals)"</span>, <span class="at">y =</span> <span class="cn">NULL</span>, <span class="at">colour =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb94-7"><a aria-label="7"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">14</span>) <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"top"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
@@ -1646,7 +1643,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </div>
 </div>
 </div>
-<p>Tx barely changes (8.83 robust vs.&nbsp;8.78). The control mean moves up (8.11 vs.&nbsp;7.98), toward the control group’s median (8.46): the t model gives less weight to a few very low health scores there. The robust intervals are a little wider.</p>
+<p>Nearly the same. These data have no real outliers (no one beyond 3 SD of their group, and about as many beyond 2 SD as a normal predicts; estimated ν ≈ 20), so the robust model changes little. Fixing ν = 3 still shifts the control mean slightly (8.11 vs.&nbsp;7.98) because it gives every score in the tails a bit less weight. Robust models earn their keep when there <em>are</em> outliers.</p>
 </section>
 <section id="relaxing-equal-variance-assumption" class="slide level2">
 <h2>relaxing equal variance assumption</h2>
