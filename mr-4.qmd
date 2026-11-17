@@ -352,6 +352,15 @@ summary(mr.2)
 plot(mr.1)
 ```
 
+## Are the predictors redundant? {.smaller}
+
+```{r}
+#| fig-height: 3.5
+pairs(mr.1, variable = c("b_SS_c", "b_FQ_c"))
+```
+
+School success and friendship quality correlate −0.55 in the data, so their slopes are tied together in the posterior (correlation ≈ +0.55): when a draw gives SS more credit, it gives FQ more too, to explain the same variance. Correlated, but not redundant; truly redundant predictors make a long, thin ridge (lecture 5).
+
 ## Predictions across friendship quality
 
 ```{r}
@@ -512,28 +521,6 @@ MR %>%
 pp_check(mr.1)
 ```
 
-## Create our own Posterior Predictive Distribution
-
-```{r}
-#| code-fold: true
-MR %>% 
-  select(-SES, -'intervention.group') %>% 
- add_predicted_draws(mr.1) %>% 
-    sample_draws(1) 
-```
-
-## 50 simulated datasets
-
-50\*118 = 5900
-
-```{r}
-#| code-fold: true
-MR %>% 
-  select(-SES, -'intervention.group') %>% 
- add_predicted_draws(mr.1) %>% 
-    sample_draws(50) 
-```
-
 ## Our own PPC plot
 
 ```{r}
@@ -546,22 +533,6 @@ MR %>%
    geom_line(stat = "density", alpha = .1) +
   geom_density(data = MR, aes(happiness), inherit.aes = FALSE, color = "#0072B2", linewidth = 1) +
   labs(x = "happiness", subtitle = "grey: 50 simulated datasets · blue: observed") +
-  theme_classic()
-```
-
-## Our own PPC with marginaleffects
-
-```{r}
-#| code-fold: true
-
-predictions(mr.1,
-            type = "prediction")  %>% 
-  get_draws() %>% 
-    sample_draws(50, draw = "drawid") %>% 
-    ggplot(aes(draw, group = drawid)) +
-   geom_line(stat = "density", alpha = .1) +
-  geom_density(data = MR, aes(happiness), inherit.aes = FALSE, color = "#0072B2", linewidth = 1) +
-  labs(x = "happiness") +
   theme_classic()
 ```
 
@@ -617,152 +588,62 @@ mr.5 <-
 summary(mr.5)
 ```
 
-## brms non-linear syntax
+## Index coding with more than one factor {.smaller}
 
-{brms} does not automatically create index variables for more than 1 categorical variable. The `0 +` treats the first variable as an index but not the second, such that the second has a standard dummy interpretation.
+`0 + iv + iv2` gave an index (a mean) for each `iv` group but a **dummy** for `iv2`: `0 +` only removes one intercept, so only the first factor gets indexed. Options:
 
-We need a new syntax to write the model we want. We will use non-linear syntax for this, and revisit the syntax later in the class for additional models.
+-   **Every cell gets its own mean:** `0 + iv:iv2`. One prior for all cells (next slides)
+-   **Two separate index variables** (as in Statistical Rethinking): not identified. Add 1 to every `iv` mean and subtract 1 from every `iv2` mean and the predictions don't change, so only the priors decide where they sit
+-   **Default (dummy) coding** with priors on the *differences*, then get means and contrasts with marginaleffects
 
-For ANOVA I've found centering or standardizing your DV is helpful
+**Rule of thumb:** use index coding for one factor, or for all the cells of a factorial. Once you add continuous predictors and interactions, use the default coding and read the results through predictions and contrasts, not the coefficients. That's what we do for the rest of the course.
 
-## Non-linear syntax: two index variables
-
-```{r}
-#| code-fold: true
-mr.6 <- 
-  brm(family = gaussian,
-      bf(happy_c ~  a + b, # define 2 predictors
-         a ~ 0 + iv, # specify the predictors
-         b ~ 0 + iv2,
-         nl = TRUE), # use non-linear syntax
-      prior = c(prior(normal(0, 2), nlpar = a),
-                prior(normal(0, 2), nlpar = b),
-                prior(exponential(1), class = sigma)),
-      iter = 2000, warmup = 1000, chains = 4, cores = 4,
-      data = MR,
-      backend = "cmdstanr",
-      file = "mr.6b")
-
-
-```
-
-## Non-linear results
+## Group means and contrasts
 
 ```{r}
-summary(mr.6)
-```
-
-## Group means (centered DV)
-
-```{r}
-get_variables(mr.6)
-```
-
-```{r}
-#| code-fold: true
-mr.6 %>%
-  gather_draws(b_a_iv1, b_a_iv2, b_a_iv3) %>%
-  ggplot(aes(y = .variable, x = .value)) +
-  stat_dotsinterval()
-
-```
-
-## Add the mean of the DV back in
-
-Add the mean of your DV back in
-
-```{r}
-#| code-fold: true
-mean_happy <- mean(MR$happiness)   # 5.21: we centered the DV, so add it back
-mr.6 %>%
-  spread_draws(b_a_iv1, b_a_iv2, b_a_iv3) %>%
-  mutate(iv1 = b_a_iv1 + mean_happy) %>% 
-  mutate(iv2 = b_a_iv2 + mean_happy) %>% 
-  mutate(iv3 = b_a_iv3 + mean_happy) %>% 
-  gather_draws(iv1, iv2, iv3) %>% 
-  ggplot(aes(y = .variable, x = .value)) +
-  stat_dotsinterval()
-
-```
-
-## Group means, summarized
-
-```{r}
-#| code-fold: true
-mr.6 %>%
-  spread_draws(b_a_iv1, b_a_iv2, b_a_iv3) %>%
-  mutate(iv1 = b_a_iv1 + mean_happy) %>% 
-  mutate(iv2 = b_a_iv2 + mean_happy) %>% 
-  mutate(iv3 = b_a_iv3 + mean_happy) %>% 
-  gather_draws(iv1, iv2, iv3) %>% 
-  mean_qi()
-```
-
-```{r}
-#| code-fold: true
-MR %>%
-  group_by(iv) %>%
-  summarise(mean = mean(happiness), n = n())
-```
-
-## Each draw is a population
-
-Each posterior row suggests a different population we are drawing from, much like each row represents a different regression line
-
-```{r}
-#| code-fold: true
-MR %>%
-  data_grid(iv, .model = MR) %>%
-  add_epred_draws(mr.6, dpar = c("mu", "sigma")) %>%
-  sample_draws(50) %>%
-  mutate(mu = mu + mean_happy) %>% 
-  ggplot(aes(y = iv)) +
-  stat_slab(aes(dist = "norm", arg1 = mu, arg2 = sigma),
-    slab_color = "gray65", alpha = 1/10, fill = NA) +
-  geom_point(aes(x = happiness), data = MR, shape = 21, fill = "#9ECAE1", size = 2)
-```
-
-## Redundant predictors?
-
-```{r}
-pairs(mr.1)
+# each iv group averaged over low and high SES equally ("balanced"),
+# so groups are compared at the same SES mix
+avg_predictions(mr.5, newdata = "balanced", by = "iv")
+avg_predictions(mr.5, newdata = "balanced", by = "iv", hypothesis = ~ pairwise)
 ```
 
 ## comparing levels ie contrasts
 
-We could do this "by hand" or with compare_levels
+The same contrasts by hand with tidybayes's `compare_levels()`. (In this additive model, the differences between `iv` groups are the same at either SES level.)
 
 ```{r}
-mr.6 %>%
-  gather_draws(b_a_iv1, b_a_iv2, b_a_iv3) %>%
+#| fig-height: 3.5
+mr.5 %>%
+  gather_draws(b_iv1, b_iv2, b_iv3) %>%
   compare_levels(.value, by = .variable) %>%
   ggplot(aes(y = .variable, x = .value)) +
-  stat_halfeye()
+  stat_halfeye() +
+  geom_vline(xintercept = 0, linetype = 2)
 ```
 
-## The draws, long format
+## compare_levels(), summarized
 
 ```{r}
-mr.6 %>%
-  gather_draws(b_a_iv1, b_a_iv2, b_a_iv3) 
-```
-
-## compare_levels() output
-
-```{r}
-mr.6 %>%
-  gather_draws(b_a_iv1, b_a_iv2, b_a_iv3) %>%
-  compare_levels(.value, by = .variable) 
-```
-
-## Summarizing the contrasts
-
-```{r}
-mr.6 %>%
-  gather_draws(b_a_iv1, b_a_iv2, b_a_iv3) %>%
+mr.5 %>%
+  gather_draws(b_iv1, b_iv2, b_iv3) %>%
   compare_levels(.value, by = .variable) %>%
-  group_by(.variable) %>%  
-  mode_qi(.value)
+  median_qi(.value)
+```
+
+## Each draw is a population
+
+Each posterior row implies a different population we are drawing from, much like each row represents a different regression line. Here, low-SES people in each group:
+
+```{r}
+#| code-fold: true
+MR %>%
+  data_grid(iv, iv2 = "low SES") %>%
+  add_epred_draws(mr.5, dpar = c("mu", "sigma"), ndraws = 50) %>%
+  ggplot(aes(y = iv)) +
+  stat_slab(aes(dist = "norm", arg1 = mu, arg2 = sigma),
+    slab_color = "gray65", alpha = 1/10, fill = NA) +
+  geom_point(aes(x = happiness), data = filter(MR, iv2 == "low SES"), shape = 21, fill = "#9ECAE1", size = 2) +
+  labs(x = "happiness")
 ```
 
 ## An index for every cell
@@ -781,6 +662,7 @@ mr.7 <-
       backend = "cmdstanr",
       file = "mr.7")
 fixef(mr.7)
+mean_happy <- mean(MR$happiness)   # we centered the DV, so add this back for plots
 ```
 
 ## Is there an interaction? Ask the cell means {.smaller}
@@ -955,6 +837,27 @@ avg_predictions(mr.8b, newdata = "balanced", by = "SupportLevel")
 predictions(mr.8b, newdata = datagrid(SupportLevel = unique, condition = unique))
 ```
 
+## Each cell: the mean vs. a new person {.smaller .nostretch}
+
+```{r}
+#| code-fold: true
+#| fig-height: 3
+#| fig-width: 9
+#| out-width: "100%"
+cell_grid <- datagrid(model = mr.8b, SupportLevel = unique, condition = unique)
+bind_rows("cell mean (epred)"        = predictions(mr.8b, newdata = cell_grid) %>% get_draws(),
+          "a new person (prediction)" = predictions(mr.8b, newdata = cell_grid, type = "prediction") %>% get_draws(),
+          .id = "interval") %>%
+  ggplot(aes(x = draw, y = SupportLevel, colour = interval)) +
+  stat_pointinterval(position = position_dodge(width = .5), .width = .95) +
+  facet_wrap(~ condition) +
+  scale_colour_manual(values = c("cell mean (epred)" = "#0072B2", "a new person (prediction)" = "grey55")) +
+  labs(x = "Anxiety (95% intervals)", y = "Support", colour = NULL) +
+  theme_classic(base_size = 14) + theme(legend.position = "top")
+```
+
+The cell-mean interval is our uncertainty about the *average* in that cell; it shrinks as the cell gets more people. The prediction interval adds σ, the person-to-person scatter, so it stays wide no matter how much data we have. (HW 4 Q2b.)
+
 ## Pairwise contrasts between support levels
 
 ```{r}
@@ -982,28 +885,41 @@ avg_predictions(mr.8b, by = "SupportLevel", hypothesis = ~ pairwise) %>%
   labs(x = "difference in anxiety", y = NULL)
 ```
 
-## The interaction, plotted
+## The interaction, plotted {.smaller .nostretch}
 
 ```{r}
 #| code-fold: true
-#| fig-height: 4
+#| fig-height: 3.6
+#| fig-width: 8
+#| out-width: "90%"
 avg_predictions(mr.8b, by = c("SupportLevel", "condition")) %>% 
   get_draws() %>% 
-  ggplot(aes(x = SupportLevel, y = draw, color = condition)) +
-  geom_jitter(data = anova, aes(y = Anxiety), alpha = .4, width = .15) +
-  stat_pointinterval(position = position_dodge(width = .4)) +
-  facet_grid(~ condition) +
-  labs(y = "Anxiety", color = NULL) +
-  theme(legend.position = "none")
+  ggplot(aes(x = SupportLevel, y = draw, colour = condition)) +
+  geom_point(data = anova, aes(y = Anxiety), alpha = .3, size = 1.2,
+             position = position_jitterdodge(jitter.width = .15, dodge.width = .5)) +
+  stat_summary(aes(group = condition), fun = median, geom = "line", position = position_dodge(width = .5)) +
+  stat_pointinterval(position = position_dodge(width = .5), .width = .95) +
+  scale_colour_manual(values = c(Control = "grey35", Tx = "#D55E00")) +
+  labs(x = "Social support", y = "Anxiety", colour = NULL,
+       caption = "Points: people. Dots and bars: posterior medians and 95% intervals for each cell mean.") +
+  theme_classic(base_size = 14) + theme(legend.position = "top")
 ```
 
-## Interactions
+One panel, support on the x-axis, condition as color: the question "are the lines parallel?" is the interaction, and you can see the answer. This is the kind of figure HW 4 Q6a asks for.
 
-Continuing our translation of previous skills to a Bayesian framework.
+## Interactions: a slope with its own equation {.smaller}
 
-Interactions reflect when the influence of one variable depends on another. No longer can speak of main effects, now one needs to describe the association between two (or more) variables and the DV. The result is that the interpretation is the hard part, not necessarily the modeling.
+An interaction means the effect of one variable depends on another. In toolbox terms (lecture 3): **the slope gets its own equation.**
 
-As models get more complex, interactions become more likely (anytime there is a boundary in the DV)
+$$\mu_i = \beta_0 + \beta_{1i} X_i + \beta_2 Z_i \qquad \beta_{1i} = \beta_1 + \beta_3 Z_i$$
+
+Substitute and you get the familiar $\mu_i = \beta_0 + \beta_1 X_i + \beta_2 Z_i + \beta_3 X_i Z_i$.
+
+-   $\beta_1$ is now the slope of X **when Z = 0** (why centering Z matters)
+-   $\beta_3$ is how much the slope of X changes for each unit of Z
+-   With an interaction there's no single "main effect" of X: describe the slope of X *at chosen values of Z* (or the group difference at chosen values of X)
+
+The modeling is the easy part; interpreting is the work, and predictions, `slopes()`, and plots do most of it.
 
 ## Nominal plus metric/continuous interaction
 
@@ -1090,17 +1006,6 @@ MR %>%
 ```
 
 
-## The grid, again
-
-```{r}
-#| code-fold: true
-df <- MR %>%
-  group_by(iv.d) %>%
-  data_grid(SS_c = seq_range(SS_c, n = 50), .model = MR)
-df
-```
-
-
 ## Without index coding
 
 What if we fit it without index coding?
@@ -1137,18 +1042,6 @@ MR %>%
   geom_line(aes(y = .epred, group = paste(iv.d, .draw)),alpha = .1) +
   geom_point(data = MR) 
 ```
-
-## Predictions behind the plot
-
-
-```{r}
-#| code-fold: true
-MR %>%
-  group_by(iv.d) %>%
-  data_grid(SS_c = seq_range(SS_c, n = 50), .model = MR) %>% 
-  add_epred_draws(mr.14, ndraws = 100) 
-```
-
 
 ## Group slopes by hand
 
@@ -1268,36 +1161,6 @@ slopes(a.4,
 
 
 
-## Continuous interaction example
-
-```{r}
-#| code-fold: true
-Multipleregression <- read.csv("Multipleregression.csv")
-
-
-
-Multipleregression$Support.r <- (17.36 - Multipleregression$Support)/3
-
-mr.model <- lm(Stress ~ Support.r + Anxiety, data = Multipleregression)
-library(visreg)
-visreg2d(mr.model,"Support.r", "Anxiety", plot.type = "persp")
-
-```
-
-## Adding the interaction
-
-```{r}
-#| code-fold: true
-Multipleregression  <- read_csv("Multipleregression.csv")
-
-Multipleregression$Support.r <- (17.36 - Multipleregression$Support)/3
-
-mr.model <- lm(Stress ~ Support.r* Anxiety, data = Multipleregression)
-library(visreg)
-visreg2d(mr.model,"Support.r", "Anxiety", plot.type = "persp")
-
-```
-
 ## Default priors for the interaction model
 
 ```{r}
@@ -1328,6 +1191,51 @@ mr.15 <-
 ```{r}
 summary(mr.15)
 ```
+
+## The model is a surface {.smaller .nostretch}
+
+Two continuous predictors make a surface. Without an interaction the contours would be straight and parallel; the interaction bends them.
+
+```{r}
+#| code-fold: true
+#| fig-height: 2.8
+#| fig-width: 7
+#| out-width: "80%"
+predictions(mr.15, newdata = datagrid(SS_c = seq(min(MR$SS_c), max(MR$SS_c), length.out = 60),
+                                      FQ_c = seq(min(MR$FQ_c), max(MR$FQ_c), length.out = 60))) %>%
+  ggplot(aes(x = SS_c, y = FQ_c, z = estimate)) +
+  geom_raster(aes(fill = estimate)) +
+  geom_contour(colour = "white", bins = 8) +
+  geom_point(data = MR, aes(x = SS_c, y = FQ_c), inherit.aes = FALSE, size = 1, alpha = .6) +
+  scale_fill_viridis_c() +
+  labs(x = "school success (centered)", y = "friendship quality (centered)", fill = "predicted\nhappiness") +
+  theme_classic(base_size = 13)
+```
+
+## Reading the interaction coefficients {.smaller}
+
+```{r}
+#| echo: false
+b15 <- fixef(mr.15)[, "Estimate"]
+```
+
+-   **`SS_c` = `r sprintf("%.2f", b15["SS_c"])`:** the slope of school success **when FQ_c = 0**, i.e., at average friendship quality (centering made 0 meaningful)
+-   **`SS_c:FQ_c` = `r sprintf("%.2f", b15["SS_c:FQ_c"])`:** each extra point of friendship quality changes the SS slope by that much
+-   So at FQ_c = −2.5 and +2.5 (about ±1 SD), the SS slope is `r sprintf("%.2f", b15["SS_c"] - 2.5 * b15["SS_c:FQ_c"])` and `r sprintf("%.2f", b15["SS_c"] + 2.5 * b15["SS_c:FQ_c"])`: school success matters more for people with weaker friendships
+-   Uncentered, the `SS` coefficient would be its slope at friendship quality = 0, a value nobody in the data has
+
+## Does the interaction add much? {.smaller}
+
+Bayesian R² with and without the interaction (HW 4 Q5):
+
+```{r}
+#| code-fold: true
+bind_rows("SS + FQ (mr.1)"         = as_tibble(bayes_R2(mr.1)),
+          "SS × FQ (mr.15)"        = as_tibble(bayes_R2(mr.15)), .id = "model") %>%
+  mutate(across(where(is.numeric), \(x) round(x, 2)))
+```
+
+A small gain, with heavily overlapping intervals. R² can only go up when you add terms, so it can't tell you whether the interaction is worth it; lecture 6 uses LOO for that.
 
 ## graphing interactions {.smaller}
 ```{r}
