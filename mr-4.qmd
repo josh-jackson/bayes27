@@ -750,12 +750,18 @@ Essentially the same six cell means as `fac.1` (the priors differ slightly), rea
 
 The factorial model asked whether one *group difference* changes across another factor. Now one predictor is continuous, so the question becomes: **does the slope of school success differ between control and treatment?**
 
-We'll fit it three ways: parallel lines (one shared slope), separate slopes with index coding, and separate slopes with dummy coding. The lines are the same; only the parameters differ.
+Two models answer it:
 
-## Nominal plus metric/continuous interaction
+-   **Parallel lines:** each group gets its own intercept, but they share one slope (no interaction)
+-   **Separate lines:** each group gets its own intercept *and* its own slope (the interaction)
+
+Is the extra flexibility worth it? We'll compare models like these with LOO in lecture 6.
+
+## Parallel lines: one shared slope {.smaller}
+
+$$\mu_i = \alpha_{\text{Group}[i]} + \beta\,\text{SS}_i$$
 
 ```{r}
-#| code-fold: true
 mr.12 <-
   brm(family = gaussian,
       happiness ~ 0 + iv.d + SS_c,
@@ -767,82 +773,54 @@ mr.12 <-
       data = MR, 
       backend = "cmdstanr",
       file = "mr.12")
+round(fixef(mr.12)[, c("Estimate", "Q2.5", "Q97.5")], 2)
 ```
 
-## Results: parallel slopes
+## Separate lines: index coded {.smaller}
+
+$$\mu_i = \alpha_{\text{Group}[i]} + \beta_{\text{Group}[i]}\,\text{SS}_i$$
+
+Each group's intercept *and* slope, read straight off the output (like the cell-means model):
 
 ```{r}
-summary(mr.12)
-```
-
-## Parallel lines by group
-
-```{r}
-#| code-fold: true
-MR %>%
-  group_by(iv.d) %>%
-  data_grid(SS_c = seq_range(SS_c, n = 50), .model = MR) %>%
-  add_epred_draws(mr.12, ndraws = 100) %>%
-  ggplot(aes(x = SS_c, y = happiness, color = iv.d)) +
-  geom_line(aes(y = .epred, group = paste(iv.d, .draw)),alpha = .1) +
-  geom_point(data = MR) 
-```
-
-
-## The grid behind that plot
-
-
-```{r}
-#| code-fold: true
-MR %>%
-  group_by(iv.d) %>%
-  data_grid(SS_c = seq_range(SS_c, n = 50), .model = MR) 
-```
-
-## Letting the slopes differ
-
-```{r}
-#| code-fold: true
 mr.13 <-
   brm(family = gaussian,
-      happiness ~ 0 + iv.d * SS_c,
-      prior = c(prior(normal(5, 3), class = b, coef = iv.dcontrol),
-                prior(normal(5, 3), class = b, coef = iv.dtx),
-                prior(normal(0, .5), class = b, coef = SS_c),
+      happiness ~ 0 + iv.d + iv.d:SS_c,
+      prior = c(prior(normal(5, 3), class = b),                           # the two intercepts
+                prior(normal(0, .5), class = b, coef = iv.dcontrol:SS_c), # the two slopes
                 prior(normal(0, .5), class = b, coef = iv.dtx:SS_c),
                 prior(exponential(1), class = sigma)),
       iter = 2000, warmup = 1000, chains = 4, cores = 4,
       data = MR, 
       backend = "cmdstanr",
-      file = "mr.13b")
+      file = "mr.13c")
+round(fixef(mr.13)[, c("Estimate", "Q2.5", "Q97.5")], 2)
 ```
 
-## Results: separate slopes
-
-```{r}
-summary(mr.13)
-```
-
-## Separate lines by group
+## Parallel vs. separate lines {.nostretch}
 
 ```{r}
 #| code-fold: true
-MR %>%
-  group_by(iv.d) %>%
-  data_grid(SS_c = seq_range(SS_c, n = 50), .model = MR) %>%
-  add_epred_draws(mr.13, ndraws = 100) %>%
-  ggplot(aes(x = SS_c, y = happiness, color = iv.d)) +
-  geom_line(aes(y = .epred, group = paste(iv.d, .draw)),alpha = .1) +
-  geom_point(data = MR) 
+#| fig-height: 3.4
+#| fig-width: 9
+#| out-width: "100%"
+grid_g <- MR %>% data_grid(iv.d, SS_c = seq_range(SS_c, n = 50))
+bind_rows("parallel lines (mr.12)" = add_epred_draws(grid_g, mr.12),
+          "separate lines (mr.13)" = add_epred_draws(grid_g, mr.13), .id = "model") %>%
+  ggplot(aes(x = SS_c, y = .epred, colour = iv.d, fill = iv.d)) +
+  geom_point(data = MR, aes(y = happiness), alpha = .4, size = 1.2) +
+  stat_lineribbon(.width = .95, alpha = .3) +
+  facet_wrap(~ model) +
+  scale_colour_manual(values = c(control = "grey35", tx = "#D55E00"), aesthetics = c("colour", "fill")) +
+  labs(x = "school success (centered)", y = "happiness", colour = NULL, fill = NULL) +
+  theme_classic(base_size = 14) + theme(legend.position = "top")
 ```
 
+## The same model, dummy coded {.smaller}
 
-## Without index coding
-
-What if we fit it without index coding?
+The default coding fits the *same* lines with different parameters:
 
 ```{r}
-#| code-fold: true
 mr.14 <-
   brm(family = gaussian,
       happiness ~ 1 + iv.d * SS_c,
@@ -853,144 +831,123 @@ mr.14 <-
       data = MR, 
       backend = "cmdstanr",
       file = "mr.14b")
+round(fixef(mr.14)[, c("Estimate", "Q2.5", "Q97.5")], 2)
 ```
 
-## Results: dummy-coded interaction
+## What the dummy-coded coefficients mean {.smaller}
 
 ```{r}
-summary(mr.14)
+#| echo: false
+round(fixef(mr.14)[, c("Estimate", "Q2.5", "Q97.5")], 2)
 ```
 
-## Same lines, different parameters
+| Coefficient | Meaning |
+|---|---|
+| `Intercept` | control's expected happiness at **average** school success (SS centered) |
+| `iv.dtx` | tx − control, **at average SS only** |
+| `SS_c` | control's slope |
+| `iv.dtx:SS_c` | tx's slope minus control's slope: the interaction |
+
+Compare with `mr.13`: same intercepts and slopes, just written as a baseline plus differences.
+
+## Do the slopes differ? {.smaller}
 
 ```{r}
-#| code-fold: true
-MR %>%
-  group_by(iv.d) %>%
-  data_grid(SS_c = seq_range(SS_c, n = 50), .model = MR) %>%
-  add_epred_draws(mr.14, ndraws = 100) %>%
-  ggplot(aes(x = SS_c, y = happiness, color = iv.d)) +
-  geom_line(aes(y = .epred, group = paste(iv.d, .draw)),alpha = .1) +
-  geom_point(data = MR) 
+avg_slopes(mr.14, variables = "SS_c", by = "iv.d")                          # each group's slope
+avg_slopes(mr.14, variables = "SS_c", by = "iv.d", hypothesis = ~ pairwise)  # their difference
 ```
 
-## Group slopes by hand
+```{r}
+#| echo: false
+sl <- avg_slopes(mr.14, variables = "SS_c", by = "iv.d")
+```
+
+In control, each point of school success goes with about `r sprintf("%.2f", sl$estimate[sl$iv.d == "control"])` more happiness; in treatment the slope is much flatter (`r sprintf("%.2f", sl$estimate[sl$iv.d == "tx"])`, and could be zero). The difference between the slopes is the interaction.
+
+## Group slopes by hand {.smaller}
+
+Each group's slope is just the coefficients that apply to it, added draw by draw:
 
 ```{r}
 mr.14 %>%
-  spread_draws(`b_SS_c`, `b_iv.dtx:SS_c`) %>% 
-  mutate(slope.c = `b_SS_c` ) %>%
-  mutate(slope.tx = `b_SS_c` + `b_iv.dtx:SS_c`) %>% 
-  gather_draws(slope.c, slope.tx) %>% 
-  mean_qi() 
+  spread_draws(b_SS_c, `b_iv.dtx:SS_c`) %>% 
+  mutate(slope_control = b_SS_c,
+         slope_tx      = b_SS_c + `b_iv.dtx:SS_c`,
+         difference    = slope_tx - slope_control) %>% 
+  gather_draws(slope_control, slope_tx, difference) %>% 
+  median_qi()
 ```
 
-## Group slopes with marginaleffects
+Same numbers as `avg_slopes()`. In the index-coded `mr.13`, the two slopes are already separate parameters, so there is nothing to add.
+
+## Where do the groups differ? {.smaller .nostretch}
+
+With an interaction, the treatment effect depends on school success. Plot tx − control across SS:
 
 ```{r}
-library(marginaleffects)
-avg_slopes(mr.14, variables = "SS_c", by = "iv.d")
+#| code-fold: true
+#| fig-height: 2.9
+#| fig-width: 8
+#| out-width: "85%"
+plot_comparisons(mr.14, variables = "iv.d", condition = "SS_c") +
+  geom_hline(yintercept = 0, linetype = 2) +
+  labs(x = "school success (centered)", y = "tx − control (happiness)") +
+  theme_classic(base_size = 14)
 ```
 
+Treatment helps students with low school success; for high-achieving students the difference shrinks toward (or below) zero. One "treatment effect" would hide that.
 
+## Group differences at chosen SS values {.smaller}
 
-## Group intercepts (index model)
+The plot as numbers: tx − control at low, average, and high school success (−1 SD, mean, +1 SD):
 
 ```{r}
-mr.13 %>%
-  gather_draws(b_iv.dcontrol, b_iv.dtx) %>% 
-  mean_qi() 
-
+avg_comparisons(mr.14, variables = "iv.d",
+                newdata = datagrid(SS_c = c(-1, 0, 1) * sd(MR$SS_c)), by = "SS_c")
 ```
 
-## Group predictions at chosen SS values
+Report the group difference at values that mean something for your question, and say which values you chose.
+
+## Three groups × a continuous predictor {.smaller}
+
+The same idea with all three intervention groups and SES (centered). Now there are three SES slopes, and the interaction asks whether they differ:
 
 ```{r}
-predictions(mr.14, newdata = datagrid(iv.d = c("control", "tx"), SS_c = mean))
-```
-
-```{r}
-predictions(mr.14, newdata = datagrid(iv.d = c("control", "tx"), SS_c = 3))
-```
-
-
-## Three groups × a continuous predictor
-
-The same idea with all three intervention groups and a continuous moderator (SES). With three groups, the "effect of SES" is three slopes, and the interaction asks whether they differ. This is where marginaleffects saves a lot of hand computation.
-
-```{r}
+MR <- MR %>% mutate(SES_c = SES - mean(SES))
 a.4 <- 
   brm(family = gaussian,
-      happiness ~ 1 + iv*SES,
-      prior = c(prior(normal(5, 3), class = Intercept),
+      happiness ~ 1 + iv * SES_c,
+      prior = c(prior(normal(5, 2), class = Intercept),
                 prior(normal(0, 2), class = b),
                 prior(exponential(1), class = sigma)),
-      iter = 2000, warmup = 1000, chains = 2, cores = 2,
+      iter = 2000, warmup = 1000, chains = 4, cores = 4,
       data = MR,
-      sample_prior = "yes",
       backend = "cmdstanr",
-      file = "a.4b")
-
+      file = "a.4c")
+avg_slopes(a.4, variables = "SES_c", by = "iv")
 ```
 
-## 3-group × SES results
+## Three groups: do the SES slopes differ? {.smaller}
 
 ```{r}
-summary(a.4)
+avg_slopes(a.4, variables = "SES_c", by = "iv", hypothesis = ~ pairwise)
 ```
 
-## Predictions by group
+With three groups the interaction is three pairwise slope differences; marginaleffects computes them all from the draws.
+
+## Three groups: the lines {.smaller .nostretch}
 
 ```{r}
-plot_predictions(a.4, condition = "iv")
+#| code-fold: true
+#| fig-height: 3
+#| fig-width: 8
+#| out-width: "85%"
+plot_predictions(a.4, condition = c("SES_c", "iv"), points = .4) +
+  labs(x = "SES (centered)", y = "happiness", colour = "group", fill = "group") +
+  theme_classic(base_size = 14)
 ```
 
-
-## Group means at different SES
-
-```{r}
-plot_predictions(a.4, condition = c("iv", "SES"))
-```
-
-
-
-## SES slopes by group
-
-```{r}
-plot_predictions(a.4, condition = c("SES", "iv"))
-```
-
-
-## Slopes by group
-
-```{r}
-slopes(a.4, variables = "SES", newdata = datagrid(iv = unique))
-```
-
-
-## Average slopes
-
-```{r}
-avg_slopes(a.4)
-```
-
-## Slopes at specific SES values {.smaller}
-
-```{r}
-slopes(a.4,
-  newdata = datagrid(
-    SES = 3))
-```
-
-
-```{r}
-slopes(a.4,
-  newdata = datagrid(
-    SES = 0))
-```
-
-
-
+The SES slopes are uncertain (every interval spans 0), and so are their differences: no evidence here that the SES slope depends on group. The method is the same no matter how many groups: slopes by group, then their pairwise differences.
 
 ## Continuous × continuous: a slope with its own equation {.smaller}
 

@@ -7340,7 +7340,7 @@
     "href": "mr-4.html#group-slopes-by-hand",
     "title": "Multiple Regression",
     "section": "Group slopes by hand",
-    "text": "Group slopes by hand\n\nmr.14 %&gt;%\n  spread_draws(`b_SS_c`, `b_iv.dtx:SS_c`) %&gt;% \n  mutate(slope.c = `b_SS_c` ) %&gt;%\n  mutate(slope.tx = `b_SS_c` + `b_iv.dtx:SS_c`) %&gt;% \n  gather_draws(slope.c, slope.tx) %&gt;% \n  mean_qi() \n\n# A tibble: 2 × 7\n  .variable .value  .lower .upper .width .point .interval\n  &lt;chr&gt;      &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;    \n1 slope.c    0.405  0.286   0.518   0.95 mean   qi       \n2 slope.tx   0.129 -0.0128  0.268   0.95 mean   qi"
+    "text": "Group slopes by hand\nEach group’s slope is just the coefficients that apply to it, added draw by draw:\n\nmr.14 %&gt;%\n  spread_draws(b_SS_c, `b_iv.dtx:SS_c`) %&gt;% \n  mutate(slope_control = b_SS_c,\n         slope_tx      = b_SS_c + `b_iv.dtx:SS_c`,\n         difference    = slope_tx - slope_control) %&gt;% \n  gather_draws(slope_control, slope_tx, difference) %&gt;% \n  median_qi()\n\n# A tibble: 3 × 7\n  .variable     .value  .lower  .upper .width .point .interval\n  &lt;chr&gt;          &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;    \n1 difference    -0.277 -0.456  -0.0925   0.95 median qi       \n2 slope_control  0.405  0.286   0.518    0.95 median qi       \n3 slope_tx       0.130 -0.0128  0.268    0.95 median qi       \n\n\nSame numbers as avg_slopes(). In the index-coded mr.13, the two slopes are already separate parameters, so there is nothing to add."
   },
   {
     "objectID": "mr-4.html#group-slopes-with-marginaleffects",
@@ -7368,7 +7368,7 @@
     "href": "mr-4.html#three-groups-a-continuous-predictor",
     "title": "Multiple Regression",
     "section": "Three groups × a continuous predictor",
-    "text": "Three groups × a continuous predictor\nThe same idea with all three intervention groups and a continuous moderator (SES). With three groups, the “effect of SES” is three slopes, and the interaction asks whether they differ. This is where marginaleffects saves a lot of hand computation.\n\na.4 &lt;- \n  brm(family = gaussian,\n      happiness ~ 1 + iv*SES,\n      prior = c(prior(normal(5, 3), class = Intercept),\n                prior(normal(0, 2), class = b),\n                prior(exponential(1), class = sigma)),\n      iter = 2000, warmup = 1000, chains = 2, cores = 2,\n      data = MR,\n      sample_prior = \"yes\",\n      backend = \"cmdstanr\",\n      file = \"a.4b\")"
+    "text": "Three groups × a continuous predictor\nThe same idea with all three intervention groups and SES (centered). Now there are three SES slopes, and the interaction asks whether they differ:\n\nMR &lt;- MR %&gt;% mutate(SES_c = SES - mean(SES))\na.4 &lt;- \n  brm(family = gaussian,\n      happiness ~ 1 + iv * SES_c,\n      prior = c(prior(normal(5, 2), class = Intercept),\n                prior(normal(0, 2), class = b),\n                prior(exponential(1), class = sigma)),\n      iter = 2000, warmup = 1000, chains = 4, cores = 4,\n      data = MR,\n      backend = \"cmdstanr\",\n      file = \"a.4c\")\navg_slopes(a.4, variables = \"SES_c\", by = \"iv\")\n\n\n iv Estimate  2.5 % 97.5 %\n  1  -0.0946 -0.812  0.624\n  2   0.3507 -0.391  1.090\n  3   0.3470 -0.360  1.072\n\nTerm: SES_c\nType: response\nComparison: dY/dX"
   },
   {
     "objectID": "mr-4.html#group-ses-results",
@@ -7445,14 +7445,14 @@
     "href": "mr-4.html#graphing-interactions",
     "title": "Multiple Regression",
     "section": "graphing interactions",
-    "text": "graphing interactions\n\nlibrary(psych)\ndescribe(MR$FQ_c)\n\n   vars   n mean   sd median trimmed  mad   min  max range  skew kurtosis   se\nX1    1 118    0 2.49   0.14    0.05 2.26 -6.92 7.03 13.94 -0.18     0.28 0.23\n\n\n\nMR %&gt;% \ndata_grid(SS_c = seq_range(SS_c, n = 20), FQ_c = c(-2.5,0,2.5), .model = MR) \n\n# A tibble: 60 × 9\n    SS_c  FQ_c friendship.quality happiness schoool.success   SES\n   &lt;dbl&gt; &lt;dbl&gt;              &lt;dbl&gt;     &lt;dbl&gt;           &lt;dbl&gt; &lt;dbl&gt;\n 1 -8.71  -2.5               7.75      5.34            8.52  2.31\n 2 -8.71   0                 7.75      5.34            8.52  2.31\n 3 -8.71   2.5               7.75      5.34            8.52  2.31\n 4 -7.80  -2.5               7.75      5.34            8.52  2.31\n 5 -7.80   0                 7.75      5.34            8.52  2.31\n 6 -7.80   2.5               7.75      5.34            8.52  2.31\n 7 -6.88  -2.5               7.75      5.34            8.52  2.31\n 8 -6.88   0                 7.75      5.34            8.52  2.31\n 9 -6.88   2.5               7.75      5.34            8.52  2.31\n10 -5.97  -2.5               7.75      5.34            8.52  2.31\n# ℹ 50 more rows\n# ℹ 3 more variables: intervention.group &lt;dbl&gt;, iv &lt;chr&gt;, iv.d &lt;chr&gt;"
+    "text": "graphing interactions\n\nlibrary(psych)\ndescribe(MR$FQ_c)\n\n   vars   n mean   sd median trimmed  mad   min  max range  skew kurtosis   se\nX1    1 118    0 2.49   0.14    0.05 2.26 -6.92 7.03 13.94 -0.18     0.28 0.23\n\n\n\nMR %&gt;% \ndata_grid(SS_c = seq_range(SS_c, n = 20), FQ_c = c(-2.5,0,2.5), .model = MR) \n\n# A tibble: 60 × 10\n    SS_c  FQ_c friendship.quality happiness schoool.success   SES\n   &lt;dbl&gt; &lt;dbl&gt;              &lt;dbl&gt;     &lt;dbl&gt;           &lt;dbl&gt; &lt;dbl&gt;\n 1 -8.71  -2.5               7.75      5.34            8.52  2.31\n 2 -8.71   0                 7.75      5.34            8.52  2.31\n 3 -8.71   2.5               7.75      5.34            8.52  2.31\n 4 -7.80  -2.5               7.75      5.34            8.52  2.31\n 5 -7.80   0                 7.75      5.34            8.52  2.31\n 6 -7.80   2.5               7.75      5.34            8.52  2.31\n 7 -6.88  -2.5               7.75      5.34            8.52  2.31\n 8 -6.88   0                 7.75      5.34            8.52  2.31\n 9 -6.88   2.5               7.75      5.34            8.52  2.31\n10 -5.97  -2.5               7.75      5.34            8.52  2.31\n# ℹ 50 more rows\n# ℹ 4 more variables: intervention.group &lt;dbl&gt;, iv &lt;chr&gt;, iv.d &lt;chr&gt;,\n#   SES_c &lt;dbl&gt;"
   },
   {
     "objectID": "mr-4.html#feeding-the-grid-to-the-model",
     "href": "mr-4.html#feeding-the-grid-to-the-model",
     "title": "Multiple Regression",
     "section": "Feeding the grid to the model",
-    "text": "Feeding the grid to the model\n\nMR %&gt;% \ndata_grid(SS_c = seq_range(SS_c, n = 20), FQ_c = c(-2.5,0,2.5), .model = MR) %&gt;% add_epred_draws(mr.15)\n\n# A tibble: 120,000 × 14\n# Groups:   SS_c, FQ_c, friendship.quality, happiness, schoool.success, SES,\n#   intervention.group, iv, iv.d, .row [60]\n    SS_c  FQ_c friendship.quality happiness schoool.success   SES\n   &lt;dbl&gt; &lt;dbl&gt;              &lt;dbl&gt;     &lt;dbl&gt;           &lt;dbl&gt; &lt;dbl&gt;\n 1 -8.71  -2.5               7.75      5.34            8.52  2.31\n 2 -8.71  -2.5               7.75      5.34            8.52  2.31\n 3 -8.71  -2.5               7.75      5.34            8.52  2.31\n 4 -8.71  -2.5               7.75      5.34            8.52  2.31\n 5 -8.71  -2.5               7.75      5.34            8.52  2.31\n 6 -8.71  -2.5               7.75      5.34            8.52  2.31\n 7 -8.71  -2.5               7.75      5.34            8.52  2.31\n 8 -8.71  -2.5               7.75      5.34            8.52  2.31\n 9 -8.71  -2.5               7.75      5.34            8.52  2.31\n10 -8.71  -2.5               7.75      5.34            8.52  2.31\n# ℹ 119,990 more rows\n# ℹ 8 more variables: intervention.group &lt;dbl&gt;, iv &lt;chr&gt;, iv.d &lt;chr&gt;,\n#   .row &lt;int&gt;, .chain &lt;int&gt;, .iteration &lt;int&gt;, .draw &lt;int&gt;, .epred &lt;dbl&gt;"
+    "text": "Feeding the grid to the model\n\nMR %&gt;% \ndata_grid(SS_c = seq_range(SS_c, n = 20), FQ_c = c(-2.5,0,2.5), .model = MR) %&gt;% add_epred_draws(mr.15)\n\n# A tibble: 120,000 × 15\n# Groups:   SS_c, FQ_c, friendship.quality, happiness, schoool.success, SES,\n#   intervention.group, iv, iv.d, SES_c, .row [60]\n    SS_c  FQ_c friendship.quality happiness schoool.success   SES\n   &lt;dbl&gt; &lt;dbl&gt;              &lt;dbl&gt;     &lt;dbl&gt;           &lt;dbl&gt; &lt;dbl&gt;\n 1 -8.71  -2.5               7.75      5.34            8.52  2.31\n 2 -8.71  -2.5               7.75      5.34            8.52  2.31\n 3 -8.71  -2.5               7.75      5.34            8.52  2.31\n 4 -8.71  -2.5               7.75      5.34            8.52  2.31\n 5 -8.71  -2.5               7.75      5.34            8.52  2.31\n 6 -8.71  -2.5               7.75      5.34            8.52  2.31\n 7 -8.71  -2.5               7.75      5.34            8.52  2.31\n 8 -8.71  -2.5               7.75      5.34            8.52  2.31\n 9 -8.71  -2.5               7.75      5.34            8.52  2.31\n10 -8.71  -2.5               7.75      5.34            8.52  2.31\n# ℹ 119,990 more rows\n# ℹ 9 more variables: intervention.group &lt;dbl&gt;, iv &lt;chr&gt;, iv.d &lt;chr&gt;,\n#   SES_c &lt;dbl&gt;, .row &lt;int&gt;, .chain &lt;int&gt;, .iteration &lt;int&gt;, .draw &lt;int&gt;,\n#   .epred &lt;dbl&gt;"
   },
   {
     "objectID": "mr-4.html#lines-at-three-fq-values",
@@ -8341,7 +8341,7 @@
     "href": "mr-4.html#categorical-continuous-a-slope-for-each-group",
     "title": "Multiple Regression",
     "section": "Categorical × continuous: a slope for each group?",
-    "text": "Categorical × continuous: a slope for each group?\nThe factorial model asked whether one group difference changes across another factor. Now one predictor is continuous, so the question becomes: does the slope of school success differ between control and treatment?\nWe’ll fit it three ways: parallel lines (one shared slope), separate slopes with index coding, and separate slopes with dummy coding. The lines are the same; only the parameters differ."
+    "text": "Categorical × continuous: a slope for each group?\nThe factorial model asked whether one group difference changes across another factor. Now one predictor is continuous, so the question becomes: does the slope of school success differ between control and treatment?\nTwo models answer it:\n\nParallel lines: each group gets its own intercept, but they share one slope (no interaction)\nSeparate lines: each group gets its own intercept and its own slope (the interaction)\n\nIs the extra flexibility worth it? We’ll compare models like these with LOO in lecture 6."
   },
   {
     "objectID": "mr-4.html#continuous-continuous-a-slope-with-its-own-equation",
@@ -8349,5 +8349,75 @@
     "title": "Multiple Regression",
     "section": "Continuous × continuous: a slope with its own equation",
     "text": "Continuous × continuous: a slope with its own equation\nAn interaction means the effect of one variable depends on another. In toolbox terms (lecture 3): the slope gets its own equation.\n\\[\\mu_i = \\beta_0 + \\beta_{1i} X_i + \\beta_2 Z_i \\qquad \\beta_{1i} = \\beta_1 + \\beta_3 Z_i\\]\nSubstitute and you get the familiar \\(\\mu_i = \\beta_0 + \\beta_1 X_i + \\beta_2 Z_i + \\beta_3 X_i Z_i\\). Next: X = school success, Z = friendship quality.\n\n\\(\\beta_1\\) is now the slope of X when Z = 0 (why centering Z matters)\n\\(\\beta_3\\) is how much the slope of X changes for each unit of Z\nWith an interaction there’s no single “main effect” of X: describe the slope of X at chosen values of Z (or the group difference at chosen values of X)\n\nThe modeling is the easy part; interpreting is the work, and predictions, slopes(), and plots do most of it."
+  },
+  {
+    "objectID": "mr-4.html#parallel-lines-one-shared-slope",
+    "href": "mr-4.html#parallel-lines-one-shared-slope",
+    "title": "Multiple Regression",
+    "section": "Parallel lines: one shared slope",
+    "text": "Parallel lines: one shared slope\n\\[\\mu_i = \\alpha_{\\text{Group}[i]} + \\beta\\,\\text{SS}_i\\]\n\nmr.12 &lt;-\n  brm(family = gaussian,\n      happiness ~ 0 + iv.d + SS_c,\n      prior = c(prior(normal(5, 3), class = b, coef = iv.dcontrol),\n                prior(normal(5, 3), class = b, coef = iv.dtx),\n                prior(normal(0, .5), class = b, coef = SS_c),\n                prior(exponential(1), class = sigma)),\n      iter = 2000, warmup = 1000, chains = 4, cores = 4,\n      data = MR, \n      backend = \"cmdstanr\",\n      file = \"mr.12\")\nround(fixef(mr.12)[, c(\"Estimate\", \"Q2.5\", \"Q97.5\")], 2)\n\n            Estimate Q2.5 Q97.5\niv.dcontrol     4.96 4.46  5.46\niv.dtx          5.36 4.99  5.73\nSS_c            0.29 0.20  0.38"
+  },
+  {
+    "objectID": "mr-4.html#separate-lines-index-coded",
+    "href": "mr-4.html#separate-lines-index-coded",
+    "title": "Multiple Regression",
+    "section": "Separate lines: index coded",
+    "text": "Separate lines: index coded\n\\[\\mu_i = \\alpha_{\\text{Group}[i]} + \\beta_{\\text{Group}[i]}\\,\\text{SS}_i\\]\nEach group’s intercept and slope, read straight off the output (like the cell-means model):\n\nmr.13 &lt;-\n  brm(family = gaussian,\n      happiness ~ 0 + iv.d + iv.d:SS_c,\n      prior = c(prior(normal(5, 3), class = b),                           # the two intercepts\n                prior(normal(0, .5), class = b, coef = iv.dcontrol:SS_c), # the two slopes\n                prior(normal(0, .5), class = b, coef = iv.dtx:SS_c),\n                prior(exponential(1), class = sigma)),\n      iter = 2000, warmup = 1000, chains = 4, cores = 4,\n      data = MR, \n      backend = \"cmdstanr\",\n      file = \"mr.13c\")\nround(fixef(mr.13)[, c(\"Estimate\", \"Q2.5\", \"Q97.5\")], 2)\n\n                 Estimate  Q2.5 Q97.5\niv.dcontrol          4.97  4.49  5.44\niv.dtx               5.35  4.99  5.70\niv.dcontrol:SS_c     0.40  0.29  0.51\niv.dtx:SS_c          0.13 -0.01  0.26"
+  },
+  {
+    "objectID": "mr-4.html#parallel-vs.-separate-lines",
+    "href": "mr-4.html#parallel-vs.-separate-lines",
+    "title": "Multiple Regression",
+    "section": "Parallel vs. separate lines",
+    "text": "Parallel vs. separate lines\n\n\nCode\ngrid_g &lt;- MR %&gt;% data_grid(iv.d, SS_c = seq_range(SS_c, n = 50))\nbind_rows(\"parallel lines (mr.12)\" = add_epred_draws(grid_g, mr.12),\n          \"separate lines (mr.13)\" = add_epred_draws(grid_g, mr.13), .id = \"model\") %&gt;%\n  ggplot(aes(x = SS_c, y = .epred, colour = iv.d, fill = iv.d)) +\n  geom_point(data = MR, aes(y = happiness), alpha = .4, size = 1.2) +\n  stat_lineribbon(.width = .95, alpha = .3) +\n  facet_wrap(~ model) +\n  scale_colour_manual(values = c(control = \"grey35\", tx = \"#D55E00\"), aesthetics = c(\"colour\", \"fill\")) +\n  labs(x = \"school success (centered)\", y = \"happiness\", colour = NULL, fill = NULL) +\n  theme_classic(base_size = 14) + theme(legend.position = \"top\")"
+  },
+  {
+    "objectID": "mr-4.html#the-same-model-dummy-coded",
+    "href": "mr-4.html#the-same-model-dummy-coded",
+    "title": "Multiple Regression",
+    "section": "The same model, dummy coded",
+    "text": "The same model, dummy coded\nThe default coding fits the same lines with different parameters:\n\nmr.14 &lt;-\n  brm(family = gaussian,\n      happiness ~ 1 + iv.d * SS_c,\n      prior = c(prior(normal(5, 2), class = Intercept),\n                prior(normal(0, 1), class = b),\n                prior(exponential(1), class = sigma)),\n      iter = 2000, warmup = 1000, chains = 4, cores = 4,\n      data = MR, \n      backend = \"cmdstanr\",\n      file = \"mr.14b\")\nround(fixef(mr.14)[, c(\"Estimate\", \"Q2.5\", \"Q97.5\")], 2)\n\n            Estimate  Q2.5 Q97.5\nIntercept       4.98  4.52  5.43\niv.dtx          0.36 -0.21  0.92\nSS_c            0.40  0.29  0.52\niv.dtx:SS_c    -0.28 -0.46 -0.09"
+  },
+  {
+    "objectID": "mr-4.html#do-the-slopes-differ",
+    "href": "mr-4.html#do-the-slopes-differ",
+    "title": "Multiple Regression",
+    "section": "Do the slopes differ?",
+    "text": "Do the slopes differ?\n\navg_slopes(mr.14, variables = \"SS_c\", by = \"iv.d\")                          # each group's slope\n\n\n    iv.d Estimate   2.5 % 97.5 %\n control    0.405  0.2861  0.518\n tx         0.130 -0.0128  0.268\n\nTerm: SS_c\nType: response\nComparison: dY/dX\n\navg_slopes(mr.14, variables = \"SS_c\", by = \"iv.d\", hypothesis = ~ pairwise)  # their difference\n\n\n       Hypothesis Estimate  2.5 %  97.5 %\n (tx) - (control)   -0.277 -0.456 -0.0925\n\nType: response\n\n\nIn control, each point of school success goes with about 0.41 more happiness; in treatment the slope is much flatter (0.13, and could be zero). The difference between the slopes is the interaction."
+  },
+  {
+    "objectID": "mr-4.html#where-do-the-groups-differ",
+    "href": "mr-4.html#where-do-the-groups-differ",
+    "title": "Multiple Regression",
+    "section": "Where do the groups differ?",
+    "text": "Where do the groups differ?\nWith an interaction, the treatment effect depends on school success. Plot tx − control across SS:\n\n\nCode\nplot_comparisons(mr.14, variables = \"iv.d\", condition = \"SS_c\") +\n  geom_hline(yintercept = 0, linetype = 2) +\n  labs(x = \"school success (centered)\", y = \"tx − control (happiness)\") +\n  theme_classic(base_size = 14)\n\n\n\n\n\n\n\n\n\nTreatment helps students with low school success; for high-achieving students the difference shrinks toward (or below) zero. One “treatment effect” would hide that."
+  },
+  {
+    "objectID": "mr-4.html#three-groups-the-lines",
+    "href": "mr-4.html#three-groups-the-lines",
+    "title": "Multiple Regression",
+    "section": "Three groups: the lines",
+    "text": "Three groups: the lines\n\n\nCode\nplot_predictions(a.4, condition = c(\"SES_c\", \"iv\"), points = .4) +\n  labs(x = \"SES (centered)\", y = \"happiness\", colour = \"group\", fill = \"group\") +\n  theme_classic(base_size = 14)\n\n\n\n\n\n\n\n\n\nThe SES slopes are uncertain (every interval spans 0), and so are their differences: no evidence here that the SES slope depends on group. The method is the same no matter how many groups: slopes by group, then their pairwise differences."
+  },
+  {
+    "objectID": "mr-4.html#group-differences-at-chosen-ss-values",
+    "href": "mr-4.html#group-differences-at-chosen-ss-values",
+    "title": "Multiple Regression",
+    "section": "Group differences at chosen SS values",
+    "text": "Group differences at chosen SS values\nThe plot as numbers: tx − control at low, average, and high school success (−1 SD, mean, +1 SD):\n\navg_comparisons(mr.14, variables = \"iv.d\",\n                newdata = datagrid(SS_c = c(-1, 0, 1) * sd(MR$SS_c)), by = \"SS_c\")\n\n\n  SS_c Estimate  2.5 % 97.5 %\n -3.28    1.258  0.413  2.105\n  0.00    0.360 -0.212  0.921\n  3.28   -0.551 -1.357  0.270\n\nTerm: iv.d\nType: response\nComparison: tx - control\n\n\nReport the group difference at values that mean something for your question, and say which values you chose."
+  },
+  {
+    "objectID": "mr-4.html#what-the-dummy-coded-coefficients-mean",
+    "href": "mr-4.html#what-the-dummy-coded-coefficients-mean",
+    "title": "Multiple Regression",
+    "section": "What the dummy-coded coefficients mean",
+    "text": "What the dummy-coded coefficients mean\n\n\n            Estimate  Q2.5 Q97.5\nIntercept       4.98  4.52  5.43\niv.dtx          0.36 -0.21  0.92\nSS_c            0.40  0.29  0.52\niv.dtx:SS_c    -0.28 -0.46 -0.09\n\n\n\n\n\n\n\n\n\nCoefficient\nMeaning\n\n\n\n\nIntercept\ncontrol’s expected happiness at average school success (SS centered)\n\n\niv.dtx\ntx − control, at average SS only\n\n\nSS_c\ncontrol’s slope\n\n\niv.dtx:SS_c\ntx’s slope minus control’s slope: the interaction\n\n\n\nCompare with mr.13: same intercepts and slopes, just written as a baseline plus differences."
+  },
+  {
+    "objectID": "mr-4.html#three-groups-do-the-ses-slopes-differ",
+    "href": "mr-4.html#three-groups-do-the-ses-slopes-differ",
+    "title": "Multiple Regression",
+    "section": "Three groups: do the SES slopes differ?",
+    "text": "Three groups: do the SES slopes differ?\n\navg_slopes(a.4, variables = \"SES_c\", by = \"iv\", hypothesis = ~ pairwise)\n\n\n Hypothesis Estimate  2.5 % 97.5 %\n  (2) - (1)   0.4609 -0.605   1.44\n  (3) - (1)   0.4351 -0.556   1.45\n  (3) - (2)  -0.0111 -1.062   1.05\n\nType: response\n\n\nWith three groups the interaction is three pairwise slope differences; marginaleffects computes them all from the draws."
   }
 ]
