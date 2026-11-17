@@ -787,18 +787,20 @@ h.4R <-
 summary(h.4R)
 ```
 
-## fixing nu
+## Fixing ν {.smaller}
 
-Instead of estimating nu we could also fix it to be low, thereby ensuring that we have fat tails. The previous approach allowed us to have skinnier tails if the data suggested skinnier tails.
+Instead of estimating ν we can fix it low, which guarantees fat tails no matter what the data say. (Estimating ν, as above, lets the data choose skinnier tails.)
+
+-   **ν = 3** is a common choice: about 6% of the distribution lies beyond ±3 scale units, vs. 0.3% for a normal, and the SD still exists
+-   Smaller ν = fatter tails. ν = 1 is the extreme (it has its own name, the Cauchy distribution). Its tails are so heavy that the model treats much of the data as outliers and acts almost like the median, and the SD no longer exists
 
 ```{r}
-
 h.5R <- 
   brm(family = student,
-      bf(health ~ 0 + mood.group.d, nu = 1),
+      bf(health ~ 0 + mood.group.d, nu = 3),
       prior = c(prior(normal(0, 10), class = b),
                 prior(cauchy(0, 1),  class = sigma)),
-      file = "h.5R2",
+      file = "h.5R3",   # earlier versions fixed nu = 1: h.5R, h.5R2
       backend = "cmdstanr",
       data = week3)
 ```
@@ -811,58 +813,43 @@ summary(h.5R)
 
 ## For a t, σ isn't the SD {.smaller}
 
-σ dropped from about 2.8 (normal) to 1.7 (ν = 1). The data didn't change: σ means something different. For a t, σ is a **scale**, and
-
-$$\text{SD} = \sigma \sqrt{\frac{\nu}{\nu - 2}} \quad (\text{only when } \nu > 2)$$
+σ dropped from about `r round(median(as_draws_df(h.3)$sigma), 1)` (normal) to `r round(median(as_draws_df(h.5R)$sigma), 1)` (ν = 3). The data didn't change: for a t, σ is a **scale**, and $\text{SD} = \sigma \sqrt{\nu / (\nu - 2)}$. That needs ν > 2: with heavier tails the SD is infinite, whatever σ is (one more reason to fix ν at 3, not 1).
 
 ```{r}
 #| code-fold: true
 bind_rows(
   "normal (h.3)"          = spread_draws(h.3, sigma) %>% mutate(nu = Inf),
   "t, ν estimated (h.4R)" = spread_draws(h.4R, sigma, nu),
-  "t, ν = 1 (h.5R)"       = spread_draws(h.5R, sigma) %>% mutate(nu = 1), .id = "model") %>%
-  mutate(SD = ifelse(nu > 2, sigma * sqrt(ifelse(is.finite(nu), nu / (nu - 2), 1)), NA)) %>%
+  "t, ν = 3 (h.5R)"       = spread_draws(h.5R, sigma) %>% mutate(nu = 3), .id = "model") %>%
+  mutate(SD = sigma * sqrt(ifelse(is.finite(nu), nu / (nu - 2), 1))) %>%
   group_by(model) %>%
   summarise(sigma = median(sigma), nu = median(nu), SD = median(SD)) %>%
   mutate(across(where(is.numeric), \(x) round(x, 2)))
 ```
 
--   With ν = 1 (a Cauchy) the SD doesn't exist at all, so compare scales, not SDs, across likelihoods
--   `h.4R` estimated ν ≈ 20 (posterior median): these data aren't very heavy-tailed, and the robust and normal models agree
+-   Compare SDs, not σs, across likelihoods
+-   `h.4R` estimated ν ≈ 20: these data aren't very heavy-tailed. Forcing ν = 3 on them makes the implied SD (about 3.9) *bigger* than the normal model's. Fix ν when you expect outliers; otherwise estimate it
 
-## Robust vs. non-robust group means
-
-::::: columns
-::: {.column width="50%"}
-Robust
+## Robust vs. non-robust group means {.smaller .nostretch}
 
 ```{r}
 #| code-fold: true
-avg_predictions(h.5R, by = "mood.group.d") %>% 
-  get_draws() %>% 
-  ggplot(aes(x = mood.group.d, y = draw)) +
-  stat_eye() +
-  geom_point(aes(y = health), data = week3, alpha = .3) +
-  labs(y = "health")
-
-  
+#| fig-height: 3.2
+#| fig-width: 8
+#| out-width: "85%"
+bind_rows("normal (h.3)"   = avg_predictions(h.3,  by = "mood.group.d") %>% get_draws(),
+          "t, ν = 3 (h.5R)" = avg_predictions(h.5R, by = "mood.group.d") %>% get_draws(), .id = "model") %>%
+  ggplot(aes(x = draw, y = mood.group.d, colour = model)) +
+  stat_pointinterval(position = position_dodge(width = .4), .width = c(.66, .95)) +
+  geom_point(data = week3 %>% group_by(mood.group.d) %>% summarise(draw = median(health)),
+             aes(x = draw, y = mood.group.d), inherit.aes = FALSE, shape = 4, size = 4) +
+  scale_colour_manual(values = c("#0072B2", "#D55E00")) +
+  labs(x = "group mean health (66% and 95% intervals)", y = NULL, colour = NULL,
+       caption = "× = the group's sample median") +
+  theme_classic(base_size = 14) + theme(legend.position = "top")
 ```
-:::
 
-::: {.column width="50%"}
-non-robust
-
-```{r}
-#| code-fold: true
-avg_predictions(h.3, by = "mood.group.d") %>% 
-  get_draws() %>% 
-  ggplot(aes(x = mood.group.d, y = draw)) +
-  stat_eye() +
-  geom_point(aes(y = health), data = week3, alpha = .3) +
-  labs(y = "health")
-```
-:::
-:::::
+Tx barely changes (`r round(fixef(h.5R)["mood.group.dtx", 1], 2)` robust vs. `r round(fixef(h.3)["mood.group.dtx", 1], 2)`). The control mean moves up (`r round(fixef(h.5R)["mood.group.dcontrol", 1], 2)` vs. `r round(fixef(h.3)["mood.group.dcontrol", 1], 2)`), toward the control group's median (`r round(median(week3$health[week3$mood.group.d == "control"]), 2)`): the t model gives less weight to a few very low health scores there. The robust intervals are a little wider.
 
 ## relaxing equal variance assumption
 
