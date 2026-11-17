@@ -8181,5 +8181,26 @@
     "title": "Regression part 1",
     "section": "pp_check with a statistic",
     "text": "pp_check with a statistic\ntype = \"stat\" computes one statistic for each simulated dataset and compares it with the observed value (the line):\n\n\nCode\npp_check(fit.1, type = \"stat\", stat = \"sd\") | pp_check(fit.1, type = \"stat\", stat = \"max\")\n\n\n\n\n\n\n\n\n\nPick statistics the model isn’t built to match: a normal model nearly always gets the mean and SD right. The min, max, or skew show misfits (bounded scales, ceilings). Here the max catches one: Galton’s heights were binned and top out at 73.7 inches, but the model keeps simulating taller children."
+  },
+  {
+    "objectID": "regression-2.html#get_prior-lists-priors-it-doesnt-set-them",
+    "href": "regression-2.html#get_prior-lists-priors-it-doesnt-set-them",
+    "title": "Regression part 1",
+    "section": "get_prior() lists priors; it doesn’t set them",
+    "text": "get_prior() lists priors; it doesn’t set them\nget_prior() answers one question: “if I fit this model and give no priors, what would brms use?” It changes nothing. Priors are only ever set by prior = inside brm().\n\nget_prior(child ~ 1 + parent.c, data = galton.data, family = gaussian)\n\n                 prior     class     coef group resp dpar nlpar lb ub tag\n                (flat)         b                                         \n                (flat)         b parent.c                                \n student_t(3, 68.2, 3) Intercept                                         \n    student_t(3, 0, 3)     sigma                                 0       \n       source\n      default\n (vectorized)\n      default\n      default\n\n\nOne row per prior you could set:\n\nclass: the kind of parameter. b = slopes, Intercept, sigma\ncoef: blank = applies to every slope in that class; parent.c = just that slope. Its source says (vectorized): it inherits the blank row’s prior\nprior: the default. (flat) = no prior at all; every value from −∞ to ∞ equally plausible (what lm() assumes)\nlb: lower bound. σ can’t be negative, so its student_t is really a half-t\nsource: default (brms picked it) or user (you did)"
+  },
+  {
+    "objectID": "regression-2.html#the-defaults-and-what-we-actually-used",
+    "href": "regression-2.html#the-defaults-and-what-we-actually-used",
+    "title": "Regression part 1",
+    "section": "The defaults, and what we actually used",
+    "text": "The defaults, and what we actually used\n\nSlopes: flat, so no prior at all\nIntercept student_t(3, 68.2, 3) and sigma student_t(3, 0, 3): 68.2 is the median of child, 3 its MAD (rounded). brms peeked at your outcome: fine for a quick fit, but it isn’t prior knowledge\nUse get_prior() for the names to write in prior(): prior(normal(0, 5), class = b) covers every slope; add coef = parent.c for just one\n\nWhat a fitted model actually used:\n\nprior_summary(fit.1)\n\n            prior     class     coef group resp dpar nlpar lb ub tag       source\n     normal(0, 5)         b                                                  user\n     normal(0, 5)         b parent.c                                 (vectorized)\n    normal(66, 5) Intercept                                                  user\n exponential(0.5)     sigma                                 0                user\n\n\nsource is now user: the priors from our brm() call."
+  },
+  {
+    "objectID": "regression-2.html#get_prior-lists-it-doesnt-set",
+    "href": "regression-2.html#get_prior-lists-it-doesnt-set",
+    "title": "Regression part 1",
+    "section": "get_prior() lists; it doesn’t set",
+    "text": "get_prior() lists; it doesn’t set\nget_prior() answers one question: “if I fit this model and give no priors, what would brms use?” It changes nothing. Priors are only ever set by prior = inside brm().\n\nget_prior(child ~ 1 + parent.c, data = galton.data, family = gaussian)\n\n                 prior     class     coef group resp dpar nlpar lb ub tag       source\n                (flat)         b                                               default\n                (flat)         b parent.c                                 (vectorized)\n student_t(3, 68.2, 3) Intercept                                               default\n    student_t(3, 0, 3)     sigma                                 0             default\n\n\nOne row per prior you could set:\n\nclass: the kind of parameter. b = slopes, Intercept, sigma\ncoef: blank = every slope in that class; parent.c = just that slope. (vectorized) means it inherits the blank row’s prior\nprior: the default. (flat) = no prior: every value from −∞ to ∞ equally plausible (as in lm())\nlb: lower bound. σ can’t be negative, so its student_t is really a half-t\nsource: default (brms picked it) or user (you did)"
   }
 ]

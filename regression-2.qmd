@@ -260,18 +260,41 @@ fit.1 <-
       file = "fit.1b")   # old priors: fit.1
 ```
 
-## Default priors: get_prior() {.smaller}
--   What if you don't know what priors should be in your model?
--   Default priors are usually not what you want: flat on the slopes, and the intercept and sigma defaults are centered and scaled using your own outcome data
+## get_prior() lists; it doesn't set {.smaller}
+
+`get_prior()` answers one question: "if I fit this model and give **no** priors, what would brms use?" It changes nothing. Priors are only ever set by `prior =` inside `brm()`.
 
 ```{r}
-#| code-fold: true
+#| echo: !expr -1
+options(width = 130)
+get_prior(child ~ 1 + parent.c, data = galton.data, family = gaussian)
+```
 
-# This gets you default priors (or priors used for a model)
+One row per prior you *could* set:
 
-get_prior(family = gaussian,
-      child ~ 1 + parent.c,
-      data = galton.data)
+-   `class`: the kind of parameter. `b` = slopes, `Intercept`, `sigma`
+-   `coef`: blank = **every** slope in that class; `parent.c` = just that slope. `(vectorized)` means it inherits the blank row's prior
+-   `prior`: the default. `(flat)` = no prior: every value from −∞ to ∞ equally plausible (as in `lm()`)
+-   `lb`: lower bound. σ can't be negative, so its `student_t` is really a half-t
+-   `source`: `default` (brms picked it) or `user` (you did)
+
+## The defaults, and what we actually used {.smaller}
+
+-   **Slopes:** flat, so no prior at all
+-   **Intercept** `student_t(3, 68.2, 3)` and **sigma** `student_t(3, 0, 3)`: 68.2 is the median of `child`, 3 its MAD (rounded). brms peeked at *your outcome*: fine for a quick fit, but it isn't prior knowledge
+-   Use `get_prior()` for the **names** to write in `prior()`: `prior(normal(0, 5), class = b)` covers every slope; add `coef = parent.c` for just one
+
+What a fitted model actually used:
+
+```{r}
+prior_summary(fit.1)
+```
+
+`source` is now `user`: the priors from our `brm()` call.
+
+```{r}
+#| include: false
+options(width = 80)
 ```
 
 ## The summary
