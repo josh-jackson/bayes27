@@ -473,7 +473,7 @@
     "href": "regression-2.html#qi-vs.-hdi-on-a-skewed-posterior",
     "title": "Regression part 1",
     "section": "QI vs. HDI on a skewed posterior",
-    "text": "QI vs. HDI on a skewed posterior\n\n\nCode\nset.seed(2)\nskewed &lt;- tibble(x = rgamma(4000, shape = 2, rate = 1))\nbind_rows(qi = median_qi(skewed, x, .width = .95), hdi = mode_hdi(skewed, x, .width = .95), .id = \"type\") %&gt;% \n  ggplot(aes(y = type)) +\n  stat_slab(data = skewed, aes(x = x, y = \"draws\"), fill = \"grey80\") +\n  geom_pointinterval(aes(x = x, xmin = .lower, xmax = .upper)) +\n  labs(x = \"a skewed posterior (e.g., a standard deviation)\", y = NULL) +\n  theme_classic(base_size = 14)\n\n\n\nThe HDI (narrowest 95%) sits further left, toward the peak; the QI cuts equal tails and so extends further into the long right tail."
+    "text": "QI vs. HDI on a skewed posterior\n\n\nCode\nset.seed(2)\nskewed &lt;- tibble(x = rgamma(4000, shape = 2, rate = 1))\nbind_rows(qi = median_qi(skewed, x, .width = .95), hdi = mode_hdi(skewed, x, .width = .95), .id = \"type\") %&gt;% \n  ggplot(aes(y = type)) +\n  stat_slab(data = skewed, aes(x = x, y = \"draws\"), fill = \"grey80\") +\n  geom_pointinterval(aes(x = x, xmin = .lower, xmax = .upper)) +\n  labs(x = \"a skewed posterior (e.g., a standard deviation)\", y = NULL) +\n  theme_classic(base_size = 14)\n\n\n\n\n\n\n\n\n\nThe QI’s tails are equal in probability (2.5% of the draws each), not in distance. On the left the draws are crowded against 0, so 2.5% fit in a short stretch; on the right they’re spread thin, so the QI reaches far out. The HDI (narrowest 95%) drops that rule and shifts toward the peak."
   },
   {
     "objectID": "regression-2.html#prior-and-posterior-plotted-together",

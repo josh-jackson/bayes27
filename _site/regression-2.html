@@ -1885,7 +1885,7 @@ $Intercept
 </ul>
 <p>For a symmetric posterior like this slope, they’re essentially the same. They differ when the posterior is <strong>skewed</strong>, e.g., a standard deviation, a probability near 0 or 1, or a parameter near a boundary. The HDI then shifts toward the peak. Pick one, and say which in your paper.</p>
 </section>
-<section id="qi-vs.-hdi-on-a-skewed-posterior" class="slide level2">
+<section id="qi-vs.-hdi-on-a-skewed-posterior" class="slide level2 smaller nostretch">
 <h2>QI vs.&nbsp;HDI on a skewed posterior</h2>
 <div class="cell">
 <details class="code-fold">
@@ -1899,9 +1899,15 @@ $Intercept
 <span id="cb48-7"><a aria-label="7"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"a skewed posterior (e.g., a standard deviation)"</span>, <span class="at">y =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
 <span id="cb48-8"><a aria-label="8"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">14</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-
+<div class="cell-output-display">
+<div>
+<figure>
+<p><img data-src="regression-2_files/figure-revealjs/unnamed-chunk-33-1.png" style="width:100.0%"></p>
+</figure>
 </div>
-<img data-src="regression-2_files/figure-revealjs/unnamed-chunk-33-1.png" style="width:100.0%" class="r-stretch"><p>The HDI (narrowest 95%) sits further left, toward the peak; the QI cuts equal tails and so extends further into the long right tail.</p>
+</div>
+</div>
+<p>The QI’s tails are equal in <strong>probability</strong> (2.5% of the draws each), not in <strong>distance</strong>. On the left the draws are crowded against 0, so 2.5% fit in a short stretch; on the right they’re spread thin, so the QI reaches far out. The HDI (narrowest 95%) drops that rule and shifts toward the peak.</p>
 </section>
 <section id="prior-and-posterior-plotted-together" class="slide level2 nostretch">
 <h2>Prior and posterior plotted together</h2>

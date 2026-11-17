@@ -517,7 +517,7 @@ Two ways to make a 95% interval from draws:
 
 For a symmetric posterior like this slope, they're essentially the same. They differ when the posterior is **skewed**, e.g., a standard deviation, a probability near 0 or 1, or a parameter near a boundary. The HDI then shifts toward the peak. Pick one, and say which in your paper.
 
-## QI vs. HDI on a skewed posterior
+## QI vs. HDI on a skewed posterior {.smaller .nostretch}
 
 ```{r}
 #| code-fold: true
@@ -533,7 +533,7 @@ bind_rows(qi = median_qi(skewed, x, .width = .95), hdi = mode_hdi(skewed, x, .wi
   theme_classic(base_size = 14)
 ```
 
-The HDI (narrowest 95%) sits further left, toward the peak; the QI cuts equal tails and so extends further into the long right tail.
+The QI's tails are equal in **probability** (2.5% of the draws each), not in **distance**. On the left the draws are crowded against 0, so 2.5% fit in a short stretch; on the right they're spread thin, so the QI reaches far out. The HDI (narrowest 95%) drops that rule and shifts toward the peak.
 
 ## Prior and posterior plotted together {.nostretch}
 
