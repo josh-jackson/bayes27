@@ -218,10 +218,12 @@ describe(MR)
 ## model
 
 $$\text{happiness}_i \sim \text{Normal}(\mu_i, \sigma)$$
-$$\mu_i = \beta_0 + \beta_1 \text{SS\_c}_i + \beta_2 \text{FQ\_c}_i$$
+$$\mu_i = \beta_0 + \beta_1 \text{SS}_i + \beta_2 \text{FQ}_i$$
 
 $$\beta_0 \sim \text{Normal}(5, 2) \qquad \beta_1, \beta_2 \sim \text{Normal}(0, 2)$$
 $$\sigma \sim \text{Exponential}(1)$$
+
+SS (school success) and FQ (friendship quality) are both centered.
 
 ## Fitting the model
 
@@ -551,339 +553,108 @@ MR %>%
   xlim(0, 10) + ylim(0,10)
 ```
 
-## Two+ categorical variables
+## Two categorical predictors: a 2 × 3 study {.smaller}
+
+Does how you study matter, and does it depend on sleep? (Simulated, so we know the truth.) Students either **re-read** their notes or take **practice tests**, and slept **4, 6, or 8 hours** the night before. Outcome: exam score (0–100). The cells are unequal: practice-testers tended to sleep more.
 
 ```{r}
 #| code-fold: true
-MR <- MR %>% 
-  mutate(iv = factor(iv),
-         happy_c = happiness - mean(happiness),
-         # a second factor: SES split at the median (just to have a 2nd categorical
-         # variable to work with; in practice keep SES continuous, as we do later)
-         iv2 = factor(if_else(SES > median(SES), "high SES", "low SES"),
-                      levels = c("low SES", "high SES")))
+set.seed(2027)
+exam <- tibble(strategy = rep(c("reread", "practice"), each = 3),
+               sleep    = rep(c("4h", "6h", "8h"), times = 2),
+               n        = c(25, 30, 25, 15, 30, 35),
+               true     = c(66, 70, 72, 67, 77, 84)) %>%    # true cell means
+  uncount(n) %>%
+  mutate(score    = pmin(rnorm(n(), true, 8), 100),
+         strategy = factor(strategy, levels = c("reread", "practice")),
+         sleep    = factor(sleep)) %>%
+  select(-true)
 
-MR %>% count(iv, iv2)
+exam %>% count(strategy, sleep) %>% pivot_wider(names_from = sleep, values_from = n)
 ```
 
-## Two factors: one index, one dummy
+## Three ways to code two factors {.smaller}
 
-```{r}
-#| code-fold: true
-mr.5 <- 
-  brm(family = gaussian,
-      happiness ~ 0 + iv + iv2,
-      prior = c(prior(normal(5, 2), class = b),                       # the iv group means
-                prior(normal(0, 1), class = b, coef = iv2highSES),    # a difference: centered on 0
-                prior(exponential(1), class = sigma)),
-      iter = 2000, warmup = 1000, chains = 2, cores = 2,
-      data = MR,
-      backend = "cmdstanr",
-      file = "mr.5c")
-```
+| Formula | Parameters | Use when |
+|---|---|---|
+| `score ~ strategy + sleep` | a baseline + differences; no interaction | the strategy effect is the same at every sleep level |
+| `score ~ strategy * sleep` | a baseline cell + differences + interaction terms | the usual factorial model |
+| `score ~ 0 + strategy:sleep` | one mean per cell (index coding) | you want cell means directly, with one prior |
 
-## Two-factor results
+Why not one index per factor (`0 + strategy + sleep`)? `0 +` only removes one intercept, so the second factor is still dummy coded. And two separate index variables (as in Statistical Rethinking) aren't identified: add 1 to every strategy mean and subtract 1 from every sleep mean and the predictions don't change.
 
-```{r}
-summary(mr.5)
-```
+**Rule of thumb:** index coding for one factor, or for all the cells. Otherwise use the default coding and read results through predictions and contrasts, not coefficients.
 
-## Index coding with more than one factor {.smaller}
+## The factorial model, in brms's names {.smaller}
 
-`0 + iv + iv2` gave an index (a mean) for each `iv` group but a **dummy** for `iv2`: `0 +` only removes one intercept, so only the first factor gets indexed. Options:
-
--   **Every cell gets its own mean:** `0 + iv:iv2`. One prior for all cells (next slides)
--   **Two separate index variables** (as in Statistical Rethinking): not identified. Add 1 to every `iv` mean and subtract 1 from every `iv2` mean and the predictions don't change, so only the priors decide where they sit
--   **Default (dummy) coding** with priors on the *differences*, then get means and contrasts with marginaleffects
-
-**Rule of thumb:** use index coding for one factor, or for all the cells of a factorial. Once you add continuous predictors and interactions, use the default coding and read the results through predictions and contrasts, not the coefficients. That's what we do for the rest of the course.
-
-## Group means and contrasts
-
-```{r}
-# each iv group averaged over low and high SES equally ("balanced"),
-# so groups are compared at the same SES mix
-avg_predictions(mr.5, newdata = "balanced", by = "iv")
-avg_predictions(mr.5, newdata = "balanced", by = "iv", hypothesis = ~ pairwise)
-```
-
-## comparing levels ie contrasts
-
-The same contrasts by hand with tidybayes's `compare_levels()`. (In this additive model, the differences between `iv` groups are the same at either SES level.)
-
-```{r}
-#| fig-height: 3.5
-mr.5 %>%
-  gather_draws(b_iv1, b_iv2, b_iv3) %>%
-  compare_levels(.value, by = .variable) %>%
-  ggplot(aes(y = .variable, x = .value)) +
-  stat_halfeye() +
-  geom_vline(xintercept = 0, linetype = 2)
-```
-
-## compare_levels(), summarized
-
-```{r}
-mr.5 %>%
-  gather_draws(b_iv1, b_iv2, b_iv3) %>%
-  compare_levels(.value, by = .variable) %>%
-  median_qi(.value)
-```
-
-## Each draw is a population
-
-Each posterior row implies a different population we are drawing from, much like each row represents a different regression line. Here, low-SES people in each group:
-
-```{r}
-#| code-fold: true
-MR %>%
-  data_grid(iv, iv2 = "low SES") %>%
-  add_epred_draws(mr.5, dpar = c("mu", "sigma"), ndraws = 50) %>%
-  ggplot(aes(y = iv)) +
-  stat_slab(aes(dist = "norm", arg1 = mu, arg2 = sigma),
-    slab_color = "gray65", alpha = 1/10, fill = NA) +
-  geom_point(aes(x = happiness), data = filter(MR, iv2 == "low SES"), shape = 21, fill = "#9ECAE1", size = 2) +
-  labs(x = "happiness")
-```
-
-## An index for every cell
-
-What about an *interaction* between two categorical variables? The simplest index-coded version gives every **cell** (every combination of `iv` and `iv2`) its own mean, with one prior for all six:
-
-```{r}
-#| code-fold: true
-mr.7 <- 
-  brm(family = gaussian,
-      happy_c ~ 0 + iv:iv2,
-      prior = c(prior(normal(0, 2), class = b),
-                prior(exponential(1), class = sigma)),
-      iter = 2000, warmup = 1000, chains = 4, cores = 4,
-      data = MR,
-      backend = "cmdstanr",
-      file = "mr.7")
-fixef(mr.7)
-mean_happy <- mean(MR$happiness)   # we centered the DV, so add this back for plots
-```
-
-## Is there an interaction? Ask the cell means {.smaller}
-
-With cell means, "is there an interaction?" becomes "does the high − low SES difference change across `iv`?", a difference of differences computed from the draws:
-
-```{r}
-#| code-fold: true
-#| fig-height: 3.5
-cells <- avg_predictions(mr.7, by = c("iv", "iv2")) %>% get_draws()
-
-cells %>% 
-  mutate(draw = draw + mean_happy) %>% 
-  ggplot(aes(x = iv, y = draw, color = iv2, group = iv2)) +
-  stat_pointinterval(position = position_dodge(width = .3)) +
-  stat_summary(fun = median, geom = "line", position = position_dodge(width = .3)) +
-  labs(y = "happiness", color = NULL)
-```
-
-## Difference of differences
-
-The high − low SES gap in each `iv` group, then how much those gaps differ between groups (that's the interaction):
-
-```{r}
-#| code-fold: true
-cells %>% 
-  select(drawid, iv, iv2, draw) %>% 
-  pivot_wider(names_from = iv2, values_from = draw) %>% 
-  mutate(ses_diff = `high SES` - `low SES`) %>% 
-  select(drawid, iv, ses_diff) %>% 
-  pivot_wider(names_from = iv, values_from = ses_diff, names_prefix = "iv") %>% 
-  transmute(`iv2 vs iv1` = iv2 - iv1, `iv3 vs iv1` = iv3 - iv1, `iv3 vs iv2` = iv3 - iv2) %>% 
-  pivot_longer(everything()) %>% 
-  group_by(name) %>% 
-  median_qi(value)
-```
-
-
-## A 3×2 factorial: the data
-
-```{r}
-anova <- read_csv("anova.csv")   # also at https://josh-jackson.github.io/bayes27/anova.csv
-anova <- anova %>% 
-  mutate(SupportLevel = cut(Support, breaks = c(0, 5, 10, 18), labels = c("low", "med", "high")),
-         condition = factor(group)) %>%   # renamed: marginaleffects reserves the name "group"
-  select(-group)
-anova %>% count(condition, SupportLevel)
-```
-
-If we want to fit a 3×2 ANOVA, what linear model are we running?
-
-## The 3×2 model, in brms's names {.smaller}
-
-$$\text{Anxiety}_i \sim \text{Normal}(\mu_i, \sigma)$$
-
+$$\text{score}_i \sim \text{Normal}(\mu_i, \sigma)$$
 $$
 \begin{aligned}
-\mu_i = \beta_0 &+ \beta_1\,\text{conditionTx}_i + \beta_2\,\text{SupportLevelmed}_i + \beta_3\,\text{SupportLevelhigh}_i \\
-&+ \beta_4\,(\text{conditionTx} \times \text{SupportLevelmed})_i \\
-&+ \beta_5\,(\text{conditionTx} \times \text{SupportLevelhigh})_i
+\mu_i = \beta_0 &+ \beta_1\,\text{practice}_i + \beta_2\,\text{sleep6h}_i + \beta_3\,\text{sleep8h}_i \\
+&+ \beta_4\,(\text{practice} \times \text{sleep6h})_i + \beta_5\,(\text{practice} \times \text{sleep8h})_i
 \end{aligned}
 $$
 
-Each name is a 0/1 dummy, exactly as it will appear in `summary()`. The reference cell (all dummies = 0) is Control with low support, so $\beta_0$ is that cell's mean and every other coefficient is a difference from it.
+$$\beta_0 \sim \text{Normal}(70, 10) \qquad \beta_1, \ldots, \beta_5 \sim \text{Normal}(0, 10) \qquad \sigma \sim \text{Exponential}(0.1)$$
+
+Each name is a 0/1 dummy, as it appears in `summary()`. A typical exam average is around 70, differences beyond ±20 points would be surprising, and σ has a mean of 10 points. (brms puts the intercept prior at the average of the predictors, roughly the overall mean, so 70 works either way.)
 
 ## Fitting the factorial model
 
 ```{r}
-#| code-fold: true
-mr.8b <- 
+fac.1 <- 
   brm(family = gaussian,
-      Anxiety ~ condition * SupportLevel,
-      prior = c(prior(normal(5, 3), class = Intercept),
-                prior(normal(0, 2), class = b, coef = conditionTx),
-                prior(normal(0, 2), class = b, coef = SupportLevelhigh),
-                prior(normal(0, 2), class = b, coef = SupportLevelmed),
-                prior(normal(0, 2), class = b, coef = conditionTx:SupportLevelhigh),
-                prior(normal(0, 2), class = b, coef = conditionTx:SupportLevelmed),
-                prior(student_t(3, 0, 2.5), class = sigma)),
-      iter = 2000, warmup = 1000, chains = 2, cores = 2,
-      data = anova,
-      sample_prior = "yes",
+      score ~ strategy * sleep,
+      prior = c(prior(normal(70, 10), class = Intercept),
+                prior(normal(0, 10), class = b),
+                prior(exponential(.1), class = sigma)),
+      iter = 2000, warmup = 1000, chains = 4, cores = 4,
+      data = exam,
       backend = "cmdstanr",
-      file = "mr.8b")
+      file = "fac.1")
 ```
 
-## Factorial results
-
-```{r}
-summary(mr.8b)
-```
-
-## Parameter names
+## What each coefficient means {.smaller}
 
 ```{r}
 #| code-fold: true
-get_variables(mr.8b)
+round(fixef(fac.1), 1)
 ```
 
-## Cell means by hand: the dummy codes
+| Coefficient | Meaning |
+|---|---|
+| `Intercept` | the reference cell: re-read, 4 h |
+| `strategypractice` | practice − re-read, **at 4 h only** |
+| `sleep6h`, `sleep8h` | 6 h (8 h) − 4 h, **for re-readers only** |
+| `strategypractice:sleep6h` (`…8h`) | how much bigger the practice advantage is at 6 h (8 h) than at 4 h |
 
-How could we get posterior means for each of the 6 cells? Feed the 0/1 codes into the equation, draw by draw.
+Every coefficient is a difference from the reference cell; none is a "main effect." That's why we interpret factorial models through predictions.
+
+## Cell means, two ways {.smaller}
+
+By hand (practice, 8 h): add the coefficients that are "on" for that cell, draw by draw.
 
 ```{r}
-contrasts(anova$condition)
+fac.1 %>% 
+  spread_draws(b_Intercept, b_strategypractice, b_sleep8h, `b_strategypractice:sleep8h`) %>% 
+  mutate(practice_8h = b_Intercept + b_strategypractice + b_sleep8h + `b_strategypractice:sleep8h`) %>% 
+  median_qi(practice_8h)
 ```
+
+All six at once:
 
 ```{r}
-contrasts(anova$SupportLevel)
+avg_predictions(fac.1, by = c("strategy", "sleep"))
 ```
-
-## Cell means by hand
-
-```{r}
-#| code-fold: true
-mr.8b %>% 
-  spread_draws(b_Intercept, b_conditionTx, b_SupportLevelmed, b_SupportLevelhigh,
-               `b_conditionTx:SupportLevelmed`, `b_conditionTx:SupportLevelhigh`) %>% 
-  mutate(Con_Lo  = b_Intercept,
-         Con_Med = b_Intercept + b_SupportLevelmed,
-         Con_Hi  = b_Intercept + b_SupportLevelhigh,
-         Tx_Lo   = b_Intercept + b_conditionTx,
-         Tx_Med  = b_Intercept + b_conditionTx + b_SupportLevelmed + `b_conditionTx:SupportLevelmed`,
-         Tx_Hi   = b_Intercept + b_conditionTx + b_SupportLevelhigh + `b_conditionTx:SupportLevelhigh`) %>% 
-  select(.draw, Con_Lo:Tx_Hi)
-```
-
-## A difference of cell means, by hand
-
-```{r}
-#| code-fold: true
-mr.8b %>% 
-  spread_draws(b_Intercept, b_SupportLevelmed, b_SupportLevelhigh) %>% 
-  mutate(Con_Med = b_Intercept + b_SupportLevelmed,
-         Con_Hi  = b_Intercept + b_SupportLevelhigh,
-         hi_med_diff = Con_Hi - Con_Med) %>% 
-  mean_qi(hi_med_diff)
-```
-
-## Getting cell means: options
-
-1.  Compute them by hand from the draws (what we just did)
-2.  Feed the same arithmetic to brms's `hypothesis()` (handy with LOTS of parameters, as in MLMs)
-3.  Let a package do it: {marginaleffects} (what we'll use), or {emmeans}, which also works with brms models
 
 ## marginaleffects: what it does by default {.smaller}
 
 From here on, {marginaleffects} is our main tool for contrasts and slopes. It makes choices for you; know them:
 
--   **The grid.** With no `newdata`, it makes a prediction for *every row of your data*. `avg_*()` then **averages** those, e.g. averaging over the observed mix of groups. Not the same as a "typical" person (`newdata = "mean"`) or all factor combinations equally (`newdata = "balanced"`); next slides show two grids, two answers.
+-   **The grid.** With no `newdata`, it makes a prediction for *every row of your data*. `avg_*()` then **averages** those, e.g. averaging over the observed mix of groups. Not the same as a "typical" person (`newdata = "mean"`) or all factor combinations equally (`newdata = "balanced"`); a few slides on, two grids give two answers.
 -   **The summary.** For a brms model, `estimate` is the posterior **median**, and the interval is equal-tailed (quantile) at 95%.
 -   **The scale.** `type = "response"` (the default) vs. `"link"`. It doesn't matter yet, but it will for logistic and count models.
 -   **The escape hatch.** `get_draws()` turns any result back into one row per draw, so you can check it by hand or plot it with tidybayes.
-
-## Support-level means, averaged over the observed data
-
-```{r}
-avg_predictions(mr.8b, by = "SupportLevel")
-```
-
-## ...or over a balanced grid
-
-Each support level averaged over Control and Tx *equally*, regardless of how many people were in each cell:
-
-```{r}
-avg_predictions(mr.8b, newdata = "balanced", by = "SupportLevel")
-```
-
-## All six cell means
-
-```{r}
-predictions(mr.8b, newdata = datagrid(SupportLevel = unique, condition = unique))
-```
-
-## Each cell: the mean vs. a new person {.smaller .nostretch}
-
-```{r}
-#| code-fold: true
-#| fig-height: 3
-#| fig-width: 9
-#| out-width: "100%"
-cell_grid <- datagrid(model = mr.8b, SupportLevel = unique, condition = unique)
-bind_rows("cell mean (epred)"        = predictions(mr.8b, newdata = cell_grid) %>% get_draws(),
-          "a new person (prediction)" = predictions(mr.8b, newdata = cell_grid, type = "prediction") %>% get_draws(),
-          .id = "interval") %>%
-  ggplot(aes(x = draw, y = SupportLevel, colour = interval)) +
-  stat_pointinterval(position = position_dodge(width = .5), .width = .95) +
-  facet_wrap(~ condition) +
-  scale_colour_manual(values = c("cell mean (epred)" = "#0072B2", "a new person (prediction)" = "grey55")) +
-  labs(x = "Anxiety (95% intervals)", y = "Support", colour = NULL) +
-  theme_classic(base_size = 14) + theme(legend.position = "top")
-```
-
-The cell-mean interval is our uncertainty about the *average* in that cell; it shrinks as the cell gets more people. The prediction interval adds σ, the person-to-person scatter, so it stays wide no matter how much data we have. (HW 4 Q2b.)
-
-## Pairwise contrasts between support levels
-
-```{r}
-avg_predictions(mr.8b, by = "SupportLevel", hypothesis = ~ pairwise)
-```
-
-## Tx vs. Control within each support level
-
-```{r}
-avg_comparisons(mr.8b, variables = "condition", by = "SupportLevel")
-```
-
-If the Tx − Control difference changes across support levels, that's the interaction.
-
-## Plotting the contrasts
-
-```{r}
-#| code-fold: true
-#| fig-height: 3.5
-avg_predictions(mr.8b, by = "SupportLevel", hypothesis = ~ pairwise) %>%
-  get_draws() %>%
-  ggplot(aes(x = draw, y = hypothesis)) +
-  stat_halfeye() +
-  geom_vline(xintercept = 0, linetype = 2) +
-  labs(x = "difference in anxiety", y = NULL)
-```
 
 ## The interaction, plotted {.smaller .nostretch}
 
@@ -892,20 +663,88 @@ avg_predictions(mr.8b, by = "SupportLevel", hypothesis = ~ pairwise) %>%
 #| fig-height: 3.6
 #| fig-width: 8
 #| out-width: "90%"
-avg_predictions(mr.8b, by = c("SupportLevel", "condition")) %>% 
+avg_predictions(fac.1, by = c("sleep", "strategy")) %>% 
   get_draws() %>% 
-  ggplot(aes(x = SupportLevel, y = draw, colour = condition)) +
-  geom_point(data = anova, aes(y = Anxiety), alpha = .3, size = 1.2,
+  ggplot(aes(x = sleep, y = draw, colour = strategy)) +
+  geom_point(data = exam, aes(y = score), alpha = .25, size = 1.2,
              position = position_jitterdodge(jitter.width = .15, dodge.width = .5)) +
-  stat_summary(aes(group = condition), fun = median, geom = "line", position = position_dodge(width = .5)) +
+  stat_summary(aes(group = strategy), fun = median, geom = "line", position = position_dodge(width = .5)) +
   stat_pointinterval(position = position_dodge(width = .5), .width = .95) +
-  scale_colour_manual(values = c(Control = "grey35", Tx = "#D55E00")) +
-  labs(x = "Social support", y = "Anxiety", colour = NULL,
-       caption = "Points: people. Dots and bars: posterior medians and 95% intervals for each cell mean.") +
+  scale_colour_manual(values = c(reread = "grey35", practice = "#D55E00"),
+                      labels = c(reread = "re-read", practice = "practice tests")) +
+  labs(x = "Sleep the night before", y = "Exam score", colour = NULL,
+       caption = "Points: students. Dots and bars: posterior medians and 95% intervals for each cell mean.") +
   theme_classic(base_size = 14) + theme(legend.position = "top")
 ```
 
-One panel, support on the x-axis, condition as color: the question "are the lines parallel?" is the interaction, and you can see the answer. This is the kind of figure HW 4 Q6a asks for.
+The lines aren't parallel: that's the interaction. This is the kind of figure HW 4 Q6a asks for.
+
+## Simple effects, then the interaction {.smaller}
+
+The practice-test advantage **at each sleep level** (simple effects):
+
+```{r}
+avg_comparisons(fac.1, variables = "strategy", by = "sleep")
+```
+
+Does that advantage **differ** across sleep levels? Differences between the simple effects *are* the interaction:
+
+```{r}
+avg_comparisons(fac.1, variables = "strategy", by = "sleep", hypothesis = ~ pairwise)
+```
+
+(In the simulation, the true advantages are 1, 7, and 12 points.)
+
+## "Main effects" depend on the grid {.smaller}
+
+Practice vs. re-read, ignoring sleep. Two reasonable grids, two answers:
+
+```{r}
+avg_predictions(fac.1, by = "strategy", hypothesis = ~ pairwise)                        # each group's own sleep mix
+avg_predictions(fac.1, by = "strategy", newdata = "balanced", hypothesis = ~ pairwise)  # 4, 6, 8 h weighted equally
+```
+
+Practice-testers slept more, so the first comparison mixes the strategy effect with the sleep effect. The balanced grid compares them at the same sleep mix. With an interaction, *any* single "main effect" is an average over some grid: say which one.
+
+## Each cell: the mean vs. a new person {.smaller .nostretch}
+
+```{r}
+#| code-fold: true
+#| fig-height: 3
+#| fig-width: 9
+#| out-width: "100%"
+cell_grid <- datagrid(model = fac.1, strategy = unique, sleep = unique)
+bind_rows("cell mean (epred)"        = predictions(fac.1, newdata = cell_grid) %>% get_draws(),
+          "a new person (prediction)" = predictions(fac.1, newdata = cell_grid, type = "prediction") %>% get_draws(),
+          .id = "interval") %>%
+  ggplot(aes(x = draw, y = sleep, colour = interval)) +
+  stat_pointinterval(position = position_dodge(width = .5), .width = .95) +
+  facet_wrap(~ strategy) +
+  scale_colour_manual(values = c("cell mean (epred)" = "#0072B2", "a new person (prediction)" = "grey55")) +
+  labs(x = "Exam score (95% intervals)", y = "Sleep", colour = NULL) +
+  theme_classic(base_size = 14) + theme(legend.position = "top")
+```
+
+The cell-mean interval is our uncertainty about the *average* in that cell; it shrinks as the cell gets more people. The prediction interval adds σ, the person-to-person scatter, so it stays wide no matter how much data we have. (HW 4 Q2b.)
+
+## Cell-means coding gives the same cells {.smaller}
+
+Index coding with one mean per cell, and one prior for all six:
+
+```{r}
+fac.2 <- 
+  brm(family = gaussian,
+      score ~ 0 + strategy:sleep,
+      prior = c(prior(normal(70, 10), class = b),
+                prior(exponential(.1), class = sigma)),
+      iter = 2000, warmup = 1000, chains = 4, cores = 4,
+      data = exam,
+      backend = "cmdstanr",
+      file = "fac.2")
+round(fixef(fac.2)[, c("Estimate", "Q2.5", "Q97.5")], 1)
+```
+
+Essentially the same six cell means as `fac.1` (the priors differ slightly), read straight off the output. Differences and interaction contrasts work exactly as before with marginaleffects.
 
 ## Interactions: a slope with its own equation {.smaller}
 
