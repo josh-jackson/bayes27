@@ -1034,7 +1034,7 @@ So the recipe for any data situation: **choose the likelihood, then decide which
 
 ## ANOVA models
 
-This easily extends past the t-test into multi-category models
+So far we've compared two groups, a Bayesian t-test. The same model extends to three or more groups: a Bayesian ANOVA.
 
 ```{r}
 #| code-fold: true
