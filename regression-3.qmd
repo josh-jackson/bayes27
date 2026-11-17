@@ -1,5 +1,5 @@
 ---
-title: Regression 2
+title: Regression part 2
 format: revealjs
 slide-number: true
 editor: source
@@ -38,13 +38,11 @@ ggpairs(week3)
 
 ## Model
 
-Health \~ Normal( $\mu_i$ , $\sigma$ )
+$$\text{Health}_i \sim \text{Normal}(\mu_i, \sigma)$$
+$$\mu_i = \beta_0 + \beta_1 (\text{Happy}_i - \overline{\text{Happy}})$$
 
-$\mu_i$ = $\beta_0$ + $\beta_1$ $Happy_i - {\overline{\mbox{Happy}}}$
-
-$\beta_0$ \~ Normal(0, 5)\
-$\beta_1$ \~ Normal(0, 5)\
-$\sigma$ \~ HalfCauchy(0,10)
+$$\beta_0 \sim \text{Normal}(0, 5) \qquad \beta_1 \sim \text{Normal}(0, 5)$$
+$$\sigma \sim \text{HalfCauchy}(0, 10)$$
 
 What do these priors mean? How did we come up with them?
 
@@ -64,7 +62,7 @@ prior.1 <- prior(normal(0, 5), class = Intercept) +
 prior.1 %>% 
   parse_dist(prior) %>% 
   ggplot(aes(y=class, dist =.dist, args=.args)) +
-  stat_dist_halfeye()+
+  stat_halfeye()+
   scale_x_continuous( limits = c(-50, 50))+
   labs(title="Priors")
 ```
@@ -120,7 +118,7 @@ data_grid(happy_c = seq_range(happy_c, n = 101)) %>%
  add_epred_draws(h.1p, ndraws = 100) %>% 
   ggplot(aes(x = happy_c, y = health)) +
   geom_line(aes(y = .epred, group = .draw), alpha = .1) +
-  xlab("happy")
+  xlab("happy (centered)")
 ```
 
 ## What if we try strange priors?
@@ -150,7 +148,7 @@ h.1p2 <-
 prior.2 %>% 
   parse_dist(prior) %>% 
   ggplot(aes(y=class, dist =.dist, args=.args)) +
-  stat_dist_halfeye()+
+  stat_halfeye()+
   scale_x_continuous( limits = c(-25, 25)) +
   labs(title="strange priors")
 ```
@@ -165,7 +163,7 @@ data_grid(happy_c = seq_range(happy_c, n = 101)) %>%
  add_epred_draws(h.1p2, ndraws = 100) %>% 
   ggplot(aes(x = happy_c, y = health)) +
   geom_line(aes(y = .epred, group = .draw), alpha = .1) +
-  xlab("happy")
+  xlab("happy (centered)")
 ```
 
 ## Fit model
@@ -216,7 +214,7 @@ summary(h.1b, prob = .99)
 
 -   With enough data, priors do not really matter
 -   With simple models, we can envision what priors make sense. With more complex, prior predictives will be very helpful
--   Unless you have previous studies or population level statistics, it is helpful to have weakly informative priors centered around zero. These constrain the model to plausible values, but do not overly influence outcomes
+-   Unless you have previous studies or population-level statistics, use weakly informative priors: slopes centered on 0, intercepts on a plausible value of the outcome (lecture 2). These rule out absurd values without overly influencing results
 
 ## The posterior is made of samples
 
@@ -266,7 +264,6 @@ p.lines<- week3 %>%
   ggplot(aes(x = happy_c, y = health)) +
   geom_line(aes(y = .epred, group = .draw)) +
   geom_point(data = week3) +
-  scale_color_brewer(palette = "Dark2") +
   transition_states(.draw, 0, 1) 
 
 animate(p.lines,
@@ -288,7 +285,7 @@ pp_check(h.1)
 
 ## One R² per draw {.smaller}
 
-Every sample implies a different set of regression coefficients. Every regression coefficient has an R2 associated with it.
+Every draw is a different set of regression coefficients, and every set of coefficients has its own R².
 
 ```{r}
 #| code-fold: true
@@ -314,7 +311,7 @@ $$R^2_s = \frac{\text{Var}(\hat{y}^{(s)})}{\text{Var}(\hat{y}^{(s)}) + \text{Var
 
 -   $\hat{y}^{(s)}$: the expected values (epred) for every person under draw *s*; $e^{(s)} = y - \hat{y}^{(s)}$: the residuals under that draw
 -   Explained variance over explained + residual variance, like the usual R², but computed once per draw, so R² gets its own posterior distribution (and interval)
--   Unlike the classical formula, it can never exceed 1, and it reflects our uncertainty about the coefficients (Gelman, Goodrich, Gabry & Vehtari, 2019)
+-   Plugging posterior draws into the classical $\text{Var}(\hat{y}) / \text{Var}(y)$ can give values above 1 (e.g., with strong priors); this version can't, and it reflects our uncertainty about the coefficients (Gelman, Goodrich, Gabry & Vehtari, 2019)
 
 ## Categorical Variable coding
 
@@ -363,7 +360,7 @@ data.frame(prior = c("normal(0, 10)",
                 "cauchy(0, 10)")) %>%
   parse_dist(prior) %>% 
   ggplot(aes(y=prior, dist =.dist, args=.args)) +
-  stat_dist_halfeye() +
+  stat_halfeye() +
   scale_x_continuous( limits = c(-50, 50)) 
 ```
 
@@ -544,7 +541,7 @@ We suppress the intercept by putting in a 0. This "no intercept" model is a gene
 
 ## Why lm's R² breaks without an intercept {.smaller}
 
-Note the ridiculous R2. Formula doesn't work without an intercept. Changes the F too.
+Note the ridiculous R². Without an intercept, `lm()` measures R² against 0 instead of the mean of y, so the group means themselves count as "explained." The F test changes too (it now tests whether the means are 0).
 
 ```{r}
 test2 <- lm(health ~ 0 + mood.group.d, data = week3)
@@ -613,8 +610,9 @@ hyp.3
 
 ```{r, message=FALSE}
 hypothesis(h.3, "mood.group.dtx < 9")
-
 ```
+
+Same idea: `Post.Prob` is the share of draws in which the tx mean is below 9.
 
 ## marginaleffects
 
@@ -667,11 +665,11 @@ pp_check(h.3,"violin_grouped", group = "mood.group.d")
 ```{r}
 #| code-fold: true
 week3 %>% 
- add_predicted_draws(h.3) %>% 
-    sample_draws(5) %>% 
-  ggplot(aes(.prediction, mood.group.d)) +
-   geom_violin(alpha = .1, fill="#69b3a2",) +
-  geom_violin(aes(health), fill="grey0", alpha = .4) 
+  add_predicted_draws(h.3, ndraws = 5) %>% 
+  ggplot(aes(.prediction, mood.group.d, group = interaction(mood.group.d, .draw))) +
+  geom_violin(alpha = .1, fill = "#69b3a2", position = "identity") +
+  geom_violin(data = week3, aes(health, mood.group.d), inherit.aes = FALSE, fill = NA, colour = "black", linewidth = 1) +
+  labs(x = "health", y = NULL, subtitle = "green: 5 simulated datasets · black outline: observed")
 
 ```
 
@@ -697,14 +695,12 @@ What if we tweak the likelihood and model?
 
 ## Robust Model
 
-Health \~ t( $\nu$ , $\mu_i$ , $\sigma$ )
+$$\text{Health}_i \sim t(\nu, \mu_i, \sigma) \qquad \mu_i = \alpha_{\text{Group}[i]}$$
 
-$\mu_i$ = $\beta_0$ + $\beta_1$ $G_i$
+$$\nu \sim \text{Gamma}(1, 0.1) \qquad \alpha_j \sim \text{Normal}(0, 10)$$
+$$\sigma \sim \text{HalfCauchy}(0, 1)$$
 
-$\nu$ \~ Gamma(1,.1)\
-$\beta_0$ \~ Normal(0, 10)\
-$\beta_1$ \~ Normal(0, 10)\
-$\sigma$ \~ HalfCauchy(0,1)
+Index coded, like `h.3`: one mean per group.
 
 ## gamma prior
 
@@ -713,7 +709,7 @@ $\sigma$ \~ HalfCauchy(0,1)
 prior(gamma(1, .1), class = nu) %>% 
   parse_dist(prior) %>% 
   ggplot(aes(y=class, dist =.dist, args=.args)) +
-  stat_dist_halfeye()+
+  stat_halfeye()+
   labs(title="Prior")
 
 ```
@@ -726,7 +722,7 @@ expand.grid(
   df = c(.5, 1,2,3,5,10,30,50),
   scale = c(1)) %>%
   ggplot(aes(y = 0, dist = "student_t", arg1 = df, arg2 = 0, arg3 = scale, color = ordered(df))) +
-  stat_dist_slab(p_limits = c(.01, .99), fill = NA) +
+  stat_slab(p_limits = c(.01, .99), fill = NA) +
   scale_y_continuous(breaks = NULL) +
   facet_grid( ~ scale)+ xlim(-6,6)
 ```
@@ -971,7 +967,7 @@ $\mu_i$ = $\alpha_{\text{IV}[i]}$
 $\alpha_j$ \~ Normal(5, 2) , for j = 1,2,3\
 $\sigma$ \~ Exponential(1)
 
-## ANOVA priors
+## Fitting the ANOVA model
 
 Note that we have one prior for all our groups
 
