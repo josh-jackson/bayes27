@@ -1874,13 +1874,57 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </div>
 <p>The ratio’s interval comfortably includes 1, and the probability that Tx is more variable is near a coin flip: no evidence the groups differ in spread, so the equal-variance model was fine here.</p>
 </section>
-<section id="same-recipe-any-model" class="slide level2 smaller">
-<h2>Same recipe, any model</h2>
+<section id="the-modeling-toolbox-two-choices" class="slide level2 smaller">
+<h2>The modeling toolbox: two choices</h2>
+<p><strong>1. Pick a likelihood that matches your outcome.</strong> Today we swapped the Normal for a Student-t to handle outliers. We’ll make the same move again:</p>
+<table class="caption-top">
+<thead>
+<tr class="header">
+<th>Outcome</th>
+<th>Likelihood</th>
+<th>When</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>continuous</td>
+<td>Normal</td>
+<td>weeks 2–3</td>
+</tr>
+<tr class="even">
+<td>continuous, with outliers</td>
+<td>Student-t</td>
+<td>today</td>
+</tr>
+<tr class="odd">
+<td>0/1 (yes/no)</td>
+<td>Bernoulli: <strong>logistic regression</strong></td>
+<td>week 7</td>
+</tr>
+<tr class="even">
+<td>counts (0, 1, 2, …)</td>
+<td>Poisson or negative binomial</td>
+<td>week 8</td>
+</tr>
+</tbody>
+</table>
+<p><strong>2. Decide what to do with each of its parameters.</strong> The parameters come with the likelihood: a Normal has μ and σ; a t has μ, σ, and ν. For each one, you can:</p>
 <ul>
-<li><p>We will now be able to “tweak” this basic model into any model we want. All are still modeled the same, with a linear model.</p></li>
-<li><p>Logistic regression? Binomial plus a link. Shifted log normal? Now we have three parameters, similar to t dist. Drift Diffusion model? 4 parameter Wiener. Graded response IRT? Cumulative + logit. ZIP? Logistic plus Poisson!</p></li>
-<li><p>The process is the same: we try to understand different parameters by looking at how they change with different levels of IVs. The only thing that differs across these models is what parameters, and if you need to convert the scale of a parameter.</p></li>
+<li><strong>fix it</strong> at a value (ν = 3)</li>
+<li><strong>estimate it</strong> as one number (ν, or a single σ)</li>
+<li><strong>give it an equation</strong>, so it changes with predictors (μ by group; σ by group)</li>
 </ul>
+</section>
+<section id="any-parameter-can-get-an-equation" class="slide level2 smaller">
+<h2>Any parameter can get an equation</h2>
+<p>We’re used to an equation for μ. Nothing is special about μ:</p>
+<p><span class="math display">\[\text{Health}_i \sim \text{Normal}(\mu_i, \sigma_i)\]</span> <span class="math display">\[\mu_i = \alpha_{\text{Group}[i]} \qquad \log(\sigma_i) = \gamma_{\text{Group}[i]}\]</span></p>
+<ul>
+<li>“Do the groups differ in their average?” → a predictor on μ</li>
+<li>“Do the groups differ in their <strong>variability</strong>?” → a predictor on σ. Same question, different parameter</li>
+<li>Parameters with limits get a <strong>link</strong> so the equation can’t go out of bounds: log for σ (&gt; 0), logit for a probability (0 to 1, logistic regression)</li>
+</ul>
+<p>So the recipe for any data situation: <strong>choose the likelihood, then decide which of its parameters to fix, estimate, or model</strong>. Every later model in the course (logistic, counts, multilevel, distributional) is these two choices again.</p>
 </section>
 <section id="anova-models" class="slide level2">
 <h2>ANOVA models</h2>

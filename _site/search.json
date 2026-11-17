@@ -8510,5 +8510,19 @@
     "title": "Regression part 2",
     "section": "Robust vs. non-robust, with outliers",
     "text": "Robust vs. non-robust, with outliers\nSuppose three control participants’ scores were entered wrong (25 instead of 2.5), and we didn’t check for or exclude them. Same two models and priors; only the likelihood differs.\n\n\nCode\nweek3.out &lt;- week3 %&gt;%\n  bind_rows(tibble(health = c(25, 25, 25),\n                   mood.group.d = factor(\"control\", levels = levels(week3$mood.group.d))))\nh.3.out  &lt;- update(h.3,  newdata = week3.out, seed = 27, file = \"h.3out\")    # normal\nh.4R.out &lt;- update(h.4R, newdata = week3.out, seed = 27, file = \"h.4Rout\")   # t, ν estimated\n\nbind_rows(\"normal\"          = avg_predictions(h.3.out,  by = \"mood.group.d\") %&gt;% get_draws(),\n          \"t (ν estimated)\" = avg_predictions(h.4R.out, by = \"mood.group.d\") %&gt;% get_draws(), .id = \"model\") %&gt;%\n  ggplot(aes(x = draw, y = mood.group.d, colour = model)) +\n  stat_pointinterval(position = position_dodge(width = .4), .width = c(.66, .95)) +\n  scale_colour_manual(values = c(\"#0072B2\", \"#D55E00\")) +\n  labs(x = \"group mean health (66% and 95% intervals)\", y = NULL, colour = NULL) +\n  theme_classic(base_size = 14) + theme(legend.position = \"top\")\n\n\n\n\n\n\n\n\n\n\nNormal: three bad scores pull the control mean up to 8.72 and inflate σ; the group difference nearly vanishes (0.03; about 0.8 without the bad scores)\nt: heavy tails let it treat the 25s as rare draws: control 8.18, difference 0.61\nν is a diagnostic: estimated ν ≈ 5; a small ν flags outliers worth a look"
+  },
+  {
+    "objectID": "regression-3.html#the-modeling-toolbox-two-choices",
+    "href": "regression-3.html#the-modeling-toolbox-two-choices",
+    "title": "Regression part 2",
+    "section": "The modeling toolbox: two choices",
+    "text": "The modeling toolbox: two choices\n1. Pick a likelihood that matches your outcome. Today we swapped the Normal for a Student-t to handle outliers. We’ll make the same move again:\n\n\n\nOutcome\nLikelihood\nWhen\n\n\n\n\ncontinuous\nNormal\nweeks 2–3\n\n\ncontinuous, with outliers\nStudent-t\ntoday\n\n\n0/1 (yes/no)\nBernoulli: logistic regression\nweek 7\n\n\ncounts (0, 1, 2, …)\nPoisson or negative binomial\nweek 8\n\n\n\n2. Decide what to do with each of its parameters. The parameters come with the likelihood: a Normal has μ and σ; a t has μ, σ, and ν. For each one, you can:\n\nfix it at a value (ν = 3)\nestimate it as one number (ν, or a single σ)\ngive it an equation, so it changes with predictors (μ by group; σ by group)"
+  },
+  {
+    "objectID": "regression-3.html#any-parameter-can-get-an-equation",
+    "href": "regression-3.html#any-parameter-can-get-an-equation",
+    "title": "Regression part 2",
+    "section": "Any parameter can get an equation",
+    "text": "Any parameter can get an equation\nWe’re used to an equation for μ. Nothing is special about μ:\n\\[\\text{Health}_i \\sim \\text{Normal}(\\mu_i, \\sigma_i)\\] \\[\\mu_i = \\alpha_{\\text{Group}[i]} \\qquad \\log(\\sigma_i) = \\gamma_{\\text{Group}[i]}\\]\n\n“Do the groups differ in their average?” → a predictor on μ\n“Do the groups differ in their variability?” → a predictor on σ. Same question, different parameter\nParameters with limits get a link so the equation can’t go out of bounds: log for σ (&gt; 0), logit for a probability (0 to 1, logistic regression)\n\nSo the recipe for any data situation: choose the likelihood, then decide which of its parameters to fix, estimate, or model. Every later model in the course (logistic, counts, multilevel, distributional) is these two choices again."
   }
 ]

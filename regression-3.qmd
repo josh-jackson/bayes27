@@ -1002,13 +1002,35 @@ mean(post.h7$`Sigma Tx` > post.h7$`Sigma Control`)
 
 The ratio's interval comfortably includes 1, and the probability that Tx is more variable is near a coin flip: no evidence the groups differ in spread, so the equal-variance model was fine here.
 
-## Same recipe, any model {.smaller}
+## The modeling toolbox: two choices {.smaller}
 
--   We will now be able to "tweak" this basic model into any model we want. All are still modeled the same, with a linear model.
+**1. Pick a likelihood that matches your outcome.** Today we swapped the Normal for a Student-t to handle outliers. We'll make the same move again:
 
--   Logistic regression? Binomial plus a link. Shifted log normal? Now we have three parameters, similar to t dist. Drift Diffusion model? 4 parameter Wiener. Graded response IRT? Cumulative + logit. ZIP? Logistic plus Poisson!
+| Outcome | Likelihood | When |
+|---|---|---|
+| continuous | Normal | weeks 2–3 |
+| continuous, with outliers | Student-t | today |
+| 0/1 (yes/no) | Bernoulli: **logistic regression** | week 7 |
+| counts (0, 1, 2, …) | Poisson or negative binomial | week 8 |
 
--   The process is the same: we try to understand different parameters by looking at how they change with different levels of IVs. The only thing that differs across these models is what parameters, and if you need to convert the scale of a parameter.
+**2. Decide what to do with each of its parameters.** The parameters come with the likelihood: a Normal has μ and σ; a t has μ, σ, and ν. For each one, you can:
+
+-   **fix it** at a value (ν = 3)
+-   **estimate it** as one number (ν, or a single σ)
+-   **give it an equation**, so it changes with predictors (μ by group; σ by group)
+
+## Any parameter can get an equation {.smaller}
+
+We're used to an equation for μ. Nothing is special about μ:
+
+$$\text{Health}_i \sim \text{Normal}(\mu_i, \sigma_i)$$
+$$\mu_i = \alpha_{\text{Group}[i]} \qquad \log(\sigma_i) = \gamma_{\text{Group}[i]}$$
+
+-   "Do the groups differ in their average?" → a predictor on μ
+-   "Do the groups differ in their **variability**?" → a predictor on σ. Same question, different parameter
+-   Parameters with limits get a **link** so the equation can't go out of bounds: log for σ (> 0), logit for a probability (0 to 1, logistic regression)
+
+So the recipe for any data situation: **choose the likelihood, then decide which of its parameters to fix, estimate, or model**. Every later model in the course (logistic, counts, multilevel, distributional) is these two choices again.
 
 ## ANOVA models
 
