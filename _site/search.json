@@ -8475,5 +8475,19 @@
     "title": "Multiple Regression",
     "section": "What do these priors imply?",
     "text": "What do these priors imply?\n100 lines from the priors alone, at low, average, and high friendship quality (−1 SD, mean, +1 SD):\n\n\nCode\nprior_draws(mr.15) %&gt;% \n  slice_sample(n = 100) %&gt;% \n  mutate(draw = row_number()) %&gt;% \n  expand_grid(SS_c = range(MR$SS_c), FQ_c = c(-1, 0, 1) * sd(MR$FQ_c)) %&gt;% \n  mutate(happiness = Intercept + b_SS_c * SS_c + b_FQ_c * FQ_c + `b_SS_c:FQ_c` * SS_c * FQ_c,\n         FQ = factor(FQ_c, levels = c(-1, 0, 1) * sd(MR$FQ_c), labels = c(\"low FQ\", \"average FQ\", \"high FQ\"))) %&gt;% \n  ggplot(aes(x = SS_c, y = happiness, group = draw)) +\n  geom_line(alpha = .2) +\n  geom_hline(yintercept = c(0, 10), linetype = 2, colour = \"#D55E00\") +\n  facet_wrap(~ FQ) +\n  coord_cartesian(ylim = c(-50, 60)) +\n  labs(x = \"school success (centered)\", y = \"happiness (scale is 0–10)\") +\n  theme_classic(base_size = 14)\n\n\n\n\n\n\n\n\n\nInteraction priors multiply: away from average FQ, the slopes go wild. With 118 people the data overwhelm this, but in a small study tighten them (e.g., Normal(0, 0.5) for slopes, Normal(0, 0.1) for the interaction)."
+  },
+  {
+    "objectID": "mr-4.html#one-predictor-at-a-time-vs.-together",
+    "href": "mr-4.html#one-predictor-at-a-time-vs.-together",
+    "title": "Multiple Regression",
+    "section": "One predictor at a time vs. together",
+    "text": "One predictor at a time vs. together\nThe same priors, with each predictor on its own:\n\n\nCode\nmr.ss &lt;- brm(happiness ~ 1 + SS_c, family = gaussian, data = MR,\n             prior = c(prior(normal(5, 2), class = Intercept), prior(normal(0, 2), class = b),\n                       prior(exponential(1), class = sigma)),\n             iter = 2000, warmup = 1000, chains = 2, cores = 2, backend = \"cmdstanr\", file = \"mr.ss\")\nmr.fq &lt;- update(mr.ss, formula. = happiness ~ 1 + FQ_c, newdata = MR, file = \"mr.fq\")\n\nbind_rows(\"alone\"        = bind_rows(as_tibble(fixef(mr.ss), rownames = \"slope\"),\n                                     as_tibble(fixef(mr.fq), rownames = \"slope\")),\n          \"both in mr.1\" = as_tibble(fixef(mr.1), rownames = \"slope\"), .id = \"model\") %&gt;%\n  filter(slope != \"Intercept\") %&gt;%\n  select(slope, model, Estimate, Q2.5, Q97.5) %&gt;%\n  arrange(slope) %&gt;%\n  mutate(across(where(is.numeric), \\(x) round(x, 2)))\n\n\n# A tibble: 4 × 5\n  slope model        Estimate  Q2.5 Q97.5\n  &lt;chr&gt; &lt;chr&gt;           &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;\n1 FQ_c  alone           -0.06 -0.19  0.08\n2 FQ_c  both in mr.1     0.22  0.08  0.36\n3 SS_c  alone            0.29  0.21  0.38\n4 SS_c  both in mr.1     0.38  0.28  0.48\n\n\nOn its own, friendship quality looks useless (even slightly negative). Together, it clearly matters, and school success matters more too."
+  },
+  {
+    "objectID": "mr-4.html#what-holding-the-other-constant-means",
+    "href": "mr-4.html#what-holding-the-other-constant-means",
+    "title": "Multiple Regression",
+    "section": "What “holding the other constant” means",
+    "text": "What “holding the other constant” means\n\nA multiple-regression slope compares people who are the same on the other predictors: among students with the same friendship quality, one more point of school success goes with about 0.38 more happiness\nHere the predictors are negatively correlated (−0.55): students doing well in school tend to have weaker friendships. So a simple slope mixes two things: the happiness that goes with more school success, and the less happiness that goes with the worse friendships those students tend to have\nAlone, each slope is dragged toward zero (or past it) by the other variable. Adjusting separates them\nThis is why “controlling for” changes estimates, and why which variables you include is a scientific decision, not a technicality"
   }
 ]

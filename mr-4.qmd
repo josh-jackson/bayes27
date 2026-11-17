@@ -380,6 +380,36 @@ pairs(mr.1, variable = c("b_SS_c", "b_FQ_c"))
 
 School success and friendship quality correlate −0.55 in the data, so their slopes are tied together in the posterior (correlation ≈ +0.55): when a draw gives SS more credit, it gives FQ more too, to explain the same variance. Correlated, but not redundant; truly redundant predictors make a long, thin ridge (lecture 5).
 
+## One predictor at a time vs. together {.smaller}
+
+The same priors, with each predictor on its own:
+
+```{r}
+#| code-fold: true
+mr.ss <- brm(happiness ~ 1 + SS_c, family = gaussian, data = MR,
+             prior = c(prior(normal(5, 2), class = Intercept), prior(normal(0, 2), class = b),
+                       prior(exponential(1), class = sigma)),
+             iter = 2000, warmup = 1000, chains = 2, cores = 2, backend = "cmdstanr", file = "mr.ss")
+mr.fq <- update(mr.ss, formula. = happiness ~ 1 + FQ_c, newdata = MR, file = "mr.fq")
+
+bind_rows("alone"        = bind_rows(as_tibble(fixef(mr.ss), rownames = "slope"),
+                                     as_tibble(fixef(mr.fq), rownames = "slope")),
+          "both in mr.1" = as_tibble(fixef(mr.1), rownames = "slope"), .id = "model") %>%
+  filter(slope != "Intercept") %>%
+  select(slope, model, Estimate, Q2.5, Q97.5) %>%
+  arrange(slope) %>%
+  mutate(across(where(is.numeric), \(x) round(x, 2)))
+```
+
+On its own, friendship quality looks useless (even slightly negative). Together, it clearly matters, and school success matters more too.
+
+## What "holding the other constant" means {.smaller}
+
+-   A multiple-regression slope compares people who are **the same on the other predictors**: among students with the same friendship quality, one more point of school success goes with about `r sprintf("%.2f", fixef(mr.1)["SS_c", "Estimate"])` more happiness
+-   Here the predictors are negatively correlated (−0.55): students doing well in school tend to have weaker friendships. So a simple slope mixes two things: the happiness that goes with more school success, and the *less* happiness that goes with the worse friendships those students tend to have
+-   Alone, each slope is dragged toward zero (or past it) by the other variable. Adjusting separates them
+-   This is why "controlling for" changes estimates, and why which variables you include is a scientific decision, not a technicality
+
 ## Conditional plots
 
 -   Remember, anytime we have a multiple regression we are working with a 3d (or higher) response plane (in frequentist land), and in Bayesian we are working with a hyperdimensional mountain.
