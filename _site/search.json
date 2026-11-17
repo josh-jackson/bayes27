@@ -8475,5 +8475,12 @@
     "title": "Regression part 2",
     "section": "Group means: gradient vs. eye",
     "text": "Group means: gradient vs. eye\n\n\nCode\nlibrary(patchwork)\ngm &lt;- avg_predictions(h.2, by = \"mood.group.d\") %&gt;% get_draws()\np.grad &lt;- ggplot(gm, aes(y = draw, x = mood.group.d)) + stat_gradientinterval() + labs(y = \"health\", x = NULL)\np.eye  &lt;- ggplot(gm, aes(y = draw, x = mood.group.d)) + stat_eye() + labs(y = \"health\", x = NULL)\np.grad | p.eye\n\n\n\n\n\n\n\n\n\nSame draws, two looks: the gradient fades with the density; the eye shows the density’s shape."
+  },
+  {
+    "objectID": "regression-3.html#posterior-predictive-checks-ppcs",
+    "href": "regression-3.html#posterior-predictive-checks-ppcs",
+    "title": "Regression part 2",
+    "section": "Posterior predictive checks (PPCs)",
+    "text": "Posterior predictive checks (PPCs)\nSame idea as last week: simulate datasets from the posterior (the PPD), then check them against the observed data (a PPC). New today: we can check each group separately.\n\npp_check(h.3)"
   }
 ]

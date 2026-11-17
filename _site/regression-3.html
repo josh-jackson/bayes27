@@ -1418,10 +1418,9 @@ Type: response</code></pre>
 </div>
 </div>
 </section>
-<section id="posterior-predictive-checks" class="slide level2">
-<h2>posterior predictive checks</h2>
-<p>If a model is a good fit we should be able to use it to generate data that resemble the data we observed.</p>
-<p>To evaluate our model we want to take our posteriors we estimated and plug them into our equation to simulate different Y values across our X variable(s). This is the posterior predictive distribution. It incorporates uncertainty about each of the parameters.</p>
+<section id="posterior-predictive-checks-ppcs" class="slide level2">
+<h2>Posterior predictive checks (PPCs)</h2>
+<p>Same idea as last week: simulate datasets from the posterior (the PPD), then <strong>check</strong> them against the observed data (a PPC). New today: we can check each group separately.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb81"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb81-1"><a aria-label="1"></a><span class="fu">pp_check</span>(h<span class="fl">.3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 

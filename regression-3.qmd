@@ -683,13 +683,12 @@ avg_predictions(h.3, by = "mood.group.d", hypothesis = "b2 - b1 = .5")
 
 
 
-## posterior predictive checks
+## Posterior predictive checks (PPCs)
 
-If a model is a good fit we should be able to use it to generate data that resemble the data we observed.
-
-To evaluate our model we want to take our posteriors we estimated and plug them into our equation to simulate different Y values across our X variable(s). This is the posterior predictive distribution. It incorporates uncertainty about each of the parameters.
+Same idea as last week: simulate datasets from the posterior (the PPD), then **check** them against the observed data (a PPC). New today: we can check each group separately.
 
 ```{r}
+#| fig-height: 4
 pp_check(h.3)
 ```
 
