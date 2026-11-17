@@ -6941,7 +6941,7 @@
     "href": "regression-3.html#anova-more-than-2-groups",
     "title": "Regression part 2",
     "section": "ANOVA More than 2 groups",
-    "text": "ANOVA More than 2 groups\nhappiness ~ Normal( \\(\\mu_i\\) , \\(\\sigma\\) )\n\\(\\mu_i\\) = \\(\\alpha_{\\text{IV}[i]}\\)\n\\(\\alpha_j\\) ~ Normal(5, 2) , for j = 1,2,3\n\\(\\sigma\\) ~ Exponential(1)"
+    "text": "ANOVA More than 2 groups\nhappiness\\(_i\\) ~ Normal( \\(\\mu_i\\) , \\(\\sigma\\) )\n\\(\\mu_i\\) = \\(\\alpha_{\\text{IV}[i]}\\)\n\\(\\alpha_j\\) ~ Normal(5, 2) , for j = 1,2,3\n\\(\\sigma\\) ~ Exponential(1)"
   },
   {
     "objectID": "regression-3.html#anova-priors",

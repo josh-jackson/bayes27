@@ -1052,7 +1052,7 @@ MR
 
 ## ANOVA More than 2 groups
 
-happiness \~ Normal( $\mu_i$ , $\sigma$ )
+happiness$_i$ \~ Normal( $\mu_i$ , $\sigma$ )
 
 $\mu_i$ = $\alpha_{\text{IV}[i]}$
 
