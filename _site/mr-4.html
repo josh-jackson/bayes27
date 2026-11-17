@@ -277,134 +277,112 @@
 <span id="cb1-57"><a aria-label="57"></a>  <span class="fu">xlim</span>(<span class="dv">0</span>, <span class="dv">2</span>) <span class="sc">+</span></span>
 <span id="cb1-58"><a aria-label="58"></a>  <span class="fu">theme_void</span>()</span>
 <span id="cb1-59"><a aria-label="59"></a></span>
-<span id="cb1-60"><a aria-label="60"></a><span class="co"># exponential density</span></span>
-<span id="cb1-61"><a aria-label="61"></a>p4 <span class="ot">&lt;-</span></span>
-<span id="cb1-62"><a aria-label="62"></a>  <span class="fu">tibble</span>(<span class="at">x =</span> <span class="fu">seq</span>(<span class="at">from =</span> <span class="dv">0</span>, <span class="at">to =</span> <span class="dv">1</span>, <span class="at">by =</span> .<span class="dv">01</span>)) <span class="sc">%&gt;%</span> </span>
-<span id="cb1-63"><a aria-label="63"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">ymin =</span> <span class="dv">0</span>, <span class="at">ymax =</span> (<span class="fu">dexp</span>(x, <span class="dv">2</span>) <span class="sc">/</span> <span class="fu">max</span>(<span class="fu">dexp</span>(x, <span class="dv">2</span>))))) <span class="sc">+</span></span>
-<span id="cb1-64"><a aria-label="64"></a>  <span class="fu">geom_ribbon</span>(<span class="at">fill =</span> <span class="st">"steelblue4"</span>, <span class="at">color =</span> <span class="st">"steelblue4"</span>, <span class="at">alpha =</span> .<span class="dv">6</span>) <span class="sc">+</span></span>
-<span id="cb1-65"><a aria-label="65"></a>  <span class="fu">annotate</span>(<span class="at">geom =</span> <span class="st">"text"</span>,</span>
-<span id="cb1-66"><a aria-label="66"></a>           <span class="at">x =</span> .<span class="dv">5</span>, <span class="at">y =</span> .<span class="dv">2</span>,</span>
-<span id="cb1-67"><a aria-label="67"></a>           <span class="at">label =</span> <span class="st">"exp"</span>,</span>
-<span id="cb1-68"><a aria-label="68"></a>           <span class="at">size =</span> <span class="dv">7</span>) <span class="sc">+</span></span>
-<span id="cb1-69"><a aria-label="69"></a>  <span class="fu">annotate</span>(<span class="at">geom =</span> <span class="st">"text"</span>,</span>
-<span id="cb1-70"><a aria-label="70"></a>           <span class="at">x =</span> .<span class="dv">5</span>, <span class="at">y =</span> .<span class="dv">6</span>,</span>
-<span id="cb1-71"><a aria-label="71"></a>           <span class="at">label =</span> <span class="st">"italic(K)"</span>,</span>
-<span id="cb1-72"><a aria-label="72"></a>           <span class="at">size =</span> <span class="dv">7</span>, <span class="at">family =</span> <span class="st">"Times"</span>, <span class="at">parse =</span> T) <span class="sc">+</span></span>
-<span id="cb1-73"><a aria-label="73"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">expand =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>)) <span class="sc">+</span></span>
-<span id="cb1-74"><a aria-label="74"></a>  <span class="fu">theme_void</span>() <span class="sc">+</span></span>
-<span id="cb1-75"><a aria-label="75"></a>  <span class="fu">theme</span>(<span class="at">axis.line.x =</span> <span class="fu">element_line</span>(<span class="at">linewidth =</span> <span class="fl">0.5</span>))</span>
-<span id="cb1-76"><a aria-label="76"></a></span>
-<span id="cb1-77"><a aria-label="77"></a><span class="co"># likelihood formula</span></span>
-<span id="cb1-78"><a aria-label="78"></a>p5 <span class="ot">&lt;-</span></span>
-<span id="cb1-79"><a aria-label="79"></a>  <span class="fu">tibble</span>(<span class="at">x =</span> .<span class="dv">5</span>,</span>
-<span id="cb1-80"><a aria-label="80"></a>         <span class="at">y =</span> .<span class="dv">25</span>,</span>
-<span id="cb1-81"><a aria-label="81"></a>         <span class="at">label =</span> <span class="st">"beta[0]+sum()[italic(j)]*beta[italic(j)]*italic(x)[italic(ji)]"</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb1-82"><a aria-label="82"></a>  </span>
-<span id="cb1-83"><a aria-label="83"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">y =</span> y, <span class="at">label =</span> label)) <span class="sc">+</span></span>
-<span id="cb1-84"><a aria-label="84"></a>  <span class="fu">geom_text</span>(<span class="at">size =</span> <span class="dv">7</span>, <span class="at">parse =</span> T, <span class="at">family =</span> <span class="st">"Times"</span>) <span class="sc">+</span></span>
-<span id="cb1-85"><a aria-label="85"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">expand =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>), <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)) <span class="sc">+</span></span>
-<span id="cb1-86"><a aria-label="86"></a>  <span class="fu">ylim</span>(<span class="dv">0</span>, <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb1-87"><a aria-label="87"></a>  <span class="fu">theme_void</span>()</span>
-<span id="cb1-88"><a aria-label="88"></a>  </span>
-<span id="cb1-89"><a aria-label="89"></a>  <span class="co"># half-normal density</span></span>
-<span id="cb1-90"><a aria-label="90"></a>p6 <span class="ot">&lt;-</span></span>
-<span id="cb1-91"><a aria-label="91"></a>  <span class="fu">tibble</span>(<span class="at">x =</span> <span class="fu">seq</span>(<span class="at">from =</span> <span class="dv">0</span>, <span class="at">to =</span> <span class="dv">3</span>, <span class="at">by =</span> .<span class="dv">01</span>)) <span class="sc">%&gt;%</span> </span>
-<span id="cb1-92"><a aria-label="92"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">ymin =</span> <span class="dv">0</span>, <span class="at">ymax =</span> (<span class="fu">dnorm</span>(x)) <span class="sc">/</span> <span class="fu">max</span>(<span class="fu">dnorm</span>(x)))) <span class="sc">+</span></span>
-<span id="cb1-93"><a aria-label="93"></a>  <span class="fu">geom_ribbon</span>(<span class="at">fill =</span> <span class="st">"steelblue4"</span>, <span class="at">color =</span> <span class="st">"steelblue4"</span>, <span class="at">alpha =</span> .<span class="dv">6</span>) <span class="sc">+</span></span>
-<span id="cb1-94"><a aria-label="94"></a>  <span class="fu">annotate</span>(<span class="at">geom =</span> <span class="st">"text"</span>,</span>
-<span id="cb1-95"><a aria-label="95"></a>           <span class="at">x =</span> <span class="fl">1.5</span>, <span class="at">y =</span> .<span class="dv">2</span>,</span>
-<span id="cb1-96"><a aria-label="96"></a>           <span class="at">label =</span> <span class="st">"half-normal"</span>,</span>
-<span id="cb1-97"><a aria-label="97"></a>           <span class="at">size =</span> <span class="dv">7</span>) <span class="sc">+</span></span>
-<span id="cb1-98"><a aria-label="98"></a>  <span class="fu">annotate</span>(<span class="at">geom =</span> <span class="st">"text"</span>,</span>
-<span id="cb1-99"><a aria-label="99"></a>           <span class="at">x =</span> <span class="fl">1.5</span>, <span class="at">y =</span> .<span class="dv">6</span>,</span>
-<span id="cb1-100"><a aria-label="100"></a>           <span class="at">label =</span> <span class="st">"0*','*~italic(S)[sigma]"</span>, </span>
-<span id="cb1-101"><a aria-label="101"></a>           <span class="at">size =</span> <span class="dv">7</span>, <span class="at">family =</span> <span class="st">"Times"</span>, <span class="at">parse =</span> T) <span class="sc">+</span></span>
-<span id="cb1-102"><a aria-label="102"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">expand =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>)) <span class="sc">+</span></span>
-<span id="cb1-103"><a aria-label="103"></a>  <span class="fu">theme_void</span>() <span class="sc">+</span></span>
-<span id="cb1-104"><a aria-label="104"></a>  <span class="fu">theme</span>(<span class="at">axis.line.x =</span> <span class="fu">element_line</span>(<span class="at">linewidth =</span> <span class="fl">0.5</span>))</span>
+<span id="cb1-60"><a aria-label="60"></a><span class="co"># likelihood formula</span></span>
+<span id="cb1-61"><a aria-label="61"></a>p5 <span class="ot">&lt;-</span></span>
+<span id="cb1-62"><a aria-label="62"></a>  <span class="fu">tibble</span>(<span class="at">x =</span> .<span class="dv">5</span>,</span>
+<span id="cb1-63"><a aria-label="63"></a>         <span class="at">y =</span> .<span class="dv">25</span>,</span>
+<span id="cb1-64"><a aria-label="64"></a>         <span class="at">label =</span> <span class="st">"beta[0]+sum()[italic(j)]*beta[italic(j)]*italic(x)[italic(ji)]"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb1-65"><a aria-label="65"></a>  </span>
+<span id="cb1-66"><a aria-label="66"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">y =</span> y, <span class="at">label =</span> label)) <span class="sc">+</span></span>
+<span id="cb1-67"><a aria-label="67"></a>  <span class="fu">geom_text</span>(<span class="at">size =</span> <span class="dv">7</span>, <span class="at">parse =</span> T, <span class="at">family =</span> <span class="st">"Times"</span>) <span class="sc">+</span></span>
+<span id="cb1-68"><a aria-label="68"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">expand =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>), <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)) <span class="sc">+</span></span>
+<span id="cb1-69"><a aria-label="69"></a>  <span class="fu">ylim</span>(<span class="dv">0</span>, <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb1-70"><a aria-label="70"></a>  <span class="fu">theme_void</span>()</span>
+<span id="cb1-71"><a aria-label="71"></a>  </span>
+<span id="cb1-72"><a aria-label="72"></a><span class="co"># exponential density (prior on sigma)</span></span>
+<span id="cb1-73"><a aria-label="73"></a>p6 <span class="ot">&lt;-</span></span>
+<span id="cb1-74"><a aria-label="74"></a>  <span class="fu">tibble</span>(<span class="at">x =</span> <span class="fu">seq</span>(<span class="at">from =</span> <span class="dv">0</span>, <span class="at">to =</span> <span class="dv">3</span>, <span class="at">by =</span> .<span class="dv">01</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb1-75"><a aria-label="75"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">ymin =</span> <span class="dv">0</span>, <span class="at">ymax =</span> (<span class="fu">dexp</span>(x, <span class="fl">1.5</span>)) <span class="sc">/</span> <span class="fu">max</span>(<span class="fu">dexp</span>(x, <span class="fl">1.5</span>)))) <span class="sc">+</span></span>
+<span id="cb1-76"><a aria-label="76"></a>  <span class="fu">geom_ribbon</span>(<span class="at">fill =</span> <span class="st">"steelblue4"</span>, <span class="at">color =</span> <span class="st">"steelblue4"</span>, <span class="at">alpha =</span> .<span class="dv">6</span>) <span class="sc">+</span></span>
+<span id="cb1-77"><a aria-label="77"></a>  <span class="fu">annotate</span>(<span class="at">geom =</span> <span class="st">"text"</span>,</span>
+<span id="cb1-78"><a aria-label="78"></a>           <span class="at">x =</span> <span class="fl">1.5</span>, <span class="at">y =</span> .<span class="dv">2</span>,</span>
+<span id="cb1-79"><a aria-label="79"></a>           <span class="at">label =</span> <span class="st">"exponential"</span>,</span>
+<span id="cb1-80"><a aria-label="80"></a>           <span class="at">size =</span> <span class="dv">7</span>) <span class="sc">+</span></span>
+<span id="cb1-81"><a aria-label="81"></a>  <span class="fu">annotate</span>(<span class="at">geom =</span> <span class="st">"text"</span>,</span>
+<span id="cb1-82"><a aria-label="82"></a>           <span class="at">x =</span> <span class="fl">1.5</span>, <span class="at">y =</span> .<span class="dv">6</span>,</span>
+<span id="cb1-83"><a aria-label="83"></a>           <span class="at">label =</span> <span class="st">"italic(L)[sigma]"</span>, </span>
+<span id="cb1-84"><a aria-label="84"></a>           <span class="at">size =</span> <span class="dv">7</span>, <span class="at">family =</span> <span class="st">"Times"</span>, <span class="at">parse =</span> T) <span class="sc">+</span></span>
+<span id="cb1-85"><a aria-label="85"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">expand =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>)) <span class="sc">+</span></span>
+<span id="cb1-86"><a aria-label="86"></a>  <span class="fu">theme_void</span>() <span class="sc">+</span></span>
+<span id="cb1-87"><a aria-label="87"></a>  <span class="fu">theme</span>(<span class="at">axis.line.x =</span> <span class="fu">element_line</span>(<span class="at">linewidth =</span> <span class="fl">0.5</span>))</span>
+<span id="cb1-88"><a aria-label="88"></a></span>
+<span id="cb1-89"><a aria-label="89"></a><span class="co"># two annotated arrows: mu's equation and sigma's prior feed the likelihood</span></span>
+<span id="cb1-90"><a aria-label="90"></a>p7 <span class="ot">&lt;-</span></span>
+<span id="cb1-91"><a aria-label="91"></a>  <span class="fu">tibble</span>(<span class="at">x    =</span> <span class="fu">c</span>(<span class="fl">1.5</span>, <span class="fl">2.5</span>),</span>
+<span id="cb1-92"><a aria-label="92"></a>         <span class="at">y    =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>),</span>
+<span id="cb1-93"><a aria-label="93"></a>         <span class="at">xend =</span> <span class="fu">c</span>(<span class="fl">1.5</span>, <span class="fl">1.75</span>),</span>
+<span id="cb1-94"><a aria-label="94"></a>         <span class="at">yend =</span> <span class="fu">c</span>(.<span class="dv">2</span>, .<span class="dv">2</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb1-95"><a aria-label="95"></a>  </span>
+<span id="cb1-96"><a aria-label="96"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">xend =</span> xend,</span>
+<span id="cb1-97"><a aria-label="97"></a>             <span class="at">y =</span> y, <span class="at">yend =</span> yend)) <span class="sc">+</span></span>
+<span id="cb1-98"><a aria-label="98"></a>  <span class="fu">geom_segment</span>(<span class="at">arrow =</span> my_arrow) <span class="sc">+</span></span>
+<span id="cb1-99"><a aria-label="99"></a>  <span class="fu">annotate</span>(<span class="at">geom =</span> <span class="st">"text"</span>,</span>
+<span id="cb1-100"><a aria-label="100"></a>           <span class="at">x =</span> <span class="fu">c</span>(<span class="fl">1.38</span>, <span class="dv">2</span>), <span class="at">y =</span> <span class="fu">c</span>(.<span class="dv">65</span>, .<span class="dv">6</span>),</span>
+<span id="cb1-101"><a aria-label="101"></a>           <span class="at">label =</span> <span class="fu">c</span>(<span class="st">"'='"</span>, <span class="st">"'~'"</span>),</span>
+<span id="cb1-102"><a aria-label="102"></a>           <span class="at">size =</span> <span class="dv">10</span>, <span class="at">family =</span> <span class="st">"Times"</span>, <span class="at">parse =</span> T) <span class="sc">+</span></span>
+<span id="cb1-103"><a aria-label="103"></a>  <span class="fu">xlim</span>(<span class="dv">0</span>, <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb1-104"><a aria-label="104"></a>  <span class="fu">theme_void</span>()</span>
 <span id="cb1-105"><a aria-label="105"></a></span>
-<span id="cb1-106"><a aria-label="106"></a><span class="co"># three annotated arrows</span></span>
-<span id="cb1-107"><a aria-label="107"></a>p7 <span class="ot">&lt;-</span></span>
-<span id="cb1-108"><a aria-label="108"></a>  <span class="fu">tibble</span>(<span class="at">x    =</span> <span class="fu">c</span>( .<span class="dv">43</span>, <span class="fl">1.5</span>, <span class="fl">2.5</span>),</span>
-<span id="cb1-109"><a aria-label="109"></a>         <span class="at">y    =</span> <span class="fu">c</span>( <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>),</span>
-<span id="cb1-110"><a aria-label="110"></a>         <span class="at">xend =</span> <span class="fu">c</span>( <span class="fl">1.225</span>, <span class="fl">1.5</span>, <span class="fl">1.75</span>),</span>
-<span id="cb1-111"><a aria-label="111"></a>         <span class="at">yend =</span> <span class="fu">c</span>( .<span class="dv">15</span>, .<span class="dv">2</span>, .<span class="dv">2</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb1-112"><a aria-label="112"></a>  </span>
-<span id="cb1-113"><a aria-label="113"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">xend =</span> xend,</span>
-<span id="cb1-114"><a aria-label="114"></a>             <span class="at">y =</span> y, <span class="at">yend =</span> yend)) <span class="sc">+</span></span>
-<span id="cb1-115"><a aria-label="115"></a>  <span class="fu">geom_segment</span>(<span class="at">arrow =</span> my_arrow) <span class="sc">+</span></span>
-<span id="cb1-116"><a aria-label="116"></a>  <span class="fu">annotate</span>(<span class="at">geom =</span> <span class="st">"text"</span>,</span>
-<span id="cb1-117"><a aria-label="117"></a>           <span class="at">x =</span> <span class="fu">c</span>( .<span class="dv">7</span>, <span class="fl">1.38</span>, <span class="dv">2</span>), <span class="at">y =</span> <span class="fu">c</span>( .<span class="dv">22</span>, .<span class="dv">65</span>, .<span class="dv">6</span>),</span>
-<span id="cb1-118"><a aria-label="118"></a>           <span class="at">label =</span> <span class="fu">c</span>( <span class="st">"'~'"</span>, <span class="st">"'='"</span>, <span class="st">"'~'"</span>),</span>
-<span id="cb1-119"><a aria-label="119"></a>           <span class="at">size =</span> <span class="dv">10</span>, <span class="at">family =</span> <span class="st">"Times"</span>, <span class="at">parse =</span> T) <span class="sc">+</span></span>
-<span id="cb1-120"><a aria-label="120"></a>  <span class="co">#annotate(geom = "text",</span></span>
-<span id="cb1-121"><a aria-label="121"></a>          <span class="co"># x = .43, y = .7,</span></span>
-<span id="cb1-122"><a aria-label="122"></a>           <span class="co">#label = "nu*minute+1",</span></span>
-<span id="cb1-123"><a aria-label="123"></a>           <span class="co">#size = 7, family = "Times", parse = T) +</span></span>
-<span id="cb1-124"><a aria-label="124"></a>  <span class="fu">xlim</span>(<span class="dv">0</span>, <span class="dv">3</span>) <span class="sc">+</span></span>
-<span id="cb1-125"><a aria-label="125"></a>  <span class="fu">theme_void</span>()</span>
-<span id="cb1-126"><a aria-label="126"></a></span>
-<span id="cb1-127"><a aria-label="127"></a><span class="co"># student-t density</span></span>
-<span id="cb1-128"><a aria-label="128"></a>p8 <span class="ot">&lt;-</span></span>
-<span id="cb1-129"><a aria-label="129"></a>  <span class="fu">tibble</span>(<span class="at">x =</span> <span class="fu">seq</span>(<span class="at">from =</span> <span class="sc">-</span><span class="dv">3</span>, <span class="at">to =</span> <span class="dv">3</span>, <span class="at">by =</span> .<span class="dv">1</span>)) <span class="sc">%&gt;%</span> </span>
-<span id="cb1-130"><a aria-label="130"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">ymin =</span> <span class="dv">0</span>, <span class="at">ymax =</span> (<span class="fu">dt</span>(x, <span class="dv">3</span>) <span class="sc">/</span> <span class="fu">max</span>(<span class="fu">dt</span>(x, <span class="dv">3</span>))))) <span class="sc">+</span></span>
-<span id="cb1-131"><a aria-label="131"></a>  <span class="fu">geom_ribbon</span>(<span class="at">fill =</span> <span class="st">"steelblue4"</span>, <span class="at">color =</span> <span class="st">"steelblue4"</span>, <span class="at">alpha =</span> .<span class="dv">6</span>) <span class="sc">+</span></span>
-<span id="cb1-132"><a aria-label="132"></a>  <span class="fu">annotate</span>(<span class="at">geom =</span> <span class="st">"text"</span>,</span>
-<span id="cb1-133"><a aria-label="133"></a>           <span class="at">x =</span> <span class="dv">0</span>, <span class="at">y =</span> .<span class="dv">2</span>,</span>
-<span id="cb1-134"><a aria-label="134"></a>           <span class="at">label =</span> <span class="st">"student t"</span>,</span>
-<span id="cb1-135"><a aria-label="135"></a>           <span class="at">size =</span> <span class="dv">7</span>) <span class="sc">+</span></span>
-<span id="cb1-136"><a aria-label="136"></a>  <span class="fu">annotate</span>(<span class="at">geom =</span> <span class="st">"text"</span>,</span>
-<span id="cb1-137"><a aria-label="137"></a>           <span class="at">x =</span> <span class="dv">0</span>, <span class="at">y =</span> .<span class="dv">6</span>,</span>
-<span id="cb1-138"><a aria-label="138"></a>           <span class="at">label =</span> <span class="st">"nu~~~mu[italic(i)]~~~sigma"</span>,</span>
-<span id="cb1-139"><a aria-label="139"></a>           <span class="at">size =</span> <span class="dv">7</span>, <span class="at">family =</span> <span class="st">"Times"</span>, <span class="at">parse =</span> T) <span class="sc">+</span></span>
-<span id="cb1-140"><a aria-label="140"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">expand =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>)) <span class="sc">+</span></span>
-<span id="cb1-141"><a aria-label="141"></a>  <span class="fu">theme_void</span>() <span class="sc">+</span></span>
-<span id="cb1-142"><a aria-label="142"></a>  <span class="fu">theme</span>(<span class="at">axis.line.x =</span> <span class="fu">element_line</span>(<span class="at">linewidth =</span> <span class="fl">0.5</span>))</span>
-<span id="cb1-143"><a aria-label="143"></a></span>
-<span id="cb1-144"><a aria-label="144"></a><span class="co"># the final annotated arrow</span></span>
-<span id="cb1-145"><a aria-label="145"></a>p9 <span class="ot">&lt;-</span></span>
-<span id="cb1-146"><a aria-label="146"></a>  <span class="fu">tibble</span>(<span class="at">x     =</span> <span class="fu">c</span>(.<span class="dv">375</span>, .<span class="dv">625</span>),</span>
-<span id="cb1-147"><a aria-label="147"></a>         <span class="at">y     =</span> <span class="fu">c</span>(<span class="dv">1</span><span class="sc">/</span><span class="dv">3</span>, <span class="dv">1</span><span class="sc">/</span><span class="dv">3</span>),</span>
-<span id="cb1-148"><a aria-label="148"></a>         <span class="at">label =</span> <span class="fu">c</span>(<span class="st">"'~'"</span>, <span class="st">"italic(i)"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb1-149"><a aria-label="149"></a></span>
-<span id="cb1-150"><a aria-label="150"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">y =</span> y, <span class="at">label =</span> label)) <span class="sc">+</span></span>
-<span id="cb1-151"><a aria-label="151"></a>  <span class="fu">geom_text</span>(<span class="at">size =</span> <span class="fu">c</span>(<span class="dv">10</span>, <span class="dv">7</span>), <span class="at">parse =</span> T, <span class="at">family =</span> <span class="st">"Times"</span>) <span class="sc">+</span></span>
-<span id="cb1-152"><a aria-label="152"></a>  <span class="fu">geom_segment</span>(<span class="at">x =</span> .<span class="dv">5</span>, <span class="at">xend =</span> .<span class="dv">5</span>,</span>
-<span id="cb1-153"><a aria-label="153"></a>               <span class="at">y =</span> <span class="dv">1</span>, <span class="at">yend =</span> <span class="dv">0</span>,</span>
-<span id="cb1-154"><a aria-label="154"></a>               <span class="at">arrow =</span> my_arrow) <span class="sc">+</span></span>
-<span id="cb1-155"><a aria-label="155"></a>  <span class="fu">xlim</span>(<span class="dv">0</span>, <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb1-156"><a aria-label="156"></a>  <span class="fu">theme_void</span>()</span>
-<span id="cb1-157"><a aria-label="157"></a></span>
-<span id="cb1-158"><a aria-label="158"></a><span class="co"># some text</span></span>
-<span id="cb1-159"><a aria-label="159"></a>p10 <span class="ot">&lt;-</span></span>
-<span id="cb1-160"><a aria-label="160"></a>  <span class="fu">tibble</span>(<span class="at">x     =</span> .<span class="dv">5</span>,</span>
-<span id="cb1-161"><a aria-label="161"></a>         <span class="at">y     =</span> .<span class="dv">5</span>,</span>
-<span id="cb1-162"><a aria-label="162"></a>         <span class="at">label =</span> <span class="st">"italic(y[i])"</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb1-163"><a aria-label="163"></a>  </span>
-<span id="cb1-164"><a aria-label="164"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">y =</span> y, <span class="at">label =</span> label)) <span class="sc">+</span></span>
-<span id="cb1-165"><a aria-label="165"></a>  <span class="fu">geom_text</span>(<span class="at">size =</span> <span class="dv">7</span>, <span class="at">parse =</span> T, <span class="at">family =</span> <span class="st">"Times"</span>) <span class="sc">+</span></span>
-<span id="cb1-166"><a aria-label="166"></a>  <span class="fu">xlim</span>(<span class="dv">0</span>, <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb1-167"><a aria-label="167"></a>  <span class="fu">theme_void</span>()</span>
-<span id="cb1-168"><a aria-label="168"></a></span>
-<span id="cb1-169"><a aria-label="169"></a><span class="co"># define the layout</span></span>
-<span id="cb1-170"><a aria-label="170"></a>layout <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
-<span id="cb1-171"><a aria-label="171"></a>  <span class="fu">area</span>(<span class="at">t =</span> <span class="dv">1</span>, <span class="at">b =</span> <span class="dv">2</span>, <span class="at">l =</span> <span class="dv">3</span>, <span class="at">r =</span> <span class="dv">5</span>),</span>
-<span id="cb1-172"><a aria-label="172"></a>  <span class="fu">area</span>(<span class="at">t =</span> <span class="dv">1</span>, <span class="at">b =</span> <span class="dv">2</span>, <span class="at">l =</span> <span class="dv">7</span>, <span class="at">r =</span> <span class="dv">9</span>),</span>
-<span id="cb1-173"><a aria-label="173"></a>  <span class="fu">area</span>(<span class="at">t =</span> <span class="dv">4</span>, <span class="at">b =</span> <span class="dv">5</span>, <span class="at">l =</span> <span class="dv">1</span>, <span class="at">r =</span> <span class="dv">3</span>),</span>
-<span id="cb1-174"><a aria-label="174"></a>  <span class="fu">area</span>(<span class="at">t =</span> <span class="dv">4</span>, <span class="at">b =</span> <span class="dv">5</span>, <span class="at">l =</span> <span class="dv">5</span>, <span class="at">r =</span> <span class="dv">7</span>),</span>
-<span id="cb1-175"><a aria-label="175"></a>  <span class="fu">area</span>(<span class="at">t =</span> <span class="dv">4</span>, <span class="at">b =</span> <span class="dv">5</span>, <span class="at">l =</span> <span class="dv">9</span>, <span class="at">r =</span> <span class="dv">11</span>),</span>
-<span id="cb1-176"><a aria-label="176"></a>  <span class="fu">area</span>(<span class="at">t =</span> <span class="dv">3</span>, <span class="at">b =</span> <span class="dv">4</span>, <span class="at">l =</span> <span class="dv">3</span>, <span class="at">r =</span> <span class="dv">9</span>),</span>
-<span id="cb1-177"><a aria-label="177"></a>  <span class="fu">area</span>(<span class="at">t =</span> <span class="dv">7</span>, <span class="at">b =</span> <span class="dv">8</span>, <span class="at">l =</span> <span class="dv">5</span>, <span class="at">r =</span> <span class="dv">7</span>),</span>
-<span id="cb1-178"><a aria-label="178"></a>  <span class="fu">area</span>(<span class="at">t =</span> <span class="dv">6</span>, <span class="at">b =</span> <span class="dv">7</span>, <span class="at">l =</span> <span class="dv">1</span>, <span class="at">r =</span> <span class="dv">11</span>),</span>
-<span id="cb1-179"><a aria-label="179"></a>  <span class="fu">area</span>(<span class="at">t =</span> <span class="dv">9</span>, <span class="at">b =</span> <span class="dv">9</span>, <span class="at">l =</span> <span class="dv">5</span>, <span class="at">r =</span> <span class="dv">7</span>),</span>
-<span id="cb1-180"><a aria-label="180"></a>  <span class="fu">area</span>(<span class="at">t =</span> <span class="dv">10</span>, <span class="at">b =</span> <span class="dv">10</span>, <span class="at">l =</span> <span class="dv">5</span>, <span class="at">r =</span> <span class="dv">7</span>)</span>
-<span id="cb1-181"><a aria-label="181"></a>)</span>
-<span id="cb1-182"><a aria-label="182"></a></span>
-<span id="cb1-183"><a aria-label="183"></a><span class="co"># combine and plot!</span></span>
-<span id="cb1-184"><a aria-label="184"></a>(p1 <span class="sc">+</span> p2 <span class="sc">+</span> p4 <span class="sc">+</span> p5 <span class="sc">+</span> p6 <span class="sc">+</span> p3 <span class="sc">+</span> p8 <span class="sc">+</span> p7 <span class="sc">+</span> p9 <span class="sc">+</span> p10) <span class="sc">+</span> </span>
-<span id="cb1-185"><a aria-label="185"></a>  <span class="fu">plot_layout</span>(<span class="at">design =</span> layout) <span class="sc">&amp;</span></span>
-<span id="cb1-186"><a aria-label="186"></a>  <span class="fu">ylim</span>(<span class="dv">0</span>, <span class="dv">1</span>) <span class="sc">&amp;</span></span>
-<span id="cb1-187"><a aria-label="187"></a>  <span class="fu">theme</span>(<span class="at">plot.margin =</span> <span class="fu">margin</span>(<span class="dv">0</span>, <span class="fl">5.5</span>, <span class="dv">0</span>, <span class="fl">5.5</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-106"><a aria-label="106"></a><span class="co"># normal likelihood</span></span>
+<span id="cb1-107"><a aria-label="107"></a>p8 <span class="ot">&lt;-</span></span>
+<span id="cb1-108"><a aria-label="108"></a>  <span class="fu">tibble</span>(<span class="at">x =</span> <span class="fu">seq</span>(<span class="at">from =</span> <span class="sc">-</span><span class="dv">3</span>, <span class="at">to =</span> <span class="dv">3</span>, <span class="at">by =</span> .<span class="dv">1</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb1-109"><a aria-label="109"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">ymin =</span> <span class="dv">0</span>, <span class="at">ymax =</span> (<span class="fu">dnorm</span>(x) <span class="sc">/</span> <span class="fu">max</span>(<span class="fu">dnorm</span>(x))))) <span class="sc">+</span></span>
+<span id="cb1-110"><a aria-label="110"></a>  <span class="fu">geom_ribbon</span>(<span class="at">fill =</span> <span class="st">"steelblue4"</span>, <span class="at">color =</span> <span class="st">"steelblue4"</span>, <span class="at">alpha =</span> .<span class="dv">6</span>) <span class="sc">+</span></span>
+<span id="cb1-111"><a aria-label="111"></a>  <span class="fu">annotate</span>(<span class="at">geom =</span> <span class="st">"text"</span>,</span>
+<span id="cb1-112"><a aria-label="112"></a>           <span class="at">x =</span> <span class="dv">0</span>, <span class="at">y =</span> .<span class="dv">2</span>,</span>
+<span id="cb1-113"><a aria-label="113"></a>           <span class="at">label =</span> <span class="st">"normal"</span>,</span>
+<span id="cb1-114"><a aria-label="114"></a>           <span class="at">size =</span> <span class="dv">7</span>) <span class="sc">+</span></span>
+<span id="cb1-115"><a aria-label="115"></a>  <span class="fu">annotate</span>(<span class="at">geom =</span> <span class="st">"text"</span>,</span>
+<span id="cb1-116"><a aria-label="116"></a>           <span class="at">x =</span> <span class="dv">0</span>, <span class="at">y =</span> .<span class="dv">6</span>,</span>
+<span id="cb1-117"><a aria-label="117"></a>           <span class="at">label =</span> <span class="st">"mu[italic(i)]~~~sigma"</span>,</span>
+<span id="cb1-118"><a aria-label="118"></a>           <span class="at">size =</span> <span class="dv">7</span>, <span class="at">family =</span> <span class="st">"Times"</span>, <span class="at">parse =</span> T) <span class="sc">+</span></span>
+<span id="cb1-119"><a aria-label="119"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">expand =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>)) <span class="sc">+</span></span>
+<span id="cb1-120"><a aria-label="120"></a>  <span class="fu">theme_void</span>() <span class="sc">+</span></span>
+<span id="cb1-121"><a aria-label="121"></a>  <span class="fu">theme</span>(<span class="at">axis.line.x =</span> <span class="fu">element_line</span>(<span class="at">linewidth =</span> <span class="fl">0.5</span>))</span>
+<span id="cb1-122"><a aria-label="122"></a></span>
+<span id="cb1-123"><a aria-label="123"></a><span class="co"># the final annotated arrow</span></span>
+<span id="cb1-124"><a aria-label="124"></a>p9 <span class="ot">&lt;-</span></span>
+<span id="cb1-125"><a aria-label="125"></a>  <span class="fu">tibble</span>(<span class="at">x     =</span> <span class="fu">c</span>(.<span class="dv">375</span>, .<span class="dv">625</span>),</span>
+<span id="cb1-126"><a aria-label="126"></a>         <span class="at">y     =</span> <span class="fu">c</span>(<span class="dv">1</span><span class="sc">/</span><span class="dv">3</span>, <span class="dv">1</span><span class="sc">/</span><span class="dv">3</span>),</span>
+<span id="cb1-127"><a aria-label="127"></a>         <span class="at">label =</span> <span class="fu">c</span>(<span class="st">"'~'"</span>, <span class="st">"italic(i)"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb1-128"><a aria-label="128"></a></span>
+<span id="cb1-129"><a aria-label="129"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">y =</span> y, <span class="at">label =</span> label)) <span class="sc">+</span></span>
+<span id="cb1-130"><a aria-label="130"></a>  <span class="fu">geom_text</span>(<span class="at">size =</span> <span class="fu">c</span>(<span class="dv">10</span>, <span class="dv">7</span>), <span class="at">parse =</span> T, <span class="at">family =</span> <span class="st">"Times"</span>) <span class="sc">+</span></span>
+<span id="cb1-131"><a aria-label="131"></a>  <span class="fu">geom_segment</span>(<span class="at">x =</span> .<span class="dv">5</span>, <span class="at">xend =</span> .<span class="dv">5</span>,</span>
+<span id="cb1-132"><a aria-label="132"></a>               <span class="at">y =</span> <span class="dv">1</span>, <span class="at">yend =</span> <span class="dv">0</span>,</span>
+<span id="cb1-133"><a aria-label="133"></a>               <span class="at">arrow =</span> my_arrow) <span class="sc">+</span></span>
+<span id="cb1-134"><a aria-label="134"></a>  <span class="fu">xlim</span>(<span class="dv">0</span>, <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb1-135"><a aria-label="135"></a>  <span class="fu">theme_void</span>()</span>
+<span id="cb1-136"><a aria-label="136"></a></span>
+<span id="cb1-137"><a aria-label="137"></a><span class="co"># some text</span></span>
+<span id="cb1-138"><a aria-label="138"></a>p10 <span class="ot">&lt;-</span></span>
+<span id="cb1-139"><a aria-label="139"></a>  <span class="fu">tibble</span>(<span class="at">x     =</span> .<span class="dv">5</span>,</span>
+<span id="cb1-140"><a aria-label="140"></a>         <span class="at">y     =</span> .<span class="dv">5</span>,</span>
+<span id="cb1-141"><a aria-label="141"></a>         <span class="at">label =</span> <span class="st">"italic(y[i])"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb1-142"><a aria-label="142"></a>  </span>
+<span id="cb1-143"><a aria-label="143"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">y =</span> y, <span class="at">label =</span> label)) <span class="sc">+</span></span>
+<span id="cb1-144"><a aria-label="144"></a>  <span class="fu">geom_text</span>(<span class="at">size =</span> <span class="dv">7</span>, <span class="at">parse =</span> T, <span class="at">family =</span> <span class="st">"Times"</span>) <span class="sc">+</span></span>
+<span id="cb1-145"><a aria-label="145"></a>  <span class="fu">xlim</span>(<span class="dv">0</span>, <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb1-146"><a aria-label="146"></a>  <span class="fu">theme_void</span>()</span>
+<span id="cb1-147"><a aria-label="147"></a></span>
+<span id="cb1-148"><a aria-label="148"></a><span class="co"># define the layout</span></span>
+<span id="cb1-149"><a aria-label="149"></a>layout <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb1-150"><a aria-label="150"></a>  <span class="fu">area</span>(<span class="at">t =</span> <span class="dv">1</span>, <span class="at">b =</span> <span class="dv">2</span>, <span class="at">l =</span> <span class="dv">3</span>, <span class="at">r =</span> <span class="dv">5</span>),</span>
+<span id="cb1-151"><a aria-label="151"></a>  <span class="fu">area</span>(<span class="at">t =</span> <span class="dv">1</span>, <span class="at">b =</span> <span class="dv">2</span>, <span class="at">l =</span> <span class="dv">7</span>, <span class="at">r =</span> <span class="dv">9</span>),</span>
+<span id="cb1-152"><a aria-label="152"></a>  <span class="fu">area</span>(<span class="at">t =</span> <span class="dv">4</span>, <span class="at">b =</span> <span class="dv">5</span>, <span class="at">l =</span> <span class="dv">5</span>, <span class="at">r =</span> <span class="dv">7</span>),</span>
+<span id="cb1-153"><a aria-label="153"></a>  <span class="fu">area</span>(<span class="at">t =</span> <span class="dv">4</span>, <span class="at">b =</span> <span class="dv">5</span>, <span class="at">l =</span> <span class="dv">9</span>, <span class="at">r =</span> <span class="dv">11</span>),</span>
+<span id="cb1-154"><a aria-label="154"></a>  <span class="fu">area</span>(<span class="at">t =</span> <span class="dv">3</span>, <span class="at">b =</span> <span class="dv">4</span>, <span class="at">l =</span> <span class="dv">3</span>, <span class="at">r =</span> <span class="dv">9</span>),</span>
+<span id="cb1-155"><a aria-label="155"></a>  <span class="fu">area</span>(<span class="at">t =</span> <span class="dv">7</span>, <span class="at">b =</span> <span class="dv">8</span>, <span class="at">l =</span> <span class="dv">5</span>, <span class="at">r =</span> <span class="dv">7</span>),</span>
+<span id="cb1-156"><a aria-label="156"></a>  <span class="fu">area</span>(<span class="at">t =</span> <span class="dv">6</span>, <span class="at">b =</span> <span class="dv">7</span>, <span class="at">l =</span> <span class="dv">1</span>, <span class="at">r =</span> <span class="dv">11</span>),</span>
+<span id="cb1-157"><a aria-label="157"></a>  <span class="fu">area</span>(<span class="at">t =</span> <span class="dv">9</span>, <span class="at">b =</span> <span class="dv">9</span>, <span class="at">l =</span> <span class="dv">5</span>, <span class="at">r =</span> <span class="dv">7</span>),</span>
+<span id="cb1-158"><a aria-label="158"></a>  <span class="fu">area</span>(<span class="at">t =</span> <span class="dv">10</span>, <span class="at">b =</span> <span class="dv">10</span>, <span class="at">l =</span> <span class="dv">5</span>, <span class="at">r =</span> <span class="dv">7</span>)</span>
+<span id="cb1-159"><a aria-label="159"></a>)</span>
+<span id="cb1-160"><a aria-label="160"></a></span>
+<span id="cb1-161"><a aria-label="161"></a><span class="co"># combine and plot!</span></span>
+<span id="cb1-162"><a aria-label="162"></a>(p1 <span class="sc">+</span> p2 <span class="sc">+</span> p5 <span class="sc">+</span> p6 <span class="sc">+</span> p3 <span class="sc">+</span> p8 <span class="sc">+</span> p7 <span class="sc">+</span> p9 <span class="sc">+</span> p10) <span class="sc">+</span> </span>
+<span id="cb1-163"><a aria-label="163"></a>  <span class="fu">plot_layout</span>(<span class="at">design =</span> layout) <span class="sc">&amp;</span></span>
+<span id="cb1-164"><a aria-label="164"></a>  <span class="fu">ylim</span>(<span class="dv">0</span>, <span class="dv">1</span>) <span class="sc">&amp;</span></span>
+<span id="cb1-165"><a aria-label="165"></a>  <span class="fu">theme</span>(<span class="at">plot.margin =</span> <span class="fu">margin</span>(<span class="dv">0</span>, <span class="fl">5.5</span>, <span class="dv">0</span>, <span class="fl">5.5</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
 </div>
@@ -426,7 +404,7 @@
 <span id="cb2-6"><a aria-label="6"></a>        <span class="fu">mutate</span>(<span class="at">iv =</span> <span class="fu">as.factor</span>(iv))</span>
 <span id="cb2-7"><a aria-label="7"></a></span>
 <span id="cb2-8"><a aria-label="8"></a>MR <span class="ot">&lt;-</span> MR <span class="sc">%&gt;%</span></span>
-<span id="cb2-9"><a aria-label="9"></a>  <span class="fu">mutate</span>(<span class="at">iv.d =</span> <span class="fu">case_match</span>(iv, <span class="st">"1"</span> <span class="sc">~</span> <span class="st">"control"</span>, <span class="st">"2"</span> <span class="sc">~</span> <span class="st">"tx"</span>, <span class="st">"3"</span> <span class="sc">~</span> <span class="st">"tx"</span>))</span>
+<span id="cb2-9"><a aria-label="9"></a>  <span class="fu">mutate</span>(<span class="at">iv.d =</span> <span class="fu">factor</span>(<span class="fu">if_else</span>(iv <span class="sc">==</span> <span class="st">"1"</span>, <span class="st">"control"</span>, <span class="st">"tx"</span>)))   <span class="co"># groups 2 and 3 are both treatment</span></span>
 <span id="cb2-10"><a aria-label="10"></a></span>
 <span id="cb2-11"><a aria-label="11"></a>MR</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
@@ -708,12 +686,8 @@ iv.d*                1.00 -0.52    -1.75 0.04</code></pre>
 </section>
 <section id="model" class="slide level2">
 <h2>model</h2>
-<p>happiness ~ Normal( <span class="math inline">\(\mu_i\)</span> , <span class="math inline">\(\sigma\)</span> )</p>
-<p><span class="math inline">\(\mu_i\)</span> = <span class="math inline">\(\beta_0\)</span> + <span class="math inline">\(\beta_1\)</span> <span class="math inline">\(SS\_c\)</span> + <span class="math inline">\(\beta_2\)</span> <span class="math inline">\(FQ\_c\)</span></p>
-<p><span class="math inline">\(\beta_0\)</span> ~ Normal(5, 2)<br>
-<span class="math inline">\(\beta_1\)</span> ~ Normal(0, 2)<br>
-<span class="math inline">\(\beta_2\)</span> ~ Normal(0, 2)<br>
-<span class="math inline">\(\sigma\)</span> ~ Exponential(1)</p>
+<p><span class="math display">\[\text{happiness}_i \sim \text{Normal}(\mu_i, \sigma)\]</span> <span class="math display">\[\mu_i = \beta_0 + \beta_1 \text{SS\_c}_i + \beta_2 \text{FQ\_c}_i\]</span></p>
+<p><span class="math display">\[\beta_0 \sim \text{Normal}(5, 2) \qquad \beta_1, \beta_2 \sim \text{Normal}(0, 2)\]</span> <span class="math display">\[\sigma \sim \text{Exponential}(1)\]</span></p>
 </section>
 <section id="fitting-the-model" class="slide level2">
 <h2>Fitting the model</h2>
@@ -2788,6 +2762,7 @@ iv.d*                1.00 -0.52    -1.75 0.04</code></pre>
 <img data-src="mr-4_files/figure-revealjs/unnamed-chunk-7-1.png" width="960" class="r-stretch"></section>
 <section id="tighter-priors" class="slide level2">
 <h2>tighter priors?</h2>
+<p>Slopes tightened from Normal(0, 2) to Normal(0, 0.2). (σ’s prior changes too: Exponential(0.5) has mean 2, so it is a bit <em>looser</em>.)</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a aria-label="1"></a>mr<span class="fl">.2</span> <span class="ot">&lt;-</span> </span>
 <span id="cb11-2"><a aria-label="2"></a>  <span class="fu">brm</span>(<span class="at">family =</span> gaussian,</span>
@@ -2972,7 +2947,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <span id="cb26-2"><a aria-label="2"></a>  <span class="fu">data_grid</span>(<span class="at">SS_c =</span> <span class="fu">seq_range</span>(SS_c, <span class="at">n =</span> <span class="dv">101</span>)) <span class="sc">%&gt;%</span></span>
 <span id="cb26-3"><a aria-label="3"></a> <span class="fu">add_epred_draws</span>(mr<span class="fl">.1</span>) </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>Results in: ” Error: The following variables can neither be found in ‘data’ nor in ‘data2’: ‘FQ_c’</p>
+<p>Results in: “Error: The following variables can neither be found in ‘data’ nor in ‘data2’: ‘FQ_c’”</p>
 </section>
 <section id="what-.model-mr-fills-in" class="slide level2">
 <h2>What .model = MR fills in</h2>
@@ -3074,9 +3049,9 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 
 </div>
 <img data-src="mr-4_files/figure-revealjs/unnamed-chunk-22-1.png" width="960" class="r-stretch"></section>
-<section id="friendship-quality-averaging-over-ss" class="slide level2">
-<h2>Friendship quality, averaging over SS</h2>
-<p>FQ_c</p>
+<section id="friendship-quality-ss-at-its-typical-value" class="slide level2">
+<h2>Friendship quality, SS at its typical value</h2>
+<p><code>.model = MR</code> fills SS_c in at its median.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -3158,7 +3133,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 # Groups:   ID, friendship.quality, happiness, schoool.success, SS_c, FQ_c, iv,
 #   iv.d, .row [118]
       ID friendship.quality happiness schoool.success   SS_c    FQ_c iv    iv.d 
-   &lt;int&gt;              &lt;dbl&gt;     &lt;dbl&gt;           &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt; &lt;fct&gt; &lt;chr&gt;
+   &lt;int&gt;              &lt;dbl&gt;     &lt;dbl&gt;           &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt; &lt;fct&gt; &lt;fct&gt;
  1     1              10.2       3.20            6.16 -2.57   2.57   1     cont…
  2     2               5.59      7.01            8.91  0.177 -2.03   1     cont…
  3     3               6.58      6.17           10.5   1.81  -1.03   1     cont…
@@ -3191,7 +3166,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 # Groups:   ID, friendship.quality, happiness, schoool.success, SS_c, FQ_c, iv,
 #   iv.d, .row [118]
       ID friendship.quality happiness schoool.success  SS_c  FQ_c iv    iv.d   
-   &lt;int&gt;              &lt;dbl&gt;     &lt;dbl&gt;           &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;fct&gt; &lt;chr&gt;  
+   &lt;int&gt;              &lt;dbl&gt;     &lt;dbl&gt;           &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;fct&gt; &lt;fct&gt;  
  1     1               10.2      3.20            6.16 -2.57  2.57 1     control
  2     1               10.2      3.20            6.16 -2.57  2.57 1     control
  3     1               10.2      3.20            6.16 -2.57  2.57 1     control
@@ -3219,8 +3194,9 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <span id="cb44-4"><a aria-label="4"></a>    <span class="fu">sample_draws</span>(<span class="dv">50</span>) <span class="sc">%&gt;%</span> </span>
 <span id="cb44-5"><a aria-label="5"></a>    <span class="fu">ggplot</span>(<span class="fu">aes</span>(.prediction, <span class="at">group =</span> .draw)) <span class="sc">+</span></span>
 <span id="cb44-6"><a aria-label="6"></a>   <span class="fu">geom_line</span>(<span class="at">stat =</span> <span class="st">"density"</span>, <span class="at">alpha =</span> .<span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb44-7"><a aria-label="7"></a>  <span class="fu">geom_density</span>(<span class="fu">aes</span>(happiness, <span class="at">group =</span> .draw))<span class="sc">+</span></span>
-<span id="cb44-8"><a aria-label="8"></a>  <span class="fu">theme_classic</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb44-7"><a aria-label="7"></a>  <span class="fu">geom_density</span>(<span class="at">data =</span> MR, <span class="fu">aes</span>(happiness), <span class="at">inherit.aes =</span> <span class="cn">FALSE</span>, <span class="at">color =</span> <span class="st">"#0072B2"</span>, <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb44-8"><a aria-label="8"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"happiness"</span>, <span class="at">subtitle =</span> <span class="st">"grey: 50 simulated datasets · blue: observed"</span>) <span class="sc">+</span></span>
+<span id="cb44-9"><a aria-label="9"></a>  <span class="fu">theme_classic</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
 </div>
@@ -3236,8 +3212,9 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <span id="cb45-4"><a aria-label="4"></a>    <span class="fu">sample_draws</span>(<span class="dv">50</span>, <span class="at">draw =</span> <span class="st">"drawid"</span>) <span class="sc">%&gt;%</span> </span>
 <span id="cb45-5"><a aria-label="5"></a>    <span class="fu">ggplot</span>(<span class="fu">aes</span>(draw, <span class="at">group =</span> drawid)) <span class="sc">+</span></span>
 <span id="cb45-6"><a aria-label="6"></a>   <span class="fu">geom_line</span>(<span class="at">stat =</span> <span class="st">"density"</span>, <span class="at">alpha =</span> .<span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb45-7"><a aria-label="7"></a>  <span class="fu">geom_density</span>(<span class="fu">aes</span>(happiness))<span class="sc">+</span></span>
-<span id="cb45-8"><a aria-label="8"></a>  <span class="fu">theme_classic</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb45-7"><a aria-label="7"></a>  <span class="fu">geom_density</span>(<span class="at">data =</span> MR, <span class="fu">aes</span>(happiness), <span class="at">inherit.aes =</span> <span class="cn">FALSE</span>, <span class="at">color =</span> <span class="st">"#0072B2"</span>, <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb45-8"><a aria-label="8"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"happiness"</span>) <span class="sc">+</span></span>
+<span id="cb45-9"><a aria-label="9"></a>  <span class="fu">theme_classic</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
 </div>
@@ -3293,12 +3270,13 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb49"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a aria-label="1"></a>mr<span class="fl">.5</span> <span class="ot">&lt;-</span> </span>
 <span id="cb49-2"><a aria-label="2"></a>  <span class="fu">brm</span>(<span class="at">family =</span> gaussian,</span>
 <span id="cb49-3"><a aria-label="3"></a>      happiness <span class="sc">~</span> <span class="dv">0</span> <span class="sc">+</span> iv <span class="sc">+</span> iv2,</span>
-<span id="cb49-4"><a aria-label="4"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">5</span>, <span class="dv">2</span>), <span class="at">class =</span> b),</span>
-<span id="cb49-5"><a aria-label="5"></a>                <span class="fu">prior</span>(<span class="fu">exponential</span>(<span class="dv">1</span>), <span class="at">class =</span> sigma)),</span>
-<span id="cb49-6"><a aria-label="6"></a>      <span class="at">iter =</span> <span class="dv">2000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">chains =</span> <span class="dv">2</span>, <span class="at">cores =</span> <span class="dv">2</span>,</span>
-<span id="cb49-7"><a aria-label="7"></a>      <span class="at">data =</span> MR,</span>
-<span id="cb49-8"><a aria-label="8"></a>      <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
-<span id="cb49-9"><a aria-label="9"></a>      <span class="at">file =</span> <span class="st">"mr.5b"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb49-4"><a aria-label="4"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">5</span>, <span class="dv">2</span>), <span class="at">class =</span> b),                       <span class="co"># the iv group means</span></span>
+<span id="cb49-5"><a aria-label="5"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="at">class =</span> b, <span class="at">coef =</span> iv2highSES),    <span class="co"># a difference: centered on 0</span></span>
+<span id="cb49-6"><a aria-label="6"></a>                <span class="fu">prior</span>(<span class="fu">exponential</span>(<span class="dv">1</span>), <span class="at">class =</span> sigma)),</span>
+<span id="cb49-7"><a aria-label="7"></a>      <span class="at">iter =</span> <span class="dv">2000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">chains =</span> <span class="dv">2</span>, <span class="at">cores =</span> <span class="dv">2</span>,</span>
+<span id="cb49-8"><a aria-label="8"></a>      <span class="at">data =</span> MR,</span>
+<span id="cb49-9"><a aria-label="9"></a>      <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
+<span id="cb49-10"><a aria-label="10"></a>      <span class="at">file =</span> <span class="st">"mr.5c"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 </section>
@@ -3316,14 +3294,14 @@ Formula: happiness ~ 0 + iv + iv2
 
 Regression Coefficients:
            Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-iv1            4.75      0.33     4.08     5.39 1.00     1769     1527
-iv2            4.94      0.38     4.19     5.70 1.00     1549     1334
-iv3            5.09      0.34     4.39     5.77 1.00     1558     1549
-iv2highSES     0.59      0.34    -0.07     1.28 1.00     1223     1238
+iv1            4.82      0.32     4.19     5.44 1.01     1984     1476
+iv2            5.04      0.37     4.33     5.79 1.00     1596     1472
+iv3            5.18      0.34     4.54     5.86 1.00     1615     1305
+iv2highSES     0.42      0.32    -0.20     1.04 1.00     1480     1441
 
 Further Distributional Parameters:
       Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-sigma     1.90      0.13     1.67     2.19 1.00     2256     1529
+sigma     1.90      0.13     1.67     2.17 1.00     2132     1357
 
 Draws were sampled using sample(hmc). For each parameter, Bulk_ESS
 and Tail_ESS are effective sample size measures, and Rhat is the potential
@@ -3482,7 +3460,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <span id="cb63-4"><a aria-label="4"></a>  <span class="fu">sample_draws</span>(<span class="dv">50</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb63-5"><a aria-label="5"></a>  <span class="fu">mutate</span>(<span class="at">mu =</span> mu <span class="sc">+</span> mean_happy) <span class="sc">%&gt;%</span> </span>
 <span id="cb63-6"><a aria-label="6"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">y =</span> iv)) <span class="sc">+</span></span>
-<span id="cb63-7"><a aria-label="7"></a>  <span class="fu">stat_dist_slab</span>(<span class="fu">aes</span>(<span class="at">dist =</span> <span class="st">"norm"</span>, <span class="at">arg1 =</span> mu, <span class="at">arg2 =</span> sigma),</span>
+<span id="cb63-7"><a aria-label="7"></a>  <span class="fu">stat_slab</span>(<span class="fu">aes</span>(<span class="at">dist =</span> <span class="st">"norm"</span>, <span class="at">arg1 =</span> mu, <span class="at">arg2 =</span> sigma),</span>
 <span id="cb63-8"><a aria-label="8"></a>    <span class="at">slab_color =</span> <span class="st">"gray65"</span>, <span class="at">alpha =</span> <span class="dv">1</span><span class="sc">/</span><span class="dv">10</span>, <span class="at">fill =</span> <span class="cn">NA</span>) <span class="sc">+</span></span>
 <span id="cb63-9"><a aria-label="9"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">x =</span> happiness), <span class="at">data =</span> MR, <span class="at">shape =</span> <span class="dv">21</span>, <span class="at">fill =</span> <span class="st">"#9ECAE1"</span>, <span class="at">size =</span> <span class="dv">2</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
@@ -3938,7 +3916,7 @@ Type: response</code></pre>
 <section id="tx-vs.-control-within-each-support-level" class="slide level2">
 <h2>Tx vs.&nbsp;Control within each support level</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb100"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb100-1"><a aria-label="1"></a><span class="fu">comparisons</span>(mr<span class="fl">.8</span>b, <span class="at">variables =</span> <span class="st">"condition"</span>, <span class="at">by =</span> <span class="st">"SupportLevel"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb100"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb100-1"><a aria-label="1"></a><span class="fu">avg_comparisons</span>(mr<span class="fl">.8</span>b, <span class="at">variables =</span> <span class="st">"condition"</span>, <span class="at">by =</span> <span class="st">"SupportLevel"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
  SupportLevel Estimate  2.5 % 97.5 %
@@ -4066,7 +4044,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 200 × 11
    iv.d     SS_c friendship.quality happiness schoool.success   SES
-   &lt;chr&gt;   &lt;dbl&gt;              &lt;dbl&gt;     &lt;dbl&gt;           &lt;dbl&gt; &lt;dbl&gt;
+   &lt;fct&gt;   &lt;dbl&gt;              &lt;dbl&gt;     &lt;dbl&gt;           &lt;dbl&gt; &lt;dbl&gt;
  1 control -8.71               7.75      5.34            8.52  2.31
  2 control -8.71               7.75      5.34            8.52  2.31
  3 control -8.35               7.75      5.34            8.52  2.31
@@ -4094,11 +4072,12 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <span id="cb110-4"><a aria-label="4"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">5</span>, <span class="dv">3</span>), <span class="at">class =</span> b, <span class="at">coef =</span> iv.dcontrol),</span>
 <span id="cb110-5"><a aria-label="5"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">5</span>, <span class="dv">3</span>), <span class="at">class =</span> b, <span class="at">coef =</span> iv.dtx),</span>
 <span id="cb110-6"><a aria-label="6"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, .<span class="dv">5</span>), <span class="at">class =</span> b, <span class="at">coef =</span> SS_c),</span>
-<span id="cb110-7"><a aria-label="7"></a>                <span class="fu">prior</span>(<span class="fu">exponential</span>(<span class="dv">1</span>), <span class="at">class =</span> sigma)),</span>
-<span id="cb110-8"><a aria-label="8"></a>      <span class="at">iter =</span> <span class="dv">2000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">chains =</span> <span class="dv">4</span>, <span class="at">cores =</span> <span class="dv">4</span>,</span>
-<span id="cb110-9"><a aria-label="9"></a>      <span class="at">data =</span> MR, </span>
-<span id="cb110-10"><a aria-label="10"></a>      <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
-<span id="cb110-11"><a aria-label="11"></a>      <span class="at">file =</span> <span class="st">"mr.13"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb110-7"><a aria-label="7"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, .<span class="dv">5</span>), <span class="at">class =</span> b, <span class="at">coef =</span> iv.dtx<span class="sc">:</span>SS_c),</span>
+<span id="cb110-8"><a aria-label="8"></a>                <span class="fu">prior</span>(<span class="fu">exponential</span>(<span class="dv">1</span>), <span class="at">class =</span> sigma)),</span>
+<span id="cb110-9"><a aria-label="9"></a>      <span class="at">iter =</span> <span class="dv">2000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">chains =</span> <span class="dv">4</span>, <span class="at">cores =</span> <span class="dv">4</span>,</span>
+<span id="cb110-10"><a aria-label="10"></a>      <span class="at">data =</span> MR, </span>
+<span id="cb110-11"><a aria-label="11"></a>      <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
+<span id="cb110-12"><a aria-label="12"></a>      <span class="at">file =</span> <span class="st">"mr.13b"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 </section>
@@ -4116,14 +4095,14 @@ Formula: happiness ~ 0 + iv.d * SS_c
 
 Regression Coefficients:
             Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-iv.dcontrol     4.96      0.25     4.48     5.44 1.00     4426     2671
-iv.dtx          5.34      0.19     4.97     5.72 1.00     4291     2584
-SS_c            0.40      0.06     0.29     0.51 1.00     3745     2995
-iv.dtx:SS_c    -0.27      0.09    -0.45    -0.10 1.00     3703     2997
+iv.dcontrol     4.96      0.23     4.51     5.43 1.00     4526     3103
+iv.dtx          5.35      0.18     5.00     5.70 1.00     4648     2713
+SS_c            0.40      0.06     0.28     0.51 1.00     2942     2847
+iv.dtx:SS_c    -0.26      0.09    -0.44    -0.09 1.00     3327     2547
 
 Further Distributional Parameters:
       Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-sigma     1.59      0.10     1.41     1.80 1.00     4463     3061
+sigma     1.58      0.10     1.40     1.80 1.00     4922     2818
 
 Draws were sampled using sample(hmc). For each parameter, Bulk_ESS
 and Tail_ESS are effective sample size measures, and Rhat is the potential
@@ -4160,7 +4139,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 200 × 11
    iv.d     SS_c friendship.quality happiness schoool.success   SES
-   &lt;chr&gt;   &lt;dbl&gt;              &lt;dbl&gt;     &lt;dbl&gt;           &lt;dbl&gt; &lt;dbl&gt;
+   &lt;fct&gt;   &lt;dbl&gt;              &lt;dbl&gt;     &lt;dbl&gt;           &lt;dbl&gt; &lt;dbl&gt;
  1 control -8.71               7.75      5.34            8.52  2.31
  2 control -8.71               7.75      5.34            8.52  2.31
  3 control -8.35               7.75      5.34            8.52  2.31
@@ -4186,14 +4165,13 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb116"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb116-1"><a aria-label="1"></a>mr<span class="fl">.14</span> <span class="ot">&lt;-</span></span>
 <span id="cb116-2"><a aria-label="2"></a>  <span class="fu">brm</span>(<span class="at">family =</span> gaussian,</span>
 <span id="cb116-3"><a aria-label="3"></a>      happiness <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> iv.d <span class="sc">*</span> SS_c,</span>
-<span id="cb116-4"><a aria-label="4"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">3</span>), <span class="at">class =</span> b, <span class="at">coef =</span> iv.dtx),</span>
-<span id="cb116-5"><a aria-label="5"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">5</span>, <span class="dv">3</span>), <span class="at">class =</span> b, <span class="at">coef =</span> SS_c),</span>
-<span id="cb116-6"><a aria-label="6"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="at">class =</span> b, <span class="at">coef =</span> iv.dtx<span class="sc">:</span>SS_c),</span>
-<span id="cb116-7"><a aria-label="7"></a>                <span class="fu">prior</span>(<span class="fu">exponential</span>(<span class="dv">1</span>), <span class="at">class =</span> sigma)),</span>
-<span id="cb116-8"><a aria-label="8"></a>      <span class="at">iter =</span> <span class="dv">2000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">chains =</span> <span class="dv">4</span>, <span class="at">cores =</span> <span class="dv">4</span>,</span>
-<span id="cb116-9"><a aria-label="9"></a>      <span class="at">data =</span> MR, </span>
-<span id="cb116-10"><a aria-label="10"></a>      <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
-<span id="cb116-11"><a aria-label="11"></a>      <span class="at">file =</span> <span class="st">"mr.14"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb116-4"><a aria-label="4"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">5</span>, <span class="dv">2</span>), <span class="at">class =</span> Intercept),</span>
+<span id="cb116-5"><a aria-label="5"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="at">class =</span> b),</span>
+<span id="cb116-6"><a aria-label="6"></a>                <span class="fu">prior</span>(<span class="fu">exponential</span>(<span class="dv">1</span>), <span class="at">class =</span> sigma)),</span>
+<span id="cb116-7"><a aria-label="7"></a>      <span class="at">iter =</span> <span class="dv">2000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">chains =</span> <span class="dv">4</span>, <span class="at">cores =</span> <span class="dv">4</span>,</span>
+<span id="cb116-8"><a aria-label="8"></a>      <span class="at">data =</span> MR, </span>
+<span id="cb116-9"><a aria-label="9"></a>      <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
+<span id="cb116-10"><a aria-label="10"></a>      <span class="at">file =</span> <span class="st">"mr.14b"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 </section>
@@ -4211,14 +4189,14 @@ Formula: happiness ~ 1 + iv.d * SS_c
 
 Regression Coefficients:
             Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-Intercept       4.96      0.24     4.49     5.43 1.00     4484     2783
-iv.dtx          0.38      0.29    -0.21     0.97 1.00     4355     2987
-SS_c            0.41      0.06     0.29     0.52 1.00     3498     3294
-iv.dtx:SS_c    -0.28      0.09    -0.46    -0.10 1.00     3809     3007
+Intercept       4.98      0.23     4.52     5.43 1.00     4549     2903
+iv.dtx          0.36      0.29    -0.21     0.92 1.00     4899     2700
+SS_c            0.40      0.06     0.29     0.52 1.00     3383     2873
+iv.dtx:SS_c    -0.28      0.09    -0.46    -0.09 1.00     3658     3007
 
 Further Distributional Parameters:
       Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-sigma     1.58      0.11     1.40     1.80 1.00     4406     2579
+sigma     1.58      0.10     1.40     1.80 1.00     4117     2635
 
 Draws were sampled using sample(hmc). For each parameter, Bulk_ESS
 and Tail_ESS are effective sample size measures, and Rhat is the potential
@@ -4257,7 +4235,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 # Groups:   iv.d, SS_c, friendship.quality, happiness, schoool.success, SES,
 #   intervention.group, FQ_c, iv, happy_c, iv2, .row [200]
    iv.d     SS_c friendship.quality happiness schoool.success   SES
-   &lt;chr&gt;   &lt;dbl&gt;              &lt;dbl&gt;     &lt;dbl&gt;           &lt;dbl&gt; &lt;dbl&gt;
+   &lt;fct&gt;   &lt;dbl&gt;              &lt;dbl&gt;     &lt;dbl&gt;           &lt;dbl&gt; &lt;dbl&gt;
  1 control -8.71               7.75      5.34            8.52  2.31
  2 control -8.71               7.75      5.34            8.52  2.31
  3 control -8.71               7.75      5.34            8.52  2.31
@@ -4286,10 +4264,10 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <span id="cb122-6"><a aria-label="6"></a>  <span class="fu">mean_qi</span>() </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 2 × 7
-  .variable .value   .lower .upper .width .point .interval
-  &lt;chr&gt;      &lt;dbl&gt;    &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;    
-1 slope.c    0.408  0.294    0.517   0.95 mean   qi       
-2 slope.tx   0.130 -0.00994  0.272   0.95 mean   qi       </code></pre>
+  .variable .value  .lower .upper .width .point .interval
+  &lt;chr&gt;      &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;    
+1 slope.c    0.405  0.286   0.518   0.95 mean   qi       
+2 slope.tx   0.129 -0.0128  0.268   0.95 mean   qi       </code></pre>
 </div>
 </div>
 </section>
@@ -4300,9 +4278,9 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <span id="cb124-2"><a aria-label="2"></a><span class="fu">avg_slopes</span>(mr<span class="fl">.14</span>, <span class="at">variables =</span> <span class="st">"SS_c"</span>, <span class="at">by =</span> <span class="st">"iv.d"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
-    iv.d Estimate    2.5 % 97.5 %
- control    0.409  0.29408  0.517
- tx         0.131 -0.00994  0.272
+    iv.d Estimate   2.5 % 97.5 %
+ control    0.405  0.2861  0.518
+ tx         0.130 -0.0128  0.268
 
 Term: SS_c
 Type: response
@@ -4320,8 +4298,8 @@ Comparison: dY/dX</code></pre>
 <pre><code># A tibble: 2 × 7
   .variable     .value .lower .upper .width .point .interval
   &lt;chr&gt;          &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;    
-1 b_iv.dcontrol   4.96   4.48   5.44   0.95 mean   qi       
-2 b_iv.dtx        5.34   4.97   5.72   0.95 mean   qi       </code></pre>
+1 b_iv.dcontrol   4.96   4.51   5.43   0.95 mean   qi       
+2 b_iv.dtx        5.35   5.00   5.70   0.95 mean   qi       </code></pre>
 </div>
 </div>
 </section>
@@ -4332,8 +4310,8 @@ Comparison: dY/dX</code></pre>
 <div class="cell-output cell-output-stdout">
 <pre><code>
     iv.d     SS_c Estimate 2.5 % 97.5 %
- control 2.71e-16     4.96  4.49   5.43
- tx      2.71e-16     5.34  5.00   5.70
+ control 2.71e-16     4.98  4.52   5.43
+ tx      2.71e-16     5.34  4.99   5.70
 
 Type: response</code></pre>
 </div>
@@ -4343,8 +4321,8 @@ Type: response</code></pre>
 <div class="cell-output cell-output-stdout">
 <pre><code>
     iv.d SS_c Estimate 2.5 % 97.5 %
- control    3     6.18  5.61   6.75
- tx         3     5.73  5.17   6.30
+ control    3     6.19  5.63   6.75
+ tx         3     5.72  5.18   6.28
 
 Type: response</code></pre>
 </div>
@@ -4357,13 +4335,14 @@ Type: response</code></pre>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb132"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb132-1"><a aria-label="1"></a>a<span class="fl">.4</span> <span class="ot">&lt;-</span> </span>
 <span id="cb132-2"><a aria-label="2"></a>  <span class="fu">brm</span>(<span class="at">family =</span> gaussian,</span>
 <span id="cb132-3"><a aria-label="3"></a>      happiness <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> iv<span class="sc">*</span>SES,</span>
-<span id="cb132-4"><a aria-label="4"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">5</span>, <span class="dv">5</span>), <span class="at">class =</span> b),</span>
-<span id="cb132-5"><a aria-label="5"></a>                <span class="fu">prior</span>(<span class="fu">exponential</span>(<span class="dv">1</span>), <span class="at">class =</span> sigma)),</span>
-<span id="cb132-6"><a aria-label="6"></a>      <span class="at">iter =</span> <span class="dv">2000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">chains =</span> <span class="dv">2</span>, <span class="at">cores =</span> <span class="dv">2</span>,</span>
-<span id="cb132-7"><a aria-label="7"></a>      <span class="at">data =</span> MR,</span>
-<span id="cb132-8"><a aria-label="8"></a>      <span class="at">sample_prior =</span> <span class="st">"yes"</span>,</span>
-<span id="cb132-9"><a aria-label="9"></a>      <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
-<span id="cb132-10"><a aria-label="10"></a>      <span class="at">file =</span> <span class="st">"a.4"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb132-4"><a aria-label="4"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">5</span>, <span class="dv">3</span>), <span class="at">class =</span> Intercept),</span>
+<span id="cb132-5"><a aria-label="5"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">2</span>), <span class="at">class =</span> b),</span>
+<span id="cb132-6"><a aria-label="6"></a>                <span class="fu">prior</span>(<span class="fu">exponential</span>(<span class="dv">1</span>), <span class="at">class =</span> sigma)),</span>
+<span id="cb132-7"><a aria-label="7"></a>      <span class="at">iter =</span> <span class="dv">2000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">chains =</span> <span class="dv">2</span>, <span class="at">cores =</span> <span class="dv">2</span>,</span>
+<span id="cb132-8"><a aria-label="8"></a>      <span class="at">data =</span> MR,</span>
+<span id="cb132-9"><a aria-label="9"></a>      <span class="at">sample_prior =</span> <span class="st">"yes"</span>,</span>
+<span id="cb132-10"><a aria-label="10"></a>      <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
+<span id="cb132-11"><a aria-label="11"></a>      <span class="at">file =</span> <span class="st">"a.4b"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="group-ses-results" class="slide level2">
@@ -4380,16 +4359,16 @@ Formula: happiness ~ 1 + iv * SES
 
 Regression Coefficients:
           Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-Intercept     5.02      0.91     3.23     6.80 1.00      968     1190
-iv2          -0.52      1.33    -3.08     2.20 1.00      984     1081
-iv3          -0.36      1.32    -3.08     2.25 1.00      862     1169
-SES          -0.02      0.37    -0.73     0.70 1.00      978     1127
-iv2:SES       0.35      0.52    -0.70     1.34 1.00      963     1035
-iv3:SES       0.35      0.54    -0.66     1.44 1.00      801     1117
+Intercept     5.08      0.77     3.58     6.59 1.00     1012     1525
+iv2          -0.61      1.04    -2.64     1.52 1.01      953     1212
+iv3          -0.46      1.02    -2.45     1.50 1.00      924     1071
+SES          -0.04      0.31    -0.65     0.56 1.00     1008     1372
+iv2:SES       0.37      0.41    -0.44     1.19 1.01      914     1158
+iv3:SES       0.37      0.42    -0.48     1.18 1.00      918     1353
 
 Further Distributional Parameters:
       Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-sigma     1.91      0.12     1.69     2.18 1.00     1444     1263
+sigma     1.91      0.13     1.67     2.17 1.00     1459     1276
 
 Draws were sampled using sample(hmc). For each parameter, Bulk_ESS
 and Tail_ESS are effective sample size measures, and Rhat is the potential
@@ -4421,21 +4400,17 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <section id="slopes-by-group" class="slide level2">
 <h2>Slopes by group</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb138"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb138-1"><a aria-label="1"></a><span class="fu">slopes</span>(a<span class="fl">.4</span>, <span class="fu">datagrid</span>(<span class="at">iv =</span> unique))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb138"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb138-1"><a aria-label="1"></a><span class="fu">slopes</span>(a<span class="fl">.4</span>, <span class="at">variables =</span> <span class="st">"SES"</span>, <span class="at">newdata =</span> <span class="fu">datagrid</span>(<span class="at">iv =</span> unique))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
- Term Contrast iv Estimate  2.5 % 97.5 %
-  iv     2 - 1  1   0.3031 -0.524  1.164
-  iv     2 - 1  2   0.3031 -0.524  1.164
-  iv     2 - 1  3   0.3031 -0.524  1.164
-  iv     3 - 1  1   0.4746 -0.320  1.290
-  iv     3 - 1  2   0.4746 -0.320  1.290
-  iv     3 - 1  3   0.4746 -0.320  1.290
-  SES    dY/dX  1  -0.0315 -0.729  0.699
-  SES    dY/dX  2   0.3243 -0.466  1.068
-  SES    dY/dX  3   0.3180 -0.410  1.110
+ iv Estimate  2.5 % 97.5 %
+  1  -0.0446 -0.654  0.560
+  2   0.3375 -0.344  0.985
+  3   0.3307 -0.316  0.956
 
-Type: response</code></pre>
+Term: SES
+Type: response
+Comparison: dY/dX</code></pre>
 </div>
 </div>
 </section>
@@ -4446,9 +4421,9 @@ Type: response</code></pre>
 <div class="cell-output cell-output-stdout">
 <pre><code>
  Term Contrast Estimate  2.5 % 97.5 %
-  SES    dY/dX    0.195 -0.221  0.606
-  iv     2 - 1    0.303 -0.524  1.164
-  iv     3 - 1    0.475 -0.320  1.290
+  SES    dY/dX    0.192 -0.232  0.591
+  iv     2 - 1    0.284 -0.551  1.047
+  iv     3 - 1    0.419 -0.365  1.257
 
 Type: response</code></pre>
 </div>
@@ -4463,9 +4438,9 @@ Type: response</code></pre>
 <div class="cell-output cell-output-stdout">
 <pre><code>
  Term Contrast SES Estimate  2.5 % 97.5 %
-  iv     2 - 1   3   0.5350 -0.484  1.519
-  iv     3 - 1   3   0.6881 -0.376  1.763
-  SES    dY/dX   3  -0.0315 -0.729  0.699
+  iv     2 - 1   3   0.5028 -0.476   1.45
+  iv     3 - 1   3   0.6435 -0.362   1.67
+  SES    dY/dX   3  -0.0446 -0.654   0.56
 
 Type: response</code></pre>
 </div>
@@ -4477,9 +4452,9 @@ Type: response</code></pre>
 <div class="cell-output cell-output-stdout">
 <pre><code>
  Term Contrast SES Estimate  2.5 % 97.5 %
-  iv     2 - 1   0  -0.5483 -3.081  2.195
-  iv     3 - 1   0  -0.3360 -3.075  2.253
-  SES    dY/dX   0  -0.0315 -0.729  0.699
+  iv     2 - 1   0  -0.6187 -2.642   1.52
+  iv     3 - 1   0  -0.4413 -2.453   1.50
+  SES    dY/dX   0  -0.0446 -0.654   0.56
 
 Type: response</code></pre>
 </div>
@@ -4548,7 +4523,7 @@ Type: response</code></pre>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb150"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb150-1"><a aria-label="1"></a>mr<span class="fl">.15</span> <span class="ot">&lt;-</span> </span>
 <span id="cb150-2"><a aria-label="2"></a>  <span class="fu">brm</span>(<span class="at">family =</span> gaussian,</span>
 <span id="cb150-3"><a aria-label="3"></a>      happiness <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> SS_c <span class="sc">*</span> FQ_c,</span>
-<span id="cb150-4"><a aria-label="4"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">3</span>), <span class="at">class =</span> Intercept),</span>
+<span id="cb150-4"><a aria-label="4"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">5</span>, <span class="dv">2</span>), <span class="at">class =</span> Intercept),</span>
 <span id="cb150-5"><a aria-label="5"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">2</span>), <span class="at">class =</span> b, <span class="at">coef =</span> SS_c),</span>
 <span id="cb150-6"><a aria-label="6"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">2</span>), <span class="at">class =</span> b, <span class="at">coef =</span> FQ_c),</span>
 <span id="cb150-7"><a aria-label="7"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">2</span>), <span class="at">class =</span> b, <span class="at">coef =</span> SS_c<span class="sc">:</span>FQ_c),</span>
@@ -4557,7 +4532,7 @@ Type: response</code></pre>
 <span id="cb150-10"><a aria-label="10"></a>      <span class="at">data =</span> MR,</span>
 <span id="cb150-11"><a aria-label="11"></a>      <span class="at">sample_prior =</span> <span class="st">"yes"</span>,</span>
 <span id="cb150-12"><a aria-label="12"></a>       <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
-<span id="cb150-13"><a aria-label="13"></a>      <span class="at">file =</span> <span class="st">"mr.15"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb150-13"><a aria-label="13"></a>      <span class="at">file =</span> <span class="st">"mr.15b"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="interaction-results" class="slide level2">
@@ -4574,14 +4549,14 @@ Formula: happiness ~ 1 + SS_c * FQ_c
 
 Regression Coefficients:
           Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-Intercept     5.03      0.15     4.73     5.33 1.00     2189     1554
-SS_c          0.33      0.05     0.22     0.44 1.00     1975     1629
-FQ_c          0.21      0.07     0.08     0.35 1.00     2121     1464
-SS_c:FQ_c    -0.04      0.01    -0.06    -0.01 1.00     2333     1281
+Intercept     5.05      0.15     4.75     5.34 1.00     2114     1191
+SS_c          0.33      0.06     0.23     0.44 1.00     1991     1404
+FQ_c          0.21      0.07     0.08     0.35 1.00     2099     1398
+SS_c:FQ_c    -0.04      0.01    -0.07    -0.01 1.00     2240     1346
 
 Further Distributional Parameters:
       Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-sigma     1.54      0.10     1.36     1.76 1.00     2228     1508
+sigma     1.54      0.10     1.37     1.75 1.00     2502     1535
 
 Draws were sampled using sample(hmc). For each parameter, Bulk_ESS
 and Tail_ESS are effective sample size measures, and Rhat is the potential
@@ -4656,9 +4631,11 @@ X1    1 118    0 2.49   0.14    0.05 2.26 -6.92 7.03 13.94 -0.18     0.28 0.23</
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb159"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb159-1"><a aria-label="1"></a>MR <span class="sc">%&gt;%</span> </span>
 <span id="cb159-2"><a aria-label="2"></a><span class="fu">data_grid</span>(<span class="at">SS_c =</span> <span class="fu">seq_range</span>(SS_c, <span class="at">n =</span> <span class="dv">20</span>), <span class="at">FQ_c =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">2.5</span>,<span class="dv">0</span>,<span class="fl">2.5</span>), <span class="at">.model =</span> MR) <span class="sc">%&gt;%</span></span>
 <span id="cb159-3"><a aria-label="3"></a>  <span class="fu">add_epred_draws</span>(mr<span class="fl">.15</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb159-4"><a aria-label="4"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> SS_c, <span class="at">y =</span> happiness, <span class="at">group =</span> FQ_c <span class="sc">%&gt;%</span> <span class="fu">as.character</span>()))<span class="sc">+</span></span>
-<span id="cb159-5"><a aria-label="5"></a>  <span class="fu">stat_lineribbon</span>(<span class="fu">aes</span>(<span class="at">y =</span> .epred, <span class="at">color =</span> FQ_c <span class="sc">%&gt;%</span> <span class="fu">as.character</span>(), <span class="at">alpha =</span> .<span class="dv">05</span>, <span class="at">fill =</span> FQ_c ), <span class="at">.width =</span> <span class="fu">c</span>(<span class="fl">0.95</span>),  <span class="at">show.legend =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
-<span id="cb159-6"><a aria-label="6"></a>  <span class="fu">geom_point</span>(<span class="at">data =</span> MR) </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb159-4"><a aria-label="4"></a>  <span class="fu">mutate</span>(<span class="at">FQ =</span> <span class="fu">factor</span>(FQ_c)) <span class="sc">%&gt;%</span> </span>
+<span id="cb159-5"><a aria-label="5"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> SS_c, <span class="at">y =</span> happiness)) <span class="sc">+</span></span>
+<span id="cb159-6"><a aria-label="6"></a>  <span class="fu">geom_point</span>(<span class="at">data =</span> MR, <span class="at">alpha =</span> .<span class="dv">4</span>) <span class="sc">+</span></span>
+<span id="cb159-7"><a aria-label="7"></a>  <span class="fu">stat_lineribbon</span>(<span class="fu">aes</span>(<span class="at">y =</span> .epred, <span class="at">color =</span> FQ, <span class="at">fill =</span> FQ), <span class="at">.width =</span> .<span class="dv">95</span>, <span class="at">alpha =</span> .<span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb159-8"><a aria-label="8"></a>  <span class="fu">labs</span>(<span class="at">color =</span> <span class="st">"FQ_c"</span>, <span class="at">fill =</span> <span class="st">"FQ_c"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 </div>
 <img data-src="mr-4_files/figure-revealjs/unnamed-chunk-101-1.png" width="960" class="r-stretch"></section>
@@ -4668,9 +4645,10 @@ X1    1 118    0 2.49   0.14    0.05 2.26 -6.92 7.03 13.94 -0.18     0.28 0.23</
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb160"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb160-1"><a aria-label="1"></a>MR <span class="sc">%&gt;%</span> </span>
 <span id="cb160-2"><a aria-label="2"></a><span class="fu">data_grid</span>(<span class="at">SS_c =</span> <span class="fu">seq_range</span>(SS_c, <span class="at">n =</span> <span class="dv">20</span>), <span class="at">FQ_c =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">2.5</span>,<span class="dv">0</span>,<span class="fl">2.5</span>), <span class="at">.model =</span> MR) <span class="sc">%&gt;%</span></span>
 <span id="cb160-3"><a aria-label="3"></a>  <span class="fu">add_epred_draws</span>(mr<span class="fl">.15</span>, <span class="at">ndraws =</span> <span class="dv">50</span>)  <span class="sc">%&gt;%</span></span>
-<span id="cb160-4"><a aria-label="4"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> SS_c, <span class="at">y =</span> happiness, <span class="at">group =</span> <span class="fu">interaction</span>(SS_c, FQ_c), <span class="at">color =</span> FQ_c <span class="sc">%&gt;%</span>  <span class="fu">as.character</span>())) <span class="sc">+</span></span>
-<span id="cb160-5"><a aria-label="5"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> .epred, <span class="at">group =</span> <span class="fu">paste</span>(FQ_c, .draw), <span class="at">alpha =</span> .<span class="dv">5</span>),<span class="at">show.legend =</span> <span class="cn">FALSE</span>) <span class="sc">+</span>  </span>
-<span id="cb160-6"><a aria-label="6"></a><span class="fu">facet_grid</span>(<span class="at">cols =</span> <span class="fu">vars</span>(FQ_c))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb160-4"><a aria-label="4"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> SS_c, <span class="at">y =</span> .epred, <span class="at">group =</span> .draw, <span class="at">color =</span> <span class="fu">factor</span>(FQ_c))) <span class="sc">+</span></span>
+<span id="cb160-5"><a aria-label="5"></a>  <span class="fu">geom_line</span>(<span class="at">alpha =</span> .<span class="dv">3</span>, <span class="at">show.legend =</span> <span class="cn">FALSE</span>) <span class="sc">+</span>  </span>
+<span id="cb160-6"><a aria-label="6"></a>  <span class="fu">facet_grid</span>(<span class="at">cols =</span> <span class="fu">vars</span>(FQ_c), <span class="at">labeller =</span> label_both) <span class="sc">+</span></span>
+<span id="cb160-7"><a aria-label="7"></a>  <span class="fu">labs</span>(<span class="at">y =</span> <span class="st">"happiness"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 </div>
 <img data-src="mr-4_files/figure-revealjs/unnamed-chunk-102-1.png" width="960" class="r-stretch"></section>
@@ -4681,11 +4659,11 @@ X1    1 118    0 2.49   0.14    0.05 2.26 -6.92 7.03 13.94 -0.18     0.28 0.23</
 <div class="cell-output cell-output-stdout">
 <pre><code>
    FQ_c Estimate  2.5 % 97.5 %
- -6.916   0.5986  0.419  0.774
- -1.472   0.3864  0.285  0.489
-  0.137   0.3232  0.215  0.431
-  1.426   0.2742  0.148  0.404
-  7.028   0.0584 -0.179  0.302
+ -6.916   0.5931  0.418  0.784
+ -1.472   0.3850  0.290  0.488
+  0.137   0.3242  0.218  0.437
+  1.426   0.2773  0.151  0.405
+  7.028   0.0661 -0.188  0.320
 
 Term: SS_c
 Type: response

@@ -77,23 +77,6 @@ p3 <-
   xlim(0, 2) +
   theme_void()
 
-# exponential density
-p4 <-
-  tibble(x = seq(from = 0, to = 1, by = .01)) %>% 
-  ggplot(aes(x = x, ymin = 0, ymax = (dexp(x, 2) / max(dexp(x, 2))))) +
-  geom_ribbon(fill = "steelblue4", color = "steelblue4", alpha = .6) +
-  annotate(geom = "text",
-           x = .5, y = .2,
-           label = "exp",
-           size = 7) +
-  annotate(geom = "text",
-           x = .5, y = .6,
-           label = "italic(K)",
-           size = 7, family = "Times", parse = T) +
-  scale_x_continuous(expand = c(0, 0)) +
-  theme_void() +
-  theme(axis.line.x = element_line(linewidth = 0.5))
-
 # likelihood formula
 p5 <-
   tibble(x = .5,
@@ -106,56 +89,52 @@ p5 <-
   ylim(0, 1) +
   theme_void()
   
-  # half-normal density
+# exponential density (prior on sigma)
 p6 <-
   tibble(x = seq(from = 0, to = 3, by = .01)) %>% 
-  ggplot(aes(x = x, ymin = 0, ymax = (dnorm(x)) / max(dnorm(x)))) +
+  ggplot(aes(x = x, ymin = 0, ymax = (dexp(x, 1.5)) / max(dexp(x, 1.5)))) +
   geom_ribbon(fill = "steelblue4", color = "steelblue4", alpha = .6) +
   annotate(geom = "text",
            x = 1.5, y = .2,
-           label = "half-normal",
+           label = "exponential",
            size = 7) +
   annotate(geom = "text",
            x = 1.5, y = .6,
-           label = "0*','*~italic(S)[sigma]", 
+           label = "italic(L)[sigma]", 
            size = 7, family = "Times", parse = T) +
   scale_x_continuous(expand = c(0, 0)) +
   theme_void() +
   theme(axis.line.x = element_line(linewidth = 0.5))
 
-# three annotated arrows
+# two annotated arrows: mu's equation and sigma's prior feed the likelihood
 p7 <-
-  tibble(x    = c( .43, 1.5, 2.5),
-         y    = c( 1, 1, 1),
-         xend = c( 1.225, 1.5, 1.75),
-         yend = c( .15, .2, .2)) %>%
+  tibble(x    = c(1.5, 2.5),
+         y    = c(1, 1),
+         xend = c(1.5, 1.75),
+         yend = c(.2, .2)) %>%
   
   ggplot(aes(x = x, xend = xend,
              y = y, yend = yend)) +
   geom_segment(arrow = my_arrow) +
   annotate(geom = "text",
-           x = c( .7, 1.38, 2), y = c( .22, .65, .6),
-           label = c( "'~'", "'='", "'~'"),
+           x = c(1.38, 2), y = c(.65, .6),
+           label = c("'='", "'~'"),
            size = 10, family = "Times", parse = T) +
-  #annotate(geom = "text",
-          # x = .43, y = .7,
-           #label = "nu*minute+1",
-           #size = 7, family = "Times", parse = T) +
   xlim(0, 3) +
   theme_void()
 
-# student-t density
+# normal likelihood
 p8 <-
   tibble(x = seq(from = -3, to = 3, by = .1)) %>% 
-  ggplot(aes(x = x, ymin = 0, ymax = (dt(x, 3) / max(dt(x, 3))))) +
+  ggplot(aes(x = x, ymin = 0, ymax = (dnorm(x) / max(dnorm(x))))) +
   geom_ribbon(fill = "steelblue4", color = "steelblue4", alpha = .6) +
   annotate(geom = "text",
            x = 0, y = .2,
-           label = "student t",
+           label = "normal",
            size = 7) +
   annotate(geom = "text",
            x = 0, y = .6,
-           label = "nu~~~mu[italic(i)]~~~sigma",
+           label = "mu[italic(i)]~~~sigma",
            size = 7, family = "Times", parse = T) +
   scale_x_continuous(expand = c(0, 0)) +
   theme_void() +
@@ -190,7 +169,6 @@ p10 <-
 layout <- c(
   area(t = 1, b = 2, l = 3, r = 5),
   area(t = 1, b = 2, l = 7, r = 9),
-  area(t = 4, b = 5, l = 1, r = 3),
   area(t = 4, b = 5, l = 5, r = 7),
   area(t = 4, b = 5, l = 9, r = 11),
   area(t = 3, b = 4, l = 3, r = 9),
@@ -201,7 +179,7 @@ layout <- c(
 )
 
 # combine and plot!
-(p1 + p2 + p4 + p5 + p6 + p3 + p8 + p7 + p9 + p10) + 
+(p1 + p2 + p5 + p6 + p3 + p8 + p7 + p9 + p10) + 
   plot_layout(design = layout) &
   ylim(0, 1) &
   theme(plot.margin = margin(0, 5.5, 0, 5.5))
@@ -224,7 +202,7 @@ MR <- MR %>%
         mutate(iv = as.factor(iv))
 
 MR <- MR %>%
-  mutate(iv.d = case_match(iv, "1" ~ "control", "2" ~ "tx", "3" ~ "tx"))
+  mutate(iv.d = factor(if_else(iv == "1", "control", "tx")))   # groups 2 and 3 are both treatment
 
 MR
 ```
@@ -239,14 +217,11 @@ describe(MR)
 
 ## model
 
-happiness \~ Normal( $\mu_i$ , $\sigma$ )
+$$\text{happiness}_i \sim \text{Normal}(\mu_i, \sigma)$$
+$$\mu_i = \beta_0 + \beta_1 \text{SS\_c}_i + \beta_2 \text{FQ\_c}_i$$
 
-$\mu_i$ = $\beta_0$ + $\beta_1$ $SS\_c$ + $\beta_2$ $FQ\_c$
-
-$\beta_0$ \~ Normal(5, 2)\
-$\beta_1$ \~ Normal(0, 2)\
-$\beta_2$ \~ Normal(0, 2)\
-$\sigma$ \~ Exponential(1)
+$$\beta_0 \sim \text{Normal}(5, 2) \qquad \beta_1, \beta_2 \sim \text{Normal}(0, 2)$$
+$$\sigma \sim \text{Exponential}(1)$$
 
 ## Fitting the model
 
@@ -315,6 +290,8 @@ prior.mr1 %>%
 ```
 
 ## tighter priors?
+
+Slopes tightened from Normal(0, 2) to Normal(0, 0.2). (σ's prior changes too: Exponential(0.5) has mean 2, so it is a bit *looser*.)
 
 ```{r}
 
@@ -425,7 +402,7 @@ MR %>%
   
 ```
 
-Results in: " Error: The following variables can neither be found in 'data' nor in 'data2': 'FQ_c'
+Results in: "Error: The following variables can neither be found in 'data' nor in 'data2': 'FQ_c'"
 
 ## What .model = MR fills in
 
@@ -478,9 +455,9 @@ predictions(mr.1,
 
 ```
 
-## Friendship quality, averaging over SS
+## Friendship quality, SS at its typical value
 
-FQ_c
+`.model = MR` fills SS_c in at its median.
 
 ```{r}
 #| code-fold: true
@@ -567,7 +544,8 @@ MR %>%
     sample_draws(50) %>% 
     ggplot(aes(.prediction, group = .draw)) +
    geom_line(stat = "density", alpha = .1) +
-  geom_density(aes(happiness, group = .draw))+
+  geom_density(data = MR, aes(happiness), inherit.aes = FALSE, color = "#0072B2", linewidth = 1) +
+  labs(x = "happiness", subtitle = "grey: 50 simulated datasets · blue: observed") +
   theme_classic()
 ```
 
@@ -582,7 +560,8 @@ predictions(mr.1,
     sample_draws(50, draw = "drawid") %>% 
     ggplot(aes(draw, group = drawid)) +
    geom_line(stat = "density", alpha = .1) +
-  geom_density(aes(happiness))+
+  geom_density(data = MR, aes(happiness), inherit.aes = FALSE, color = "#0072B2", linewidth = 1) +
+  labs(x = "happiness") +
   theme_classic()
 ```
 
@@ -623,12 +602,13 @@ MR %>% count(iv, iv2)
 mr.5 <- 
   brm(family = gaussian,
       happiness ~ 0 + iv + iv2,
-      prior = c(prior(normal(5, 2), class = b),
+      prior = c(prior(normal(5, 2), class = b),                       # the iv group means
+                prior(normal(0, 1), class = b, coef = iv2highSES),    # a difference: centered on 0
                 prior(exponential(1), class = sigma)),
       iter = 2000, warmup = 1000, chains = 2, cores = 2,
       data = MR,
       backend = "cmdstanr",
-      file = "mr.5b")
+      file = "mr.5c")
 ```
 
 ## Two-factor results
@@ -737,7 +717,7 @@ MR %>%
   sample_draws(50) %>%
   mutate(mu = mu + mean_happy) %>% 
   ggplot(aes(y = iv)) +
-  stat_dist_slab(aes(dist = "norm", arg1 = mu, arg2 = sigma),
+  stat_slab(aes(dist = "norm", arg1 = mu, arg2 = sigma),
     slab_color = "gray65", alpha = 1/10, fill = NA) +
   geom_point(aes(x = happiness), data = MR, shape = 21, fill = "#9ECAE1", size = 2)
 ```
@@ -984,7 +964,7 @@ avg_predictions(mr.8b, by = "SupportLevel", hypothesis = ~ pairwise)
 ## Tx vs. Control within each support level
 
 ```{r}
-comparisons(mr.8b, variables = "condition", by = "SupportLevel")
+avg_comparisons(mr.8b, variables = "condition", by = "SupportLevel")
 ```
 
 If the Tx − Control difference changes across support levels, that's the interaction.
@@ -1082,11 +1062,12 @@ mr.13 <-
       prior = c(prior(normal(5, 3), class = b, coef = iv.dcontrol),
                 prior(normal(5, 3), class = b, coef = iv.dtx),
                 prior(normal(0, .5), class = b, coef = SS_c),
+                prior(normal(0, .5), class = b, coef = iv.dtx:SS_c),
                 prior(exponential(1), class = sigma)),
       iter = 2000, warmup = 1000, chains = 4, cores = 4,
       data = MR, 
       backend = "cmdstanr",
-      file = "mr.13")
+      file = "mr.13b")
 ```
 
 ## Results: separate slopes
@@ -1129,14 +1110,13 @@ What if we fit it without index coding?
 mr.14 <-
   brm(family = gaussian,
       happiness ~ 1 + iv.d * SS_c,
-      prior = c(prior(normal(0, 3), class = b, coef = iv.dtx),
-                prior(normal(5, 3), class = b, coef = SS_c),
-                prior(normal(0, 1), class = b, coef = iv.dtx:SS_c),
+      prior = c(prior(normal(5, 2), class = Intercept),
+                prior(normal(0, 1), class = b),
                 prior(exponential(1), class = sigma)),
       iter = 2000, warmup = 1000, chains = 4, cores = 4,
       data = MR, 
       backend = "cmdstanr",
-      file = "mr.14")
+      file = "mr.14b")
 ```
 
 ## Results: dummy-coded interaction
@@ -1218,13 +1198,14 @@ The same idea with all three intervention groups and a continuous moderator (SES
 a.4 <- 
   brm(family = gaussian,
       happiness ~ 1 + iv*SES,
-      prior = c(prior(normal(5, 5), class = b),
+      prior = c(prior(normal(5, 3), class = Intercept),
+                prior(normal(0, 2), class = b),
                 prior(exponential(1), class = sigma)),
       iter = 2000, warmup = 1000, chains = 2, cores = 2,
       data = MR,
       sample_prior = "yes",
       backend = "cmdstanr",
-      file = "a.4")
+      file = "a.4b")
 
 ```
 
@@ -1259,7 +1240,7 @@ plot_predictions(a.4, condition = c("SES", "iv"))
 ## Slopes by group
 
 ```{r}
-slopes(a.4, datagrid(iv = unique))
+slopes(a.4, variables = "SES", newdata = datagrid(iv = unique))
 ```
 
 
@@ -1330,7 +1311,7 @@ get_prior(family = gaussian,
 mr.15 <- 
   brm(family = gaussian,
       happiness ~ 1 + SS_c * FQ_c,
-      prior = c(prior(normal(0, 3), class = Intercept),
+      prior = c(prior(normal(5, 2), class = Intercept),
                 prior(normal(0, 2), class = b, coef = SS_c),
                 prior(normal(0, 2), class = b, coef = FQ_c),
                 prior(normal(0, 2), class = b, coef = SS_c:FQ_c),
@@ -1339,7 +1320,7 @@ mr.15 <-
       data = MR,
       sample_prior = "yes",
        backend = "cmdstanr",
-      file = "mr.15")
+      file = "mr.15b")
 ```
 
 ## Interaction results
@@ -1375,9 +1356,11 @@ data_grid(SS_c = seq_range(SS_c, n = 20), FQ_c = c(-2.5,0,2.5), .model = MR) %>%
 MR %>% 
 data_grid(SS_c = seq_range(SS_c, n = 20), FQ_c = c(-2.5,0,2.5), .model = MR) %>%
   add_epred_draws(mr.15) %>% 
-  ggplot(aes(x = SS_c, y = happiness, group = FQ_c %>% as.character()))+
-  stat_lineribbon(aes(y = .epred, color = FQ_c %>% as.character(), alpha = .05, fill = FQ_c ), .width = c(0.95),  show.legend = FALSE) +
-  geom_point(data = MR) 
+  mutate(FQ = factor(FQ_c)) %>% 
+  ggplot(aes(x = SS_c, y = happiness)) +
+  geom_point(data = MR, alpha = .4) +
+  stat_lineribbon(aes(y = .epred, color = FQ, fill = FQ), .width = .95, alpha = .3) +
+  labs(color = "FQ_c", fill = "FQ_c")
 
 ```
 
@@ -1387,9 +1370,10 @@ data_grid(SS_c = seq_range(SS_c, n = 20), FQ_c = c(-2.5,0,2.5), .model = MR) %>%
 MR %>% 
 data_grid(SS_c = seq_range(SS_c, n = 20), FQ_c = c(-2.5,0,2.5), .model = MR) %>%
   add_epred_draws(mr.15, ndraws = 50)  %>%
-  ggplot(aes(x = SS_c, y = happiness, group = interaction(SS_c, FQ_c), color = FQ_c %>%  as.character())) +
-  geom_line(aes(y = .epred, group = paste(FQ_c, .draw), alpha = .5),show.legend = FALSE) +  
-facet_grid(cols = vars(FQ_c))
+  ggplot(aes(x = SS_c, y = .epred, group = .draw, color = factor(FQ_c))) +
+  geom_line(alpha = .3, show.legend = FALSE) +  
+  facet_grid(cols = vars(FQ_c), labeller = label_both) +
+  labs(y = "happiness")
 ```
 
 ## Slopes across FQ (five-number summary)
