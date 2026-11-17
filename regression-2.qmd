@@ -144,7 +144,7 @@ p.s
 
 -   Standard deviations have to be positive, and the exponential only lives above 0. Its mean is 1/rate = 2 inches.
 -   What is an upper bound possibility? A σ of 10 would mean children routinely land 20 inches from the line.
--   You'll see half-Cauchy priors on σ in older papers (and in earlier versions of this course). They have a much heavier tail; with this much data, either is fine.
+-   You'll see half-Cauchy priors on σ in older papers. They have a much heavier tail; with this much data, either is fine.
 
 ## Prior predictive: what do our priors expect?
 
@@ -191,7 +191,7 @@ fit.1p <-
       sample_prior = "only",
       backend = "cmdstanr",
       iter = 1000, warmup = 500, chains = 2, cores = 2, 
-      file = "fit.1pb")   # old priors: fit.1p
+      file = "fit.1pb")
 
 galton.data %>% 
   data_grid(parent.c = seq_range(parent.c, n = 2)) %>% 
@@ -257,7 +257,7 @@ fit.1 <-
       data = galton.data, 
       backend = "cmdstanr",
       iter = 1000, warmup = 500, chains = 2, cores = 2, 
-      file = "fit.1b")   # old priors: fit.1
+      file = "fit.1b")
 ```
 
 ## get_prior() lists; it doesn't set {.smaller}

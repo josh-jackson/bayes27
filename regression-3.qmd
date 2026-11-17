@@ -800,7 +800,7 @@ h.5R <-
       bf(health ~ 0 + mood.group.d, nu = 3),
       prior = c(prior(normal(0, 10), class = b),
                 prior(cauchy(0, 1),  class = sigma)),
-      file = "h.5R3",   # earlier versions fixed nu = 1: h.5R, h.5R2
+      file = "h.5R3",
       backend = "cmdstanr",
       data = week3)
 ```
@@ -847,6 +847,62 @@ bind_rows("normal (h.3)"   = avg_predictions(h.3,  by = "mood.group.d") %>% get_
 ```
 
 Nearly the same. These data have no real outliers (no one beyond 3 SD of their group, and about as many beyond 2 SD as a normal predicts; estimated ν ≈ 20), so the robust model changes little. Fixing ν = 3 still shifts the control mean slightly (`r round(fixef(h.5R)["mood.group.dcontrol", 1], 2)` vs. `r round(fixef(h.3)["mood.group.dcontrol", 1], 2)`) because it gives every score in the tails a bit less weight. Robust models earn their keep when there *are* outliers.
+
+## What if there *were* outliers? {.smaller}
+
+These data don't need a robust model. To see what one buys you, add three made-up outliers to a **copy** of the data: control-group health scores of 25, as if someone typed 25 instead of 2.5. (Demo only: not real data.)
+
+```{r}
+#| results: hide
+#| message: false
+week3.out <- week3 %>%
+  bind_rows(tibble(health = c(25, 25, 25),
+                   mood.group.d = factor("control", levels = levels(week3$mood.group.d))))
+
+h.3.out  <- update(h.3,  newdata = week3.out, seed = 27, file = "h.3out")    # normal
+h.4R.out <- update(h.4R, newdata = week3.out, seed = 27, file = "h.4Rout")   # t, ν estimated
+```
+
+```{r}
+#| code-fold: true
+tibble(model = c("normal", "normal", "t (ν estimated)", "t (ν estimated)"),
+       data  = c("real", "+ 3 outliers", "real", "+ 3 outliers"),
+       fit   = list(h.3, h.3.out, h.4R, h.4R.out)) %>%
+  mutate(control = map_dbl(fit, \(m) fixef(m)["mood.group.dcontrol", 1]),
+         tx      = map_dbl(fit, \(m) fixef(m)["mood.group.dtx", 1]),
+         `tx − control` = tx - control,
+         sigma   = map_dbl(fit, \(m) median(as_draws_df(m)$sigma)),
+         nu      = map_dbl(fit, \(m) if ("nu" %in% variables(m)) median(as_draws_df(m)$nu) else NA)) %>%
+  select(-fit) %>%
+  mutate(across(where(is.numeric), \(x) round(x, 2)))
+```
+
+## Outliers: normal vs. robust {.smaller .nostretch}
+
+```{r}
+#| code-fold: true
+#| fig-height: 2.4
+#| fig-width: 9
+#| out-width: "100%"
+get_means <- function(m) avg_predictions(m, by = "mood.group.d") %>% get_draws()
+bind_rows(
+  tibble(model = "normal",          data = "real data",      d = list(get_means(h.3))),
+  tibble(model = "normal",          data = "+ 3 outliers",   d = list(get_means(h.3.out))),
+  tibble(model = "t (ν estimated)", data = "real data",      d = list(get_means(h.4R))),
+  tibble(model = "t (ν estimated)", data = "+ 3 outliers",   d = list(get_means(h.4R.out)))) %>%
+  unnest(d) %>%
+  mutate(data = factor(data, levels = c("real data", "+ 3 outliers"))) %>%
+  ggplot(aes(x = draw, y = mood.group.d, colour = data)) +
+  stat_pointinterval(position = position_dodge(width = .4), .width = c(.66, .95)) +
+  facet_wrap(~ model) +
+  scale_colour_manual(values = c("grey40", "#D55E00")) +
+  labs(x = "group mean health (66% and 95% intervals)", y = NULL, colour = NULL) +
+  theme_classic(base_size = 14) + theme(legend.position = "top")
+```
+
+-   **Normal:** three bad scores pull the control mean up from `r round(fixef(h.3)["mood.group.dcontrol", 1], 2)` to `r round(fixef(h.3.out)["mood.group.dcontrol", 1], 2)` and inflate σ, shrinking the group difference from `r round(diff(fixef(h.3)[, 1]), 2)` to `r round(diff(fixef(h.3.out)[, 1]), 2)`
+-   **t:** the control mean moves only a little (`r sprintf("%.2f", fixef(h.4R)["mood.group.dcontrol", 1])` → `r sprintf("%.2f", fixef(h.4R.out)["mood.group.dcontrol", 1])`) and most of the group difference survives (`r sprintf("%.2f", diff(fixef(h.4R)[, 1]))` → `r sprintf("%.2f", diff(fixef(h.4R.out)[, 1]))`): heavy tails let it treat the 25s as rare draws
+-   **ν is a diagnostic:** it drops from about `r round(median(as_draws_df(h.4R)$nu))` to `r round(median(as_draws_df(h.4R.out)$nu), 1)`; a small estimated ν flags outliers
 
 ## relaxing equal variance assumption
 
@@ -900,7 +956,7 @@ $\nu$ \~ Gamma(2,.1)\
 $\alpha_j$ \~ Normal(8, 3)\
 $\gamma_j$ \~ Normal(0, 3)
 
-Group means of health (which averages about 8.5) get Normal(8, 3). An earlier version used Normal(0, 3), which put the observed means almost 3 SDs from the prior's center and pulled them down a little. $\gamma_j$ is log(σ), so Normal(0, 3) is fine there.
+Group means of health (which averages about 8.5) get Normal(8, 3). $\gamma_j$ is log(σ), so Normal(0, 3) is a wide prior there.
 
 ## Robust, unequal variances: dummy coding
 
@@ -936,7 +992,7 @@ h.7 <-
       prior = c(prior(gamma(2, .1), class = nu),
                 prior(normal(8, 3), class = b),
                 prior(normal(0, 3), class = b, dpar = sigma)),
-     file = "h.7b.rds",   # old Normal(0, 3) prior on the means: h.7
+     file = "h.7b.rds",
      backend = "cmdstanr",
      data = week3)
 ```

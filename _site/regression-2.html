@@ -1321,7 +1321,7 @@ Mean child (SD)  | 68.09 (2.52)</code></pre>
 <img data-src="regression-2_files/figure-revealjs/unnamed-chunk-8-1.png" width="960" class="r-stretch"><ul>
 <li>Standard deviations have to be positive, and the exponential only lives above 0. Its mean is 1/rate = 2 inches.</li>
 <li>What is an upper bound possibility? A σ of 10 would mean children routinely land 20 inches from the line.</li>
-<li>You’ll see half-Cauchy priors on σ in older papers (and in earlier versions of this course). They have a much heavier tail; with this much data, either is fine.</li>
+<li>You’ll see half-Cauchy priors on σ in older papers. They have a much heavier tail; with this much data, either is fine.</li>
 </ul>
 </section>
 <section id="prior-predictive-what-do-our-priors-expect" class="slide level2">
@@ -1369,7 +1369,7 @@ Mean child (SD)  | 68.09 (2.52)</code></pre>
 <span id="cb13-11"><a aria-label="11"></a>      <span class="at">sample_prior =</span> <span class="st">"only"</span>,</span>
 <span id="cb13-12"><a aria-label="12"></a>      <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
 <span id="cb13-13"><a aria-label="13"></a>      <span class="at">iter =</span> <span class="dv">1000</span>, <span class="at">warmup =</span> <span class="dv">500</span>, <span class="at">chains =</span> <span class="dv">2</span>, <span class="at">cores =</span> <span class="dv">2</span>, </span>
-<span id="cb13-14"><a aria-label="14"></a>      <span class="at">file =</span> <span class="st">"fit.1pb"</span>)   <span class="co"># old priors: fit.1p</span></span>
+<span id="cb13-14"><a aria-label="14"></a>      <span class="at">file =</span> <span class="st">"fit.1pb"</span>)</span>
 <span id="cb13-15"><a aria-label="15"></a></span>
 <span id="cb13-16"><a aria-label="16"></a>galton.data <span class="sc">%&gt;%</span> </span>
 <span id="cb13-17"><a aria-label="17"></a>  <span class="fu">data_grid</span>(<span class="at">parent.c =</span> <span class="fu">seq_range</span>(parent.c, <span class="at">n =</span> <span class="dv">2</span>)) <span class="sc">%&gt;%</span> </span>
@@ -1434,7 +1434,7 @@ Mean child (SD)  | 68.09 (2.52)</code></pre>
 <span id="cb16-8"><a aria-label="8"></a>      <span class="at">data =</span> galton.data, </span>
 <span id="cb16-9"><a aria-label="9"></a>      <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
 <span id="cb16-10"><a aria-label="10"></a>      <span class="at">iter =</span> <span class="dv">1000</span>, <span class="at">warmup =</span> <span class="dv">500</span>, <span class="at">chains =</span> <span class="dv">2</span>, <span class="at">cores =</span> <span class="dv">2</span>, </span>
-<span id="cb16-11"><a aria-label="11"></a>      <span class="at">file =</span> <span class="st">"fit.1b"</span>)   <span class="co"># old priors: fit.1</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb16-11"><a aria-label="11"></a>      <span class="at">file =</span> <span class="st">"fit.1b"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="get_prior-lists-it-doesnt-set" class="slide level2 smaller">

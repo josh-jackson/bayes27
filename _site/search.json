@@ -326,7 +326,7 @@
     "href": "regression-2.html#prior-for-sigma",
     "title": "Regression part 1",
     "section": "Prior for sigma",
-    "text": "Prior for sigma\n\n\nCode\np.s &lt;- ggplot(data.frame(x = c(0, 10)), aes(x)) +\n  stat_function(fun = dexp, n = 200, args = list(rate = .5)) +\n  labs(title = \"sigma ~ Exponential(0.5)\", y = \"density\")\np.s\n\n\n\n\nStandard deviations have to be positive, and the exponential only lives above 0. Its mean is 1/rate = 2 inches.\nWhat is an upper bound possibility? A σ of 10 would mean children routinely land 20 inches from the line.\nYou’ll see half-Cauchy priors on σ in older papers (and in earlier versions of this course). They have a much heavier tail; with this much data, either is fine."
+    "text": "Prior for sigma\n\n\nCode\np.s &lt;- ggplot(data.frame(x = c(0, 10)), aes(x)) +\n  stat_function(fun = dexp, n = 200, args = list(rate = .5)) +\n  labs(title = \"sigma ~ Exponential(0.5)\", y = \"density\")\np.s\n\n\n\n\nStandard deviations have to be positive, and the exponential only lives above 0. Its mean is 1/rate = 2 inches.\nWhat is an upper bound possibility? A σ of 10 would mean children routinely land 20 inches from the line.\nYou’ll see half-Cauchy priors on σ in older papers. They have a much heavier tail; with this much data, either is fine."
   },
   {
     "objectID": "regression-2.html#prior-predictive-what-do-our-priors-expect",
@@ -347,7 +347,7 @@
     "href": "regression-2.html#prior-predictive-with-brms",
     "title": "Regression part 1",
     "section": "Prior predictive with brms",
-    "text": "Prior predictive with brms\nbrms can do this for us: sample_prior = \"only\" fits the model while ignoring the data, so the “posterior” is just the prior.\n\n\nCode\nlibrary(brms)\nlibrary(tidybayes)\nlibrary(modelr)\nfit.1p &lt;- \n  brm(family = gaussian,\n      child ~ 1 + parent.c,\n      prior = c(prior(normal(66, 5), class = Intercept),\n                prior(normal(0, 5), class = b),\n                prior(exponential(.5), class = sigma)),\n      data = galton.data, \n      sample_prior = \"only\",\n      backend = \"cmdstanr\",\n      iter = 1000, warmup = 500, chains = 2, cores = 2, \n      file = \"fit.1pb\")   # old priors: fit.1p\n\ngalton.data %&gt;% \n  data_grid(parent.c = seq_range(parent.c, n = 2)) %&gt;% \n  add_epred_draws(fit.1p, ndraws = 100) %&gt;% \n  ggplot(aes(x = parent.c, y = .epred, group = .draw)) +\n  geom_line(alpha = 1/10) +\n  coord_cartesian(ylim = c(36, 96)) +\n  labs(y = \"child height (prior predicted)\")"
+    "text": "Prior predictive with brms\nbrms can do this for us: sample_prior = \"only\" fits the model while ignoring the data, so the “posterior” is just the prior.\n\n\nCode\nlibrary(brms)\nlibrary(tidybayes)\nlibrary(modelr)\nfit.1p &lt;- \n  brm(family = gaussian,\n      child ~ 1 + parent.c,\n      prior = c(prior(normal(66, 5), class = Intercept),\n                prior(normal(0, 5), class = b),\n                prior(exponential(.5), class = sigma)),\n      data = galton.data, \n      sample_prior = \"only\",\n      backend = \"cmdstanr\",\n      iter = 1000, warmup = 500, chains = 2, cores = 2, \n      file = \"fit.1pb\")\n\ngalton.data %&gt;% \n  data_grid(parent.c = seq_range(parent.c, n = 2)) %&gt;% \n  add_epred_draws(fit.1p, ndraws = 100) %&gt;% \n  ggplot(aes(x = parent.c, y = .epred, group = .draw)) +\n  geom_line(alpha = 1/10) +\n  coord_cartesian(ylim = c(36, 96)) +\n  labs(y = \"child height (prior predicted)\")"
   },
   {
     "objectID": "regression-2.html#prior-predictive-what-to-do-about-it",
@@ -375,7 +375,7 @@
     "href": "regression-2.html#fitting-the-model",
     "title": "Regression part 1",
     "section": "Fitting the model",
-    "text": "Fitting the model\n\nlibrary(brms)\nfit.1 &lt;- \n  brm(family = gaussian,\n      child ~ 1 + parent.c,\n      prior = c(prior(normal(66, 5), class = Intercept),\n                prior(normal(0, 5), class = b),\n                prior(exponential(.5), class = sigma)),\n      data = galton.data, \n      backend = \"cmdstanr\",\n      iter = 1000, warmup = 500, chains = 2, cores = 2, \n      file = \"fit.1b\")   # old priors: fit.1"
+    "text": "Fitting the model\n\nlibrary(brms)\nfit.1 &lt;- \n  brm(family = gaussian,\n      child ~ 1 + parent.c,\n      prior = c(prior(normal(66, 5), class = Intercept),\n                prior(normal(0, 5), class = b),\n                prior(exponential(.5), class = sigma)),\n      data = galton.data, \n      backend = \"cmdstanr\",\n      iter = 1000, warmup = 500, chains = 2, cores = 2, \n      file = \"fit.1b\")"
   },
   {
     "objectID": "regression-2.html#default-priors-get_prior",
@@ -6878,7 +6878,7 @@
     "href": "regression-3.html#index-version",
     "title": "Regression part 2",
     "section": "Index version",
-    "text": "Index version\nIndex variable for robust and unequal variances\nHealth ~ T( \\(\\nu\\) , \\(\\mu_i\\) , \\(\\sigma_i\\) )\n\\(\\mu_i\\) = \\(\\alpha_{\\text{Group}[i]}\\)\nlog(\\(\\sigma_i\\)) = \\(\\gamma_{\\text{Group}[i]}\\)\n\\(\\nu\\) ~ Gamma(2,.1)\n\\(\\alpha_j\\) ~ Normal(8, 3)\n\\(\\gamma_j\\) ~ Normal(0, 3)\nGroup means of health (which averages about 8.5) get Normal(8, 3). An earlier version used Normal(0, 3), which put the observed means almost 3 SDs from the prior’s center and pulled them down a little. \\(\\gamma_j\\) is log(σ), so Normal(0, 3) is fine there."
+    "text": "Index version\nIndex variable for robust and unequal variances\nHealth ~ T( \\(\\nu\\) , \\(\\mu_i\\) , \\(\\sigma_i\\) )\n\\(\\mu_i\\) = \\(\\alpha_{\\text{Group}[i]}\\)\nlog(\\(\\sigma_i\\)) = \\(\\gamma_{\\text{Group}[i]}\\)\n\\(\\nu\\) ~ Gamma(2,.1)\n\\(\\alpha_j\\) ~ Normal(8, 3)\n\\(\\gamma_j\\) ~ Normal(0, 3)\nGroup means of health (which averages about 8.5) get Normal(8, 3). \\(\\gamma_j\\) is log(σ), so Normal(0, 3) is a wide prior there."
   },
   {
     "objectID": "regression-3.html#robust-unequal-variances-dummy-coding",
@@ -6899,7 +6899,7 @@
     "href": "regression-3.html#robust-unequal-variances-index-coding",
     "title": "Regression part 2",
     "section": "Robust, unequal variances: index coding",
-    "text": "Robust, unequal variances: index coding\n\nh.7 &lt;- \n  brm(family = student,\n     bf( health ~ 0 + mood.group.d,\n         sigma ~ 0 + mood.group.d),\n      prior = c(prior(gamma(2, .1), class = nu),\n                prior(normal(8, 3), class = b),\n                prior(normal(0, 3), class = b, dpar = sigma)),\n     file = \"h.7b.rds\",   # old Normal(0, 3) prior on the means: h.7\n     backend = \"cmdstanr\",\n     data = week3)"
+    "text": "Robust, unequal variances: index coding\n\nh.7 &lt;- \n  brm(family = student,\n     bf( health ~ 0 + mood.group.d,\n         sigma ~ 0 + mood.group.d),\n      prior = c(prior(gamma(2, .1), class = nu),\n                prior(normal(8, 3), class = b),\n                prior(normal(0, 3), class = b, dpar = sigma)),\n     file = \"h.7b.rds\",\n     backend = \"cmdstanr\",\n     data = week3)"
   },
   {
     "objectID": "regression-3.html#results-index-coding",
@@ -8488,6 +8488,20 @@
     "href": "regression-3.html#fixing-ν",
     "title": "Regression part 2",
     "section": "Fixing ν",
-    "text": "Fixing ν\nInstead of estimating ν we can fix it low, which guarantees fat tails no matter what the data say. (Estimating ν, as above, lets the data choose skinnier tails.)\n\nν = 3 is a common choice: about 6% of the distribution lies beyond ±3 scale units, vs. 0.3% for a normal, and the SD still exists\nSmaller ν = fatter tails. ν = 1 is the extreme (it has its own name, the Cauchy distribution). Its tails are so heavy that the model treats much of the data as outliers and acts almost like the median, and the SD no longer exists\n\n\nh.5R &lt;- \n  brm(family = student,\n      bf(health ~ 0 + mood.group.d, nu = 3),\n      prior = c(prior(normal(0, 10), class = b),\n                prior(cauchy(0, 1),  class = sigma)),\n      file = \"h.5R3\",   # earlier versions fixed nu = 1: h.5R, h.5R2\n      backend = \"cmdstanr\",\n      data = week3)"
+    "text": "Fixing ν\nInstead of estimating ν we can fix it low, which guarantees fat tails no matter what the data say. (Estimating ν, as above, lets the data choose skinnier tails.)\n\nν = 3 is a common choice: about 6% of the distribution lies beyond ±3 scale units, vs. 0.3% for a normal, and the SD still exists\nSmaller ν = fatter tails. ν = 1 is the extreme (it has its own name, the Cauchy distribution). Its tails are so heavy that the model treats much of the data as outliers and acts almost like the median, and the SD no longer exists\n\n\nh.5R &lt;- \n  brm(family = student,\n      bf(health ~ 0 + mood.group.d, nu = 3),\n      prior = c(prior(normal(0, 10), class = b),\n                prior(cauchy(0, 1),  class = sigma)),\n      file = \"h.5R3\",\n      backend = \"cmdstanr\",\n      data = week3)"
+  },
+  {
+    "objectID": "regression-3.html#what-if-there-were-outliers",
+    "href": "regression-3.html#what-if-there-were-outliers",
+    "title": "Regression part 2",
+    "section": "What if there were outliers?",
+    "text": "What if there were outliers?\nThese data don’t need a robust model. To see what one buys you, add three made-up outliers to a copy of the data: control-group health scores of 25, as if someone typed 25 instead of 2.5. (Demo only: not real data.)\n\nweek3.out &lt;- week3 %&gt;%\n  bind_rows(tibble(health = c(25, 25, 25),\n                   mood.group.d = factor(\"control\", levels = levels(week3$mood.group.d))))\n\nh.3.out  &lt;- update(h.3,  newdata = week3.out, seed = 27, file = \"h.3out\")    # normal\nh.4R.out &lt;- update(h.4R, newdata = week3.out, seed = 27, file = \"h.4Rout\")   # t, ν estimated\n\n\n\nCode\ntibble(model = c(\"normal\", \"normal\", \"t (ν estimated)\", \"t (ν estimated)\"),\n       data  = c(\"real\", \"+ 3 outliers\", \"real\", \"+ 3 outliers\"),\n       fit   = list(h.3, h.3.out, h.4R, h.4R.out)) %&gt;%\n  mutate(control = map_dbl(fit, \\(m) fixef(m)[\"mood.group.dcontrol\", 1]),\n         tx      = map_dbl(fit, \\(m) fixef(m)[\"mood.group.dtx\", 1]),\n         `tx − control` = tx - control,\n         sigma   = map_dbl(fit, \\(m) median(as_draws_df(m)$sigma)),\n         nu      = map_dbl(fit, \\(m) if (\"nu\" %in% variables(m)) median(as_draws_df(m)$nu) else NA)) %&gt;%\n  select(-fit) %&gt;%\n  mutate(across(where(is.numeric), \\(x) round(x, 2)))\n\n\n# A tibble: 4 × 7\n  model           data         control    tx `tx − control` sigma    nu\n  &lt;chr&gt;           &lt;chr&gt;          &lt;dbl&gt; &lt;dbl&gt;          &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;\n1 normal          real            7.98  8.78           0.79  2.82 NA   \n2 normal          + 3 outliers    8.72  8.76           0.03  3.46 NA   \n3 t (ν estimated) real            8     8.78           0.78  2.7  20.4 \n4 t (ν estimated) + 3 outliers    8.18  8.79           0.61  2.59  5.12"
+  },
+  {
+    "objectID": "regression-3.html#outliers-normal-vs.-robust",
+    "href": "regression-3.html#outliers-normal-vs.-robust",
+    "title": "Regression part 2",
+    "section": "Outliers: normal vs. robust",
+    "text": "Outliers: normal vs. robust\n\n\nCode\nget_means &lt;- function(m) avg_predictions(m, by = \"mood.group.d\") %&gt;% get_draws()\nbind_rows(\n  tibble(model = \"normal\",          data = \"real data\",      d = list(get_means(h.3))),\n  tibble(model = \"normal\",          data = \"+ 3 outliers\",   d = list(get_means(h.3.out))),\n  tibble(model = \"t (ν estimated)\", data = \"real data\",      d = list(get_means(h.4R))),\n  tibble(model = \"t (ν estimated)\", data = \"+ 3 outliers\",   d = list(get_means(h.4R.out)))) %&gt;%\n  unnest(d) %&gt;%\n  mutate(data = factor(data, levels = c(\"real data\", \"+ 3 outliers\"))) %&gt;%\n  ggplot(aes(x = draw, y = mood.group.d, colour = data)) +\n  stat_pointinterval(position = position_dodge(width = .4), .width = c(.66, .95)) +\n  facet_wrap(~ model) +\n  scale_colour_manual(values = c(\"grey40\", \"#D55E00\")) +\n  labs(x = \"group mean health (66% and 95% intervals)\", y = NULL, colour = NULL) +\n  theme_classic(base_size = 14) + theme(legend.position = \"top\")\n\n\n\n\n\n\n\n\n\n\nNormal: three bad scores pull the control mean up from 7.98 to 8.72 and inflate σ, shrinking the group difference from 0.79 to 0.03\nt: the control mean moves only a little (8.00 → 8.18) and most of the group difference survives (0.78 → 0.61): heavy tails let it treat the 25s as rare draws\nν is a diagnostic: it drops from about 20 to 5.1; a small estimated ν flags outliers"
   }
 ]

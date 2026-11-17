@@ -1559,7 +1559,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <span id="cb89-3"><a aria-label="3"></a>      <span class="fu">bf</span>(health <span class="sc">~</span> <span class="dv">0</span> <span class="sc">+</span> mood.group.d, <span class="at">nu =</span> <span class="dv">3</span>),</span>
 <span id="cb89-4"><a aria-label="4"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">10</span>), <span class="at">class =</span> b),</span>
 <span id="cb89-5"><a aria-label="5"></a>                <span class="fu">prior</span>(<span class="fu">cauchy</span>(<span class="dv">0</span>, <span class="dv">1</span>),  <span class="at">class =</span> sigma)),</span>
-<span id="cb89-6"><a aria-label="6"></a>      <span class="at">file =</span> <span class="st">"h.5R3"</span>,   <span class="co"># earlier versions fixed nu = 1: h.5R, h.5R2</span></span>
+<span id="cb89-6"><a aria-label="6"></a>      <span class="at">file =</span> <span class="st">"h.5R3"</span>,</span>
 <span id="cb89-7"><a aria-label="7"></a>      <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
 <span id="cb89-8"><a aria-label="8"></a>      <span class="at">data =</span> week3)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
@@ -1645,6 +1645,76 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </div>
 <p>Nearly the same. These data have no real outliers (no one beyond 3 SD of their group, and about as many beyond 2 SD as a normal predicts; estimated ν ≈ 20), so the robust model changes little. Fixing ν = 3 still shifts the control mean slightly (8.11 vs.&nbsp;7.98) because it gives every score in the tails a bit less weight. Robust models earn their keep when there <em>are</em> outliers.</p>
 </section>
+<section id="what-if-there-were-outliers" class="slide level2 smaller">
+<h2>What if there <em>were</em> outliers?</h2>
+<p>These data don’t need a robust model. To see what one buys you, add three made-up outliers to a <strong>copy</strong> of the data: control-group health scores of 25, as if someone typed 25 instead of 2.5. (Demo only: not real data.)</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb95"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb95-1"><a aria-label="1"></a>week3.out <span class="ot">&lt;-</span> week3 <span class="sc">%&gt;%</span></span>
+<span id="cb95-2"><a aria-label="2"></a>  <span class="fu">bind_rows</span>(<span class="fu">tibble</span>(<span class="at">health =</span> <span class="fu">c</span>(<span class="dv">25</span>, <span class="dv">25</span>, <span class="dv">25</span>),</span>
+<span id="cb95-3"><a aria-label="3"></a>                   <span class="at">mood.group.d =</span> <span class="fu">factor</span>(<span class="st">"control"</span>, <span class="at">levels =</span> <span class="fu">levels</span>(week3<span class="sc">$</span>mood.group.d))))</span>
+<span id="cb95-4"><a aria-label="4"></a></span>
+<span id="cb95-5"><a aria-label="5"></a>h.<span class="fl">3.</span>out  <span class="ot">&lt;-</span> <span class="fu">update</span>(h<span class="fl">.3</span>,  <span class="at">newdata =</span> week3.out, <span class="at">seed =</span> <span class="dv">27</span>, <span class="at">file =</span> <span class="st">"h.3out"</span>)    <span class="co"># normal</span></span>
+<span id="cb95-6"><a aria-label="6"></a>h<span class="fl">.4</span>R.out <span class="ot">&lt;-</span> <span class="fu">update</span>(h<span class="fl">.4</span>R, <span class="at">newdata =</span> week3.out, <span class="at">seed =</span> <span class="dv">27</span>, <span class="at">file =</span> <span class="st">"h.4Rout"</span>)   <span class="co"># t, ν estimated</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb96"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb96-1"><a aria-label="1"></a><span class="fu">tibble</span>(<span class="at">model =</span> <span class="fu">c</span>(<span class="st">"normal"</span>, <span class="st">"normal"</span>, <span class="st">"t (ν estimated)"</span>, <span class="st">"t (ν estimated)"</span>),</span>
+<span id="cb96-2"><a aria-label="2"></a>       <span class="at">data  =</span> <span class="fu">c</span>(<span class="st">"real"</span>, <span class="st">"+ 3 outliers"</span>, <span class="st">"real"</span>, <span class="st">"+ 3 outliers"</span>),</span>
+<span id="cb96-3"><a aria-label="3"></a>       <span class="at">fit   =</span> <span class="fu">list</span>(h<span class="fl">.3</span>, h.<span class="fl">3.</span>out, h<span class="fl">.4</span>R, h<span class="fl">.4</span>R.out)) <span class="sc">%&gt;%</span></span>
+<span id="cb96-4"><a aria-label="4"></a>  <span class="fu">mutate</span>(<span class="at">control =</span> <span class="fu">map_dbl</span>(fit, \(m) <span class="fu">fixef</span>(m)[<span class="st">"mood.group.dcontrol"</span>, <span class="dv">1</span>]),</span>
+<span id="cb96-5"><a aria-label="5"></a>         <span class="at">tx      =</span> <span class="fu">map_dbl</span>(fit, \(m) <span class="fu">fixef</span>(m)[<span class="st">"mood.group.dtx"</span>, <span class="dv">1</span>]),</span>
+<span id="cb96-6"><a aria-label="6"></a>         <span class="st">`</span><span class="at">tx − control</span><span class="st">`</span> <span class="ot">=</span> tx <span class="sc">-</span> control,</span>
+<span id="cb96-7"><a aria-label="7"></a>         <span class="at">sigma   =</span> <span class="fu">map_dbl</span>(fit, \(m) <span class="fu">median</span>(<span class="fu">as_draws_df</span>(m)<span class="sc">$</span>sigma)),</span>
+<span id="cb96-8"><a aria-label="8"></a>         <span class="at">nu      =</span> <span class="fu">map_dbl</span>(fit, \(m) <span class="cf">if</span> (<span class="st">"nu"</span> <span class="sc">%in%</span> <span class="fu">variables</span>(m)) <span class="fu">median</span>(<span class="fu">as_draws_df</span>(m)<span class="sc">$</span>nu) <span class="cf">else</span> <span class="cn">NA</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb96-9"><a aria-label="9"></a>  <span class="fu">select</span>(<span class="sc">-</span>fit) <span class="sc">%&gt;%</span></span>
+<span id="cb96-10"><a aria-label="10"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">where</span>(is.numeric), \(x) <span class="fu">round</span>(x, <span class="dv">2</span>)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 4 × 7
+  model           data         control    tx `tx − control` sigma    nu
+  &lt;chr&gt;           &lt;chr&gt;          &lt;dbl&gt; &lt;dbl&gt;          &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+1 normal          real            7.98  8.78           0.79  2.82 NA   
+2 normal          + 3 outliers    8.72  8.76           0.03  3.46 NA   
+3 t (ν estimated) real            8     8.78           0.78  2.7  20.4 
+4 t (ν estimated) + 3 outliers    8.18  8.79           0.61  2.59  5.12</code></pre>
+</div>
+</div>
+</section>
+<section id="outliers-normal-vs.-robust" class="slide level2 smaller nostretch">
+<h2>Outliers: normal vs.&nbsp;robust</h2>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb98"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb98-1"><a aria-label="1"></a>get_means <span class="ot">&lt;-</span> <span class="cf">function</span>(m) <span class="fu">avg_predictions</span>(m, <span class="at">by =</span> <span class="st">"mood.group.d"</span>) <span class="sc">%&gt;%</span> <span class="fu">get_draws</span>()</span>
+<span id="cb98-2"><a aria-label="2"></a><span class="fu">bind_rows</span>(</span>
+<span id="cb98-3"><a aria-label="3"></a>  <span class="fu">tibble</span>(<span class="at">model =</span> <span class="st">"normal"</span>,          <span class="at">data =</span> <span class="st">"real data"</span>,      <span class="at">d =</span> <span class="fu">list</span>(<span class="fu">get_means</span>(h<span class="fl">.3</span>))),</span>
+<span id="cb98-4"><a aria-label="4"></a>  <span class="fu">tibble</span>(<span class="at">model =</span> <span class="st">"normal"</span>,          <span class="at">data =</span> <span class="st">"+ 3 outliers"</span>,   <span class="at">d =</span> <span class="fu">list</span>(<span class="fu">get_means</span>(h.<span class="fl">3.</span>out))),</span>
+<span id="cb98-5"><a aria-label="5"></a>  <span class="fu">tibble</span>(<span class="at">model =</span> <span class="st">"t (ν estimated)"</span>, <span class="at">data =</span> <span class="st">"real data"</span>,      <span class="at">d =</span> <span class="fu">list</span>(<span class="fu">get_means</span>(h<span class="fl">.4</span>R))),</span>
+<span id="cb98-6"><a aria-label="6"></a>  <span class="fu">tibble</span>(<span class="at">model =</span> <span class="st">"t (ν estimated)"</span>, <span class="at">data =</span> <span class="st">"+ 3 outliers"</span>,   <span class="at">d =</span> <span class="fu">list</span>(<span class="fu">get_means</span>(h<span class="fl">.4</span>R.out)))) <span class="sc">%&gt;%</span></span>
+<span id="cb98-7"><a aria-label="7"></a>  <span class="fu">unnest</span>(d) <span class="sc">%&gt;%</span></span>
+<span id="cb98-8"><a aria-label="8"></a>  <span class="fu">mutate</span>(<span class="at">data =</span> <span class="fu">factor</span>(data, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"real data"</span>, <span class="st">"+ 3 outliers"</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb98-9"><a aria-label="9"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> draw, <span class="at">y =</span> mood.group.d, <span class="at">colour =</span> data)) <span class="sc">+</span></span>
+<span id="cb98-10"><a aria-label="10"></a>  <span class="fu">stat_pointinterval</span>(<span class="at">position =</span> <span class="fu">position_dodge</span>(<span class="at">width =</span> .<span class="dv">4</span>), <span class="at">.width =</span> <span class="fu">c</span>(.<span class="dv">66</span>, .<span class="dv">95</span>)) <span class="sc">+</span></span>
+<span id="cb98-11"><a aria-label="11"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> model) <span class="sc">+</span></span>
+<span id="cb98-12"><a aria-label="12"></a>  <span class="fu">scale_colour_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"grey40"</span>, <span class="st">"#D55E00"</span>)) <span class="sc">+</span></span>
+<span id="cb98-13"><a aria-label="13"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"group mean health (66% and 95% intervals)"</span>, <span class="at">y =</span> <span class="cn">NULL</span>, <span class="at">colour =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb98-14"><a aria-label="14"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">14</span>) <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"top"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure>
+<p><img data-src="regression-3_files/figure-revealjs/unnamed-chunk-62-1.png" style="width:100.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<ul>
+<li><strong>Normal:</strong> three bad scores pull the control mean up from 7.98 to 8.72 and inflate σ, shrinking the group difference from 0.79 to 0.03</li>
+<li><strong>t:</strong> the control mean moves only a little (8.00 → 8.18) and most of the group difference survives (0.78 → 0.61): heavy tails let it treat the 25s as rare draws</li>
+<li><strong>ν is a diagnostic:</strong> it drops from about 20 to 5.1; a small estimated ν flags outliers</li>
+</ul>
+</section>
 <section id="relaxing-equal-variance-assumption" class="slide level2">
 <h2>relaxing equal variance assumption</h2>
 <p>One assumption that often gets relaxed in ANOVA and other group models is the assumption that there are equal variances. Welch’s t-test does not assume groups to have equal variances.</p>
@@ -1683,29 +1753,29 @@ log(<span class="math inline">\(\sigma_i\)</span>) = <span class="math inline">\
 <p><span class="math inline">\(\nu\)</span> ~ Gamma(2,.1)<br>
 <span class="math inline">\(\alpha_j\)</span> ~ Normal(8, 3)<br>
 <span class="math inline">\(\gamma_j\)</span> ~ Normal(0, 3)</p>
-<p>Group means of health (which averages about 8.5) get Normal(8, 3). An earlier version used Normal(0, 3), which put the observed means almost 3 SDs from the prior’s center and pulled them down a little. <span class="math inline">\(\gamma_j\)</span> is log(σ), so Normal(0, 3) is fine there.</p>
+<p>Group means of health (which averages about 8.5) get Normal(8, 3). <span class="math inline">\(\gamma_j\)</span> is log(σ), so Normal(0, 3) is a wide prior there.</p>
 </section>
 <section id="robust-unequal-variances-dummy-coding" class="slide level2">
 <h2>Robust, unequal variances: dummy coding</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb95"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb95-1"><a aria-label="1"></a>h<span class="fl">.6</span> <span class="ot">&lt;-</span> </span>
-<span id="cb95-2"><a aria-label="2"></a>  <span class="fu">brm</span>(<span class="at">family =</span> student,</span>
-<span id="cb95-3"><a aria-label="3"></a>     <span class="fu">bf</span>( health <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> mood.group.d,</span>
-<span id="cb95-4"><a aria-label="4"></a>         sigma <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> mood.group.d),</span>
-<span id="cb95-5"><a aria-label="5"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">gamma</span>(<span class="dv">2</span>, .<span class="dv">1</span>), <span class="at">class =</span> nu),</span>
-<span id="cb95-6"><a aria-label="6"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">10</span>), <span class="at">class =</span> Intercept),</span>
-<span id="cb95-7"><a aria-label="7"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">3</span>), <span class="at">class =</span> b),</span>
-<span id="cb95-8"><a aria-label="8"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">10</span>), <span class="at">class =</span> Intercept, <span class="at">dpar =</span> sigma),</span>
-<span id="cb95-9"><a aria-label="9"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">3</span>), <span class="at">class =</span> b, <span class="at">dpar =</span> sigma)),</span>
-<span id="cb95-10"><a aria-label="10"></a>     <span class="at">file =</span> <span class="st">"h.6.rds"</span>,</span>
-<span id="cb95-11"><a aria-label="11"></a>     <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
-<span id="cb95-12"><a aria-label="12"></a>     <span class="at">data =</span> week3)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb99"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb99-1"><a aria-label="1"></a>h<span class="fl">.6</span> <span class="ot">&lt;-</span> </span>
+<span id="cb99-2"><a aria-label="2"></a>  <span class="fu">brm</span>(<span class="at">family =</span> student,</span>
+<span id="cb99-3"><a aria-label="3"></a>     <span class="fu">bf</span>( health <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> mood.group.d,</span>
+<span id="cb99-4"><a aria-label="4"></a>         sigma <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> mood.group.d),</span>
+<span id="cb99-5"><a aria-label="5"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">gamma</span>(<span class="dv">2</span>, .<span class="dv">1</span>), <span class="at">class =</span> nu),</span>
+<span id="cb99-6"><a aria-label="6"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">10</span>), <span class="at">class =</span> Intercept),</span>
+<span id="cb99-7"><a aria-label="7"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">3</span>), <span class="at">class =</span> b),</span>
+<span id="cb99-8"><a aria-label="8"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">10</span>), <span class="at">class =</span> Intercept, <span class="at">dpar =</span> sigma),</span>
+<span id="cb99-9"><a aria-label="9"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">3</span>), <span class="at">class =</span> b, <span class="at">dpar =</span> sigma)),</span>
+<span id="cb99-10"><a aria-label="10"></a>     <span class="at">file =</span> <span class="st">"h.6.rds"</span>,</span>
+<span id="cb99-11"><a aria-label="11"></a>     <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
+<span id="cb99-12"><a aria-label="12"></a>     <span class="at">data =</span> week3)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="results-dummy-coding" class="slide level2">
 <h2>Results (dummy coding)</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb96"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb96-1"><a aria-label="1"></a><span class="fu">summary</span>(h<span class="fl">.6</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb100"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb100-1"><a aria-label="1"></a><span class="fu">summary</span>(h<span class="fl">.6</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: student 
   Links: mu = identity; sigma = log 
@@ -1740,22 +1810,22 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <section id="robust-unequal-variances-index-coding" class="slide level2">
 <h2>Robust, unequal variances: index coding</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb98"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb98-1"><a aria-label="1"></a>h<span class="fl">.7</span> <span class="ot">&lt;-</span> </span>
-<span id="cb98-2"><a aria-label="2"></a>  <span class="fu">brm</span>(<span class="at">family =</span> student,</span>
-<span id="cb98-3"><a aria-label="3"></a>     <span class="fu">bf</span>( health <span class="sc">~</span> <span class="dv">0</span> <span class="sc">+</span> mood.group.d,</span>
-<span id="cb98-4"><a aria-label="4"></a>         sigma <span class="sc">~</span> <span class="dv">0</span> <span class="sc">+</span> mood.group.d),</span>
-<span id="cb98-5"><a aria-label="5"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">gamma</span>(<span class="dv">2</span>, .<span class="dv">1</span>), <span class="at">class =</span> nu),</span>
-<span id="cb98-6"><a aria-label="6"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">8</span>, <span class="dv">3</span>), <span class="at">class =</span> b),</span>
-<span id="cb98-7"><a aria-label="7"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">3</span>), <span class="at">class =</span> b, <span class="at">dpar =</span> sigma)),</span>
-<span id="cb98-8"><a aria-label="8"></a>     <span class="at">file =</span> <span class="st">"h.7b.rds"</span>,   <span class="co"># old Normal(0, 3) prior on the means: h.7</span></span>
-<span id="cb98-9"><a aria-label="9"></a>     <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
-<span id="cb98-10"><a aria-label="10"></a>     <span class="at">data =</span> week3)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb102"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb102-1"><a aria-label="1"></a>h<span class="fl">.7</span> <span class="ot">&lt;-</span> </span>
+<span id="cb102-2"><a aria-label="2"></a>  <span class="fu">brm</span>(<span class="at">family =</span> student,</span>
+<span id="cb102-3"><a aria-label="3"></a>     <span class="fu">bf</span>( health <span class="sc">~</span> <span class="dv">0</span> <span class="sc">+</span> mood.group.d,</span>
+<span id="cb102-4"><a aria-label="4"></a>         sigma <span class="sc">~</span> <span class="dv">0</span> <span class="sc">+</span> mood.group.d),</span>
+<span id="cb102-5"><a aria-label="5"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">gamma</span>(<span class="dv">2</span>, .<span class="dv">1</span>), <span class="at">class =</span> nu),</span>
+<span id="cb102-6"><a aria-label="6"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">8</span>, <span class="dv">3</span>), <span class="at">class =</span> b),</span>
+<span id="cb102-7"><a aria-label="7"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">3</span>), <span class="at">class =</span> b, <span class="at">dpar =</span> sigma)),</span>
+<span id="cb102-8"><a aria-label="8"></a>     <span class="at">file =</span> <span class="st">"h.7b.rds"</span>,</span>
+<span id="cb102-9"><a aria-label="9"></a>     <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
+<span id="cb102-10"><a aria-label="10"></a>     <span class="at">data =</span> week3)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="results-index-coding" class="slide level2">
 <h2>Results (index coding)</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb99"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb99-1"><a aria-label="1"></a><span class="fu">summary</span>(h<span class="fl">.7</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb103"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb103-1"><a aria-label="1"></a><span class="fu">summary</span>(h<span class="fl">.7</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: student 
   Links: mu = identity; sigma = log 
@@ -1793,18 +1863,18 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb101"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb101-1"><a aria-label="1"></a>post.h7 <span class="ot">&lt;-</span> h<span class="fl">.7</span> <span class="sc">%&gt;%</span> </span>
-<span id="cb101-2"><a aria-label="2"></a>  <span class="fu">spread_draws</span>(b_mood.group.dcontrol,b_mood.group.dtx, b_sigma_mood.group.dcontrol,b_sigma_mood.group.dtx) <span class="sc">%&gt;%</span> </span>
-<span id="cb101-3"><a aria-label="3"></a>  <span class="fu">transmute</span>(<span class="st">`</span><span class="at">Control</span><span class="st">`</span>     <span class="ot">=</span> b_mood.group.dcontrol,</span>
-<span id="cb101-4"><a aria-label="4"></a>            <span class="st">`</span><span class="at">Tx</span><span class="st">`</span>  <span class="ot">=</span> b_mood.group.dtx,</span>
-<span id="cb101-5"><a aria-label="5"></a>            <span class="st">`</span><span class="at">Sigma Control</span><span class="st">`</span>    <span class="ot">=</span> b_sigma_mood.group.dcontrol<span class="sc">%&gt;%</span> <span class="fu">exp</span>(),</span>
-<span id="cb101-6"><a aria-label="6"></a>            <span class="st">`</span><span class="at">Sigma Tx</span><span class="st">`</span> <span class="ot">=</span> b_sigma_mood.group.dtx <span class="sc">%&gt;%</span> <span class="fu">exp</span>()) <span class="sc">%&gt;%</span> </span>
-<span id="cb101-7"><a aria-label="7"></a>  <span class="fu">mutate</span>(<span class="st">`</span><span class="at">Differences</span><span class="st">`</span>  <span class="ot">=</span> <span class="st">`</span><span class="at">Tx</span><span class="st">`</span> <span class="sc">-</span> <span class="st">`</span><span class="at">Control</span><span class="st">`</span>,</span>
-<span id="cb101-8"><a aria-label="8"></a>         <span class="st">`</span><span class="at">Sigma Difference</span><span class="st">`</span> <span class="ot">=</span> <span class="st">`</span><span class="at">Sigma Tx</span><span class="st">`</span> <span class="sc">-</span> <span class="st">`</span><span class="at">Sigma Control</span><span class="st">`</span>,</span>
-<span id="cb101-9"><a aria-label="9"></a>         <span class="st">`</span><span class="at">Effect Size</span><span class="st">`</span> <span class="ot">=</span> (<span class="st">`</span><span class="at">Differences</span><span class="st">`</span>) <span class="sc">/</span> <span class="fu">sqrt</span>((<span class="st">`</span><span class="at">Sigma Control</span><span class="st">`</span><span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span> <span class="st">`</span><span class="at">Sigma Tx</span><span class="st">`</span><span class="sc">^</span><span class="dv">2</span>) <span class="sc">/</span> <span class="dv">2</span>))</span>
-<span id="cb101-10"><a aria-label="10"></a></span>
-<span id="cb101-11"><a aria-label="11"></a></span>
-<span id="cb101-12"><a aria-label="12"></a>post.h7 </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb105"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb105-1"><a aria-label="1"></a>post.h7 <span class="ot">&lt;-</span> h<span class="fl">.7</span> <span class="sc">%&gt;%</span> </span>
+<span id="cb105-2"><a aria-label="2"></a>  <span class="fu">spread_draws</span>(b_mood.group.dcontrol,b_mood.group.dtx, b_sigma_mood.group.dcontrol,b_sigma_mood.group.dtx) <span class="sc">%&gt;%</span> </span>
+<span id="cb105-3"><a aria-label="3"></a>  <span class="fu">transmute</span>(<span class="st">`</span><span class="at">Control</span><span class="st">`</span>     <span class="ot">=</span> b_mood.group.dcontrol,</span>
+<span id="cb105-4"><a aria-label="4"></a>            <span class="st">`</span><span class="at">Tx</span><span class="st">`</span>  <span class="ot">=</span> b_mood.group.dtx,</span>
+<span id="cb105-5"><a aria-label="5"></a>            <span class="st">`</span><span class="at">Sigma Control</span><span class="st">`</span>    <span class="ot">=</span> b_sigma_mood.group.dcontrol<span class="sc">%&gt;%</span> <span class="fu">exp</span>(),</span>
+<span id="cb105-6"><a aria-label="6"></a>            <span class="st">`</span><span class="at">Sigma Tx</span><span class="st">`</span> <span class="ot">=</span> b_sigma_mood.group.dtx <span class="sc">%&gt;%</span> <span class="fu">exp</span>()) <span class="sc">%&gt;%</span> </span>
+<span id="cb105-7"><a aria-label="7"></a>  <span class="fu">mutate</span>(<span class="st">`</span><span class="at">Differences</span><span class="st">`</span>  <span class="ot">=</span> <span class="st">`</span><span class="at">Tx</span><span class="st">`</span> <span class="sc">-</span> <span class="st">`</span><span class="at">Control</span><span class="st">`</span>,</span>
+<span id="cb105-8"><a aria-label="8"></a>         <span class="st">`</span><span class="at">Sigma Difference</span><span class="st">`</span> <span class="ot">=</span> <span class="st">`</span><span class="at">Sigma Tx</span><span class="st">`</span> <span class="sc">-</span> <span class="st">`</span><span class="at">Sigma Control</span><span class="st">`</span>,</span>
+<span id="cb105-9"><a aria-label="9"></a>         <span class="st">`</span><span class="at">Effect Size</span><span class="st">`</span> <span class="ot">=</span> (<span class="st">`</span><span class="at">Differences</span><span class="st">`</span>) <span class="sc">/</span> <span class="fu">sqrt</span>((<span class="st">`</span><span class="at">Sigma Control</span><span class="st">`</span><span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span> <span class="st">`</span><span class="at">Sigma Tx</span><span class="st">`</span><span class="sc">^</span><span class="dv">2</span>) <span class="sc">/</span> <span class="dv">2</span>))</span>
+<span id="cb105-10"><a aria-label="10"></a></span>
+<span id="cb105-11"><a aria-label="11"></a></span>
+<span id="cb105-12"><a aria-label="12"></a>post.h7 </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 4,000 × 7
@@ -1830,22 +1900,22 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb103"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb103-1"><a aria-label="1"></a>post.h7 <span class="sc">%&gt;%</span> </span>
-<span id="cb103-2"><a aria-label="2"></a>  <span class="fu">pivot_longer</span>(<span class="fu">everything</span>(), <span class="at">names_to =</span> <span class="st">"key"</span>, <span class="at">values_to =</span> <span class="st">"value"</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb103-3"><a aria-label="3"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">y =</span> key, <span class="at">x =</span> value)) <span class="sc">+</span></span>
-<span id="cb103-4"><a aria-label="4"></a>  <span class="fu">stat_halfeye</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb107"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb107-1"><a aria-label="1"></a>post.h7 <span class="sc">%&gt;%</span> </span>
+<span id="cb107-2"><a aria-label="2"></a>  <span class="fu">pivot_longer</span>(<span class="fu">everything</span>(), <span class="at">names_to =</span> <span class="st">"key"</span>, <span class="at">values_to =</span> <span class="st">"value"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb107-3"><a aria-label="3"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">y =</span> key, <span class="at">x =</span> value)) <span class="sc">+</span></span>
+<span id="cb107-4"><a aria-label="4"></a>  <span class="fu">stat_halfeye</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
 </div>
-<img data-src="regression-3_files/figure-revealjs/unnamed-chunk-65-1.png" width="960" class="r-stretch"></section>
+<img data-src="regression-3_files/figure-revealjs/unnamed-chunk-68-1.png" width="960" class="r-stretch"></section>
 <section id="do-the-variances-differ" class="slide level2 smaller">
 <h2>Do the variances differ?</h2>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb104"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb104-1"><a aria-label="1"></a>post.h7 <span class="sc">%&gt;%</span></span>
-<span id="cb104-2"><a aria-label="2"></a>  <span class="fu">mutate</span>(<span class="st">`</span><span class="at">SD ratio (Tx / Control)</span><span class="st">`</span> <span class="ot">=</span> <span class="st">`</span><span class="at">Sigma Tx</span><span class="st">`</span> <span class="sc">/</span> <span class="st">`</span><span class="at">Sigma Control</span><span class="st">`</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb104-3"><a aria-label="3"></a>  <span class="fu">median_qi</span>(<span class="st">`</span><span class="at">SD ratio (Tx / Control)</span><span class="st">`</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb108"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb108-1"><a aria-label="1"></a>post.h7 <span class="sc">%&gt;%</span></span>
+<span id="cb108-2"><a aria-label="2"></a>  <span class="fu">mutate</span>(<span class="st">`</span><span class="at">SD ratio (Tx / Control)</span><span class="st">`</span> <span class="ot">=</span> <span class="st">`</span><span class="at">Sigma Tx</span><span class="st">`</span> <span class="sc">/</span> <span class="st">`</span><span class="at">Sigma Control</span><span class="st">`</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb108-3"><a aria-label="3"></a>  <span class="fu">median_qi</span>(<span class="st">`</span><span class="at">SD ratio (Tx / Control)</span><span class="st">`</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 1 × 6
@@ -1855,7 +1925,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </div>
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb106"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb106-1"><a aria-label="1"></a><span class="fu">mean</span>(post.h7<span class="sc">$</span><span class="st">`</span><span class="at">Sigma Tx</span><span class="st">`</span> <span class="sc">&gt;</span> post.h7<span class="sc">$</span><span class="st">`</span><span class="at">Sigma Control</span><span class="st">`</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb110"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb110-1"><a aria-label="1"></a><span class="fu">mean</span>(post.h7<span class="sc">$</span><span class="st">`</span><span class="at">Sigma Tx</span><span class="st">`</span> <span class="sc">&gt;</span> post.h7<span class="sc">$</span><span class="st">`</span><span class="at">Sigma Control</span><span class="st">`</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.45525</code></pre>
@@ -1877,15 +1947,15 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb108"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb108-1"><a aria-label="1"></a>MR <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"hw3.csv"</span>)   <span class="co"># also at https://josh-jackson.github.io/bayes27/hw3.csv</span></span>
-<span id="cb108-2"><a aria-label="2"></a></span>
-<span id="cb108-3"><a aria-label="3"></a>MR <span class="ot">&lt;-</span> MR <span class="sc">%&gt;%</span> </span>
-<span id="cb108-4"><a aria-label="4"></a>  <span class="fu">mutate</span>(<span class="at">SS_c =</span> <span class="st">`</span><span class="at">schoool.success</span><span class="st">`</span> <span class="sc">-</span> <span class="fu">mean</span>(<span class="st">`</span><span class="at">schoool.success</span><span class="st">`</span>),</span>
-<span id="cb108-5"><a aria-label="5"></a>         <span class="at">FQ_c =</span> <span class="st">`</span><span class="at">friendship.quality</span><span class="st">`</span> <span class="sc">-</span> <span class="fu">mean</span>(<span class="st">`</span><span class="at">friendship.quality</span><span class="st">`</span>),</span>
-<span id="cb108-6"><a aria-label="6"></a>         <span class="at">iv =</span> <span class="st">`</span><span class="at">intervention.group</span><span class="st">`</span>,</span>
-<span id="cb108-7"><a aria-label="7"></a>         <span class="at">iv =</span> <span class="fu">factor</span>(iv))</span>
-<span id="cb108-8"><a aria-label="8"></a></span>
-<span id="cb108-9"><a aria-label="9"></a>MR </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb112"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb112-1"><a aria-label="1"></a>MR <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"hw3.csv"</span>)   <span class="co"># also at https://josh-jackson.github.io/bayes27/hw3.csv</span></span>
+<span id="cb112-2"><a aria-label="2"></a></span>
+<span id="cb112-3"><a aria-label="3"></a>MR <span class="ot">&lt;-</span> MR <span class="sc">%&gt;%</span> </span>
+<span id="cb112-4"><a aria-label="4"></a>  <span class="fu">mutate</span>(<span class="at">SS_c =</span> <span class="st">`</span><span class="at">schoool.success</span><span class="st">`</span> <span class="sc">-</span> <span class="fu">mean</span>(<span class="st">`</span><span class="at">schoool.success</span><span class="st">`</span>),</span>
+<span id="cb112-5"><a aria-label="5"></a>         <span class="at">FQ_c =</span> <span class="st">`</span><span class="at">friendship.quality</span><span class="st">`</span> <span class="sc">-</span> <span class="fu">mean</span>(<span class="st">`</span><span class="at">friendship.quality</span><span class="st">`</span>),</span>
+<span id="cb112-6"><a aria-label="6"></a>         <span class="at">iv =</span> <span class="st">`</span><span class="at">intervention.group</span><span class="st">`</span>,</span>
+<span id="cb112-7"><a aria-label="7"></a>         <span class="at">iv =</span> <span class="fu">factor</span>(iv))</span>
+<span id="cb112-8"><a aria-label="8"></a></span>
+<span id="cb112-9"><a aria-label="9"></a>MR </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>     ID friendship.quality happiness schoool.success       SES
@@ -2140,16 +2210,16 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <h2>Fitting the ANOVA model</h2>
 <p>Note that we have one prior for all our groups</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb110"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb110-1"><a aria-label="1"></a>a<span class="fl">.1</span> <span class="ot">&lt;-</span> </span>
-<span id="cb110-2"><a aria-label="2"></a>  <span class="fu">brm</span>(<span class="at">family =</span> gaussian,</span>
-<span id="cb110-3"><a aria-label="3"></a>      happiness <span class="sc">~</span> <span class="dv">0</span> <span class="sc">+</span> iv,</span>
-<span id="cb110-4"><a aria-label="4"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">5</span>, <span class="dv">2</span>), <span class="at">class =</span> b),</span>
-<span id="cb110-5"><a aria-label="5"></a>                <span class="fu">prior</span>(<span class="fu">exponential</span>(<span class="dv">1</span>), <span class="at">class =</span> sigma)),</span>
-<span id="cb110-6"><a aria-label="6"></a>      <span class="at">iter =</span> <span class="dv">2000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">chains =</span> <span class="dv">2</span>, <span class="at">cores =</span> <span class="dv">2</span>,</span>
-<span id="cb110-7"><a aria-label="7"></a>      <span class="at">data =</span> MR,</span>
-<span id="cb110-8"><a aria-label="8"></a>      <span class="at">sample_prior =</span> <span class="st">"yes"</span>,</span>
-<span id="cb110-9"><a aria-label="9"></a>      <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
-<span id="cb110-10"><a aria-label="10"></a>      <span class="at">file =</span> <span class="st">"a.1"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb114"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb114-1"><a aria-label="1"></a>a<span class="fl">.1</span> <span class="ot">&lt;-</span> </span>
+<span id="cb114-2"><a aria-label="2"></a>  <span class="fu">brm</span>(<span class="at">family =</span> gaussian,</span>
+<span id="cb114-3"><a aria-label="3"></a>      happiness <span class="sc">~</span> <span class="dv">0</span> <span class="sc">+</span> iv,</span>
+<span id="cb114-4"><a aria-label="4"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">5</span>, <span class="dv">2</span>), <span class="at">class =</span> b),</span>
+<span id="cb114-5"><a aria-label="5"></a>                <span class="fu">prior</span>(<span class="fu">exponential</span>(<span class="dv">1</span>), <span class="at">class =</span> sigma)),</span>
+<span id="cb114-6"><a aria-label="6"></a>      <span class="at">iter =</span> <span class="dv">2000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">chains =</span> <span class="dv">2</span>, <span class="at">cores =</span> <span class="dv">2</span>,</span>
+<span id="cb114-7"><a aria-label="7"></a>      <span class="at">data =</span> MR,</span>
+<span id="cb114-8"><a aria-label="8"></a>      <span class="at">sample_prior =</span> <span class="st">"yes"</span>,</span>
+<span id="cb114-9"><a aria-label="9"></a>      <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
+<span id="cb114-10"><a aria-label="10"></a>      <span class="at">file =</span> <span class="st">"a.1"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="prior-draws" class="slide level2">
@@ -2157,8 +2227,8 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb111"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb111-1"><a aria-label="1"></a>prior.a<span class="fl">.1</span><span class="ot">&lt;-</span> <span class="fu">prior_draws</span>(a<span class="fl">.1</span>)</span>
-<span id="cb111-2"><a aria-label="2"></a>prior.a<span class="fl">.1</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb115"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb115-1"><a aria-label="1"></a>prior.a<span class="fl">.1</span><span class="ot">&lt;-</span> <span class="fu">prior_draws</span>(a<span class="fl">.1</span>)</span>
+<span id="cb115-2"><a aria-label="2"></a>prior.a<span class="fl">.1</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>              b       sigma
@@ -4170,19 +4240,19 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb113"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb113-1"><a aria-label="1"></a>prior.a<span class="fl">.1</span> <span class="sc">%&gt;%</span> </span>
-<span id="cb113-2"><a aria-label="2"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> b)) <span class="sc">+</span></span>
-<span id="cb113-3"><a aria-label="3"></a>  <span class="fu">geom_density</span>() <span class="sc">+</span></span>
-<span id="cb113-4"><a aria-label="4"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
-<span id="cb113-5"><a aria-label="5"></a>  <span class="fu">theme</span>(<span class="at">panel.grid =</span> <span class="fu">element_blank</span>())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb117"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb117-1"><a aria-label="1"></a>prior.a<span class="fl">.1</span> <span class="sc">%&gt;%</span> </span>
+<span id="cb117-2"><a aria-label="2"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> b)) <span class="sc">+</span></span>
+<span id="cb117-3"><a aria-label="3"></a>  <span class="fu">geom_density</span>() <span class="sc">+</span></span>
+<span id="cb117-4"><a aria-label="4"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
+<span id="cb117-5"><a aria-label="5"></a>  <span class="fu">theme</span>(<span class="at">panel.grid =</span> <span class="fu">element_blank</span>())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
 </div>
-<img data-src="regression-3_files/figure-revealjs/unnamed-chunk-70-1.png" width="960" class="r-stretch"></section>
+<img data-src="regression-3_files/figure-revealjs/unnamed-chunk-73-1.png" width="960" class="r-stretch"></section>
 <section id="a-parameter-per-group" class="slide level2">
 <h2>A parameter per group</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb114"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb114-1"><a aria-label="1"></a><span class="fu">get_variables</span>(a<span class="fl">.1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb118"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb118-1"><a aria-label="1"></a><span class="fu">get_variables</span>(a<span class="fl">.1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> [1] "b_iv1"         "b_iv2"         "b_iv3"         "sigma"        
  [5] "prior_b"       "prior_sigma"   "lprior"        "lp__"         
@@ -4195,8 +4265,8 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <section id="group-mean-draws" class="slide level2">
 <h2>Group-mean draws</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb116"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb116-1"><a aria-label="1"></a>a<span class="fl">.1</span> <span class="sc">%&gt;%</span> </span>
-<span id="cb116-2"><a aria-label="2"></a> <span class="fu">gather_draws</span>(b_iv1, b_iv2,b_iv3)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb120"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb120-1"><a aria-label="1"></a>a<span class="fl">.1</span> <span class="sc">%&gt;%</span> </span>
+<span id="cb120-2"><a aria-label="2"></a> <span class="fu">gather_draws</span>(b_iv1, b_iv2,b_iv3)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 6,000 × 5
 # Groups:   .variable [3]
@@ -4221,32 +4291,32 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb118"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb118-1"><a aria-label="1"></a>a<span class="fl">.1</span> <span class="sc">%&gt;%</span> </span>
-<span id="cb118-2"><a aria-label="2"></a> <span class="fu">gather_draws</span>(b_iv1, b_iv2,b_iv3) <span class="sc">%&gt;%</span> </span>
-<span id="cb118-3"><a aria-label="3"></a>    <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">y =</span> .variable, <span class="at">x =</span> .value)) <span class="sc">+</span></span>
-<span id="cb118-4"><a aria-label="4"></a>  <span class="fu">stat_halfeye</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb122"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb122-1"><a aria-label="1"></a>a<span class="fl">.1</span> <span class="sc">%&gt;%</span> </span>
+<span id="cb122-2"><a aria-label="2"></a> <span class="fu">gather_draws</span>(b_iv1, b_iv2,b_iv3) <span class="sc">%&gt;%</span> </span>
+<span id="cb122-3"><a aria-label="3"></a>    <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">y =</span> .variable, <span class="at">x =</span> .value)) <span class="sc">+</span></span>
+<span id="cb122-4"><a aria-label="4"></a>  <span class="fu">stat_halfeye</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
 </div>
-<img data-src="regression-3_files/figure-revealjs/unnamed-chunk-73-1.png" width="960" class="r-stretch"></section>
+<img data-src="regression-3_files/figure-revealjs/unnamed-chunk-76-1.png" width="960" class="r-stretch"></section>
 <section id="post-hoc-tests-1" class="slide level2">
 <h2>Post hoc tests</h2>
 <p>Our posterior captures all information in the model. Thus any sort of additional information we may want (eg group comparison) we can get through manipulating our posterior!</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb119"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb119-1"><a aria-label="1"></a>post.a<span class="fl">.1</span> <span class="ot">&lt;-</span> a<span class="fl">.1</span> <span class="sc">%&gt;%</span> </span>
-<span id="cb119-2"><a aria-label="2"></a>  <span class="fu">spread_draws</span>(b_iv1, b_iv2,b_iv3,sigma) <span class="sc">%&gt;%</span> </span>
-<span id="cb119-3"><a aria-label="3"></a>  <span class="fu">mutate</span>(<span class="st">`</span><span class="at">D_1-2</span><span class="st">`</span>  <span class="ot">=</span> <span class="st">`</span><span class="at">b_iv1</span><span class="st">`</span> <span class="sc">-</span> <span class="st">`</span><span class="at">b_iv2</span><span class="st">`</span>,</span>
-<span id="cb119-4"><a aria-label="4"></a>         <span class="st">`</span><span class="at">D_1-3</span><span class="st">`</span>  <span class="ot">=</span> <span class="st">`</span><span class="at">b_iv1</span><span class="st">`</span> <span class="sc">-</span> <span class="st">`</span><span class="at">b_iv3</span><span class="st">`</span>,</span>
-<span id="cb119-5"><a aria-label="5"></a>         <span class="st">`</span><span class="at">D_2-3</span><span class="st">`</span>  <span class="ot">=</span> <span class="st">`</span><span class="at">b_iv2</span><span class="st">`</span> <span class="sc">-</span> <span class="st">`</span><span class="at">b_iv3</span><span class="st">`</span>,</span>
-<span id="cb119-6"><a aria-label="6"></a>         <span class="st">`</span><span class="at">E_1-2</span><span class="st">`</span> <span class="ot">=</span> ((<span class="st">`</span><span class="at">D_1-2</span><span class="st">`</span>) <span class="sc">/</span> <span class="st">`</span><span class="at">sigma</span><span class="st">`</span>),</span>
-<span id="cb119-7"><a aria-label="7"></a>         <span class="st">`</span><span class="at">E_1-3</span><span class="st">`</span> <span class="ot">=</span> ((<span class="st">`</span><span class="at">D_1-3</span><span class="st">`</span>) <span class="sc">/</span> <span class="st">`</span><span class="at">sigma</span><span class="st">`</span>),</span>
-<span id="cb119-8"><a aria-label="8"></a>          <span class="st">`</span><span class="at">E_2-3</span><span class="st">`</span> <span class="ot">=</span> ((<span class="st">`</span><span class="at">D_2-3</span><span class="st">`</span>) <span class="sc">/</span> <span class="st">`</span><span class="at">sigma</span><span class="st">`</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb123"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb123-1"><a aria-label="1"></a>post.a<span class="fl">.1</span> <span class="ot">&lt;-</span> a<span class="fl">.1</span> <span class="sc">%&gt;%</span> </span>
+<span id="cb123-2"><a aria-label="2"></a>  <span class="fu">spread_draws</span>(b_iv1, b_iv2,b_iv3,sigma) <span class="sc">%&gt;%</span> </span>
+<span id="cb123-3"><a aria-label="3"></a>  <span class="fu">mutate</span>(<span class="st">`</span><span class="at">D_1-2</span><span class="st">`</span>  <span class="ot">=</span> <span class="st">`</span><span class="at">b_iv1</span><span class="st">`</span> <span class="sc">-</span> <span class="st">`</span><span class="at">b_iv2</span><span class="st">`</span>,</span>
+<span id="cb123-4"><a aria-label="4"></a>         <span class="st">`</span><span class="at">D_1-3</span><span class="st">`</span>  <span class="ot">=</span> <span class="st">`</span><span class="at">b_iv1</span><span class="st">`</span> <span class="sc">-</span> <span class="st">`</span><span class="at">b_iv3</span><span class="st">`</span>,</span>
+<span id="cb123-5"><a aria-label="5"></a>         <span class="st">`</span><span class="at">D_2-3</span><span class="st">`</span>  <span class="ot">=</span> <span class="st">`</span><span class="at">b_iv2</span><span class="st">`</span> <span class="sc">-</span> <span class="st">`</span><span class="at">b_iv3</span><span class="st">`</span>,</span>
+<span id="cb123-6"><a aria-label="6"></a>         <span class="st">`</span><span class="at">E_1-2</span><span class="st">`</span> <span class="ot">=</span> ((<span class="st">`</span><span class="at">D_1-2</span><span class="st">`</span>) <span class="sc">/</span> <span class="st">`</span><span class="at">sigma</span><span class="st">`</span>),</span>
+<span id="cb123-7"><a aria-label="7"></a>         <span class="st">`</span><span class="at">E_1-3</span><span class="st">`</span> <span class="ot">=</span> ((<span class="st">`</span><span class="at">D_1-3</span><span class="st">`</span>) <span class="sc">/</span> <span class="st">`</span><span class="at">sigma</span><span class="st">`</span>),</span>
+<span id="cb123-8"><a aria-label="8"></a>          <span class="st">`</span><span class="at">E_2-3</span><span class="st">`</span> <span class="ot">=</span> ((<span class="st">`</span><span class="at">D_2-3</span><span class="st">`</span>) <span class="sc">/</span> <span class="st">`</span><span class="at">sigma</span><span class="st">`</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="the-differences-draw-by-draw" class="slide level2">
 <h2>The differences, draw by draw</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb120"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb120-1"><a aria-label="1"></a>post.a<span class="fl">.1</span> </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb124"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb124-1"><a aria-label="1"></a>post.a<span class="fl">.1</span> </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 2,000 × 13
    .chain .iteration .draw b_iv1 b_iv2 b_iv3 sigma `D_1-2` `D_1-3` `D_2-3`
@@ -4269,19 +4339,19 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <section id="plotting-the-differences" class="slide level2">
 <h2>Plotting the differences</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb122"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb122-1"><a aria-label="1"></a>post.a<span class="fl">.1</span> <span class="sc">%&gt;%</span> </span>
-<span id="cb122-2"><a aria-label="2"></a> <span class="fu">gather_draws</span>(<span class="st">`</span><span class="at">D_1-2</span><span class="st">`</span>, <span class="st">`</span><span class="at">D_1-3</span><span class="st">`</span>,<span class="st">`</span><span class="at">D_2-3</span><span class="st">`</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb122-3"><a aria-label="3"></a>    <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">y =</span> .variable, <span class="at">x =</span> .value)) <span class="sc">+</span></span>
-<span id="cb122-4"><a aria-label="4"></a>  <span class="fu">stat_halfeye</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb126"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb126-1"><a aria-label="1"></a>post.a<span class="fl">.1</span> <span class="sc">%&gt;%</span> </span>
+<span id="cb126-2"><a aria-label="2"></a> <span class="fu">gather_draws</span>(<span class="st">`</span><span class="at">D_1-2</span><span class="st">`</span>, <span class="st">`</span><span class="at">D_1-3</span><span class="st">`</span>,<span class="st">`</span><span class="at">D_2-3</span><span class="st">`</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb126-3"><a aria-label="3"></a>    <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">y =</span> .variable, <span class="at">x =</span> .value)) <span class="sc">+</span></span>
+<span id="cb126-4"><a aria-label="4"></a>  <span class="fu">stat_halfeye</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 </div>
-<img data-src="regression-3_files/figure-revealjs/unnamed-chunk-76-1.png" width="960" class="r-stretch"></section>
+<img data-src="regression-3_files/figure-revealjs/unnamed-chunk-79-1.png" width="960" class="r-stretch"></section>
 <section id="summarizing-the-differences" class="slide level2">
 <h2>Summarizing the differences</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb123"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb123-1"><a aria-label="1"></a>post.a<span class="fl">.1</span> <span class="sc">%&gt;%</span> </span>
-<span id="cb123-2"><a aria-label="2"></a> <span class="fu">gather_draws</span>(<span class="st">`</span><span class="at">D_1-2</span><span class="st">`</span>, <span class="st">`</span><span class="at">D_1-3</span><span class="st">`</span>,<span class="st">`</span><span class="at">D_2-3</span><span class="st">`</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb123-3"><a aria-label="3"></a>  <span class="fu">mean_qi</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb127"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb127-1"><a aria-label="1"></a>post.a<span class="fl">.1</span> <span class="sc">%&gt;%</span> </span>
+<span id="cb127-2"><a aria-label="2"></a> <span class="fu">gather_draws</span>(<span class="st">`</span><span class="at">D_1-2</span><span class="st">`</span>, <span class="st">`</span><span class="at">D_1-3</span><span class="st">`</span>,<span class="st">`</span><span class="at">D_2-3</span><span class="st">`</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb127-3"><a aria-label="3"></a>  <span class="fu">mean_qi</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 3 × 7
   .variable  .value .lower .upper .width .point .interval
@@ -4296,7 +4366,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <h2>Pairwise differences with marginaleffects</h2>
 <p>The same comparisons with marginaleffects (each row is a pairwise difference, summarized from the draws):</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb125"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb125-1"><a aria-label="1"></a><span class="fu">avg_predictions</span>(a<span class="fl">.1</span>, <span class="at">by =</span> <span class="st">"iv"</span>, <span class="at">hypothesis =</span> <span class="sc">~</span> pairwise)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb129"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb129-1"><a aria-label="1"></a><span class="fu">avg_predictions</span>(a<span class="fl">.1</span>, <span class="at">by =</span> <span class="st">"iv"</span>, <span class="at">hypothesis =</span> <span class="sc">~</span> pairwise)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
  Hypothesis Estimate  2.5 % 97.5 %
@@ -4313,16 +4383,16 @@ Type: response</code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb127"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb127-1"><a aria-label="1"></a>post.a<span class="fl">.1</span> <span class="sc">%&gt;%</span> </span>
-<span id="cb127-2"><a aria-label="2"></a>  <span class="fu">gather_draws</span>(<span class="st">`</span><span class="at">E_1-2</span><span class="st">`</span>, <span class="st">`</span><span class="at">E_1-3</span><span class="st">`</span>, <span class="st">`</span><span class="at">E_2-3</span><span class="st">`</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb127-3"><a aria-label="3"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">y =</span> .variable, <span class="at">x =</span> .value)) <span class="sc">+</span></span>
-<span id="cb127-4"><a aria-label="4"></a>  <span class="fu">stat_halfeye</span>() <span class="sc">+</span></span>
-<span id="cb127-5"><a aria-label="5"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">0</span>, <span class="at">linetype =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
-<span id="cb127-6"><a aria-label="6"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"standardized difference (difference / σ)"</span>, <span class="at">y =</span> <span class="cn">NULL</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb131"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb131-1"><a aria-label="1"></a>post.a<span class="fl">.1</span> <span class="sc">%&gt;%</span> </span>
+<span id="cb131-2"><a aria-label="2"></a>  <span class="fu">gather_draws</span>(<span class="st">`</span><span class="at">E_1-2</span><span class="st">`</span>, <span class="st">`</span><span class="at">E_1-3</span><span class="st">`</span>, <span class="st">`</span><span class="at">E_2-3</span><span class="st">`</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb131-3"><a aria-label="3"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">y =</span> .variable, <span class="at">x =</span> .value)) <span class="sc">+</span></span>
+<span id="cb131-4"><a aria-label="4"></a>  <span class="fu">stat_halfeye</span>() <span class="sc">+</span></span>
+<span id="cb131-5"><a aria-label="5"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">0</span>, <span class="at">linetype =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb131-6"><a aria-label="6"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"standardized difference (difference / σ)"</span>, <span class="at">y =</span> <span class="cn">NULL</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
 </div>
-<img data-src="regression-3_files/figure-revealjs/unnamed-chunk-79-1.png" width="960" class="r-stretch"><p>Each difference divided by σ, draw by draw, so the effect size gets its own posterior and interval.</p>
+<img data-src="regression-3_files/figure-revealjs/unnamed-chunk-82-1.png" width="960" class="r-stretch"><p>Each difference divided by σ, draw by draw, so the effect size gets its own posterior and interval.</p>
 </section>
 <section id="multiple-comparison-corrections" class="slide level2 smaller">
 <h2>Multiple comparison corrections?</h2>
@@ -4338,8 +4408,8 @@ Type: response</code></pre>
 <h2>Contrasts with avg_slopes()</h2>
 <p>For a categorical predictor, <code>avg_slopes()</code> gives each group’s contrast with the reference group:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb128"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb128-1"><a aria-label="1"></a><span class="fu">library</span>(marginaleffects)</span>
-<span id="cb128-2"><a aria-label="2"></a><span class="fu">avg_slopes</span>(a<span class="fl">.1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb132"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb132-1"><a aria-label="1"></a><span class="fu">library</span>(marginaleffects)</span>
+<span id="cb132-2"><a aria-label="2"></a><span class="fu">avg_slopes</span>(a<span class="fl">.1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
  Contrast Estimate  2.5 % 97.5 %
