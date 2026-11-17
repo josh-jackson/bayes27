@@ -935,16 +935,38 @@ predictions(fit.1,  newdata = datagrid(fac1 = unique, fac2 = unique, covariate =
 
 -   This is also what is meant by a `generative` model.
 
-## Posterior predictive check
+## How a simulated dataset is made {.smaller}
+
+1.  Take **one draw** from the posterior: one row of $(\beta_0, \beta_1, \sigma)$
+2.  For each of the 928 families, plug their **actual** parent height into the line: $\mu_i = \beta_0 + \beta_1 \cdot \text{parent.c}_i$
+3.  Draw a new child height for each: $\tilde{y}_i \sim \text{Normal}(\mu_i, \sigma)$. That's 928 fake heights: **one simulated dataset**, same size and same X values as the real one
+4.  Repeat with the next draw for the next dataset
+
+```{r}
+#| code-fold: true
+one_draw <- fit.1 %>% spread_draws(b_Intercept, b_parent.c, sigma, ndraws = 1, seed = 1)
+galton.data %>%
+  mutate(mu    = one_draw$b_Intercept + one_draw$b_parent.c * parent.c,
+         y_sim = rnorm(n(), mean = mu, sd = one_draw$sigma)) %>%
+  select(parent, child, mu, y_sim) %>%
+  mutate(across(c(mu, y_sim), \(x) round(x, 1))) %>%
+  head(4)
+```
+
+So the original data are used twice: their **X values** to make the fake datasets, and their **Y values** as the yardstick we compare the fakes against. `add_predicted_draws()` does steps 1–4 for every draw.
+
+## Posterior predictive check {.smaller}
 
 ::: columns
 ::: {.column width="40%"}
 -   One way to check whether our model is a good one is to see if the predictions match up with our observed data. 
--   'pp_check' asks: do simulated samples match the observed?
+-   `pp_check()` asks: do simulated datasets look like the observed one?
+-   Dark line: the real `child` heights. Light lines: 10 simulated datasets, one per posterior draw
 :::
 
 ::: {.column width="60%"}
 ```{r}
+#| fig-height: 4
 pp_check(fit.1)
 ```
 :::
@@ -953,17 +975,17 @@ pp_check(fit.1)
 
 ## pp_check with a statistic {.smaller .nostretch}
 
-`type = "stat"` computes one statistic for each simulated dataset and compares it with the observed value (the line):
+`type = "stat"` computes one statistic for each simulated dataset (all 1,000 draws) and compares it with the observed value (the line):
 
 ```{r}
 #| code-fold: true
-#| fig-height: 2.4
+#| fig-height: 2.1
 #| fig-width: 9
 #| out-width: "100%"
 pp_check(fit.1, type = "stat", stat = "sd") | pp_check(fit.1, type = "stat", stat = "max")
 ```
 
-Pick statistics the model *isn't* built to match: a normal model nearly always gets the mean and SD right. The min, max, or skew show misfits (bounded scales, ceilings). Here the max catches one: Galton's heights were binned and top out at 73.7 inches, but the model keeps simulating taller children.
+Pick statistics the model *isn't* built to match: a normal model nearly always gets the mean and SD right; the min, max, or skew show misfits. Here the max catches something: Galton recorded heights in 1-inch classes, and every child over 73.2 inches went into one open-ended class coded 73.7. No observed value can exceed 73.7, but the model simulates taller children: a misfit in how heights were recorded.
 
 ## pp_check by hand
 
@@ -981,17 +1003,21 @@ galton.data %>%
 ```
 
 
-## Posterior predictive distribution: what's in it
+## Posterior vs. posterior predictive {.smaller}
 
-- PPD includes both uncertainty in parameter values and uncertainty in a sampling process.  
+|  | Posterior | Posterior predictive |
+|---|---|---|
+| A distribution of | **parameters**: $\beta_0, \beta_1, \sigma$ | **outcomes**: child heights, $\tilde{y}$ |
+| One draw is | one plausible set of parameter values | one plausible dataset of 928 heights |
+| Uncertainty about | the parameters only | the parameters **and** person-to-person scatter ($\sigma$) |
+| Answers | "which slopes are plausible?" | "what data would this model produce?" |
+| In code | `spread_draws()` | `add_predicted_draws()`, `pp_check()` |
 
-- The posterior distribution is a ranking of the relative plausibilities of every possible combination of parameter values. 
-
-- The distribution of predicted (simulated) outcomes is a distribution that also includes sampling variation
+The predictive distribution is built **from** the posterior: each simulated dataset starts from one posterior draw, then adds σ's scatter. Epred (the blue band) sits in between: μ from each draw, without the scatter.
 
 ## Posterior predictive distribution: what it's for
 
-- PPD uses original data to evaluate whether the model +  posterior distribution over the model parameters can (approximately) reproduce the data set. 
+- We compare the simulated datasets with the original data to check whether the model + its posterior can (approximately) reproduce what we observed.
 
 - If not, then you should question both your model and the posterior. 
 

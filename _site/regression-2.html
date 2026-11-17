@@ -2542,21 +2542,51 @@ Type: response</code></pre>
 <li><p>This is also what is meant by a <code>generative</code> model.</p></li>
 </ul>
 </section>
-<section id="posterior-predictive-check" class="slide level2">
+<section id="how-a-simulated-dataset-is-made" class="slide level2 smaller">
+<h2>How a simulated dataset is made</h2>
+<ol type="1">
+<li>Take <strong>one draw</strong> from the posterior: one row of <span class="math inline">\((\beta_0, \beta_1, \sigma)\)</span></li>
+<li>For each of the 928 families, plug their <strong>actual</strong> parent height into the line: <span class="math inline">\(\mu_i = \beta_0 + \beta_1 \cdot \text{parent.c}_i\)</span></li>
+<li>Draw a new child height for each: <span class="math inline">\(\tilde{y}_i \sim \text{Normal}(\mu_i, \sigma)\)</span>. That’s 928 fake heights: <strong>one simulated dataset</strong>, same size and same X values as the real one</li>
+<li>Repeat with the next draw for the next dataset</li>
+</ol>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb88"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb88-1"><a aria-label="1"></a>one_draw <span class="ot">&lt;-</span> fit<span class="fl">.1</span> <span class="sc">%&gt;%</span> <span class="fu">spread_draws</span>(b_Intercept, b_parent.c, sigma, <span class="at">ndraws =</span> <span class="dv">1</span>, <span class="at">seed =</span> <span class="dv">1</span>)</span>
+<span id="cb88-2"><a aria-label="2"></a>galton.data <span class="sc">%&gt;%</span></span>
+<span id="cb88-3"><a aria-label="3"></a>  <span class="fu">mutate</span>(<span class="at">mu    =</span> one_draw<span class="sc">$</span>b_Intercept <span class="sc">+</span> one_draw<span class="sc">$</span>b_parent.c <span class="sc">*</span> parent.c,</span>
+<span id="cb88-4"><a aria-label="4"></a>         <span class="at">y_sim =</span> <span class="fu">rnorm</span>(<span class="fu">n</span>(), <span class="at">mean =</span> mu, <span class="at">sd =</span> one_draw<span class="sc">$</span>sigma)) <span class="sc">%&gt;%</span></span>
+<span id="cb88-5"><a aria-label="5"></a>  <span class="fu">select</span>(parent, child, mu, y_sim) <span class="sc">%&gt;%</span></span>
+<span id="cb88-6"><a aria-label="6"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">c</span>(mu, y_sim), \(x) <span class="fu">round</span>(x, <span class="dv">1</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb88-7"><a aria-label="7"></a>  <span class="fu">head</span>(<span class="dv">4</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>  parent child   mu y_sim
+1   70.5  61.7 69.7  70.1
+2   68.5  61.7 68.3  66.4
+3   65.5  61.7 66.3  69.9
+4   64.5  61.7 65.6  66.4</code></pre>
+</div>
+</div>
+<p>So the original data are used twice: their <strong>X values</strong> to make the fake datasets, and their <strong>Y values</strong> as the yardstick we compare the fakes against. <code>add_predicted_draws()</code> does steps 1–4 for every draw.</p>
+</section>
+<section id="posterior-predictive-check" class="slide level2 smaller">
 <h2>Posterior predictive check</h2>
 <div class="columns">
 <div class="column" style="width:40%;">
 <ul>
 <li>One way to check whether our model is a good one is to see if the predictions match up with our observed data.</li>
-<li>‘pp_check’ asks: do simulated samples match the observed?</li>
+<li><code>pp_check()</code> asks: do simulated datasets look like the observed one?</li>
+<li>Dark line: the real <code>child</code> heights. Light lines: 10 simulated datasets, one per posterior draw</li>
 </ul>
 </div><div class="column" style="width:60%;">
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb88"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb88-1"><a aria-label="1"></a><span class="fu">pp_check</span>(fit<span class="fl">.1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb90"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb90-1"><a aria-label="1"></a><span class="fu">pp_check</span>(fit<span class="fl">.1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure>
-<p><img data-src="regression-2_files/figure-revealjs/unnamed-chunk-58-1.png" width="960"></p>
+<p><img data-src="regression-2_files/figure-revealjs/unnamed-chunk-59-1.png" width="960"></p>
 </figure>
 </div>
 </div>
@@ -2565,21 +2595,21 @@ Type: response</code></pre>
 </section>
 <section id="pp_check-with-a-statistic" class="slide level2 smaller nostretch">
 <h2>pp_check with a statistic</h2>
-<p><code>type = "stat"</code> computes one statistic for each simulated dataset and compares it with the observed value (the line):</p>
+<p><code>type = "stat"</code> computes one statistic for each simulated dataset (all 1,000 draws) and compares it with the observed value (the line):</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb89"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb89-1"><a aria-label="1"></a><span class="fu">pp_check</span>(fit<span class="fl">.1</span>, <span class="at">type =</span> <span class="st">"stat"</span>, <span class="at">stat =</span> <span class="st">"sd"</span>) <span class="sc">|</span> <span class="fu">pp_check</span>(fit<span class="fl">.1</span>, <span class="at">type =</span> <span class="st">"stat"</span>, <span class="at">stat =</span> <span class="st">"max"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb91"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb91-1"><a aria-label="1"></a><span class="fu">pp_check</span>(fit<span class="fl">.1</span>, <span class="at">type =</span> <span class="st">"stat"</span>, <span class="at">stat =</span> <span class="st">"sd"</span>) <span class="sc">|</span> <span class="fu">pp_check</span>(fit<span class="fl">.1</span>, <span class="at">type =</span> <span class="st">"stat"</span>, <span class="at">stat =</span> <span class="st">"max"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
 <figure>
-<p><img data-src="regression-2_files/figure-revealjs/unnamed-chunk-59-1.png" style="width:100.0%"></p>
+<p><img data-src="regression-2_files/figure-revealjs/unnamed-chunk-60-1.png" style="width:100.0%"></p>
 </figure>
 </div>
 </div>
 </div>
-<p>Pick statistics the model <em>isn’t</em> built to match: a normal model nearly always gets the mean and SD right. The min, max, or skew show misfits (bounded scales, ceilings). Here the max catches one: Galton’s heights were binned and top out at 73.7 inches, but the model keeps simulating taller children.</p>
+<p>Pick statistics the model <em>isn’t</em> built to match: a normal model nearly always gets the mean and SD right; the min, max, or skew show misfits. Here the max catches something: Galton recorded heights in 1-inch classes, and every child over 73.2 inches went into one open-ended class coded 73.7. No observed value can exceed 73.7, but the model simulates taller children: a misfit in how heights were recorded.</p>
 </section>
 <section id="pp_check-by-hand" class="slide level2">
 <h2>pp_check by hand</h2>
@@ -2587,29 +2617,66 @@ Type: response</code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb90"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb90-1"><a aria-label="1"></a>galton.data <span class="sc">%&gt;%</span> </span>
-<span id="cb90-2"><a aria-label="2"></a>  <span class="fu">add_predicted_draws</span>(fit<span class="fl">.1</span>, <span class="at">ndraws =</span> <span class="dv">10</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb90-3"><a aria-label="3"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(.prediction, <span class="at">group =</span> .draw)) <span class="sc">+</span></span>
-<span id="cb90-4"><a aria-label="4"></a>  <span class="fu">geom_line</span>(<span class="at">stat =</span> <span class="st">"density"</span>, <span class="at">alpha =</span> .<span class="dv">3</span>) <span class="sc">+</span></span>
-<span id="cb90-5"><a aria-label="5"></a>  <span class="fu">geom_density</span>(<span class="at">data =</span> galton.data, <span class="fu">aes</span>(child), <span class="at">inherit.aes =</span> <span class="cn">FALSE</span>, <span class="at">color =</span> <span class="st">"#0072B2"</span>, <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb90-6"><a aria-label="6"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"child height"</span>, <span class="at">subtitle =</span> <span class="st">"grey: 10 simulated datasets · blue: observed"</span>) <span class="sc">+</span></span>
-<span id="cb90-7"><a aria-label="7"></a>  <span class="fu">theme_classic</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb92"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb92-1"><a aria-label="1"></a>galton.data <span class="sc">%&gt;%</span> </span>
+<span id="cb92-2"><a aria-label="2"></a>  <span class="fu">add_predicted_draws</span>(fit<span class="fl">.1</span>, <span class="at">ndraws =</span> <span class="dv">10</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb92-3"><a aria-label="3"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(.prediction, <span class="at">group =</span> .draw)) <span class="sc">+</span></span>
+<span id="cb92-4"><a aria-label="4"></a>  <span class="fu">geom_line</span>(<span class="at">stat =</span> <span class="st">"density"</span>, <span class="at">alpha =</span> .<span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb92-5"><a aria-label="5"></a>  <span class="fu">geom_density</span>(<span class="at">data =</span> galton.data, <span class="fu">aes</span>(child), <span class="at">inherit.aes =</span> <span class="cn">FALSE</span>, <span class="at">color =</span> <span class="st">"#0072B2"</span>, <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb92-6"><a aria-label="6"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"child height"</span>, <span class="at">subtitle =</span> <span class="st">"grey: 10 simulated datasets · blue: observed"</span>) <span class="sc">+</span></span>
+<span id="cb92-7"><a aria-label="7"></a>  <span class="fu">theme_classic</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
 </div>
-<img data-src="regression-2_files/figure-revealjs/unnamed-chunk-60-1.png" width="960" class="r-stretch"></section>
-<section id="posterior-predictive-distribution-whats-in-it" class="slide level2">
-<h2>Posterior predictive distribution: what’s in it</h2>
-<ul>
-<li><p>PPD includes both uncertainty in parameter values and uncertainty in a sampling process.</p></li>
-<li><p>The posterior distribution is a ranking of the relative plausibilities of every possible combination of parameter values.</p></li>
-<li><p>The distribution of predicted (simulated) outcomes is a distribution that also includes sampling variation</p></li>
-</ul>
+<img data-src="regression-2_files/figure-revealjs/unnamed-chunk-61-1.png" width="960" class="r-stretch"></section>
+<section id="posterior-vs.-posterior-predictive" class="slide level2 smaller">
+<h2>Posterior vs.&nbsp;posterior predictive</h2>
+<table class="caption-top">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th>Posterior</th>
+<th>Posterior predictive</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>A distribution of</td>
+<td><strong>parameters</strong>: <span class="math inline">\(\beta_0, \beta_1, \sigma\)</span></td>
+<td><strong>outcomes</strong>: child heights, <span class="math inline">\(\tilde{y}\)</span></td>
+</tr>
+<tr class="even">
+<td>One draw is</td>
+<td>one plausible set of parameter values</td>
+<td>one plausible dataset of 928 heights</td>
+</tr>
+<tr class="odd">
+<td>Uncertainty about</td>
+<td>the parameters only</td>
+<td>the parameters <strong>and</strong> person-to-person scatter (<span class="math inline">\(\sigma\)</span>)</td>
+</tr>
+<tr class="even">
+<td>Answers</td>
+<td>“which slopes are plausible?”</td>
+<td>“what data would this model produce?”</td>
+</tr>
+<tr class="odd">
+<td>In code</td>
+<td><code>spread_draws()</code></td>
+<td><code>add_predicted_draws()</code>, <code>pp_check()</code></td>
+</tr>
+</tbody>
+</table>
+<p>The predictive distribution is built <strong>from</strong> the posterior: each simulated dataset starts from one posterior draw, then adds σ’s scatter. Epred (the blue band) sits in between: μ from each draw, without the scatter.</p>
 </section>
 <section id="posterior-predictive-distribution-what-its-for" class="slide level2">
 <h2>Posterior predictive distribution: what it’s for</h2>
 <ul>
-<li><p>PPD uses original data to evaluate whether the model + posterior distribution over the model parameters can (approximately) reproduce the data set.</p></li>
+<li><p>We compare the simulated datasets with the original data to check whether the model + its posterior can (approximately) reproduce what we observed.</p></li>
 <li><p>If not, then you should question both your model and the posterior.</p></li>
 <li><p>We can also use the model+posterior to generate (new) predictions about novel scenarios, e.g., those that don’t exist in the dataset</p></li>
 </ul>

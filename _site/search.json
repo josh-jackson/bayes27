@@ -704,7 +704,7 @@
     "href": "regression-2.html#posterior-predictive-check",
     "title": "Regression part 1",
     "section": "Posterior predictive check",
-    "text": "Posterior predictive check\n\n\n\nOne way to check whether our model is a good one is to see if the predictions match up with our observed data.\n‘pp_check’ asks: do simulated samples match the observed?\n\n\n\npp_check(fit.1)"
+    "text": "Posterior predictive check\n\n\n\nOne way to check whether our model is a good one is to see if the predictions match up with our observed data.\npp_check() asks: do simulated datasets look like the observed one?\nDark line: the real child heights. Light lines: 10 simulated datasets, one per posterior draw\n\n\n\npp_check(fit.1)"
   },
   {
     "objectID": "regression-2.html#posterior-predictive-distribution-whats-in-it",
@@ -718,7 +718,7 @@
     "href": "regression-2.html#posterior-predictive-distribution-what-its-for",
     "title": "Regression part 1",
     "section": "Posterior predictive distribution: what it’s for",
-    "text": "Posterior predictive distribution: what it’s for\n\nPPD uses original data to evaluate whether the model + posterior distribution over the model parameters can (approximately) reproduce the data set.\nIf not, then you should question both your model and the posterior.\nWe can also use the model+posterior to generate (new) predictions about novel scenarios, e.g., those that don’t exist in the dataset"
+    "text": "Posterior predictive distribution: what it’s for\n\nWe compare the simulated datasets with the original data to check whether the model + its posterior can (approximately) reproduce what we observed.\nIf not, then you should question both your model and the posterior.\nWe can also use the model+posterior to generate (new) predictions about novel scenarios, e.g., those that don’t exist in the dataset"
   },
   {
     "objectID": "mcmc-5.html#how-do-we-estimate-the-posterior",
@@ -8180,7 +8180,7 @@
     "href": "regression-2.html#pp_check-with-a-statistic",
     "title": "Regression part 1",
     "section": "pp_check with a statistic",
-    "text": "pp_check with a statistic\ntype = \"stat\" computes one statistic for each simulated dataset and compares it with the observed value (the line):\n\n\nCode\npp_check(fit.1, type = \"stat\", stat = \"sd\") | pp_check(fit.1, type = \"stat\", stat = \"max\")\n\n\n\n\n\n\n\n\n\nPick statistics the model isn’t built to match: a normal model nearly always gets the mean and SD right. The min, max, or skew show misfits (bounded scales, ceilings). Here the max catches one: Galton’s heights were binned and top out at 73.7 inches, but the model keeps simulating taller children."
+    "text": "pp_check with a statistic\ntype = \"stat\" computes one statistic for each simulated dataset (all 1,000 draws) and compares it with the observed value (the line):\n\n\nCode\npp_check(fit.1, type = \"stat\", stat = \"sd\") | pp_check(fit.1, type = \"stat\", stat = \"max\")\n\n\n\n\n\n\n\n\n\nPick statistics the model isn’t built to match: a normal model nearly always gets the mean and SD right; the min, max, or skew show misfits. Here the max catches something: Galton recorded heights in 1-inch classes, and every child over 73.2 inches went into one open-ended class coded 73.7. No observed value can exceed 73.7, but the model simulates taller children: a misfit in how heights were recorded."
   },
   {
     "objectID": "regression-2.html#get_prior-lists-priors-it-doesnt-set-them",
@@ -8377,5 +8377,19 @@
     "title": "HW 11: When the data are uncertain too",
     "section": "Q4. A publication-ready comparison (5 points)",
     "text": "Q4. A publication-ready comparison (5 points)\nMake one figure that meets the checklist comparing the slope estimate (with 95% intervals) from every model you fit: listwise, imputed before fitting, imputed while fitting, complete observed scores, and measurement-error corrected. Include a reference line at the true value (−0.6).\n\nOrder the methods sensibly, and label them in words a reader would understand (not mi(anx_missing)).\nLabel the x-axis in units (hours of sleep per point of anxiety).\nAdd a stand-alone caption, use ggsave() at 6.5 inches wide, and write two or three sentences on what a researcher with real data (no anx_true!) should take from this."
+  },
+  {
+    "objectID": "regression-2.html#how-a-simulated-dataset-is-made",
+    "href": "regression-2.html#how-a-simulated-dataset-is-made",
+    "title": "Regression part 1",
+    "section": "How a simulated dataset is made",
+    "text": "How a simulated dataset is made\n\nTake one draw from the posterior: one row of \\((\\beta_0, \\beta_1, \\sigma)\\)\nFor each of the 928 families, plug their actual parent height into the line: \\(\\mu_i = \\beta_0 + \\beta_1 \\cdot \\text{parent.c}_i\\)\nDraw a new child height for each: \\(\\tilde{y}_i \\sim \\text{Normal}(\\mu_i, \\sigma)\\). That’s 928 fake heights: one simulated dataset, same size and same X values as the real one\nRepeat with the next draw for the next dataset\n\n\n\nCode\none_draw &lt;- fit.1 %&gt;% spread_draws(b_Intercept, b_parent.c, sigma, ndraws = 1, seed = 1)\ngalton.data %&gt;%\n  mutate(mu    = one_draw$b_Intercept + one_draw$b_parent.c * parent.c,\n         y_sim = rnorm(n(), mean = mu, sd = one_draw$sigma)) %&gt;%\n  select(parent, child, mu, y_sim) %&gt;%\n  mutate(across(c(mu, y_sim), \\(x) round(x, 1))) %&gt;%\n  head(4)\n\n\n  parent child   mu y_sim\n1   70.5  61.7 69.7  70.1\n2   68.5  61.7 68.3  66.4\n3   65.5  61.7 66.3  69.9\n4   64.5  61.7 65.6  66.4\n\n\nSo the original data are used twice: their X values to make the fake datasets, and their Y values as the yardstick we compare the fakes against. add_predicted_draws() does steps 1–4 for every draw."
+  },
+  {
+    "objectID": "regression-2.html#posterior-vs.-posterior-predictive",
+    "href": "regression-2.html#posterior-vs.-posterior-predictive",
+    "title": "Regression part 1",
+    "section": "Posterior vs. posterior predictive",
+    "text": "Posterior vs. posterior predictive\n\n\n\n\n\n\n\n\n\nPosterior\nPosterior predictive\n\n\n\n\nA distribution of\nparameters: \\(\\beta_0, \\beta_1, \\sigma\\)\noutcomes: child heights, \\(\\tilde{y}\\)\n\n\nOne draw is\none plausible set of parameter values\none plausible dataset of 928 heights\n\n\nUncertainty about\nthe parameters only\nthe parameters and person-to-person scatter (\\(\\sigma\\))\n\n\nAnswers\n“which slopes are plausible?”\n“what data would this model produce?”\n\n\nIn code\nspread_draws()\nadd_predicted_draws(), pp_check()\n\n\n\nThe predictive distribution is built from the posterior: each simulated dataset starts from one posterior draw, then adds σ’s scatter. Epred (the blue band) sits in between: μ from each draw, without the scatter."
   }
 ]
