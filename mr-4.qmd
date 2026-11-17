@@ -9,10 +9,14 @@ execute:
 
 ## Goals for this section
 
--   Add many predictors
--   Be able to interpret and visualize MR
--   Know how to do factorial ANOVA models
--   Be able to model, interpret, and visualize interactions
+1.  **Two continuous predictors:** fit, interpret, and visualize a multiple regression (holding one predictor at a value)
+2.  **Two categorical predictors:** factorial models, cell means, and contrasts
+3.  **Categorical × continuous:** does a slope differ by group?
+4.  **Continuous × continuous:** does a slope depend on another variable?
+
+Throughout: interpret through predictions, contrasts, and slopes, not raw coefficients.
+
+# Part 1: two continuous predictors
 
 ## Moving to many predictors
 
@@ -348,6 +352,19 @@ summary(mr.2)
 ## modestly informative prior model
 ```
 
+## Weak vs. tighter priors
+
+```{r}
+#| code-fold: true
+bind_rows("Normal(0, 2) slopes (mr.1)"   = as_tibble(fixef(mr.1), rownames = "parameter"),
+          "Normal(0, 0.2) slopes (mr.2)" = as_tibble(fixef(mr.2), rownames = "parameter"), .id = "priors") %>%
+  filter(parameter != "Intercept") %>%
+  mutate(across(where(is.numeric), \(x) round(x, 2)))
+f1 <- fixef(mr.1)[, "Estimate"]; f2 <- fixef(mr.2)[, "Estimate"]
+```
+
+Tighter slope priors pull both slopes a little toward 0 (SS: `r sprintf("%.2f", f1["SS_c"])` → `r sprintf("%.2f", f2["SS_c"])`; FQ: `r sprintf("%.2f", f1["FQ_c"])` → `r sprintf("%.2f", f2["FQ_c"])`). A small cost in exchange for ruling out absurd slopes.
+
 ## Trace plots
 
 ```{r}
@@ -363,13 +380,6 @@ pairs(mr.1, variable = c("b_SS_c", "b_FQ_c"))
 
 School success and friendship quality correlate −0.55 in the data, so their slopes are tied together in the posterior (correlation ≈ +0.55): when a draw gives SS more credit, it gives FQ more too, to explain the same variance. Correlated, but not redundant; truly redundant predictors make a long, thin ridge (lecture 5).
 
-## Predictions across friendship quality
-
-```{r}
-library(marginaleffects)
-plot_predictions(mr.1, condition = "FQ_c")
-```
-
 ## Conditional plots
 
 -   Remember, anytime we have a multiple regression we are working with a 3d (or higher) response plane (in frequentist land), and in Bayesian we are working with a hyperdimensional mountain.
@@ -377,6 +387,15 @@ plot_predictions(mr.1, condition = "FQ_c")
 -   Regardless of what estimation we are using, we need to communicate our effects in simple terms, usually by restricting to only one variable at a time.
 
 -   To do so, we need to either average across or pick a point on the other variables in the model to visualize our effect of interest
+
+## Predictions across friendship quality
+
+`plot_predictions()` does this for you: FQ varies; SS is held at its mean.
+
+```{r}
+library(marginaleffects)
+plot_predictions(mr.1, condition = "FQ_c")
+```
 
 ## What's in our posterior?
 
@@ -516,6 +535,8 @@ MR %>%
   stat_lineribbon(aes(y = .epred), .width = c(.95), color = "grey") + geom_point(data = MR, size = 2)  
 ```
 
+FQ_c = −7 is someone with very poor friendships. In this model (no interaction) the line just shifts down; its slope is the same at every FQ. Hold on to that: an interaction (Part 4) lets the slope change too.
+
 ## Posterior predictive check
 
 ```{r}
@@ -552,6 +573,8 @@ MR %>%
   labs(y = "Predicted happiness")+
   xlim(0, 10) + ylim(0,10)
 ```
+
+# Part 2: two categorical predictors
 
 ## Two categorical predictors: a 2 × 3 study {.smaller}
 
@@ -745,6 +768,8 @@ round(fixef(fac.2)[, c("Estimate", "Q2.5", "Q97.5")], 1)
 ```
 
 Essentially the same six cell means as `fac.1` (the priors differ slightly), read straight off the output. Differences and interaction contrasts work exactly as before with marginaleffects.
+
+# Part 3: categorical × continuous
 
 ## Categorical × continuous: a slope for each group? {.smaller}
 
@@ -949,6 +974,8 @@ plot_predictions(a.4, condition = c("SES_c", "iv"), points = .4) +
 
 The SES slopes are uncertain (every interval spans 0), and so are their differences: no evidence here that the SES slope depends on group. The method is the same no matter how many groups: slopes by group, then their pairwise differences.
 
+# Part 4: continuous × continuous
+
 ## Continuous × continuous: a slope with its own equation {.smaller}
 
 An interaction means the effect of one variable depends on another. In toolbox terms (lecture 3): **the slope gets its own equation.**
@@ -963,14 +990,19 @@ Substitute and you get the familiar $\mu_i = \beta_0 + \beta_1 X_i + \beta_2 Z_i
 
 The modeling is the easy part; interpreting is the work, and predictions, `slopes()`, and plots do most of it.
 
-## Default priors for the interaction model
+## Priors for an interaction model {.smaller}
+
+The interaction adds one more coefficient, and it needs a prior:
 
 ```{r}
-get_prior(family = gaussian,
-      happiness ~ 1 + SS_c * FQ_c,data = MR)
+get_prior(happiness ~ 1 + SS_c * FQ_c, data = MR)
 ```
 
+`SS_c:FQ_c` is in odd units: **how much the SS slope changes per point of FQ**. Slopes here are fractions of a happiness point, so a plausible interaction is a few hundredths. Normal(0, 2), the prior we'll use, allows values about a hundred times bigger.
+
 ## Fitting the interaction model
+
+`sample_prior = "yes"` also saves draws from the priors, so we can look at what they imply.
 
 ```{r}
 mr.15 <- 
@@ -984,9 +1016,35 @@ mr.15 <-
       iter = 2000, warmup = 1000, chains = 2, cores = 2,
       data = MR,
       sample_prior = "yes",
-       backend = "cmdstanr",
+      backend = "cmdstanr",
       file = "mr.15b")
 ```
+
+## What do these priors imply? {.smaller .nostretch}
+
+100 lines from the priors alone, at low, average, and high friendship quality (−1 SD, mean, +1 SD):
+
+```{r}
+#| code-fold: true
+#| fig-height: 2.7
+#| fig-width: 9
+#| out-width: "100%"
+prior_draws(mr.15) %>% 
+  slice_sample(n = 100) %>% 
+  mutate(draw = row_number()) %>% 
+  expand_grid(SS_c = range(MR$SS_c), FQ_c = c(-1, 0, 1) * sd(MR$FQ_c)) %>% 
+  mutate(happiness = Intercept + b_SS_c * SS_c + b_FQ_c * FQ_c + `b_SS_c:FQ_c` * SS_c * FQ_c,
+         FQ = factor(FQ_c, levels = c(-1, 0, 1) * sd(MR$FQ_c), labels = c("low FQ", "average FQ", "high FQ"))) %>% 
+  ggplot(aes(x = SS_c, y = happiness, group = draw)) +
+  geom_line(alpha = .2) +
+  geom_hline(yintercept = c(0, 10), linetype = 2, colour = "#D55E00") +
+  facet_wrap(~ FQ) +
+  coord_cartesian(ylim = c(-50, 60)) +
+  labs(x = "school success (centered)", y = "happiness (scale is 0–10)") +
+  theme_classic(base_size = 14)
+```
+
+Interaction priors multiply: away from average FQ, the slopes go wild. With 118 people the data overwhelm this, but in a small study tighten them (e.g., Normal(0, 0.5) for slopes, Normal(0, 0.1) for the interaction).
 
 ## Interaction results
 
@@ -1019,12 +1077,111 @@ predictions(mr.15, newdata = datagrid(SS_c = seq(min(MR$SS_c), max(MR$SS_c), len
 ```{r}
 #| echo: false
 b15 <- fixef(mr.15)[, "Estimate"]
+fq_sd <- sd(MR$FQ_c)
 ```
 
 -   **`SS_c` = `r sprintf("%.2f", b15["SS_c"])`:** the slope of school success **when FQ_c = 0**, i.e., at average friendship quality (centering made 0 meaningful)
 -   **`SS_c:FQ_c` = `r sprintf("%.2f", b15["SS_c:FQ_c"])`:** each extra point of friendship quality changes the SS slope by that much
--   So at FQ_c = −2.5 and +2.5 (about ±1 SD), the SS slope is `r sprintf("%.2f", b15["SS_c"] - 2.5 * b15["SS_c:FQ_c"])` and `r sprintf("%.2f", b15["SS_c"] + 2.5 * b15["SS_c:FQ_c"])`: school success matters more for people with weaker friendships
+-   So at low and high friendship quality (±1 SD = ±`r sprintf("%.1f", fq_sd)` points), the SS slope is `r sprintf("%.2f", b15["SS_c"] - fq_sd * b15["SS_c:FQ_c"])` and `r sprintf("%.2f", b15["SS_c"] + fq_sd * b15["SS_c:FQ_c"])`: school success matters more for people with weaker friendships
 -   Uncentered, the `SS` coefficient would be its slope at friendship quality = 0, a value nobody in the data has
+
+## Choosing values of the moderator {.smaller}
+
+To draw lines, pick a few values of FQ that mean something. Common choices: −1 SD, mean, +1 SD (or meaningful scale points, or percentiles):
+
+```{r}
+fq_values <- c(-1, 0, 1) * sd(MR$FQ_c)
+fq_values
+
+grid_fq <- MR %>% data_grid(SS_c = seq_range(SS_c, n = 20), FQ_c = fq_values)
+grid_fq
+```
+
+## Feeding the grid to the model
+
+```{r}
+grid_fq %>% add_epred_draws(mr.15)
+```
+
+Why 120,000 rows? 20 SS values × 3 FQ values × 2,000 draws.
+
+## Lines at three FQ values
+
+```{r}
+#| code-fold: true
+grid_fq %>%
+  add_epred_draws(mr.15) %>% 
+  ungroup() %>% 
+  mutate(FQ = factor(FQ_c, levels = fq_values, labels = c("−1 SD", "mean", "+1 SD"))) %>% 
+  ggplot(aes(x = SS_c, y = happiness)) +
+  geom_point(data = MR, alpha = .4) +
+  stat_lineribbon(aes(y = .epred, color = FQ, fill = FQ), .width = .95, alpha = .3) +
+  labs(color = "friendship quality", fill = "friendship quality")
+```
+
+## Each FQ value, many draws
+
+```{r}
+#| code-fold: true
+grid_fq %>%
+  add_epred_draws(mr.15, ndraws = 50)  %>%
+  ungroup() %>% 
+  mutate(FQ = factor(FQ_c, levels = fq_values, labels = c("FQ −1 SD", "FQ mean", "FQ +1 SD"))) %>% 
+  ggplot(aes(x = SS_c, y = .epred, group = .draw, color = FQ)) +
+  geom_line(alpha = .3, show.legend = FALSE) +  
+  facet_wrap(~ FQ) +
+  labs(y = "happiness")
+```
+
+## The SS slope at chosen FQ values
+
+```{r}
+slopes(mr.15, variables = "SS_c", newdata = datagrid(FQ_c = fq_values))
+```
+
+Or at the five-number summary of FQ (min, quartiles, max): `datagrid(FQ_c = fivenum)`.
+
+## How the SS slope changes with FQ {.smaller .nostretch}
+
+The continuous version of "where do the groups differ?": the slope of school success at every value of friendship quality.
+
+```{r}
+#| code-fold: true
+#| fig-height: 3
+#| fig-width: 8
+#| out-width: "85%"
+plot_slopes(mr.15, variables = "SS_c", condition = "FQ_c") +
+  geom_hline(yintercept = 0, linetype = 2) +
+  geom_rug(data = MR, aes(x = FQ_c), inherit.aes = FALSE, alpha = .4) +
+  labs(x = "friendship quality (centered)", y = "slope of school success") +
+  theme_classic(base_size = 14)
+```
+
+School success matters most for people with poor friendships; at the high end of friendship quality its slope is close to zero (and the rug shows few people there).
+
+## A publication-ready version {.smaller .nostretch}
+
+Original units on both axes, moderator values labeled in their own units, raw data behind:
+
+```{r}
+#| code-fold: true
+#| fig-height: 3.4
+#| fig-width: 8
+#| out-width: "85%"
+ss_mean <- mean(MR$schoool.success); fq_mean <- mean(MR$friendship.quality)
+grid_fq %>%
+  add_epred_draws(mr.15) %>% 
+  ungroup() %>% 
+  mutate(school_success = SS_c + ss_mean,
+         FQ = factor(FQ_c, levels = fq_values, labels = sprintf("%.1f (%s)", fq_values + fq_mean, c("−1 SD", "mean", "+1 SD")))) %>% 
+  ggplot(aes(x = school_success, y = .epred, colour = FQ, fill = FQ)) +
+  geom_point(data = MR, aes(x = schoool.success, y = happiness), inherit.aes = FALSE, alpha = .3, size = 1.2) +
+  stat_lineribbon(.width = .95, alpha = .25) +
+  scale_colour_viridis_d(end = .85, aesthetics = c("colour", "fill")) +
+  labs(x = "School success", y = "Happiness (0–10)", colour = "Friendship quality", fill = "Friendship quality",
+       caption = "Lines and ribbons: posterior means and 95% intervals for expected happiness.") +
+  theme_classic(base_size = 14)
+```
 
 ## Does the interaction add much? {.smaller}
 
@@ -1038,57 +1195,3 @@ bind_rows("SS + FQ (mr.1)"         = as_tibble(bayes_R2(mr.1)),
 ```
 
 A small gain, with heavily overlapping intervals. R² can only go up when you add terms, so it can't tell you whether the interaction is worth it; lecture 6 uses LOO for that.
-
-## graphing interactions {.smaller}
-```{r}
-library(psych)
-describe(MR$FQ_c)
-```
-
-```{r}
-MR %>% 
-data_grid(SS_c = seq_range(SS_c, n = 20), FQ_c = c(-2.5,0,2.5), .model = MR) 
-
-
-```
-
-## Feeding the grid to the model
-
-```{r}
-MR %>% 
-data_grid(SS_c = seq_range(SS_c, n = 20), FQ_c = c(-2.5,0,2.5), .model = MR) %>% add_epred_draws(mr.15)
-
-```
-
-## Lines at three FQ values
-
-```{r}
-MR %>% 
-data_grid(SS_c = seq_range(SS_c, n = 20), FQ_c = c(-2.5,0,2.5), .model = MR) %>%
-  add_epred_draws(mr.15) %>% 
-  mutate(FQ = factor(FQ_c)) %>% 
-  ggplot(aes(x = SS_c, y = happiness)) +
-  geom_point(data = MR, alpha = .4) +
-  stat_lineribbon(aes(y = .epred, color = FQ, fill = FQ), .width = .95, alpha = .3) +
-  labs(color = "FQ_c", fill = "FQ_c")
-
-```
-
-## Each FQ value, many draws
-
-```{r}
-MR %>% 
-data_grid(SS_c = seq_range(SS_c, n = 20), FQ_c = c(-2.5,0,2.5), .model = MR) %>%
-  add_epred_draws(mr.15, ndraws = 50)  %>%
-  ggplot(aes(x = SS_c, y = .epred, group = .draw, color = factor(FQ_c))) +
-  geom_line(alpha = .3, show.legend = FALSE) +  
-  facet_grid(cols = vars(FQ_c), labeller = label_both) +
-  labs(y = "happiness")
-```
-
-## Slopes across FQ (five-number summary)
-
-```{r}
-slopes(mr.15, variables = "SS_c", newdata = datagrid(FQ_c = fivenum))
-```
-

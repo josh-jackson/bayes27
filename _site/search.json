@@ -7032,7 +7032,7 @@
     "href": "mr-4.html#goals-for-this-section",
     "title": "Multiple Regression",
     "section": "Goals for this section",
-    "text": "Goals for this section\n\nAdd many predictors\nBe able to interpret and visualize MR\nKnow how to do factorial ANOVA models\nBe able to model, interpret, and visualize interactions"
+    "text": "Goals for this section\n\nTwo continuous predictors: fit, interpret, and visualize a multiple regression (holding one predictor at a value)\nTwo categorical predictors: factorial models, cell means, and contrasts\nCategorical × continuous: does a slope differ by group?\nContinuous × continuous: does a slope depend on another variable?\n\nThroughout: interpret through predictions, contrasts, and slopes, not raw coefficients."
   },
   {
     "objectID": "mr-4.html#moving-to-many-predictors",
@@ -7137,7 +7137,7 @@
     "href": "mr-4.html#predictions-across-friendship-quality",
     "title": "Multiple Regression",
     "section": "Predictions across friendship quality",
-    "text": "Predictions across friendship quality\n\nlibrary(marginaleffects)\nplot_predictions(mr.1, condition = \"FQ_c\")"
+    "text": "Predictions across friendship quality\nplot_predictions() does this for you: FQ varies; SS is held at its mean.\n\nlibrary(marginaleffects)\nplot_predictions(mr.1, condition = \"FQ_c\")"
   },
   {
     "objectID": "mr-4.html#conditional-plots",
@@ -7221,7 +7221,7 @@
     "href": "mr-4.html#fitted-values-at-different-levels-of-the-other-variable",
     "title": "Multiple Regression",
     "section": "Fitted values at different levels of the other variable",
-    "text": "Fitted values at different levels of the other variable\n\n\nCode\nMR %&gt;% \n  data_grid(SS_c = seq_range(SS_c, n = 101), FQ_c = -7, .model=MR) %&gt;%\n add_epred_draws(mr.1) %&gt;% \n  ggplot(aes(x = SS_c, y = happiness)) +\n  stat_lineribbon(aes(y = .epred), .width = c(.95), color = \"grey\") + geom_point(data = MR, size = 2)"
+    "text": "Fitted values at different levels of the other variable\n\n\nCode\nMR %&gt;% \n  data_grid(SS_c = seq_range(SS_c, n = 101), FQ_c = -7, .model=MR) %&gt;%\n add_epred_draws(mr.1) %&gt;% \n  ggplot(aes(x = SS_c, y = happiness)) +\n  stat_lineribbon(aes(y = .epred), .width = c(.95), color = \"grey\") + geom_point(data = MR, size = 2)  \n\n\n\nFQ_c = −7 is someone with very poor friendships. In this model (no interaction) the line just shifts down; its slope is the same at every FQ. Hold on to that: an interaction (Part 4) lets the slope change too."
   },
   {
     "objectID": "mr-4.html#posterior-predictive-check",
@@ -7431,7 +7431,7 @@
     "href": "mr-4.html#fitting-the-interaction-model",
     "title": "Multiple Regression",
     "section": "Fitting the interaction model",
-    "text": "Fitting the interaction model\n\nmr.15 &lt;- \n  brm(family = gaussian,\n      happiness ~ 1 + SS_c * FQ_c,\n      prior = c(prior(normal(5, 2), class = Intercept),\n                prior(normal(0, 2), class = b, coef = SS_c),\n                prior(normal(0, 2), class = b, coef = FQ_c),\n                prior(normal(0, 2), class = b, coef = SS_c:FQ_c),\n                prior(exponential(1), class = sigma)),\n      iter = 2000, warmup = 1000, chains = 2, cores = 2,\n      data = MR,\n      sample_prior = \"yes\",\n       backend = \"cmdstanr\",\n      file = \"mr.15b\")"
+    "text": "Fitting the interaction model\nsample_prior = \"yes\" also saves draws from the priors, so we can look at what they imply.\n\nmr.15 &lt;- \n  brm(family = gaussian,\n      happiness ~ 1 + SS_c * FQ_c,\n      prior = c(prior(normal(5, 2), class = Intercept),\n                prior(normal(0, 2), class = b, coef = SS_c),\n                prior(normal(0, 2), class = b, coef = FQ_c),\n                prior(normal(0, 2), class = b, coef = SS_c:FQ_c),\n                prior(exponential(1), class = sigma)),\n      iter = 2000, warmup = 1000, chains = 2, cores = 2,\n      data = MR,\n      sample_prior = \"yes\",\n      backend = \"cmdstanr\",\n      file = \"mr.15b\")"
   },
   {
     "objectID": "mr-4.html#interaction-results",
@@ -7452,21 +7452,21 @@
     "href": "mr-4.html#feeding-the-grid-to-the-model",
     "title": "Multiple Regression",
     "section": "Feeding the grid to the model",
-    "text": "Feeding the grid to the model\n\nMR %&gt;% \ndata_grid(SS_c = seq_range(SS_c, n = 20), FQ_c = c(-2.5,0,2.5), .model = MR) %&gt;% add_epred_draws(mr.15)\n\n# A tibble: 120,000 × 15\n# Groups:   SS_c, FQ_c, friendship.quality, happiness, schoool.success, SES,\n#   intervention.group, iv, iv.d, SES_c, .row [60]\n    SS_c  FQ_c friendship.quality happiness schoool.success   SES\n   &lt;dbl&gt; &lt;dbl&gt;              &lt;dbl&gt;     &lt;dbl&gt;           &lt;dbl&gt; &lt;dbl&gt;\n 1 -8.71  -2.5               7.75      5.34            8.52  2.31\n 2 -8.71  -2.5               7.75      5.34            8.52  2.31\n 3 -8.71  -2.5               7.75      5.34            8.52  2.31\n 4 -8.71  -2.5               7.75      5.34            8.52  2.31\n 5 -8.71  -2.5               7.75      5.34            8.52  2.31\n 6 -8.71  -2.5               7.75      5.34            8.52  2.31\n 7 -8.71  -2.5               7.75      5.34            8.52  2.31\n 8 -8.71  -2.5               7.75      5.34            8.52  2.31\n 9 -8.71  -2.5               7.75      5.34            8.52  2.31\n10 -8.71  -2.5               7.75      5.34            8.52  2.31\n# ℹ 119,990 more rows\n# ℹ 9 more variables: intervention.group &lt;dbl&gt;, iv &lt;chr&gt;, iv.d &lt;chr&gt;,\n#   SES_c &lt;dbl&gt;, .row &lt;int&gt;, .chain &lt;int&gt;, .iteration &lt;int&gt;, .draw &lt;int&gt;,\n#   .epred &lt;dbl&gt;"
+    "text": "Feeding the grid to the model\n\ngrid_fq %&gt;% add_epred_draws(mr.15)\n\n# A tibble: 120,000 × 7\n# Groups:   SS_c, FQ_c, .row [60]\n    SS_c  FQ_c  .row .chain .iteration .draw .epred\n   &lt;dbl&gt; &lt;dbl&gt; &lt;int&gt;  &lt;int&gt;      &lt;int&gt; &lt;int&gt;  &lt;dbl&gt;\n 1 -8.71 -2.49     1     NA         NA     1 -0.613\n 2 -8.71 -2.49     1     NA         NA     2  0.743\n 3 -8.71 -2.49     1     NA         NA     3  1.82 \n 4 -8.71 -2.49     1     NA         NA     4  2.02 \n 5 -8.71 -2.49     1     NA         NA     5 -0.461\n 6 -8.71 -2.49     1     NA         NA     6 -0.229\n 7 -8.71 -2.49     1     NA         NA     7  1.34 \n 8 -8.71 -2.49     1     NA         NA     8  0.250\n 9 -8.71 -2.49     1     NA         NA     9  1.19 \n10 -8.71 -2.49     1     NA         NA    10  0.970\n# ℹ 119,990 more rows\n\n\nWhy 120,000 rows? 20 SS values × 3 FQ values × 2,000 draws."
   },
   {
     "objectID": "mr-4.html#lines-at-three-fq-values",
     "href": "mr-4.html#lines-at-three-fq-values",
     "title": "Multiple Regression",
     "section": "Lines at three FQ values",
-    "text": "Lines at three FQ values\n\nMR %&gt;% \ndata_grid(SS_c = seq_range(SS_c, n = 20), FQ_c = c(-2.5,0,2.5), .model = MR) %&gt;%\n  add_epred_draws(mr.15) %&gt;% \n  mutate(FQ = factor(FQ_c)) %&gt;% \n  ggplot(aes(x = SS_c, y = happiness)) +\n  geom_point(data = MR, alpha = .4) +\n  stat_lineribbon(aes(y = .epred, color = FQ, fill = FQ), .width = .95, alpha = .3) +\n  labs(color = \"FQ_c\", fill = \"FQ_c\")"
+    "text": "Lines at three FQ values\n\n\nCode\ngrid_fq %&gt;%\n  add_epred_draws(mr.15) %&gt;% \n  ungroup() %&gt;% \n  mutate(FQ = factor(FQ_c, levels = fq_values, labels = c(\"−1 SD\", \"mean\", \"+1 SD\"))) %&gt;% \n  ggplot(aes(x = SS_c, y = happiness)) +\n  geom_point(data = MR, alpha = .4) +\n  stat_lineribbon(aes(y = .epred, color = FQ, fill = FQ), .width = .95, alpha = .3) +\n  labs(color = \"friendship quality\", fill = \"friendship quality\")"
   },
   {
     "objectID": "mr-4.html#each-fq-value-many-draws",
     "href": "mr-4.html#each-fq-value-many-draws",
     "title": "Multiple Regression",
     "section": "Each FQ value, many draws",
-    "text": "Each FQ value, many draws\n\nMR %&gt;% \ndata_grid(SS_c = seq_range(SS_c, n = 20), FQ_c = c(-2.5,0,2.5), .model = MR) %&gt;%\n  add_epred_draws(mr.15, ndraws = 50)  %&gt;%\n  ggplot(aes(x = SS_c, y = .epred, group = .draw, color = factor(FQ_c))) +\n  geom_line(alpha = .3, show.legend = FALSE) +  \n  facet_grid(cols = vars(FQ_c), labeller = label_both) +\n  labs(y = \"happiness\")"
+    "text": "Each FQ value, many draws\n\n\nCode\ngrid_fq %&gt;%\n  add_epred_draws(mr.15, ndraws = 50)  %&gt;%\n  ungroup() %&gt;% \n  mutate(FQ = factor(FQ_c, levels = fq_values, labels = c(\"FQ −1 SD\", \"FQ mean\", \"FQ +1 SD\"))) %&gt;% \n  ggplot(aes(x = SS_c, y = .epred, group = .draw, color = FQ)) +\n  geom_line(alpha = .3, show.legend = FALSE) +  \n  facet_wrap(~ FQ) +\n  labs(y = \"happiness\")"
   },
   {
     "objectID": "mr-4.html#slopes-across-fq-five-number-summary",
@@ -8271,7 +8271,7 @@
     "href": "mr-4.html#reading-the-interaction-coefficients",
     "title": "Multiple Regression",
     "section": "Reading the interaction coefficients",
-    "text": "Reading the interaction coefficients\n\nSS_c = 0.33: the slope of school success when FQ_c = 0, i.e., at average friendship quality (centering made 0 meaningful)\nSS_c:FQ_c = -0.04: each extra point of friendship quality changes the SS slope by that much\nSo at FQ_c = −2.5 and +2.5 (about ±1 SD), the SS slope is 0.43 and 0.24: school success matters more for people with weaker friendships\nUncentered, the SS coefficient would be its slope at friendship quality = 0, a value nobody in the data has"
+    "text": "Reading the interaction coefficients\n\nSS_c = 0.33: the slope of school success when FQ_c = 0, i.e., at average friendship quality (centering made 0 meaningful)\nSS_c:FQ_c = -0.04: each extra point of friendship quality changes the SS slope by that much\nSo at low and high friendship quality (±1 SD = ±2.5 points), the SS slope is 0.43 and 0.24: school success matters more for people with weaker friendships\nUncentered, the SS coefficient would be its slope at friendship quality = 0, a value nobody in the data has"
   },
   {
     "objectID": "mr-4.html#does-the-interaction-add-much",
@@ -8419,5 +8419,61 @@
     "title": "Multiple Regression",
     "section": "Three groups: do the SES slopes differ?",
     "text": "Three groups: do the SES slopes differ?\n\navg_slopes(a.4, variables = \"SES_c\", by = \"iv\", hypothesis = ~ pairwise)\n\n\n Hypothesis Estimate  2.5 % 97.5 %\n  (2) - (1)   0.4609 -0.605   1.44\n  (3) - (1)   0.4351 -0.556   1.45\n  (3) - (2)  -0.0111 -1.062   1.05\n\nType: response\n\n\nWith three groups the interaction is three pairwise slope differences; marginaleffects computes them all from the draws."
+  },
+  {
+    "objectID": "mr-4.html#priors-for-an-interaction-model",
+    "href": "mr-4.html#priors-for-an-interaction-model",
+    "title": "Multiple Regression",
+    "section": "Priors for an interaction model",
+    "text": "Priors for an interaction model\nThe interaction adds one more coefficient, and it needs a prior:\n\nget_prior(happiness ~ 1 + SS_c * FQ_c, data = MR)\n\n                  prior     class      coef group resp dpar nlpar lb ub tag\n                 (flat)         b                                          \n                 (flat)         b      FQ_c                                \n                 (flat)         b      SS_c                                \n                 (flat)         b SS_c:FQ_c                                \n student_t(3, 5.3, 2.5) Intercept                                          \n   student_t(3, 0, 2.5)     sigma                                  0       \n       source\n      default\n (vectorized)\n (vectorized)\n (vectorized)\n      default\n      default\n\n\nSS_c:FQ_c is in odd units: how much the SS slope changes per point of FQ. Slopes here are fractions of a happiness point, so a plausible interaction is a few hundredths. Normal(0, 2), the prior we’ll use, allows values about a hundred times bigger."
+  },
+  {
+    "objectID": "mr-4.html#prior-predictive-what-do-these-priors-imply",
+    "href": "mr-4.html#prior-predictive-what-do-these-priors-imply",
+    "title": "Multiple Regression",
+    "section": "Prior predictive: what do these priors imply?",
+    "text": "Prior predictive: what do these priors imply?\n100 lines from the priors alone, at low, average, and high friendship quality (−1 SD, mean, +1 SD):\n\n\nCode\nprior_draws(mr.15) %&gt;% \n  slice_sample(n = 100) %&gt;% \n  mutate(draw = row_number()) %&gt;% \n  expand_grid(SS_c = range(MR$SS_c), FQ_c = c(-1, 0, 1) * sd(MR$FQ_c)) %&gt;% \n  mutate(happiness = Intercept + b_SS_c * SS_c + b_FQ_c * FQ_c + `b_SS_c:FQ_c` * SS_c * FQ_c,\n         FQ = factor(FQ_c, levels = c(-1, 0, 1) * sd(MR$FQ_c), labels = c(\"low FQ\", \"average FQ\", \"high FQ\"))) %&gt;% \n  ggplot(aes(x = SS_c, y = happiness, group = draw)) +\n  geom_line(alpha = .2) +\n  geom_hline(yintercept = c(0, 10), linetype = 2, colour = \"#D55E00\") +\n  facet_wrap(~ FQ) +\n  coord_cartesian(ylim = c(-50, 60)) +\n  labs(x = \"school success (centered)\", y = \"happiness (scale is 0–10)\") +\n  theme_classic(base_size = 14)\n\n\n\n\n\n\n\n\n\nInteraction priors multiply: away from average FQ, the slopes go wild. With 118 people the data overwhelm this, but in a small study tighten them (e.g., Normal(0, 0.5) for slopes, Normal(0, 0.1) for the interaction)."
+  },
+  {
+    "objectID": "mr-4.html#choosing-values-of-the-moderator",
+    "href": "mr-4.html#choosing-values-of-the-moderator",
+    "title": "Multiple Regression",
+    "section": "Choosing values of the moderator",
+    "text": "Choosing values of the moderator\nTo draw lines, pick a few values of FQ that mean something. Common choices: −1 SD, mean, +1 SD (or meaningful scale points, or percentiles):\n\nfq_values &lt;- c(-1, 0, 1) * sd(MR$FQ_c)\nfq_values\n\n[1] -2.487176  0.000000  2.487176\n\ngrid_fq &lt;- MR %&gt;% data_grid(SS_c = seq_range(SS_c, n = 20), FQ_c = fq_values)\ngrid_fq\n\n# A tibble: 60 × 2\n    SS_c  FQ_c\n   &lt;dbl&gt; &lt;dbl&gt;\n 1 -8.71 -2.49\n 2 -8.71  0   \n 3 -8.71  2.49\n 4 -7.80 -2.49\n 5 -7.80  0   \n 6 -7.80  2.49\n 7 -6.88 -2.49\n 8 -6.88  0   \n 9 -6.88  2.49\n10 -5.97 -2.49\n# ℹ 50 more rows"
+  },
+  {
+    "objectID": "mr-4.html#the-ss-slope-at-chosen-fq-values",
+    "href": "mr-4.html#the-ss-slope-at-chosen-fq-values",
+    "title": "Multiple Regression",
+    "section": "The SS slope at chosen FQ values",
+    "text": "The SS slope at chosen FQ values\n\nslopes(mr.15, variables = \"SS_c\", newdata = datagrid(FQ_c = fq_values))\n\n\n  FQ_c Estimate  2.5 % 97.5 %\n -2.49    0.424 0.3251  0.531\n  0.00    0.329 0.2256  0.441\n  2.49    0.238 0.0866  0.386\n\nTerm: SS_c\nType: response\nComparison: dY/dX\n\n\nOr at the five-number summary of FQ (min, quartiles, max): datagrid(FQ_c = fivenum)."
+  },
+  {
+    "objectID": "mr-4.html#how-the-ss-slope-changes-with-fq",
+    "href": "mr-4.html#how-the-ss-slope-changes-with-fq",
+    "title": "Multiple Regression",
+    "section": "How the SS slope changes with FQ",
+    "text": "How the SS slope changes with FQ\nThe continuous version of “where do the groups differ?”: the slope of school success at every value of friendship quality.\n\n\nCode\nplot_slopes(mr.15, variables = \"SS_c\", condition = \"FQ_c\") +\n  geom_hline(yintercept = 0, linetype = 2) +\n  geom_rug(data = MR, aes(x = FQ_c), inherit.aes = FALSE, alpha = .4) +\n  labs(x = \"friendship quality (centered)\", y = \"slope of school success\") +\n  theme_classic(base_size = 14)\n\n\n\n\n\n\n\n\n\nSchool success matters most for people with poor friendships; at the high end of friendship quality its slope is close to zero (and the rug shows few people there)."
+  },
+  {
+    "objectID": "mr-4.html#a-publication-ready-version",
+    "href": "mr-4.html#a-publication-ready-version",
+    "title": "Multiple Regression",
+    "section": "A publication-ready version",
+    "text": "A publication-ready version\nOriginal units on both axes, moderator values labeled in their own units, raw data behind:\n\n\nCode\nss_mean &lt;- mean(MR$schoool.success); fq_mean &lt;- mean(MR$friendship.quality)\ngrid_fq %&gt;%\n  add_epred_draws(mr.15) %&gt;% \n  ungroup() %&gt;% \n  mutate(school_success = SS_c + ss_mean,\n         FQ = factor(FQ_c, levels = fq_values, labels = sprintf(\"%.1f (%s)\", fq_values + fq_mean, c(\"−1 SD\", \"mean\", \"+1 SD\")))) %&gt;% \n  ggplot(aes(x = school_success, y = .epred, colour = FQ, fill = FQ)) +\n  geom_point(data = MR, aes(x = schoool.success, y = happiness), inherit.aes = FALSE, alpha = .3, size = 1.2) +\n  stat_lineribbon(.width = .95, alpha = .25) +\n  scale_colour_viridis_d(end = .85, aesthetics = c(\"colour\", \"fill\")) +\n  labs(x = \"School success\", y = \"Happiness (0–10)\", colour = \"Friendship quality\", fill = \"Friendship quality\",\n       caption = \"Lines and ribbons: posterior means and 95% intervals for expected happiness.\") +\n  theme_classic(base_size = 14)"
+  },
+  {
+    "objectID": "mr-4.html#weak-vs.-tighter-priors",
+    "href": "mr-4.html#weak-vs.-tighter-priors",
+    "title": "Multiple Regression",
+    "section": "Weak vs. tighter priors",
+    "text": "Weak vs. tighter priors\n\n\nCode\nbind_rows(\"Normal(0, 2) slopes (mr.1)\"   = as_tibble(fixef(mr.1), rownames = \"parameter\"),\n          \"Normal(0, 0.2) slopes (mr.2)\" = as_tibble(fixef(mr.2), rownames = \"parameter\"), .id = \"priors\") %&gt;%\n  filter(parameter != \"Intercept\") %&gt;%\n  mutate(across(where(is.numeric), \\(x) round(x, 2)))\n\n\n# A tibble: 4 × 6\n  priors                       parameter Estimate Est.Error  Q2.5 Q97.5\n  &lt;chr&gt;                        &lt;chr&gt;        &lt;dbl&gt;     &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;\n1 Normal(0, 2) slopes (mr.1)   SS_c          0.38      0.05  0.28  0.48\n2 Normal(0, 2) slopes (mr.1)   FQ_c          0.22      0.07  0.08  0.36\n3 Normal(0, 0.2) slopes (mr.2) SS_c          0.35      0.05  0.24  0.45\n4 Normal(0, 0.2) slopes (mr.2) FQ_c          0.18      0.07  0.04  0.31\n\n\nCode\nf1 &lt;- fixef(mr.1)[, \"Estimate\"]; f2 &lt;- fixef(mr.2)[, \"Estimate\"]\n\n\nTighter slope priors pull both slopes a little toward 0 (SS: 0.38 → 0.35; FQ: 0.22 → 0.18). A small cost in exchange for ruling out absurd slopes."
+  },
+  {
+    "objectID": "mr-4.html#what-do-these-priors-imply",
+    "href": "mr-4.html#what-do-these-priors-imply",
+    "title": "Multiple Regression",
+    "section": "What do these priors imply?",
+    "text": "What do these priors imply?\n100 lines from the priors alone, at low, average, and high friendship quality (−1 SD, mean, +1 SD):\n\n\nCode\nprior_draws(mr.15) %&gt;% \n  slice_sample(n = 100) %&gt;% \n  mutate(draw = row_number()) %&gt;% \n  expand_grid(SS_c = range(MR$SS_c), FQ_c = c(-1, 0, 1) * sd(MR$FQ_c)) %&gt;% \n  mutate(happiness = Intercept + b_SS_c * SS_c + b_FQ_c * FQ_c + `b_SS_c:FQ_c` * SS_c * FQ_c,\n         FQ = factor(FQ_c, levels = c(-1, 0, 1) * sd(MR$FQ_c), labels = c(\"low FQ\", \"average FQ\", \"high FQ\"))) %&gt;% \n  ggplot(aes(x = SS_c, y = happiness, group = draw)) +\n  geom_line(alpha = .2) +\n  geom_hline(yintercept = c(0, 10), linetype = 2, colour = \"#D55E00\") +\n  facet_wrap(~ FQ) +\n  coord_cartesian(ylim = c(-50, 60)) +\n  labs(x = \"school success (centered)\", y = \"happiness (scale is 0–10)\") +\n  theme_classic(base_size = 14)\n\n\n\n\n\n\n\n\n\nInteraction priors multiply: away from average FQ, the slopes go wild. With 118 people the data overwhelm this, but in a small study tighten them (e.g., Normal(0, 0.5) for slopes, Normal(0, 0.1) for the interaction)."
   }
 ]
