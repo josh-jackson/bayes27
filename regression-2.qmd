@@ -290,8 +290,6 @@ What a fitted model actually used:
 prior_summary(fit.1)
 ```
 
-`source` is now `user`: the priors from our `brm()` call.
-
 ```{r}
 #| include: false
 options(width = 80)
