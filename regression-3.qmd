@@ -1032,31 +1032,31 @@ $$\mu_i = \alpha_{\text{Group}[i]} \qquad \log(\sigma_i) = \gamma_{\text{Group}[
 
 So the recipe for any data situation: **choose the likelihood, then decide which of its parameters to fix, estimate, or model**. Every later model in the course (logistic, counts, multilevel, distributional) is these two choices again.
 
-## ANOVA models
+## ANOVA models {.smaller}
 
 So far we've compared two groups, a Bayesian t-test. The same model extends to three or more groups: a Bayesian ANOVA.
 
+**The study** (simulated, so we know the truth): 120 people are randomly assigned to watch 10 minutes of a **statistics lecture**, **cat videos**, or **puppy videos**, then rate their happiness (0–10).
+
 ```{r}
 #| code-fold: true
+set.seed(2027)
+videos <- tibble(video = factor(rep(c("lecture", "cats", "puppies"), each = 40),
+                                levels = c("lecture", "cats", "puppies")),
+                 true_mean = c(lecture = 4.5, cats = 6.0, puppies = 6.4)[as.character(video)],
+                 happiness = pmin(pmax(rnorm(120, true_mean, 1.5), 0), 10)) %>%  # keep on the 0–10 scale
+  select(-true_mean)
 
-MR <- read.csv("hw3.csv")   # also at https://josh-jackson.github.io/bayes27/hw3.csv
-
-MR <- MR %>% 
-  mutate(SS_c = `schoool.success` - mean(`schoool.success`),
-         FQ_c = `friendship.quality` - mean(`friendship.quality`),
-         iv = `intervention.group`,
-         iv = factor(iv))
-
-MR 
+videos %>% group_by(video) %>% summarise(n = n(), mean = mean(happiness), sd = sd(happiness))
 ```
 
 ## ANOVA More than 2 groups
 
 happiness$_i$ \~ Normal( $\mu_i$ , $\sigma$ )
 
-$\mu_i$ = $\alpha_{\text{IV}[i]}$
+$\mu_i$ = $\alpha_{\text{Video}[i]}$
 
-$\alpha_j$ \~ Normal(5, 2) , for j = 1,2,3\
+$\alpha_j$ \~ Normal(5, 2) , for j = lecture, cats, puppies\
 $\sigma$ \~ Exponential(1)
 
 ## Fitting the ANOVA model
@@ -1066,22 +1066,21 @@ Note that we have one prior for all our groups
 ```{r}
 a.1 <- 
   brm(family = gaussian,
-      happiness ~ 0 + iv,
+      happiness ~ 0 + video,
       prior = c(prior(normal(5, 2), class = b),
                 prior(exponential(1), class = sigma)),
       iter = 2000, warmup = 1000, chains = 2, cores = 2,
-      data = MR,
+      data = videos,
       sample_prior = "yes",
       backend = "cmdstanr",
-      file = "a.1")
-
+      file = "a.1videos")
 ```
 
 ## Prior draws
 
 ```{r}
 #| code-fold: true
-prior.a.1<- prior_draws(a.1)
+prior.a.1 <- prior_draws(a.1)
 prior.a.1
 ```
 
@@ -1092,6 +1091,7 @@ prior.a.1
 prior.a.1 %>% 
   ggplot(aes(x = b)) +
   geom_density() +
+  labs(x = "a group's mean happiness (prior)") +
   theme_bw() +
   theme(panel.grid = element_blank())
 ```
@@ -1108,7 +1108,7 @@ Notice that we have a parameter for each group mean
 
 ```{r}
 a.1 %>% 
- gather_draws(b_iv1, b_iv2,b_iv3)
+  gather_draws(b_videolecture, b_videocats, b_videopuppies)
 ```
 
 ## Group-mean posteriors
@@ -1116,9 +1116,10 @@ a.1 %>%
 ```{r}
 #| code-fold: true
 a.1 %>% 
- gather_draws(b_iv1, b_iv2,b_iv3) %>% 
-    ggplot(aes(y = .variable, x = .value)) +
-  stat_halfeye()
+  gather_draws(b_videolecture, b_videocats, b_videopuppies) %>% 
+  ggplot(aes(y = .variable, x = .value)) +
+  stat_halfeye() +
+  labs(x = "mean happiness", y = NULL)
 ```
 
 ## Post hoc tests
@@ -1127,44 +1128,49 @@ Our posterior captures all information in the model. Thus any sort of additional
 
 ```{r}
 post.a.1 <- a.1 %>% 
-  spread_draws(b_iv1, b_iv2,b_iv3,sigma) %>% 
-  mutate(`D_1-2`  = `b_iv1` - `b_iv2`,
-         `D_1-3`  = `b_iv1` - `b_iv3`,
-         `D_2-3`  = `b_iv2` - `b_iv3`,
-         `E_1-2` = ((`D_1-2`) / `sigma`),
-         `E_1-3` = ((`D_1-3`) / `sigma`),
-          `E_2-3` = ((`D_2-3`) / `sigma`))
+  spread_draws(b_videolecture, b_videocats, b_videopuppies, sigma) %>% 
+  mutate(`cats − lecture`    = b_videocats    - b_videolecture,
+         `puppies − lecture` = b_videopuppies - b_videolecture,
+         `puppies − cats`    = b_videopuppies - b_videocats,
+         `d: cats − lecture`    = `cats − lecture` / sigma,
+         `d: puppies − lecture` = `puppies − lecture` / sigma,
+         `d: puppies − cats`    = `puppies − cats` / sigma)
 ```
 
 ## The differences, draw by draw
 
 ```{r}
-post.a.1 
+post.a.1 %>% select(.draw, `cats − lecture`:`puppies − cats`)
 ```
 
 ## Plotting the differences
 
 ```{r}
+#| code-fold: true
 post.a.1 %>% 
- gather_draws(`D_1-2`, `D_1-3`,`D_2-3`) %>% 
-    ggplot(aes(y = .variable, x = .value)) +
-  stat_halfeye()
+  gather_draws(`cats − lecture`, `puppies − lecture`, `puppies − cats`) %>% 
+  ggplot(aes(y = .variable, x = .value)) +
+  stat_halfeye() +
+  geom_vline(xintercept = 0, linetype = 2) +
+  labs(x = "difference in mean happiness", y = NULL)
 ```
 
 ## Summarizing the differences
 
 ```{r}
 post.a.1 %>% 
- gather_draws(`D_1-2`, `D_1-3`,`D_2-3`) %>% 
+  gather_draws(`cats − lecture`, `puppies − lecture`, `puppies − cats`) %>% 
   mean_qi()
 ```
+
+Both kinds of animal video clearly beat the stats lecture. Puppies vs. cats? Probably puppies, but we can't be sure: that interval includes 0. (In the simulation, the true differences are 1.5, 1.9 and 0.4.)
 
 ## Pairwise differences with marginaleffects
 
 The same comparisons with marginaleffects (each row is a pairwise difference, summarized from the draws):
 
 ```{r}
-avg_predictions(a.1, by = "iv", hypothesis = ~ pairwise)
+avg_predictions(a.1, by = "video", hypothesis = ~ pairwise)
 ```
 
 ## Effect sizes, draw by draw
@@ -1173,7 +1179,7 @@ avg_predictions(a.1, by = "iv", hypothesis = ~ pairwise)
 #| code-fold: true
 #| fig-height: 3.5
 post.a.1 %>% 
-  gather_draws(`E_1-2`, `E_1-3`, `E_2-3`) %>% 
+  gather_draws(`d: cats − lecture`, `d: puppies − lecture`, `d: puppies − cats`) %>% 
   ggplot(aes(y = .variable, x = .value)) +
   stat_halfeye() +
   geom_vline(xintercept = 0, linetype = 2) +
@@ -1197,7 +1203,7 @@ Three groups, three pairwise differences. Do we need to correct?
 
 ## Contrasts with avg_slopes()
 
-For a categorical predictor, `avg_slopes()` gives each group's contrast with the reference group:
+For a categorical predictor, `avg_slopes()` gives each group's contrast with the reference group (here, the lecture):
 
 ```{r}
 library(marginaleffects)
