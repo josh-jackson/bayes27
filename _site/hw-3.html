@@ -132,9 +132,10 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#q1.-confidence-vs.-prediction" id="toc-q1.-confidence-vs.-prediction" class="nav-link active" data-scroll-target="#q1.-confidence-vs.-prediction">Q1. Confidence vs.&nbsp;prediction</a></li>
-  <li><a href="#q2.-how-much-does-the-prior-matter" id="toc-q2.-how-much-does-the-prior-matter" class="nav-link" data-scroll-target="#q2.-how-much-does-the-prior-matter">Q2. How much does the prior matter?</a></li>
-  <li><a href="#q3.-groups" id="toc-q3.-groups" class="nav-link" data-scroll-target="#q3.-groups">Q3. Groups</a></li>
+  <li><a href="#q1.-confidence-vs.-prediction-7-points" id="toc-q1.-confidence-vs.-prediction-7-points" class="nav-link active" data-scroll-target="#q1.-confidence-vs.-prediction-7-points">Q1. Confidence vs.&nbsp;prediction (7 points)</a></li>
+  <li><a href="#q2.-how-much-does-the-prior-matter-7-points" id="toc-q2.-how-much-does-the-prior-matter-7-points" class="nav-link" data-scroll-target="#q2.-how-much-does-the-prior-matter-7-points">Q2. How much does the prior matter? (7 points)</a></li>
+  <li><a href="#q3.-groups-7-points" id="toc-q3.-groups-7-points" class="nav-link" data-scroll-target="#q3.-groups-7-points">Q3. Groups (7 points)</a></li>
+  <li><a href="#q4.-count-your-draws-4-points" id="toc-q4.-count-your-draws-4-points" class="nav-link" data-scroll-target="#q4.-count-your-draws-4-points">Q4. Count your draws (4 points)</a></li>
   </ul>
 </nav>
     </div>
@@ -160,11 +161,11 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p><strong>Due:</strong> Thursday, Feb 11 at 2:30 pm on Canvas · <strong>Size:</strong> light · <strong>Covers:</strong> <a href="./regression-3.html">Regression part 2</a></p>
-<p>Start from the <a href="hw-template.qmd" download="hw-template.qmd">homework template</a>, use <code>## Q1</code> to <code>## Q3</code> headings, and turn in both the <code>.qmd</code> and the rendered <code>.html</code>. Each question is graded 0 / 1 / 2 (missing / attempted / solid); answers in words count.</p>
-<p>Q1 and Q2 build on <strong>your model from HW 2</strong>: same data, same priors. Load the fit you saved with <code>file =</code> instead of refitting. Q3 needs a categorical predictor. If your own data don’t have one, use <code>sat.act</code> from {psych} with <code>SATV</code> by <code>gender</code> (1 = male, 2 = female in this dataset), and say so.</p>
-<section id="q1.-confidence-vs.-prediction" class="level2">
-<h2 class="anchored" data-anchor-id="q1.-confidence-vs.-prediction">Q1. Confidence vs.&nbsp;prediction</h2>
+<p><strong>Due:</strong> Thursday, Feb 11 at 2:30 pm on Canvas · <strong>Points:</strong> 25 · <strong>Covers:</strong> <a href="./regression-3.html">Regression part 2</a></p>
+<p>Start from the <a href="hw-template.qmd" download="hw-template.qmd">homework template</a>, use <code>## Q1</code> to <code>## Q4</code> headings, and turn in both the <code>.qmd</code> and the rendered <code>.html</code>. Points for each question are in its heading; answers in words count.</p>
+<p>Q1, Q2 and Q4 build on <strong>your model from HW 2</strong>: same data, same priors. Load the fit you saved with <code>file =</code> instead of refitting. Q3 needs a categorical predictor. If your own data don’t have one, use <code>sat.act</code> from {psych} with <code>SATV</code> by <code>gender</code> (1 = male, 2 = female in this dataset), and say so.</p>
+<section id="q1.-confidence-vs.-prediction-7-points" class="level2">
+<h2 class="anchored" data-anchor-id="q1.-confidence-vs.-prediction-7-points">Q1. Confidence vs.&nbsp;prediction (7 points)</h2>
 <p>Make one plot with:</p>
 <ul>
 <li>the raw data,</li>
@@ -175,8 +176,8 @@ ul.task-list li input[type="checkbox"] {
 <p>This is your first <strong>publication-ready figure</strong>: make it meet the <a href="./homeworks.html#figures">checklist</a> (labels in words with units, a clean theme, a caption that says which band is which, saved with <code>ggsave()</code> at 6.5 inches wide).</p>
 <p>Then in two or three sentences: why is the prediction band so much wider? Which band would you use to answer “what’s the average score for people with X = 30?” and which for “what score will <em>this</em> person with X = 30 get?”</p>
 </section>
-<section id="q2.-how-much-does-the-prior-matter" class="level2">
-<h2 class="anchored" data-anchor-id="q2.-how-much-does-the-prior-matter">Q2. How much does the prior matter?</h2>
+<section id="q2.-how-much-does-the-prior-matter-7-points" class="level2">
+<h2 class="anchored" data-anchor-id="q2.-how-much-does-the-prior-matter-7-points">Q2. How much does the prior matter? (7 points)</h2>
 <p>Refit your HW 2 model with a <strong>deliberately bad</strong> prior on the slope: strong and centered in the wrong place. For example, if your slope is positive, use something like <code>normal(-10, 1)</code> scaled to your variables. Then:</p>
 <ol type="a">
 <li>Plot the slope’s posterior from HW 2 and from this new model on the same plot.</li>
@@ -191,14 +192,23 @@ ul.task-list li input[type="checkbox"] {
 How close are they? Why is the brms version only <em>approximately</em> the same, when the grid version in HW 1 was exact? (Hint: what information about the first-half posterior did you throw away by summarizing it with a mean and an SD? What did you do about σ?)</li>
 </ol>
 </section>
-<section id="q3.-groups" class="level2">
-<h2 class="anchored" data-anchor-id="q3.-groups">Q3. Groups</h2>
+<section id="q3.-groups-7-points" class="level2">
+<h2 class="anchored" data-anchor-id="q3.-groups-7-points">Q3. Groups (7 points)</h2>
 <p>Fit a model with your outcome predicted by a categorical variable using <strong>index coding</strong> (<code>y ~ 0 + group</code>), with one prior for all the group means.</p>
 <ol type="a">
 <li>Write the model in likelihood notation.</li>
 <li>Get the posterior of the difference between two groups, either with {marginaleffects} (<code>avg_predictions()</code> with <code>by =</code> and a <code>hypothesis</code>) or from the draws with {tidybayes}. Report it with a 95% interval.</li>
 <li>Convert the difference into a standardized effect (divide the difference by σ, draw by draw) and report its posterior.</li>
 <li>What is the posterior probability that the difference is greater than 0? (Count the share of draws where it is, or use <code>hypothesis()</code> with <code>&gt;</code> as in class and read <code>Post.Prob</code>.) In one sentence, how is that different from a <em>p</em>-value? We’ll come back to this “probability of direction” in week 6.</li>
+</ol>
+</section>
+<section id="q4.-count-your-draws-4-points" class="level2">
+<h2 class="anchored" data-anchor-id="q4.-count-your-draws-4-points">Q4. Count your draws (4 points)</h2>
+<p>Every plot and summary above is built from posterior draws. It pays to know how many rows you’re working with, especially with {marginaleffects}, which hides the draws until you ask for them with <code>get_draws()</code>.</p>
+<ol type="a">
+<li>Your Q1 plot fed a grid of X values to <code>add_epred_draws()</code>. <strong>Before</strong> running <code>nrow()</code>, predict how many rows that data frame has from the number of grid values and the number of draws (<code>ndraws(model)</code>), then check. How many rows did the version with <code>ndraws = 50</code> have?</li>
+<li>Run <code>predictions()</code> on your HW 2 model with <strong>no</strong> <code>newdata</code>. How many rows does the result have, and how many does <code>get_draws()</code> on it have? Where do those two numbers come from? Now do the same with <code>newdata = datagrid()</code> at three values of your predictor. Why does the default grid get big fast, and when would that matter?</li>
+<li>In Q3 you got the group difference as a single row from {marginaleffects} (or from your own draws). How many draws is that one number summarizing? Using the draws (<code>get_draws()</code>, or your Q3 data frame), compute the median and 95% interval of the difference yourself with <code>median()</code> and <code>quantile()</code>, and check that they match what was reported.</li>
 </ol>
 
 

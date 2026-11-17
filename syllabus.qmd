@@ -77,7 +77,7 @@ No exams this year. Your grade has two parts:
 
 ### Homework
 
-There is homework (almost) every week, just to keep you doing something with the material every week. Some weeks it's a quick check that takes under an hour; other weeks it's a full analysis. Each homework counts equally, and your lowest homework score is dropped. A homework you skip counts as a zero, so that's the one that gets dropped.
+There is homework (almost) every week, just to keep you doing something with the material every week. Each homework is worth 25 points and counts equally, and your lowest homework score is dropped. A homework you skip counts as a zero, so that's the one that gets dropped.
 
 Homework is mostly applied computation, often with your own data. You may work on homework together in groups, but everyone turns in their own write-up.
 

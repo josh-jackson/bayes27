@@ -196,9 +196,9 @@ window.Quarto = {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#q1.-get-comfortable-with-distributions" id="toc-q1.-get-comfortable-with-distributions" class="nav-link active" data-scroll-target="#q1.-get-comfortable-with-distributions">Q1. Get comfortable with distributions</a></li>
-  <li><a href="#q2.-bayes-is-just-counting" id="toc-q2.-bayes-is-just-counting" class="nav-link" data-scroll-target="#q2.-bayes-is-just-counting">Q2. Bayes is just counting</a></li>
-  <li><a href="#q3.-priors-for-your-own-research" id="toc-q3.-priors-for-your-own-research" class="nav-link" data-scroll-target="#q3.-priors-for-your-own-research">Q3. Priors for your own research</a></li>
+  <li><a href="#q1.-get-comfortable-with-distributions-6-points" id="toc-q1.-get-comfortable-with-distributions-6-points" class="nav-link active" data-scroll-target="#q1.-get-comfortable-with-distributions-6-points">Q1. Get comfortable with distributions (6 points)</a></li>
+  <li><a href="#q2.-bayes-is-just-counting-12-points" id="toc-q2.-bayes-is-just-counting-12-points" class="nav-link" data-scroll-target="#q2.-bayes-is-just-counting-12-points">Q2. Bayes is just counting (12 points)</a></li>
+  <li><a href="#q3.-priors-for-your-own-research-7-points" id="toc-q3.-priors-for-your-own-research-7-points" class="nav-link" data-scroll-target="#q3.-priors-for-your-own-research-7-points">Q3. Priors for your own research (7 points)</a></li>
   </ul>
 </nav>
     </div>
@@ -224,10 +224,10 @@ window.Quarto = {
 </header>
 
 
-<p><strong>Due:</strong> Thursday, Jan 28 at 2:30 pm on Canvas · <strong>Size:</strong> light (about an hour) · <strong>Covers:</strong> <a href="./bayes-1.html">Lecture 1</a></p>
-<p>Start from the <a href="hw-template.qmd" download="hw-template.qmd">homework template</a>, use <code>## Q1</code>, <code>## Q2</code>, <code>## Q3</code> headings, and turn in both the <code>.qmd</code> and the rendered <code>.html</code>. Each question is graded 0 / 1 / 2 (missing / attempted / solid). Answers in words count: a plot with no interpretation is a 1.</p>
-<section id="q1.-get-comfortable-with-distributions" class="level2">
-<h2 class="anchored" data-anchor-id="q1.-get-comfortable-with-distributions">Q1. Get comfortable with distributions</h2>
+<p><strong>Due:</strong> Thursday, Jan 28 at 2:30 pm on Canvas · <strong>Points:</strong> 25 · <strong>Covers:</strong> <a href="./bayes-1.html">Lecture 1</a></p>
+<p>Start from the <a href="hw-template.qmd" download="hw-template.qmd">homework template</a>, use <code>## Q1</code>, <code>## Q2</code>, <code>## Q3</code> headings, and turn in both the <code>.qmd</code> and the rendered <code>.html</code>. Points for each question are in its heading. Answers in words count: a plot with no interpretation earns only part of the points.</p>
+<section id="q1.-get-comfortable-with-distributions-6-points" class="level2">
+<h2 class="anchored" data-anchor-id="q1.-get-comfortable-with-distributions-6-points">Q1. Get comfortable with distributions (6 points)</h2>
 <p>Everything this semester is a distribution: priors, likelihoods, posteriors. So let’s look at a few we’ll keep running into.</p>
 <p>For each distribution below, plot <strong>two versions with different parameters on the same plot</strong> (e.g., two colors), and label which is which. You pick the parameters. <code>stat_function()</code> or <code>geom_line()</code> with the <code>d*()</code> functions are the easiest routes (see the prior plots in Lecture 1). Wikipedia has a good page for each if they’re new to you.</p>
 <ol type="a">
@@ -248,8 +248,8 @@ window.Quarto = {
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">color =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="st">"density"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
-<section id="q2.-bayes-is-just-counting" class="level2">
-<h2 class="anchored" data-anchor-id="q2.-bayes-is-just-counting">Q2. Bayes is just counting</h2>
+<section id="q2.-bayes-is-just-counting-12-points" class="level2">
+<h2 class="anchored" data-anchor-id="q2.-bayes-is-just-counting-12-points">Q2. Bayes is just counting (12 points)</h2>
 <p>In a study of 20 participants, 14 recalled more words in the experimental condition than in the control condition. Let θ be the probability that a participant shows the effect.</p>
 <p><span class="math display">\[
 \begin{aligned}
@@ -265,8 +265,8 @@ k &amp;\sim \text{Binomial}(n, \theta) \\
 <li><strong>Today’s posterior is tomorrow’s prior.</strong> Suppose the 200 participants came in two waves: the 20 from (b), then 180 more, of whom 126 showed the effect. Take your posterior from (b), the whole grid column, and use it as the <strong>prior</strong> for the second wave (likelihood <code>dbinom(126, 180, theta)</code>). Plot the result on top of your posterior from (c). What do you notice, and why does it happen? What does that mean for how a lab could accumulate evidence across studies?</li>
 </ol>
 </section>
-<section id="q3.-priors-for-your-own-research" class="level2">
-<h2 class="anchored" data-anchor-id="q3.-priors-for-your-own-research">Q3. Priors for your own research</h2>
+<section id="q3.-priors-for-your-own-research-7-points" class="level2">
+<h2 class="anchored" data-anchor-id="q3.-priors-for-your-own-research-7-points">Q3. Priors for your own research (7 points)</h2>
 <p>Pick one of your own recent analyses (or one you’re planning). Briefly describe the parameter you care about (e.g., a regression coefficient comparing two groups) and the effect size you found or expect (e.g., <em>d</em> = .3). Then:</p>
 <ol type="a">
 <li>Describe and <strong>plot</strong> an <strong>informed prior</strong>: your best guess for this parameter if you replicated the study. Say where the guess comes from (your past results, a meta-analysis, the literature).</li>

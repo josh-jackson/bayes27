@@ -2,7 +2,7 @@
 title: "HW 2: Your first brms model"
 ---
 
-**Due:** Thursday, Feb 4 at 2:30 pm on Canvas · **Size:** full analysis · **Points:** 20 · **Covers:** [Regression part 1](regression-2.qmd)
+**Due:** Thursday, Feb 4 at 2:30 pm on Canvas · **Points:** 25 · **Covers:** [Regression part 1](regression-2.qmd)
 
 Start from the [homework template](hw-template.qmd){download="hw-template.qmd"}, use `## Q1` to `## Q6` headings, and turn in both the `.qmd` and the rendered `.html`. Save your brms fits with `file =` so re-rendering doesn't refit every time.
 
@@ -13,7 +13,7 @@ library(psych)
 d <- sat.act
 ```
 
-## Q1. Set up the model (2 points)
+## Q1. Set up the model (3 points)
 
 a) Describe your outcome and predictor in a sentence each: what they measure, their units, and their range.
 b) Center your predictor, so the intercept means something.
@@ -29,19 +29,19 @@ y_i &\sim \text{Normal}(\mu_i, \sigma) \\
 \end{aligned}
 $$
 
-## Q2. Priors and the prior predictive (4 points)
+## Q2. Priors and the prior predictive (5 points)
 
 a) Choose a prior for the intercept, the slope, and σ. For **each**, give one sentence of justification **in the units of your variables**. For example, "the average SAT verbal score is surely between 400 and 800" is a justification; "normal(0, 10) is weakly informative" is not.
 b) Simulate 100 regression lines from your priors (by hand like in class, or with `sample_prior = "only"` in `brm()`) and plot them over the range of your predictor.
 c) Do the lines make predictions that are impossible or absurd for your outcome? If so, revise your priors, show the new prior predictive, and say what you changed. If not, say how you know.
 
-## Q3. Fit it two ways (3 points)
+## Q3. Fit it two ways (4 points)
 
 a) Fit the model with `lm()`.
 b) Fit the model with `brm()` using your priors from Q2.
 c) Put the intercept and slope estimates (and their uncertainty: SE and CI from `lm`, posterior SD and 95% interval from brms) side by side in a small table. Are they similar? Why would you expect them to be (or not to be) with your data?
 
-## Q4. The posterior of your slope (4 points)
+## Q4. The posterior of your slope (5 points)
 
 a) Plot the posterior distribution of the slope with {tidybayes} (e.g., `spread_draws()` and `stat_halfeye()`).
 b) Add your prior for the slope to the same plot. How much did the data move you?
@@ -53,7 +53,7 @@ d) In one or two sentences that a reader of your paper would understand, what do
 a) How many posterior draws does your brms model have? Where does that number come from? (Look at `chains`, `iter`, and `warmup`.)
 b) Refit with four times as many draws. What changes in your Q4 summaries, and what doesn't? Does asking for more draws give you more *information* about the slope?
 
-## Q6. Does the model reproduce your data? (4 points)
+## Q6. Does the model reproduce your data? (5 points)
 
 a) Run `pp_check()` on your brms model (try a couple of `type =` options, e.g., `"dens_overlay"` and `"stat"`).
 b) Describe where the simulated data match your observed data and where they don't. What feature of your data is the model missing, if any? (Bounded scales, skew, and ceiling effects are common culprits.) You don't need to fix it, just diagnose it.

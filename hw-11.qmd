@@ -2,9 +2,9 @@
 title: "HW 11: When the data are uncertain too"
 ---
 
-**Due:** Thursday, Apr 15 at 2:30 pm on Canvas · **Size:** light · **Covers:** [Advanced models 1](adv-9.qmd) (missing data and measurement error)
+**Due:** Thursday, Apr 15 at 2:30 pm on Canvas · **Points:** 25 · **Covers:** [Advanced models 1](adv-9.qmd) (missing data and measurement error)
 
-Start from the [homework template](hw-template.qmd){download="hw-template.qmd"}, use `## Q1` to `## Q4` headings, and turn in both the `.qmd` and the rendered `.html`. Each question is graded 0 / 1 / 2 (missing / attempted / solid); answers in words count.
+Start from the [homework template](hw-template.qmd){download="hw-template.qmd"}, use `## Q1` to `## Q4` headings, and turn in both the `.qmd` and the rendered `.html`. Points for each question are in its heading; answers in words count.
 
 **The big idea.** In a Bayesian model, *anything you don't know is a parameter*: a regression slope, but also a value someone skipped, or a person's true score hiding behind a noisy questionnaire. The model gives each unknown a posterior, and the uncertainty flows into everything else. This homework uses simulated data so you can check each approach against the truth. The brms author's vignette, [Handle Missing Values with brms](https://paulbuerkner.com/brms/articles/brms_missings.html), is a good companion.
 
@@ -23,7 +23,7 @@ The **true** effect: each point of true anxiety costs 0.6 hours of sleep. In the
 
 For Q1–Q2, pretend you only have `sleep`, `stress`, and `anx_missing`. Don't let `anx_true` or `anx` anywhere near your imputation!
 
-## Q1. Missing data, option 1: impute *before* fitting
+## Q1. Missing data, option 1: impute *before* fitting (7 points)
 
 The standard approach is multiple imputation: fill in the missing values several times, fit the model to each completed dataset, and combine.
 
@@ -39,7 +39,7 @@ fit_mi_before <- brm_multiple(sleep ~ anx_missing, data = imp, chains = 2)
 c) How are the 20 fits combined into one posterior? Compare that with the frequentist approach of pooling with Rubin's rules: why is pooling "free" in a Bayesian framework?
 d) The summary may show R-hat > 1.01 or a warning that overall R-hat isn't informative. Why can R-hat look bad here even if every model converged? Check R-hat **within** each imputed dataset (the vignette shows how with {posterior}) and report what you find.
 
-## Q2. Missing data, option 2: impute *while* fitting
+## Q2. Missing data, option 2: impute *while* fitting (8 points)
 
 a) Now let the model impute the missing anxiety scores itself, in one step, using `stress` to help predict them:
 
@@ -54,7 +54,7 @@ b) Compare the slope and its 95% interval from listwise deletion, imputation bef
 c) Each missing value now has a posterior (`spread_draws(Ymi_anxmissing[row])`). Plot the imputed values for 10 people. Why are these distributions so wide, and why is that a *good* thing compared with plugging in a single guess (like the mean)?
 d) In two or three sentences: when would you choose imputing before fitting, and when imputing while fitting? (Think about which variables each approach imputes, what kinds of variables Stan can impute, multilevel structure, and fitting time.)
 
-## Q3. Measurement error: model the true score
+## Q3. Measurement error: model the true score (5 points)
 
 The same `mi()` trick handles noisy values: tell brms how uncertain each observed value is, and it estimates each person's true score.
 
@@ -71,7 +71,7 @@ f_me <- bf(sleep ~ mi(anx)) +
 Compare its slope with the naive `sleep ~ anx` slope and with the truth (−0.6). Which is closer, and why is the naive slope too small? (The classic name for this is **attenuation**.)
 c) The corrected slope's interval is wider than the naive one. Explain why that's honest, not a weakness.
 
-## Q4. A publication-ready comparison
+## Q4. A publication-ready comparison (5 points)
 
 Make one figure that meets the [checklist](homeworks.qmd#figures) comparing the slope estimate (with 95% intervals) from every model you fit: listwise, imputed before fitting, imputed while fitting, complete observed scores, and measurement-error corrected. Include a reference line at the true value (−0.6).
 

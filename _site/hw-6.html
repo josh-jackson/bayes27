@@ -132,9 +132,9 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#q1.-which-model-predicts-best" id="toc-q1.-which-model-predicts-best" class="nav-link active" data-scroll-target="#q1.-which-model-predicts-best">Q1. Which model predicts best?</a></li>
-  <li><a href="#q2.-three-ways-to-make-a-claim-about-one-parameter" id="toc-q2.-three-ways-to-make-a-claim-about-one-parameter" class="nav-link" data-scroll-target="#q2.-three-ways-to-make-a-claim-about-one-parameter">Q2. Three ways to make a claim about one parameter</a></li>
-  <li><a href="#q3.-a-publication-ready-figure-of-your-claim" id="toc-q3.-a-publication-ready-figure-of-your-claim" class="nav-link" data-scroll-target="#q3.-a-publication-ready-figure-of-your-claim">Q3. A publication-ready figure of your claim</a></li>
+  <li><a href="#q1.-which-model-predicts-best-9-points" id="toc-q1.-which-model-predicts-best-9-points" class="nav-link active" data-scroll-target="#q1.-which-model-predicts-best-9-points">Q1. Which model predicts best? (9 points)</a></li>
+  <li><a href="#q2.-three-ways-to-make-a-claim-about-one-parameter-9-points" id="toc-q2.-three-ways-to-make-a-claim-about-one-parameter-9-points" class="nav-link" data-scroll-target="#q2.-three-ways-to-make-a-claim-about-one-parameter-9-points">Q2. Three ways to make a claim about one parameter (9 points)</a></li>
+  <li><a href="#q3.-a-publication-ready-figure-of-your-claim-7-points" id="toc-q3.-a-publication-ready-figure-of-your-claim-7-points" class="nav-link" data-scroll-target="#q3.-a-publication-ready-figure-of-your-claim-7-points">Q3. A publication-ready figure of your claim (7 points)</a></li>
   </ul>
 </nav>
     </div>
@@ -160,11 +160,11 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p><strong>Due:</strong> Thursday, Mar 4 at 2:30 pm on Canvas · <strong>Size:</strong> light · <strong>Covers:</strong> <a href="./info-6.html">Information, NHST and model fit</a></p>
-<p>Start from the <a href="hw-template.qmd" download="hw-template.qmd">homework template</a>, use <code>## Q1</code> to <code>## Q3</code> headings, and turn in both the <code>.qmd</code> and the rendered <code>.html</code>. Each question is graded 0 / 1 / 2 (missing / attempted / solid); answers in words count.</p>
+<p><strong>Due:</strong> Thursday, Mar 4 at 2:30 pm on Canvas · <strong>Points:</strong> 25 · <strong>Covers:</strong> <a href="./info-6.html">Information, NHST and model fit</a></p>
+<p>Start from the <a href="hw-template.qmd" download="hw-template.qmd">homework template</a>, use <code>## Q1</code> to <code>## Q3</code> headings, and turn in both the <code>.qmd</code> and the rendered <code>.html</code>. Points for each question are in its heading; answers in words count.</p>
 <p><strong>Data.</strong> Use the same data as your HW 4 Part B (your own, or <code>sat.act</code> from {psych}). If you used <code>sat.act</code>, use <code>SATQ</code> as the outcome, with <code>ACT</code>, <code>education</code>, and <code>gender</code> as candidate predictors (center the continuous ones; make <code>gender</code> a factor with real labels).</p>
-<section id="q1.-which-model-predicts-best" class="level2">
-<h2 class="anchored" data-anchor-id="q1.-which-model-predicts-best">Q1. Which model predicts best?</h2>
+<section id="q1.-which-model-predicts-best-9-points" class="level2">
+<h2 class="anchored" data-anchor-id="q1.-which-model-predicts-best-9-points">Q1. Which model predicts best? (9 points)</h2>
 <ol type="a">
 <li>Fit <strong>at least three</strong> models of increasing complexity (e.g., one predictor; several predictors; several predictors plus an interaction). Write each one in a line of brms formula.</li>
 <li>Add LOO to each (<code>add_criterion(model, "loo")</code>) and compare them with <code>loo_compare()</code>. Which model is expected to predict new data best? Is the difference in <code>elpd</code> large <strong>relative to its standard error</strong> (<code>se_diff</code>)? What would you conclude?</li>
@@ -172,8 +172,8 @@ ul.task-list li input[type="checkbox"] {
 <li>Report Bayesian R² for each model. Why does R² keep going up (or stay flat) as you add predictors, while LOO might not? Which would you use to choose among models, and why?</li>
 </ol>
 </section>
-<section id="q2.-three-ways-to-make-a-claim-about-one-parameter" class="level2">
-<h2 class="anchored" data-anchor-id="q2.-three-ways-to-make-a-claim-about-one-parameter">Q2. Three ways to make a claim about one parameter</h2>
+<section id="q2.-three-ways-to-make-a-claim-about-one-parameter-9-points" class="level2">
+<h2 class="anchored" data-anchor-id="q2.-three-ways-to-make-a-claim-about-one-parameter-9-points">Q2. Three ways to make a claim about one parameter (9 points)</h2>
 <p>Pick <strong>one</strong> parameter from your best model that you’d want to make a claim about in a paper (e.g., a group difference or a slope). Using {bayestestR}:</p>
 <ol type="a">
 <li><strong>Probability of direction</strong> (<code>p_direction()</code>): what is it, and what does it say about your parameter?</li>
@@ -182,8 +182,8 @@ ul.task-list li input[type="checkbox"] {
 <li>Refit the same model with a <strong>much wider</strong> prior on that parameter (say 10× the SD) and recompute all three. Which of the three changed a lot, which barely moved, and why? What does that tell you about using Bayes factors?</li>
 </ol>
 </section>
-<section id="q3.-a-publication-ready-figure-of-your-claim" class="level2">
-<h2 class="anchored" data-anchor-id="q3.-a-publication-ready-figure-of-your-claim">Q3. A publication-ready figure of your claim</h2>
+<section id="q3.-a-publication-ready-figure-of-your-claim-7-points" class="level2">
+<h2 class="anchored" data-anchor-id="q3.-a-publication-ready-figure-of-your-claim-7-points">Q3. A publication-ready figure of your claim (7 points)</h2>
 <p>Make one figure that shows the posterior of your Q2 parameter with the ROPE shaded and the key numbers (median, 95% interval, pd, % in ROPE) annotated or in the caption. It should meet the <a href="./homeworks.html#figures">figure checklist</a>: the parameter labeled in words with units (e.g., “Difference in SAT quantitative score, women − men”), a clean theme, a stand-alone caption, and <code>ggsave()</code> at 6.5 inches wide. Then write the one or two sentences you’d put in a Results section.</p>
 
 

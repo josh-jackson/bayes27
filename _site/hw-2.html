@@ -196,12 +196,12 @@ window.Quarto = {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#q1.-set-up-the-model-2-points" id="toc-q1.-set-up-the-model-2-points" class="nav-link active" data-scroll-target="#q1.-set-up-the-model-2-points">Q1. Set up the model (2 points)</a></li>
-  <li><a href="#q2.-priors-and-the-prior-predictive-4-points" id="toc-q2.-priors-and-the-prior-predictive-4-points" class="nav-link" data-scroll-target="#q2.-priors-and-the-prior-predictive-4-points">Q2. Priors and the prior predictive (4 points)</a></li>
-  <li><a href="#q3.-fit-it-two-ways-3-points" id="toc-q3.-fit-it-two-ways-3-points" class="nav-link" data-scroll-target="#q3.-fit-it-two-ways-3-points">Q3. Fit it two ways (3 points)</a></li>
-  <li><a href="#q4.-the-posterior-of-your-slope-4-points" id="toc-q4.-the-posterior-of-your-slope-4-points" class="nav-link" data-scroll-target="#q4.-the-posterior-of-your-slope-4-points">Q4. The posterior of your slope (4 points)</a></li>
+  <li><a href="#q1.-set-up-the-model-3-points" id="toc-q1.-set-up-the-model-3-points" class="nav-link active" data-scroll-target="#q1.-set-up-the-model-3-points">Q1. Set up the model (3 points)</a></li>
+  <li><a href="#q2.-priors-and-the-prior-predictive-5-points" id="toc-q2.-priors-and-the-prior-predictive-5-points" class="nav-link" data-scroll-target="#q2.-priors-and-the-prior-predictive-5-points">Q2. Priors and the prior predictive (5 points)</a></li>
+  <li><a href="#q3.-fit-it-two-ways-4-points" id="toc-q3.-fit-it-two-ways-4-points" class="nav-link" data-scroll-target="#q3.-fit-it-two-ways-4-points">Q3. Fit it two ways (4 points)</a></li>
+  <li><a href="#q4.-the-posterior-of-your-slope-5-points" id="toc-q4.-the-posterior-of-your-slope-5-points" class="nav-link" data-scroll-target="#q4.-the-posterior-of-your-slope-5-points">Q4. The posterior of your slope (5 points)</a></li>
   <li><a href="#q5.-draws-3-points" id="toc-q5.-draws-3-points" class="nav-link" data-scroll-target="#q5.-draws-3-points">Q5. Draws (3 points)</a></li>
-  <li><a href="#q6.-does-the-model-reproduce-your-data-4-points" id="toc-q6.-does-the-model-reproduce-your-data-4-points" class="nav-link" data-scroll-target="#q6.-does-the-model-reproduce-your-data-4-points">Q6. Does the model reproduce your data? (4 points)</a></li>
+  <li><a href="#q6.-does-the-model-reproduce-your-data-5-points" id="toc-q6.-does-the-model-reproduce-your-data-5-points" class="nav-link" data-scroll-target="#q6.-does-the-model-reproduce-your-data-5-points">Q6. Does the model reproduce your data? (5 points)</a></li>
   </ul>
 </nav>
     </div>
@@ -227,15 +227,15 @@ window.Quarto = {
 </header>
 
 
-<p><strong>Due:</strong> Thursday, Feb 4 at 2:30 pm on Canvas · <strong>Size:</strong> full analysis · <strong>Points:</strong> 20 · <strong>Covers:</strong> <a href="./regression-2.html">Regression part 1</a></p>
+<p><strong>Due:</strong> Thursday, Feb 4 at 2:30 pm on Canvas · <strong>Points:</strong> 25 · <strong>Covers:</strong> <a href="./regression-2.html">Regression part 1</a></p>
 <p>Start from the <a href="hw-template.qmd" download="hw-template.qmd">homework template</a>, use <code>## Q1</code> to <code>## Q6</code> headings, and turn in both the <code>.qmd</code> and the rendered <code>.html</code>. Save your brms fits with <code>file =</code> so re-rendering doesn’t refit every time.</p>
 <p><strong>Data.</strong> Use your own data: one continuous outcome and one continuous predictor. If you don’t have data you can use yet, use <code>sat.act</code> from the {psych} package (verbal SAT, <code>SATV</code>, predicted by <code>ACT</code>) and say so.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(psych)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> sat.act</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<section id="q1.-set-up-the-model-2-points" class="level2">
-<h2 class="anchored" data-anchor-id="q1.-set-up-the-model-2-points">Q1. Set up the model (2 points)</h2>
+<section id="q1.-set-up-the-model-3-points" class="level2">
+<h2 class="anchored" data-anchor-id="q1.-set-up-the-model-3-points">Q1. Set up the model (3 points)</h2>
 <ol type="a">
 <li>Describe your outcome and predictor in a sentence each: what they measure, their units, and their range.</li>
 <li>Center your predictor, so the intercept means something.</li>
@@ -251,24 +251,24 @@ y_i &amp;\sim \text{Normal}(\mu_i, \sigma) \\
 \end{aligned}
 \]</span></p>
 </section>
-<section id="q2.-priors-and-the-prior-predictive-4-points" class="level2">
-<h2 class="anchored" data-anchor-id="q2.-priors-and-the-prior-predictive-4-points">Q2. Priors and the prior predictive (4 points)</h2>
+<section id="q2.-priors-and-the-prior-predictive-5-points" class="level2">
+<h2 class="anchored" data-anchor-id="q2.-priors-and-the-prior-predictive-5-points">Q2. Priors and the prior predictive (5 points)</h2>
 <ol type="a">
 <li>Choose a prior for the intercept, the slope, and σ. For <strong>each</strong>, give one sentence of justification <strong>in the units of your variables</strong>. For example, “the average SAT verbal score is surely between 400 and 800” is a justification; “normal(0, 10) is weakly informative” is not.</li>
 <li>Simulate 100 regression lines from your priors (by hand like in class, or with <code>sample_prior = "only"</code> in <code>brm()</code>) and plot them over the range of your predictor.</li>
 <li>Do the lines make predictions that are impossible or absurd for your outcome? If so, revise your priors, show the new prior predictive, and say what you changed. If not, say how you know.</li>
 </ol>
 </section>
-<section id="q3.-fit-it-two-ways-3-points" class="level2">
-<h2 class="anchored" data-anchor-id="q3.-fit-it-two-ways-3-points">Q3. Fit it two ways (3 points)</h2>
+<section id="q3.-fit-it-two-ways-4-points" class="level2">
+<h2 class="anchored" data-anchor-id="q3.-fit-it-two-ways-4-points">Q3. Fit it two ways (4 points)</h2>
 <ol type="a">
 <li>Fit the model with <code>lm()</code>.</li>
 <li>Fit the model with <code>brm()</code> using your priors from Q2.</li>
 <li>Put the intercept and slope estimates (and their uncertainty: SE and CI from <code>lm</code>, posterior SD and 95% interval from brms) side by side in a small table. Are they similar? Why would you expect them to be (or not to be) with your data?</li>
 </ol>
 </section>
-<section id="q4.-the-posterior-of-your-slope-4-points" class="level2">
-<h2 class="anchored" data-anchor-id="q4.-the-posterior-of-your-slope-4-points">Q4. The posterior of your slope (4 points)</h2>
+<section id="q4.-the-posterior-of-your-slope-5-points" class="level2">
+<h2 class="anchored" data-anchor-id="q4.-the-posterior-of-your-slope-5-points">Q4. The posterior of your slope (5 points)</h2>
 <ol type="a">
 <li>Plot the posterior distribution of the slope with {tidybayes} (e.g., <code>spread_draws()</code> and <code>stat_halfeye()</code>).</li>
 <li>Add your prior for the slope to the same plot. How much did the data move you?</li>
@@ -283,8 +283,8 @@ y_i &amp;\sim \text{Normal}(\mu_i, \sigma) \\
 <li>Refit with four times as many draws. What changes in your Q4 summaries, and what doesn’t? Does asking for more draws give you more <em>information</em> about the slope?</li>
 </ol>
 </section>
-<section id="q6.-does-the-model-reproduce-your-data-4-points" class="level2">
-<h2 class="anchored" data-anchor-id="q6.-does-the-model-reproduce-your-data-4-points">Q6. Does the model reproduce your data? (4 points)</h2>
+<section id="q6.-does-the-model-reproduce-your-data-5-points" class="level2">
+<h2 class="anchored" data-anchor-id="q6.-does-the-model-reproduce-your-data-5-points">Q6. Does the model reproduce your data? (5 points)</h2>
 <ol type="a">
 <li>Run <code>pp_check()</code> on your brms model (try a couple of <code>type =</code> options, e.g., <code>"dens_overlay"</code> and <code>"stat"</code>).</li>
 <li>Describe where the simulated data match your observed data and where they don’t. What feature of your data is the model missing, if any? (Bounded scales, skew, and ceiling effects are common culprits.) You don’t need to fix it, just diagnose it.</li>

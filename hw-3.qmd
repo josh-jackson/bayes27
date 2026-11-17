@@ -2,13 +2,13 @@
 title: "HW 3: Lines, bands, priors, and groups"
 ---
 
-**Due:** Thursday, Feb 11 at 2:30 pm on Canvas · **Size:** light · **Covers:** [Regression part 2](regression-3.qmd)
+**Due:** Thursday, Feb 11 at 2:30 pm on Canvas · **Points:** 25 · **Covers:** [Regression part 2](regression-3.qmd)
 
-Start from the [homework template](hw-template.qmd){download="hw-template.qmd"}, use `## Q1` to `## Q3` headings, and turn in both the `.qmd` and the rendered `.html`. Each question is graded 0 / 1 / 2 (missing / attempted / solid); answers in words count.
+Start from the [homework template](hw-template.qmd){download="hw-template.qmd"}, use `## Q1` to `## Q4` headings, and turn in both the `.qmd` and the rendered `.html`. Points for each question are in its heading; answers in words count.
 
-Q1 and Q2 build on **your model from HW 2**: same data, same priors. Load the fit you saved with `file =` instead of refitting. Q3 needs a categorical predictor. If your own data don't have one, use `sat.act` from {psych} with `SATV` by `gender` (1 = male, 2 = female in this dataset), and say so.
+Q1, Q2 and Q4 build on **your model from HW 2**: same data, same priors. Load the fit you saved with `file =` instead of refitting. Q3 needs a categorical predictor. If your own data don't have one, use `sat.act` from {psych} with `SATV` by `gender` (1 = male, 2 = female in this dataset), and say so.
 
-## Q1. Confidence vs. prediction
+## Q1. Confidence vs. prediction (7 points)
 
 Make one plot with:
 
@@ -21,7 +21,7 @@ This is your first **publication-ready figure**: make it meet the [checklist](ho
 
 Then in two or three sentences: why is the prediction band so much wider? Which band would you use to answer "what's the average score for people with X = 30?" and which for "what score will *this* person with X = 30 get?"
 
-## Q2. How much does the prior matter?
+## Q2. How much does the prior matter? (7 points)
 
 Refit your HW 2 model with a **deliberately bad** prior on the slope: strong and centered in the wrong place. For example, if your slope is positive, use something like `normal(-10, 1)` scaled to your variables. Then:
 
@@ -35,7 +35,7 @@ c) **Sequential updating in brms.** In HW 1 you saw that "today's posterior is t
 
    How close are they? Why is the brms version only *approximately* the same, when the grid version in HW 1 was exact? (Hint: what information about the first-half posterior did you throw away by summarizing it with a mean and an SD? What did you do about σ?)
 
-## Q3. Groups
+## Q3. Groups (7 points)
 
 Fit a model with your outcome predicted by a categorical variable using **index coding** (`y ~ 0 + group`), with one prior for all the group means.
 
@@ -43,3 +43,11 @@ a) Write the model in likelihood notation.
 b) Get the posterior of the difference between two groups, either with {marginaleffects} (`avg_predictions()` with `by =` and a `hypothesis`) or from the draws with {tidybayes}. Report it with a 95% interval.
 c) Convert the difference into a standardized effect (divide the difference by σ, draw by draw) and report its posterior.
 d) What is the posterior probability that the difference is greater than 0? (Count the share of draws where it is, or use `hypothesis()` with `>` as in class and read `Post.Prob`.) In one sentence, how is that different from a *p*-value? We'll come back to this "probability of direction" in week 6.
+
+## Q4. Count your draws (4 points)
+
+Every plot and summary above is built from posterior draws. It pays to know how many rows you're working with, especially with {marginaleffects}, which hides the draws until you ask for them with `get_draws()`.
+
+a) Your Q1 plot fed a grid of X values to `add_epred_draws()`. **Before** running `nrow()`, predict how many rows that data frame has from the number of grid values and the number of draws (`ndraws(model)`), then check. How many rows did the version with `ndraws = 50` have?
+b) Run `predictions()` on your HW 2 model with **no** `newdata`. How many rows does the result have, and how many does `get_draws()` on it have? Where do those two numbers come from? Now do the same with `newdata = datagrid()` at three values of your predictor. Why does the default grid get big fast, and when would that matter?
+c) In Q3 you got the group difference as a single row from {marginaleffects} (or from your own draws). How many draws is that one number summarizing? Using the draws (`get_draws()`, or your Q3 data frame), compute the median and 95% interval of the difference yourself with `median()` and `quantile()`, and check that they match what was reported.

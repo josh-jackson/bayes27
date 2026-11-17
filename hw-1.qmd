@@ -2,11 +2,11 @@
 title: "HW 1: Distributions, priors, and counting"
 ---
 
-**Due:** Thursday, Jan 28 at 2:30 pm on Canvas · **Size:** light (about an hour) · **Covers:** [Lecture 1](bayes-1.qmd)
+**Due:** Thursday, Jan 28 at 2:30 pm on Canvas · **Points:** 25 · **Covers:** [Lecture 1](bayes-1.qmd)
 
-Start from the [homework template](hw-template.qmd){download="hw-template.qmd"}, use `## Q1`, `## Q2`, `## Q3` headings, and turn in both the `.qmd` and the rendered `.html`. Each question is graded 0 / 1 / 2 (missing / attempted / solid). Answers in words count: a plot with no interpretation is a 1.
+Start from the [homework template](hw-template.qmd){download="hw-template.qmd"}, use `## Q1`, `## Q2`, `## Q3` headings, and turn in both the `.qmd` and the rendered `.html`. Points for each question are in its heading. Answers in words count: a plot with no interpretation earns only part of the points.
 
-## Q1. Get comfortable with distributions
+## Q1. Get comfortable with distributions (6 points)
 
 Everything this semester is a distribution: priors, likelihoods, posteriors. So let's look at a few we'll keep running into.
 
@@ -30,7 +30,7 @@ ggplot() +
   labs(color = NULL, y = "density")
 ```
 
-## Q2. Bayes is just counting
+## Q2. Bayes is just counting (12 points)
 
 In a study of 20 participants, 14 recalled more words in the experimental condition than in the control condition. Let θ be the probability that a participant shows the effect.
 
@@ -48,7 +48,7 @@ b) Do it again with a **skeptical prior**: you think the effect is probably smal
 c) Now suppose the study had 200 participants and 140 showed the effect (same proportion). Redo (b). What changed about the posterior, and why does the prior matter less now?
 d) **Today's posterior is tomorrow's prior.** Suppose the 200 participants came in two waves: the 20 from (b), then 180 more, of whom 126 showed the effect. Take your posterior from (b), the whole grid column, and use it as the **prior** for the second wave (likelihood `dbinom(126, 180, theta)`). Plot the result on top of your posterior from (c). What do you notice, and why does it happen? What does that mean for how a lab could accumulate evidence across studies?
 
-## Q3. Priors for your own research
+## Q3. Priors for your own research (7 points)
 
 Pick one of your own recent analyses (or one you're planning). Briefly describe the parameter you care about (e.g., a regression coefficient comparing two groups) and the effect size you found or expect (e.g., *d* = .3). Then:
 

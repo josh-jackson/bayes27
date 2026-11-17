@@ -5793,7 +5793,7 @@
     "href": "syllabus.html#grading",
     "title": "Syllabus",
     "section": "Grading",
-    "text": "Grading\nNo exams this year. Your grade has two parts:\n\n\n\nComponent\nWeight\n\n\n\n\nWeekly homework (13 assignments, lowest one dropped)\n70%\n\n\nFinal project\n30%\n\n\n\n\nHomework\nThere is homework (almost) every week, just to keep you doing something with the material every week. Some weeks it’s a quick check that takes under an hour; other weeks it’s a full analysis. Each homework counts equally, and your lowest homework score is dropped. A homework you skip counts as a zero, so that’s the one that gets dropped.\nHomework is mostly applied computation, often with your own data. You may work on homework together in groups, but everyone turns in their own write-up.\n\nPosted Thursday after class; due the following Thursday at 2:30 pm (start of class) on Canvas. The homework spanning spring break is due the Thursday after break.\nTurn in two files: your .qmd and the rendered .html. Start from the homework template, which sets things up so the .html is one self-contained file with your code showing.\nLate homework loses 10% of its points for each day (or part of a day) it’s late, counted from the original due date. One day late, the best you can get is 90%; five days late, 50%; ten days late, nothing.\n\nI use AI (in line with the policy below) to help with a first pass at grading: checking that code runs, that models match the question, and drafting feedback. I review everything and assign every grade myself.\n\n\nFinal project\nThe final project is a series of models and visualizations using your own data. We (you and Josh) will work together to go over what your data are, and what sort of analyses, checks and visualizations you should do. The sooner in the semester you have these conversations with me, the better. By week 6 (Feb 23) you need to have a plan approved. The project is due during finals week.\nGrades:\n\n\n\nFinal %\nGrade\n\n\n\n\n100\nA+\n\n\n92 to &lt;100\nA\n\n\n90 to &lt;92\nA−\n\n\n89 to &lt;90\nB+\n\n\n81 to &lt;89\nB\n\n\n80 to &lt;81\nB−\n\n\n70 to &lt;80\nC\n\n\n60 to &lt;70\nD\n\n\nbelow 60\nF"
+    "text": "Grading\nNo exams this year. Your grade has two parts:\n\n\n\nComponent\nWeight\n\n\n\n\nWeekly homework (13 assignments, lowest one dropped)\n70%\n\n\nFinal project\n30%\n\n\n\n\nHomework\nThere is homework (almost) every week, just to keep you doing something with the material every week. Each homework is worth 25 points and counts equally, and your lowest homework score is dropped. A homework you skip counts as a zero, so that’s the one that gets dropped.\nHomework is mostly applied computation, often with your own data. You may work on homework together in groups, but everyone turns in their own write-up.\n\nPosted Thursday after class; due the following Thursday at 2:30 pm (start of class) on Canvas. The homework spanning spring break is due the Thursday after break.\nTurn in two files: your .qmd and the rendered .html. Start from the homework template, which sets things up so the .html is one self-contained file with your code showing.\nLate homework loses 10% of its points for each day (or part of a day) it’s late, counted from the original due date. One day late, the best you can get is 90%; five days late, 50%; ten days late, nothing.\n\nI use AI (in line with the policy below) to help with a first pass at grading: checking that code runs, that models match the question, and drafting feedback. I review everything and assign every grade myself.\n\n\nFinal project\nThe final project is a series of models and visualizations using your own data. We (you and Josh) will work together to go over what your data are, and what sort of analyses, checks and visualizations you should do. The sooner in the semester you have these conversations with me, the better. By week 6 (Feb 23) you need to have a plan approved. The project is due during finals week.\nGrades:\n\n\n\nFinal %\nGrade\n\n\n\n\n100\nA+\n\n\n92 to &lt;100\nA\n\n\n90 to &lt;92\nA−\n\n\n89 to &lt;90\nB+\n\n\n81 to &lt;89\nB\n\n\n80 to &lt;81\nB−\n\n\n70 to &lt;80\nC\n\n\n60 to &lt;70\nD\n\n\nbelow 60\nF"
   },
   {
     "objectID": "syllabus.html#class-procedure",
@@ -5821,7 +5821,7 @@
     "href": "hw-1.html",
     "title": "HW 1: Distributions, priors, and counting",
     "section": "",
-    "text": "Due: Thursday, Jan 28 at 2:30 pm on Canvas · Size: light (about an hour) · Covers: Lecture 1\nStart from the homework template, use ## Q1, ## Q2, ## Q3 headings, and turn in both the .qmd and the rendered .html. Each question is graded 0 / 1 / 2 (missing / attempted / solid). Answers in words count: a plot with no interpretation is a 1."
+    "text": "Due: Thursday, Jan 28 at 2:30 pm on Canvas · Points: 25 · Covers: Lecture 1\nStart from the homework template, use ## Q1, ## Q2, ## Q3 headings, and turn in both the .qmd and the rendered .html. Points for each question are in its heading. Answers in words count: a plot with no interpretation earns only part of the points."
   },
   {
     "objectID": "hw-1.html#q1.-get-comfortable-with-distributions",
@@ -5849,7 +5849,7 @@
     "href": "hw-2.html",
     "title": "HW 2: Your first brms model",
     "section": "",
-    "text": "Due: Thursday, Feb 4 at 2:30 pm on Canvas · Size: full analysis · Points: 20 · Covers: Regression part 1\nStart from the homework template, use ## Q1 to ## Q6 headings, and turn in both the .qmd and the rendered .html. Save your brms fits with file = so re-rendering doesn’t refit every time.\nData. Use your own data: one continuous outcome and one continuous predictor. If you don’t have data you can use yet, use sat.act from the {psych} package (verbal SAT, SATV, predicted by ACT) and say so.\nlibrary(psych)\nd &lt;- sat.act"
+    "text": "Due: Thursday, Feb 4 at 2:30 pm on Canvas · Points: 25 · Covers: Regression part 1\nStart from the homework template, use ## Q1 to ## Q6 headings, and turn in both the .qmd and the rendered .html. Save your brms fits with file = so re-rendering doesn’t refit every time.\nData. Use your own data: one continuous outcome and one continuous predictor. If you don’t have data you can use yet, use sat.act from the {psych} package (verbal SAT, SATV, predicted by ACT) and say so.\nlibrary(psych)\nd &lt;- sat.act"
   },
   {
     "objectID": "hw-2.html#q1.-set-up-the-model-2-points",
@@ -5898,7 +5898,7 @@
     "href": "hw-3.html",
     "title": "HW 3: Lines, bands, priors, and groups",
     "section": "",
-    "text": "Due: Thursday, Feb 11 at 2:30 pm on Canvas · Size: light · Covers: Regression part 2\nStart from the homework template, use ## Q1 to ## Q3 headings, and turn in both the .qmd and the rendered .html. Each question is graded 0 / 1 / 2 (missing / attempted / solid); answers in words count.\nQ1 and Q2 build on your model from HW 2: same data, same priors. Load the fit you saved with file = instead of refitting. Q3 needs a categorical predictor. If your own data don’t have one, use sat.act from {psych} with SATV by gender (1 = male, 2 = female in this dataset), and say so."
+    "text": "Due: Thursday, Feb 11 at 2:30 pm on Canvas · Points: 25 · Covers: Regression part 2\nStart from the homework template, use ## Q1 to ## Q4 headings, and turn in both the .qmd and the rendered .html. Points for each question are in its heading; answers in words count.\nQ1, Q2 and Q4 build on your model from HW 2: same data, same priors. Load the fit you saved with file = instead of refitting. Q3 needs a categorical predictor. If your own data don’t have one, use sat.act from {psych} with SATV by gender (1 = male, 2 = female in this dataset), and say so."
   },
   {
     "objectID": "hw-3.html#q1.-confidence-vs.-prediction",
@@ -5926,7 +5926,7 @@
     "href": "hw-4.html",
     "title": "HW 4: Factorial models and interactions",
     "section": "",
-    "text": "Due: Thursday, Feb 18 at 2:30 pm on Canvas · Size: full analysis · Points: 25 · Covers: Multiple regression\nStart from the homework template, use ## Q1 to ## Q6 headings, and turn in both the .qmd and the rendered .html. Save brms fits with file =. Use 97% intervals throughout (a nod to McElreath: there’s nothing magic about 95%)."
+    "text": "Due: Thursday, Feb 18 at 2:30 pm on Canvas · Points: 25 · Covers: Multiple regression\nStart from the homework template, use ## Q1 to ## Q6 headings, and turn in both the .qmd and the rendered .html. Save brms fits with file =. Use 97% intervals throughout (a nod to McElreath: there’s nothing magic about 95%)."
   },
   {
     "objectID": "hw-4.html#part-a-a-2-3-factorial-q1q3",
@@ -5989,7 +5989,7 @@
     "href": "hw-5.html",
     "title": "HW 5: When the chains go wild",
     "section": "",
-    "text": "Due: Thursday, Feb 25 at 2:30 pm on Canvas · Size: light · Covers: MCMC\nStart from the homework template, use ## Q1 to ## Q3 headings, and turn in both the .qmd and the rendered .html. Each question is graded 0 / 1 / 2 (missing / attempted / solid); answers in words count.\nReminder: your final project plan needs to be approved by Tuesday, Feb 23."
+    "text": "Due: Thursday, Feb 25 at 2:30 pm on Canvas · Points: 25 · Covers: MCMC\nStart from the homework template, use ## Q1 to ## Q3 headings, and turn in both the .qmd and the rendered .html. Points for each question are in its heading; answers in words count.\nReminder: your final project plan needs to be approved by Tuesday, Feb 23."
   },
   {
     "objectID": "hw-5.html#the-setup",
@@ -6024,7 +6024,7 @@
     "href": "hw-6.html",
     "title": "HW 6: Comparing models and making claims",
     "section": "",
-    "text": "Due: Thursday, Mar 4 at 2:30 pm on Canvas · Size: light · Covers: Information, NHST and model fit\nStart from the homework template, use ## Q1 to ## Q3 headings, and turn in both the .qmd and the rendered .html. Each question is graded 0 / 1 / 2 (missing / attempted / solid); answers in words count.\nData. Use the same data as your HW 4 Part B (your own, or sat.act from {psych}). If you used sat.act, use SATQ as the outcome, with ACT, education, and gender as candidate predictors (center the continuous ones; make gender a factor with real labels)."
+    "text": "Due: Thursday, Mar 4 at 2:30 pm on Canvas · Points: 25 · Covers: Information, NHST and model fit\nStart from the homework template, use ## Q1 to ## Q3 headings, and turn in both the .qmd and the rendered .html. Points for each question are in its heading; answers in words count.\nData. Use the same data as your HW 4 Part B (your own, or sat.act from {psych}). If you used sat.act, use SATQ as the outcome, with ACT, education, and gender as candidate predictors (center the continuous ones; make gender a factor with real labels)."
   },
   {
     "objectID": "hw-6.html#q1.-which-model-predicts-best",
@@ -6052,7 +6052,7 @@
     "href": "hw-7.html",
     "title": "HW 7: Logistic regression",
     "section": "",
-    "text": "Due: Thursday, Mar 11 at 2:30 pm on Canvas · Size: full analysis · Points: 25 · Covers: GLMs: logistic and multinomial regression\nStart from the homework template, use ## Q1 to ## Q6 headings, and turn in both the .qmd and the rendered .html. Save brms fits with file =.\nData. The mortality data from class: 300 people, whether they died prematurely, their risky behavior score, and IQ (both on the study’s own scales). Model premature death (1 = premature), not survival:\nlibrary(tidyverse)\nmortality &lt;- read_csv(\"https://josh-jackson.github.io/bayes27/mortality.csv\") |&gt;\n  select(-1) |&gt;                                   # drop the row-number column\n  mutate(premature = 1 - NOT.premature,\n         risky_c = Risky.behavior - mean(Risky.behavior),\n         IQ_c = IQ - mean(IQ))"
+    "text": "Due: Thursday, Mar 11 at 2:30 pm on Canvas · Points: 25 · Covers: GLMs: logistic and multinomial regression\nStart from the homework template, use ## Q1 to ## Q6 headings, and turn in both the .qmd and the rendered .html. Save brms fits with file =.\nData. The mortality data from class: 300 people, whether they died prematurely, their risky behavior score, and IQ (both on the study’s own scales). Model premature death (1 = premature), not survival:\nlibrary(tidyverse)\nmortality &lt;- read_csv(\"https://josh-jackson.github.io/bayes27/mortality.csv\") |&gt;\n  select(-1) |&gt;                                   # drop the row-number column\n  mutate(premature = 1 - NOT.premature,\n         risky_c = Risky.behavior - mean(Risky.behavior),\n         IQ_c = IQ - mean(IQ))"
   },
   {
     "objectID": "hw-7.html#q1.-set-up-the-model-4-points",
@@ -6101,7 +6101,7 @@
     "href": "hw-8.html",
     "title": "HW 8: Counts and ordered categories",
     "section": "",
-    "text": "Due: Thursday, Mar 25 at 2:30 pm on Canvas (this one spans spring break) · Size: full analysis · Points: 25 · Covers: GLMs: counts and ordinal outcomes\nStart from the homework template, use ## Q1 to ## Q6 headings, and turn in both the .qmd and the rendered .html. Save brms fits with file =. Some of these models take a minute or two; don’t leave it for the last night of break."
+    "text": "Due: Thursday, Mar 25 at 2:30 pm on Canvas (this one spans spring break) · Points: 25 · Covers: GLMs: counts and ordinal outcomes\nStart from the homework template, use ## Q1 to ## Q6 headings, and turn in both the .qmd and the rendered .html. Save brms fits with file =. Some of these models take a minute or two; don’t leave it for the last night of break."
   },
   {
     "objectID": "hw-8.html#part-a-counts-q1q3",
@@ -6164,7 +6164,7 @@
     "href": "hw-9.html",
     "title": "HW 9: Varying intercepts and partial pooling",
     "section": "",
-    "text": "Due: Thursday, Apr 1 at 2:30 pm on Canvas · Size: full analysis · Points: 25 · Covers: Multilevel models 1\nStart from the homework template, use ## Q1 to ## Q6 headings, and turn in both the .qmd and the rendered .html. Save brms fits with file =.\nData. If you have your own nested data (repeated measures within people, people within groups), you may use it: say what the levels are. Otherwise use this version of the classic sleep-deprivation study: reaction times (ms) for 18 people across days of sleep restriction. To make partial pooling visible, some people “missed sessions,” so people have between 3 and 10 observations.\nlibrary(tidyverse)\ndata(sleepstudy, package = \"lme4\")   # install.packages(\"lme4\") if needed\n\nset.seed(9)\nkeep &lt;- tibble(Subject = unique(sleepstudy$Subject),\n               n_days = sample(c(2, 3, 4, 6, 8, 10, 10, 10), 18, replace = TRUE))\nsleep &lt;- sleepstudy |&gt;\n  left_join(keep, by = \"Subject\") |&gt;\n  mutate(u = runif(n())) |&gt;\n  group_by(Subject) |&gt;\n  filter(rank(u) &lt;= n_days) |&gt;\n  ungroup() |&gt;\n  select(Reaction, Days, Subject)"
+    "text": "Due: Thursday, Apr 1 at 2:30 pm on Canvas · Points: 25 · Covers: Multilevel models 1\nStart from the homework template, use ## Q1 to ## Q6 headings, and turn in both the .qmd and the rendered .html. Save brms fits with file =.\nData. If you have your own nested data (repeated measures within people, people within groups), you may use it: say what the levels are. Otherwise use this version of the classic sleep-deprivation study: reaction times (ms) for 18 people across days of sleep restriction. To make partial pooling visible, some people “missed sessions,” so people have between 3 and 10 observations.\nlibrary(tidyverse)\ndata(sleepstudy, package = \"lme4\")   # install.packages(\"lme4\") if needed\n\nset.seed(9)\nkeep &lt;- tibble(Subject = unique(sleepstudy$Subject),\n               n_days = sample(c(2, 3, 4, 6, 8, 10, 10, 10), 18, replace = TRUE))\nsleep &lt;- sleepstudy |&gt;\n  left_join(keep, by = \"Subject\") |&gt;\n  mutate(u = runif(n())) |&gt;\n  group_by(Subject) |&gt;\n  filter(rank(u) &lt;= n_days) |&gt;\n  ungroup() |&gt;\n  select(Reaction, Days, Subject)"
   },
   {
     "objectID": "hw-9.html#q1.-the-structure-3-points",
@@ -6213,7 +6213,7 @@
     "href": "hw-10.html",
     "title": "HW 10: Varying slopes",
     "section": "",
-    "text": "Due: Thursday, Apr 8 at 2:30 pm on Canvas · Size: light · Covers: Multilevel models 2\nStart from the homework template, use ## Q1 to ## Q3 headings, and turn in both the .qmd and the rendered .html. Each question is graded 0 / 1 / 2 (missing / attempted / solid); answers in words count.\nData. Your own nested data with a level-1 predictor (if you used your own data for HW 9), or the full sleep-deprivation data this time: all 10 days for all 18 people.\ndata(sleepstudy, package = \"lme4\")"
+    "text": "Due: Thursday, Apr 8 at 2:30 pm on Canvas · Points: 25 · Covers: Multilevel models 2\nStart from the homework template, use ## Q1 to ## Q3 headings, and turn in both the .qmd and the rendered .html. Points for each question are in its heading; answers in words count.\nData. Your own nested data with a level-1 predictor (if you used your own data for HW 9), or the full sleep-deprivation data this time: all 10 days for all 18 people.\ndata(sleepstudy, package = \"lme4\")"
   },
   {
     "objectID": "hw-10.html#q1.-let-the-slopes-vary",
@@ -6241,7 +6241,7 @@
     "href": "hw-11.html",
     "title": "HW 11: When the data are uncertain too",
     "section": "",
-    "text": "Due: Thursday, Apr 15 at 2:30 pm on Canvas · Size: light · Covers: Advanced models 1 (missing data and measurement error)\nStart from the homework template, use ## Q1 to ## Q4 headings, and turn in both the .qmd and the rendered .html. Each question is graded 0 / 1 / 2 (missing / attempted / solid); answers in words count.\nThe big idea. In a Bayesian model, anything you don’t know is a parameter: a regression slope, but also a value someone skipped, or a person’s true score hiding behind a noisy questionnaire. The model gives each unknown a posterior, and the uncertainty flows into everything else. This homework uses simulated data so you can check each approach against the truth. The brms author’s vignette, Handle Missing Values with brms, is a good companion.\nlibrary(tidyverse)\nset.seed(11)\nn &lt;- 200\nd &lt;- tibble(anx_true = rnorm(n, 3, .8),                                  # true anxiety (you never get this in real life!)\n            stress   = .6 * (anx_true - 3) / .8 + rnorm(n, 0, .8),      # a related measure, fully observed\n            sleep    = 7 - .6 * (anx_true - 3) + rnorm(n, 0, .8),       # hours of sleep\n            anx      = anx_true + rnorm(n, 0, .653)) |&gt;                 # observed anxiety score (alpha = .60)\n  mutate(anx_missing = ifelse(rbinom(n, 1, plogis(-1.3 - 1.5 * (sleep - 7))) == 1, NA, anx))\nThe true effect: each point of true anxiety costs 0.6 hours of sleep. In the data, anx is the observed anxiety score (reliability α = .60), and anx_missing is the same score with about 28% missing. People who slept badly were more likely to skip the anxiety questionnaire.\nFor Q1–Q2, pretend you only have sleep, stress, and anx_missing. Don’t let anx_true or anx anywhere near your imputation!"
+    "text": "Due: Thursday, Apr 15 at 2:30 pm on Canvas · Points: 25 · Covers: Advanced models 1 (missing data and measurement error)\nStart from the homework template, use ## Q1 to ## Q4 headings, and turn in both the .qmd and the rendered .html. Points for each question are in its heading; answers in words count.\nThe big idea. In a Bayesian model, anything you don’t know is a parameter: a regression slope, but also a value someone skipped, or a person’s true score hiding behind a noisy questionnaire. The model gives each unknown a posterior, and the uncertainty flows into everything else. This homework uses simulated data so you can check each approach against the truth. The brms author’s vignette, Handle Missing Values with brms, is a good companion.\nlibrary(tidyverse)\nset.seed(11)\nn &lt;- 200\nd &lt;- tibble(anx_true = rnorm(n, 3, .8),                                  # true anxiety (you never get this in real life!)\n            stress   = .6 * (anx_true - 3) / .8 + rnorm(n, 0, .8),      # a related measure, fully observed\n            sleep    = 7 - .6 * (anx_true - 3) + rnorm(n, 0, .8),       # hours of sleep\n            anx      = anx_true + rnorm(n, 0, .653)) |&gt;                 # observed anxiety score (alpha = .60)\n  mutate(anx_missing = ifelse(rbinom(n, 1, plogis(-1.3 - 1.5 * (sleep - 7))) == 1, NA, anx))\nThe true effect: each point of true anxiety costs 0.6 hours of sleep. In the data, anx is the observed anxiety score (reliability α = .60), and anx_missing is the same score with about 28% missing. People who slept badly were more likely to skip the anxiety questionnaire.\nFor Q1–Q2, pretend you only have sleep, stress, and anx_missing. Don’t let anx_true or anx anywhere near your imputation!"
   },
   {
     "objectID": "hw-11.html#q1.-missing-data-option-1-impute-before-fitting",
@@ -6276,7 +6276,7 @@
     "href": "hw-12.html",
     "title": "HW 12: Modeling variability",
     "section": "",
-    "text": "Due: Thursday, Apr 22 at 2:30 pm on Canvas · Size: full analysis · Points: 25 · Covers: Advanced models 2 (distributional models and MELSM); Williams et al. (2021)\nStart from the homework template, use ## Q1 to ## Q5 headings, and turn in both the .qmd and the rendered .html. Save brms fits with file =.\nThe big idea. Every model so far predicted the mean and treated the spread (σ) as one number for everyone. But variability is often the interesting part: some groups are more heterogeneous than others, some people are more consistent than others. A distributional model puts predictors on σ too. With brms that’s one extra line: bf(y ~ ..., sigma ~ ...)."
+    "text": "Due: Thursday, Apr 22 at 2:30 pm on Canvas · Points: 25 · Covers: Advanced models 2 (distributional models and MELSM); Williams et al. (2021)\nStart from the homework template, use ## Q1 to ## Q5 headings, and turn in both the .qmd and the rendered .html. Save brms fits with file =.\nThe big idea. Every model so far predicted the mean and treated the spread (σ) as one number for everyone. But variability is often the interesting part: some groups are more heterogeneous than others, some people are more consistent than others. A distributional model puts predictors on σ too. With brms that’s one extra line: bf(y ~ ..., sigma ~ ...)."
   },
   {
     "objectID": "hw-12.html#part-a-do-groups-differ-in-spread-q1q2",
@@ -6332,7 +6332,7 @@
     "href": "hw-13.html",
     "title": "HW 13: Your first Stan programs",
     "section": "",
-    "text": "Due: Thursday, Apr 29 at 2:30 pm on Canvas · Size: full analysis · Points: 25 · Covers: Stan basics and Cognitive and IRT models\nStart from the homework template, use ## Q1 to ## Q5 headings, and turn in both the .qmd and the rendered .html.\nThe big idea. All semester, brms has been writing Stan programs for you (you may have peeked in the “Under the hood” boxes). Now you’ll write two yourself: first a model you already know, so you can check you got it right, then a 2PL IRT model, the kind of model where writing Stan directly is often easier than coaxing brms into it.\nSetup. You already have Stan installed through {cmdstanr}. In R, a Stan program can live in a string; write_stan_file() saves it and cmdstan_model() compiles it:\nlibrary(cmdstanr)\nlibrary(posterior)\nlibrary(tidybayes)\n\ncode &lt;- \"\ndata { ... }\nparameters { ... }\nmodel { ... }\n\"\nmod &lt;- cmdstan_model(write_stan_file(code))\nfit &lt;- mod$sample(data = list(...), seed = 13, chains = 4, parallel_chains = 4)\nfit$summary()\ndraws &lt;- as_draws_df(fit$draws())      # works with tidybayes / ggplot like any other draws\nStan is picky: every statement ends in ;, every variable has a declared type, and comments start with //. When it won’t compile, read the error message’s line number first."
+    "text": "Due: Thursday, Apr 29 at 2:30 pm on Canvas · Points: 25 · Covers: Stan basics and Cognitive and IRT models\nStart from the homework template, use ## Q1 to ## Q5 headings, and turn in both the .qmd and the rendered .html.\nThe big idea. All semester, brms has been writing Stan programs for you (you may have peeked in the “Under the hood” boxes). Now you’ll write two yourself: first a model you already know, so you can check you got it right, then a 2PL IRT model, the kind of model where writing Stan directly is often easier than coaxing brms into it.\nSetup. You already have Stan installed through {cmdstanr}. In R, a Stan program can live in a string; write_stan_file() saves it and cmdstan_model() compiles it:\nlibrary(cmdstanr)\nlibrary(posterior)\nlibrary(tidybayes)\n\ncode &lt;- \"\ndata { ... }\nparameters { ... }\nmodel { ... }\n\"\nmod &lt;- cmdstan_model(write_stan_file(code))\nfit &lt;- mod$sample(data = list(...), seed = 13, chains = 4, parallel_chains = 4)\nfit$summary()\ndraws &lt;- as_draws_df(fit$draws())      # works with tidybayes / ggplot like any other draws\nStan is picky: every statement ends in ;, every variable has a declared type, and comments start with //. When it won’t compile, read the error message’s line number first."
   },
   {
     "objectID": "hw-13.html#part-a-a-model-you-already-know-q1q2",
@@ -8202,5 +8202,180 @@
     "title": "Regression part 1",
     "section": "get_prior() lists; it doesn’t set",
     "text": "get_prior() lists; it doesn’t set\nget_prior() answers one question: “if I fit this model and give no priors, what would brms use?” It changes nothing. Priors are only ever set by prior = inside brm().\n\nget_prior(child ~ 1 + parent.c, data = galton.data, family = gaussian)\n\n                 prior     class     coef group resp dpar nlpar lb ub tag       source\n                (flat)         b                                               default\n                (flat)         b parent.c                                 (vectorized)\n student_t(3, 68.2, 3) Intercept                                               default\n    student_t(3, 0, 3)     sigma                                 0             default\n\n\nOne row per prior you could set:\n\nclass: the kind of parameter. b = slopes, Intercept, sigma\ncoef: blank = every slope in that class; parent.c = just that slope. (vectorized) means it inherits the blank row’s prior\nprior: the default. (flat) = no prior: every value from −∞ to ∞ equally plausible (as in lm())\nlb: lower bound. σ can’t be negative, so its student_t is really a half-t\nsource: default (brms picked it) or user (you did)"
+  },
+  {
+    "objectID": "hw-1.html#q1.-get-comfortable-with-distributions-6-points",
+    "href": "hw-1.html#q1.-get-comfortable-with-distributions-6-points",
+    "title": "HW 1: Distributions, priors, and counting",
+    "section": "Q1. Get comfortable with distributions (6 points)",
+    "text": "Q1. Get comfortable with distributions (6 points)\nEverything this semester is a distribution: priors, likelihoods, posteriors. So let’s look at a few we’ll keep running into.\nFor each distribution below, plot two versions with different parameters on the same plot (e.g., two colors), and label which is which. You pick the parameters. stat_function() or geom_line() with the d*() functions are the easiest routes (see the prior plots in Lecture 1). Wikipedia has a good page for each if they’re new to you.\n\nt (vary the degrees of freedom; dt())\nBeta (dbeta())\nCauchy (dcauchy())\nGamma (dgamma())\nExponential (dexp())\nUniform (dunif())\n\nThen answer in one or two sentences: which of these could you sensibly use as a prior for a standard deviation (σ), and which for a probability? Why not the others? (Hint: look at what values each one allows.)\n\n# one way to start\nggplot() +\n  stat_function(fun = dt, args = list(df = 1),  aes(color = \"df = 1\")) +\n  stat_function(fun = dt, args = list(df = 30), aes(color = \"df = 30\")) +\n  xlim(-5, 5) +\n  labs(color = NULL, y = \"density\")"
+  },
+  {
+    "objectID": "hw-1.html#q2.-bayes-is-just-counting-12-points",
+    "href": "hw-1.html#q2.-bayes-is-just-counting-12-points",
+    "title": "HW 1: Distributions, priors, and counting",
+    "section": "Q2. Bayes is just counting (12 points)",
+    "text": "Q2. Bayes is just counting (12 points)\nIn a study of 20 participants, 14 recalled more words in the experimental condition than in the control condition. Let θ be the probability that a participant shows the effect.\n\\[\n\\begin{aligned}\nk &\\sim \\text{Binomial}(n, \\theta) \\\\\n\\theta &\\sim \\text{prior}\n\\end{aligned}\n\\]\nUse grid approximation like we did in class (a grid of θ values from 0 to 1, a prior, a likelihood with dbinom(), multiply, normalize).\n\nCompute and plot the prior, likelihood, and posterior with a flat prior on θ.\nDo it again with a skeptical prior: you think the effect is probably small, so θ is likely near .5. Use dbeta(theta, 20, 20) as the prior. Plot all three again.\nNow suppose the study had 200 participants and 140 showed the effect (same proportion). Redo (b). What changed about the posterior, and why does the prior matter less now?\nToday’s posterior is tomorrow’s prior. Suppose the 200 participants came in two waves: the 20 from (b), then 180 more, of whom 126 showed the effect. Take your posterior from (b), the whole grid column, and use it as the prior for the second wave (likelihood dbinom(126, 180, theta)). Plot the result on top of your posterior from (c). What do you notice, and why does it happen? What does that mean for how a lab could accumulate evidence across studies?"
+  },
+  {
+    "objectID": "hw-1.html#q3.-priors-for-your-own-research-7-points",
+    "href": "hw-1.html#q3.-priors-for-your-own-research-7-points",
+    "title": "HW 1: Distributions, priors, and counting",
+    "section": "Q3. Priors for your own research (7 points)",
+    "text": "Q3. Priors for your own research (7 points)\nPick one of your own recent analyses (or one you’re planning). Briefly describe the parameter you care about (e.g., a regression coefficient comparing two groups) and the effect size you found or expect (e.g., d = .3). Then:\n\nDescribe and plot an informed prior: your best guess for this parameter if you replicated the study. Say where the guess comes from (your past results, a meta-analysis, the literature).\nDescribe and plot a weakly informative prior: one that rules out absurd values but otherwise lets the data speak.\nPut both on the same plot. In two or three sentences: which would you use for your next paper, and how would you defend it to a skeptical reviewer?\n\nIf you don’t have your own data yet, borrow an effect from a paper in your area and say which one."
+  },
+  {
+    "objectID": "hw-2.html#q1.-set-up-the-model-3-points",
+    "href": "hw-2.html#q1.-set-up-the-model-3-points",
+    "title": "HW 2: Your first brms model",
+    "section": "Q1. Set up the model (3 points)",
+    "text": "Q1. Set up the model (3 points)\n\nDescribe your outcome and predictor in a sentence each: what they measure, their units, and their range.\nCenter your predictor, so the intercept means something.\nWrite the model in likelihood notation, including priors, like we did in class. (Fill in the priors after Q2.)\n\n\\[\n\\begin{aligned}\ny_i &\\sim \\text{Normal}(\\mu_i, \\sigma) \\\\\n\\mu_i &= \\beta_0 + \\beta_1 (x_i - \\bar{x}) \\\\\n\\beta_0 &\\sim \\ ? \\\\\n\\beta_1 &\\sim \\ ? \\\\\n\\sigma &\\sim \\ ?\n\\end{aligned}\n\\]"
+  },
+  {
+    "objectID": "hw-2.html#q2.-priors-and-the-prior-predictive-5-points",
+    "href": "hw-2.html#q2.-priors-and-the-prior-predictive-5-points",
+    "title": "HW 2: Your first brms model",
+    "section": "Q2. Priors and the prior predictive (5 points)",
+    "text": "Q2. Priors and the prior predictive (5 points)\n\nChoose a prior for the intercept, the slope, and σ. For each, give one sentence of justification in the units of your variables. For example, “the average SAT verbal score is surely between 400 and 800” is a justification; “normal(0, 10) is weakly informative” is not.\nSimulate 100 regression lines from your priors (by hand like in class, or with sample_prior = \"only\" in brm()) and plot them over the range of your predictor.\nDo the lines make predictions that are impossible or absurd for your outcome? If so, revise your priors, show the new prior predictive, and say what you changed. If not, say how you know."
+  },
+  {
+    "objectID": "hw-2.html#q3.-fit-it-two-ways-4-points",
+    "href": "hw-2.html#q3.-fit-it-two-ways-4-points",
+    "title": "HW 2: Your first brms model",
+    "section": "Q3. Fit it two ways (4 points)",
+    "text": "Q3. Fit it two ways (4 points)\n\nFit the model with lm().\nFit the model with brm() using your priors from Q2.\nPut the intercept and slope estimates (and their uncertainty: SE and CI from lm, posterior SD and 95% interval from brms) side by side in a small table. Are they similar? Why would you expect them to be (or not to be) with your data?"
+  },
+  {
+    "objectID": "hw-2.html#q4.-the-posterior-of-your-slope-5-points",
+    "href": "hw-2.html#q4.-the-posterior-of-your-slope-5-points",
+    "title": "HW 2: Your first brms model",
+    "section": "Q4. The posterior of your slope (5 points)",
+    "text": "Q4. The posterior of your slope (5 points)\n\nPlot the posterior distribution of the slope with {tidybayes} (e.g., spread_draws() and stat_halfeye()).\nAdd your prior for the slope to the same plot. How much did the data move you?\nSummarize the slope with mean_qi(), median_qi(), and mode_hdi(), at both 89% and 95%. Do the point estimates or intervals differ? Why or why not? (Hint: what would make them differ?)\nIn one or two sentences that a reader of your paper would understand, what does the slope tell you?"
+  },
+  {
+    "objectID": "hw-2.html#q6.-does-the-model-reproduce-your-data-5-points",
+    "href": "hw-2.html#q6.-does-the-model-reproduce-your-data-5-points",
+    "title": "HW 2: Your first brms model",
+    "section": "Q6. Does the model reproduce your data? (5 points)",
+    "text": "Q6. Does the model reproduce your data? (5 points)\n\nRun pp_check() on your brms model (try a couple of type = options, e.g., \"dens_overlay\" and \"stat\").\nDescribe where the simulated data match your observed data and where they don’t. What feature of your data is the model missing, if any? (Bounded scales, skew, and ceiling effects are common culprits.) You don’t need to fix it, just diagnose it.\n\n\n\n\n\n\n\nTipUnder the hood: your model in Stan (optional, not graded)\n\n\n\n\n\nbrms doesn’t fit models itself: it writes a program in Stan, the language that does the sampling, and runs it. You can see that program with stancode(your_model). Take five minutes and find:\n\nThe blocks: data, parameters, transformed parameters, model, and generated quantities. What goes in each one?\nYour three priors. brms collects them as lines like lprior += normal_lpdf(b | 0, 20);. Do they match what you chose in Q2?\nYour likelihood. It’s in the model block, behind if (!prior_only) (that switch is how sample_prior = \"only\" works!).\nThe transformed data block quietly centers your predictor, and generated quantities converts the intercept back. That’s why the summary says Intercept but the draws are called b_Intercept.\n\nNothing to turn in. Later in the semester you’ll write a small Stan program yourself, and this will look familiar."
+  },
+  {
+    "objectID": "hw-3.html#q1.-confidence-vs.-prediction-7-points",
+    "href": "hw-3.html#q1.-confidence-vs.-prediction-7-points",
+    "title": "HW 3: Lines, bands, priors, and groups",
+    "section": "Q1. Confidence vs. prediction (7 points)",
+    "text": "Q1. Confidence vs. prediction (7 points)\nMake one plot with:\n\nthe raw data,\n50 posterior regression lines (add_epred_draws(ndraws = 50)),\na 95% band for the expected value (the “confidence” band), and\na 95% band for new observations (the “prediction” band, add_predicted_draws()).\n\nThis is your first publication-ready figure: make it meet the checklist (labels in words with units, a clean theme, a caption that says which band is which, saved with ggsave() at 6.5 inches wide).\nThen in two or three sentences: why is the prediction band so much wider? Which band would you use to answer “what’s the average score for people with X = 30?” and which for “what score will this person with X = 30 get?”"
+  },
+  {
+    "objectID": "hw-3.html#q2.-how-much-does-the-prior-matter-7-points",
+    "href": "hw-3.html#q2.-how-much-does-the-prior-matter-7-points",
+    "title": "HW 3: Lines, bands, priors, and groups",
+    "section": "Q2. How much does the prior matter? (7 points)",
+    "text": "Q2. How much does the prior matter? (7 points)\nRefit your HW 2 model with a deliberately bad prior on the slope: strong and centered in the wrong place. For example, if your slope is positive, use something like normal(-10, 1) scaled to your variables. Then:\n\nPlot the slope’s posterior from HW 2 and from this new model on the same plot.\nDid the bad prior move the posterior much? Using your sample size and the prior’s width, explain why or why not. What would have to be true about a study for the prior to really matter?\nSequential updating in brms. In HW 1 you saw that “today’s posterior is tomorrow’s prior” works exactly on a grid. Try it with your HW 2 model:\n\nrandomly split your data into two halves (set.seed() first);\nfit your HW 2 model (with its original priors) to the first half;\nturn the posterior for the intercept and slope into normal priors (posterior mean and SD) and fit the second half with them;\ncompare the slope from this two-step fit with the slope from fitting all the data at once.\n\nHow close are they? Why is the brms version only approximately the same, when the grid version in HW 1 was exact? (Hint: what information about the first-half posterior did you throw away by summarizing it with a mean and an SD? What did you do about σ?)"
+  },
+  {
+    "objectID": "hw-3.html#q3.-groups-7-points",
+    "href": "hw-3.html#q3.-groups-7-points",
+    "title": "HW 3: Lines, bands, priors, and groups",
+    "section": "Q3. Groups (7 points)",
+    "text": "Q3. Groups (7 points)\nFit a model with your outcome predicted by a categorical variable using index coding (y ~ 0 + group), with one prior for all the group means.\n\nWrite the model in likelihood notation.\nGet the posterior of the difference between two groups, either with {marginaleffects} (avg_predictions() with by = and a hypothesis) or from the draws with {tidybayes}. Report it with a 95% interval.\nConvert the difference into a standardized effect (divide the difference by σ, draw by draw) and report its posterior.\nWhat is the posterior probability that the difference is greater than 0? (Count the share of draws where it is, or use hypothesis() with &gt; as in class and read Post.Prob.) In one sentence, how is that different from a p-value? We’ll come back to this “probability of direction” in week 6."
+  },
+  {
+    "objectID": "hw-3.html#q4.-count-your-draws-4-points",
+    "href": "hw-3.html#q4.-count-your-draws-4-points",
+    "title": "HW 3: Lines, bands, priors, and groups",
+    "section": "Q4. Count your draws (4 points)",
+    "text": "Q4. Count your draws (4 points)\nEvery plot and summary above is built from posterior draws. It pays to know how many rows you’re working with, especially with {marginaleffects}, which hides the draws until you ask for them with get_draws().\n\nYour Q1 plot fed a grid of X values to add_epred_draws(). Before running nrow(), predict how many rows that data frame has from the number of grid values and the number of draws (ndraws(model)), then check. How many rows did the version with ndraws = 50 have?\nRun predictions() on your HW 2 model with no newdata. How many rows does the result have, and how many does get_draws() on it have? Where do those two numbers come from? Now do the same with newdata = datagrid() at three values of your predictor. Why does the default grid get big fast, and when would that matter?\nIn Q3 you got the group difference as a single row from {marginaleffects} (or from your own draws). How many draws is that one number summarizing? Using the draws (get_draws(), or your Q3 data frame), compute the median and 95% interval of the difference yourself with median() and quantile(), and check that they match what was reported."
+  },
+  {
+    "objectID": "hw-5.html#q1.-diagnose-7-points",
+    "href": "hw-5.html#q1.-diagnose-7-points",
+    "title": "HW 5: When the chains go wild",
+    "section": "Q1. Diagnose (7 points)",
+    "text": "Q1. Diagnose (7 points)\n\nRead the summary() and any warnings brms prints. For each slope, report R-hat, Bulk_ESS, and Tail_ESS, and say what each one tells you. What warning(s) did you get, and what do they mean?\nLook at the trace plots (plot(m_wild) or bayesplot::mcmc_trace()) and rank plots (bayesplot::mcmc_rank_overlay()). Describe what you see for the slopes versus the intercept and σ. Are these “fuzzy caterpillars”?\nMake a scatterplot of the posterior draws of the two slopes against each other (pairs() or mcmc_scatter()). What shape is it, and why does that shape make sampling hard?"
+  },
+  {
+    "objectID": "hw-5.html#q2.-the-fix-that-doesnt-fix-it-6-points",
+    "href": "hw-5.html#q2.-the-fix-that-doesnt-fix-it-6-points",
+    "title": "HW 5: When the chains go wild",
+    "section": "Q2. The fix that doesn’t fix it (6 points)",
+    "text": "Q2. The fix that doesn’t fix it (6 points)\nThe first thing everyone tries is “run it longer.”\n\nRefit the same model with brms’s defaults (iter = 2000, warmup = 1000). Report R-hat and ESS for the slopes again. Did they improve?\nNow look at the estimates. Are the two slopes believable? What does a 95% interval spanning more than 100 hours of sleep per unit of stress (in a day with 24) tell you?\nLook at the data (cor(d$stress, d$stress_v2)). In two or three sentences: what is the real problem, and why can’t more iterations solve it? (Hint: what is the model being asked to estimate that the data can’t tell apart?)"
+  },
+  {
+    "objectID": "hw-5.html#q3.-actually-fix-it-and-show-its-fixed-12-points",
+    "href": "hw-5.html#q3.-actually-fix-it-and-show-its-fixed-12-points",
+    "title": "HW 5: When the chains go wild",
+    "section": "Q3. Actually fix it, and show it’s fixed (12 points)",
+    "text": "Q3. Actually fix it, and show it’s fixed (12 points)\n\nFix the model. You choose how (drop the redundant predictor, combine them, or use priors that make the model identifiable), and justify your choice in a sentence or two. Which fix is best here, and why?\nShow the fixed model’s R-hat, ESS, and that there are no warnings.\nMake a supplement-ready diagnostics figure for your fixed model: trace plots and rank plots for the intercept, slope(s), and σ, combined into one figure with {patchwork}. Journals increasingly ask for these in supplementary materials. Apply the figure checklist where it makes sense: readable parameter labels (e.g., “Slope: stress” instead of b_stress), a clean theme, colorblind-safe chain colors (bayesplot’s color_scheme_set(\"viridis\") helps), a caption, and ggsave() at 6.5 inches wide.\nOne sentence: what does your fixed model say about stress and sleep?\n\n\n\n\n\n\n\nTipUnder the hood: where are the priors? (optional, not graded)\n\n\n\n\n\nRun stancode(m_wild) and look at the transformed parameters block, where brms lists every prior as lprior += ....\n\nWhich parameters get a prior line? (brms picked default priors for the intercept and σ based on your data.)\nWhich parameters don’t have a line at all? A parameter with no prior statement has a flat, improper prior: every value from −∞ to ∞ is equally plausible. Connect that to what you saw in Q1–Q2.\nNow run stancode() on your fixed model from Q3 (or add prior(normal(0, 1), class = b) to the wild one) and find the new line.\n\nNothing to turn in."
+  },
+  {
+    "objectID": "hw-6.html#q1.-which-model-predicts-best-9-points",
+    "href": "hw-6.html#q1.-which-model-predicts-best-9-points",
+    "title": "HW 6: Comparing models and making claims",
+    "section": "Q1. Which model predicts best? (9 points)",
+    "text": "Q1. Which model predicts best? (9 points)\n\nFit at least three models of increasing complexity (e.g., one predictor; several predictors; several predictors plus an interaction). Write each one in a line of brms formula.\nAdd LOO to each (add_criterion(model, \"loo\")) and compare them with loo_compare(). Which model is expected to predict new data best? Is the difference in elpd large relative to its standard error (se_diff)? What would you conclude?\nCheck the Pareto k diagnostics. Are any observations problematic (k &gt; 0.7)? What does that mean for trusting the LOO estimate?\nReport Bayesian R² for each model. Why does R² keep going up (or stay flat) as you add predictors, while LOO might not? Which would you use to choose among models, and why?"
+  },
+  {
+    "objectID": "hw-6.html#q2.-three-ways-to-make-a-claim-about-one-parameter-9-points",
+    "href": "hw-6.html#q2.-three-ways-to-make-a-claim-about-one-parameter-9-points",
+    "title": "HW 6: Comparing models and making claims",
+    "section": "Q2. Three ways to make a claim about one parameter (9 points)",
+    "text": "Q2. Three ways to make a claim about one parameter (9 points)\nPick one parameter from your best model that you’d want to make a claim about in a paper (e.g., a group difference or a slope). Using {bayestestR}:\n\nProbability of direction (p_direction()): what is it, and what does it say about your parameter?\nROPE (rope()): choose a region of practical equivalence in the units of your outcome and justify it substantively (e.g., “a difference smaller than 10 SAT points is less than one question and wouldn’t matter to anyone”). Don’t just use the default. What share of the posterior falls inside it, and what do you conclude?\nBayes factor (bayesfactor_parameters()): report it and say what it means in words.\nRefit the same model with a much wider prior on that parameter (say 10× the SD) and recompute all three. Which of the three changed a lot, which barely moved, and why? What does that tell you about using Bayes factors?"
+  },
+  {
+    "objectID": "hw-6.html#q3.-a-publication-ready-figure-of-your-claim-7-points",
+    "href": "hw-6.html#q3.-a-publication-ready-figure-of-your-claim-7-points",
+    "title": "HW 6: Comparing models and making claims",
+    "section": "Q3. A publication-ready figure of your claim (7 points)",
+    "text": "Q3. A publication-ready figure of your claim (7 points)\nMake one figure that shows the posterior of your Q2 parameter with the ROPE shaded and the key numbers (median, 95% interval, pd, % in ROPE) annotated or in the caption. It should meet the figure checklist: the parameter labeled in words with units (e.g., “Difference in SAT quantitative score, women − men”), a clean theme, a stand-alone caption, and ggsave() at 6.5 inches wide. Then write the one or two sentences you’d put in a Results section."
+  },
+  {
+    "objectID": "hw-10.html#q1.-let-the-slopes-vary-9-points",
+    "href": "hw-10.html#q1.-let-the-slopes-vary-9-points",
+    "title": "HW 10: Varying slopes",
+    "section": "Q1. Let the slopes vary (9 points)",
+    "text": "Q1. Let the slopes vary (9 points)\n\nFit Reaction ~ 1 + Days + (1 + Days | Subject) with priors for the fixed effects, both SDs, σ, and an lkj(2) prior on the correlation. Write the model in likelihood notation, including the multivariate normal for each person’s intercept and slope.\nInterpret, in ms and ms/day: the average slope, sd(Days) (how much do people differ in how much sleep loss slows them?), and cor(Intercept, Days). Is there evidence that people who start slower also slow down faster (or less)? How sure are you, given 18 people?\nCompare this model with the varying-intercept-only model ((1 | Subject)) using LOO. Do varying slopes earn their keep?"
+  },
+  {
+    "objectID": "hw-10.html#q2.-whose-slope-9-points",
+    "href": "hw-10.html#q2.-whose-slope-9-points",
+    "title": "HW 10: Varying slopes",
+    "section": "Q2. Whose slope? (9 points)",
+    "text": "Q2. Whose slope? (9 points)\n\nGet each person’s slope (population slope + their deviation, draw by draw, e.g., spread_draws(b_Days, r_Subject[Subject, term])) with a 95% interval.\nWhich people’s slopes are clearly steeper or shallower than average? Is anyone’s slope plausibly zero or negative, i.e., not affected by sleep loss at all?\nCompare one person’s partially pooled slope with the slope you’d get from fitting a regression to only that person’s 10 days (lm() on their data). Why are they different?"
+  },
+  {
+    "objectID": "hw-10.html#q3.-a-publication-ready-figure-7-points",
+    "href": "hw-10.html#q3.-a-publication-ready-figure-7-points",
+    "title": "HW 10: Varying slopes",
+    "section": "Q3. A publication-ready figure (7 points)",
+    "text": "Q3. A publication-ready figure (7 points)\nMake one figure that meets the checklist showing both the population-average trajectory and individual trajectories:\n\nthe population-average line with a 95% ribbon (re_formula = NA);\neach person’s predicted line (re_formula = NULL), thinner and lighter, or in small multiples with their raw data;\nlabels in words and units, a stand-alone caption, and ggsave() at 6.5 inches wide;\nthe one or two sentences you’d put in a Results section about the average effect and how much people vary around it."
+  },
+  {
+    "objectID": "hw-11.html#q1.-missing-data-option-1-impute-before-fitting-7-points",
+    "href": "hw-11.html#q1.-missing-data-option-1-impute-before-fitting-7-points",
+    "title": "HW 11: When the data are uncertain too",
+    "section": "Q1. Missing data, option 1: impute before fitting (7 points)",
+    "text": "Q1. Missing data, option 1: impute before fitting (7 points)\nThe standard approach is multiple imputation: fill in the missing values several times, fit the model to each completed dataset, and combine.\n\nFit sleep ~ anx_missing in brms. brms drops the incomplete rows (listwise deletion). How many people are left?\nUse {mice} to create 20 imputed datasets from sleep, stress, and anx_missing only. Then fit the same model to all of them with brm_multiple():\n\n\nlibrary(mice)\nimp &lt;- mice(select(d, sleep, stress, anx_missing), m = 20, seed = 11, print = FALSE)\nfit_mi_before &lt;- brm_multiple(sleep ~ anx_missing, data = imp, chains = 2)\n\n\nHow are the 20 fits combined into one posterior? Compare that with the frequentist approach of pooling with Rubin’s rules: why is pooling “free” in a Bayesian framework?\nThe summary may show R-hat &gt; 1.01 or a warning that overall R-hat isn’t informative. Why can R-hat look bad here even if every model converged? Check R-hat within each imputed dataset (the vignette shows how with {posterior}) and report what you find."
+  },
+  {
+    "objectID": "hw-11.html#q2.-missing-data-option-2-impute-while-fitting-8-points",
+    "href": "hw-11.html#q2.-missing-data-option-2-impute-while-fitting-8-points",
+    "title": "HW 11: When the data are uncertain too",
+    "section": "Q2. Missing data, option 2: impute while fitting (8 points)",
+    "text": "Q2. Missing data, option 2: impute while fitting (8 points)\n\nNow let the model impute the missing anxiety scores itself, in one step, using stress to help predict them:\n\n\nf &lt;- bf(sleep ~ mi(anx_missing)) +\n     bf(anx_missing | mi() ~ stress) +\n     set_rescor(FALSE)\n\nWrite this two-part model in likelihood notation. What is each part doing? b) Compare the slope and its 95% interval from listwise deletion, imputation before fitting, imputation while fitting, and the same model fit to the complete observed scores (sleep ~ anx). What did imputation (either kind) buy you? c) Each missing value now has a posterior (spread_draws(Ymi_anxmissing[row])). Plot the imputed values for 10 people. Why are these distributions so wide, and why is that a good thing compared with plugging in a single guess (like the mean)? d) In two or three sentences: when would you choose imputing before fitting, and when imputing while fitting? (Think about which variables each approach imputes, what kinds of variables Stan can impute, multilevel structure, and fitting time.)"
+  },
+  {
+    "objectID": "hw-11.html#q3.-measurement-error-model-the-true-score-5-points",
+    "href": "hw-11.html#q3.-measurement-error-model-the-true-score-5-points",
+    "title": "HW 11: When the data are uncertain too",
+    "section": "Q3. Measurement error: model the true score (5 points)",
+    "text": "Q3. Measurement error: model the true score (5 points)\nThe same mi() trick handles noisy values: tell brms how uncertain each observed value is, and it estimates each person’s true score.\n\nUsing the complete observed scores (anx), compute the standard error of measurement: SEM = SD(anx) × √(1 − reliability), with reliability = .60.\nPut the SEM in a column of the data, then fit a model where anxiety is measured with error:\n\n\nf_me &lt;- bf(sleep ~ mi(anx)) +\n        bf(anx | mi(sem) ~ 1) +\n        set_rescor(FALSE)\n\n(Older code and slides use me(anx, sem), which does the same thing but is now soft-deprecated in brms.) Compare its slope with the naive sleep ~ anx slope and with the truth (−0.6). Which is closer, and why is the naive slope too small? (The classic name for this is attenuation.) c) The corrected slope’s interval is wider than the naive one. Explain why that’s honest, not a weakness."
+  },
+  {
+    "objectID": "hw-11.html#q4.-a-publication-ready-comparison-5-points",
+    "href": "hw-11.html#q4.-a-publication-ready-comparison-5-points",
+    "title": "HW 11: When the data are uncertain too",
+    "section": "Q4. A publication-ready comparison (5 points)",
+    "text": "Q4. A publication-ready comparison (5 points)\nMake one figure that meets the checklist comparing the slope estimate (with 95% intervals) from every model you fit: listwise, imputed before fitting, imputed while fitting, complete observed scores, and measurement-error corrected. Include a reference line at the true value (−0.6).\n\nOrder the methods sensibly, and label them in words a reader would understand (not mi(anx_missing)).\nLabel the x-axis in units (hours of sleep per point of anxiety).\nAdd a stand-alone caption, use ggsave() at 6.5 inches wide, and write two or three sentences on what a researcher with real data (no anx_true!) should take from this."
   }
 ]

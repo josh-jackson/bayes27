@@ -2,7 +2,7 @@
 title: "HW 4: Factorial models and interactions"
 ---
 
-**Due:** Thursday, Feb 18 at 2:30 pm on Canvas · **Size:** full analysis · **Points:** 25 · **Covers:** [Multiple regression](mr-4.qmd)
+**Due:** Thursday, Feb 18 at 2:30 pm on Canvas · **Points:** 25 · **Covers:** [Multiple regression](mr-4.qmd)
 
 Start from the [homework template](hw-template.qmd){download="hw-template.qmd"}, use `## Q1` to `## Q6` headings, and turn in both the `.qmd` and the rendered `.html`. Save brms fits with `file =`. **Use 97% intervals throughout** (a nod to McElreath: there's nothing magic about 95%).
 

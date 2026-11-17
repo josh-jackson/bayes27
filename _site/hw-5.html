@@ -168,9 +168,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
    
   <ul>
   <li><a href="#the-setup" id="toc-the-setup" class="nav-link active" data-scroll-target="#the-setup">The setup</a></li>
-  <li><a href="#q1.-diagnose" id="toc-q1.-diagnose" class="nav-link" data-scroll-target="#q1.-diagnose">Q1. Diagnose</a></li>
-  <li><a href="#q2.-the-fix-that-doesnt-fix-it" id="toc-q2.-the-fix-that-doesnt-fix-it" class="nav-link" data-scroll-target="#q2.-the-fix-that-doesnt-fix-it">Q2. The fix that doesn’t fix it</a></li>
-  <li><a href="#q3.-actually-fix-it-and-show-its-fixed" id="toc-q3.-actually-fix-it-and-show-its-fixed" class="nav-link" data-scroll-target="#q3.-actually-fix-it-and-show-its-fixed">Q3. Actually fix it, and show it’s fixed</a></li>
+  <li><a href="#q1.-diagnose-7-points" id="toc-q1.-diagnose-7-points" class="nav-link" data-scroll-target="#q1.-diagnose-7-points">Q1. Diagnose (7 points)</a></li>
+  <li><a href="#q2.-the-fix-that-doesnt-fix-it-6-points" id="toc-q2.-the-fix-that-doesnt-fix-it-6-points" class="nav-link" data-scroll-target="#q2.-the-fix-that-doesnt-fix-it-6-points">Q2. The fix that doesn’t fix it (6 points)</a></li>
+  <li><a href="#q3.-actually-fix-it-and-show-its-fixed-12-points" id="toc-q3.-actually-fix-it-and-show-its-fixed-12-points" class="nav-link" data-scroll-target="#q3.-actually-fix-it-and-show-its-fixed-12-points">Q3. Actually fix it, and show it’s fixed (12 points)</a></li>
   </ul>
 </nav>
     </div>
@@ -196,8 +196,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p><strong>Due:</strong> Thursday, Feb 25 at 2:30 pm on Canvas · <strong>Size:</strong> light · <strong>Covers:</strong> <a href="./mcmc-5.html">MCMC</a></p>
-<p>Start from the <a href="hw-template.qmd" download="hw-template.qmd">homework template</a>, use <code>## Q1</code> to <code>## Q3</code> headings, and turn in both the <code>.qmd</code> and the rendered <code>.html</code>. Each question is graded 0 / 1 / 2 (missing / attempted / solid); answers in words count.</p>
+<p><strong>Due:</strong> Thursday, Feb 25 at 2:30 pm on Canvas · <strong>Points:</strong> 25 · <strong>Covers:</strong> <a href="./mcmc-5.html">MCMC</a></p>
+<p>Start from the <a href="hw-template.qmd" download="hw-template.qmd">homework template</a>, use <code>## Q1</code> to <code>## Q3</code> headings, and turn in both the <code>.qmd</code> and the rendered <code>.html</code>. Points for each question are in its heading; answers in words count.</p>
 <p><strong>Reminder:</strong> your final project plan needs to be approved by <strong>Tuesday, Feb 23</strong>.</p>
 <section id="the-setup" class="level2">
 <h2 class="anchored" data-anchor-id="the-setup">The setup</h2>
@@ -218,16 +218,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>(Yes, brms’s default flat priors on the slopes are part of the problem. That’s on purpose.)</p>
 </section>
-<section id="q1.-diagnose" class="level2">
-<h2 class="anchored" data-anchor-id="q1.-diagnose">Q1. Diagnose</h2>
+<section id="q1.-diagnose-7-points" class="level2">
+<h2 class="anchored" data-anchor-id="q1.-diagnose-7-points">Q1. Diagnose (7 points)</h2>
 <ol type="a">
 <li>Read the <code>summary()</code> and any warnings brms prints. For each slope, report <strong>R-hat</strong>, <strong>Bulk_ESS</strong>, and <strong>Tail_ESS</strong>, and say what each one tells you. What warning(s) did you get, and what do they mean?</li>
 <li>Look at the trace plots (<code>plot(m_wild)</code> or <code>bayesplot::mcmc_trace()</code>) and rank plots (<code>bayesplot::mcmc_rank_overlay()</code>). Describe what you see for the slopes versus the intercept and σ. Are these “fuzzy caterpillars”?</li>
 <li>Make a scatterplot of the posterior draws of the two slopes against each other (<code>pairs()</code> or <code>mcmc_scatter()</code>). What shape is it, and why does that shape make sampling hard?</li>
 </ol>
 </section>
-<section id="q2.-the-fix-that-doesnt-fix-it" class="level2">
-<h2 class="anchored" data-anchor-id="q2.-the-fix-that-doesnt-fix-it">Q2. The fix that doesn’t fix it</h2>
+<section id="q2.-the-fix-that-doesnt-fix-it-6-points" class="level2">
+<h2 class="anchored" data-anchor-id="q2.-the-fix-that-doesnt-fix-it-6-points">Q2. The fix that doesn’t fix it (6 points)</h2>
 <p>The first thing everyone tries is “run it longer.”</p>
 <ol type="a">
 <li>Refit the same model with brms’s defaults (<code>iter = 2000, warmup = 1000</code>). Report R-hat and ESS for the slopes again. Did they improve?</li>
@@ -235,8 +235,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>Look at the data (<code>cor(d$stress, d$stress_v2)</code>). In two or three sentences: what is the real problem, and why can’t more iterations solve it? (Hint: what is the model being asked to estimate that the data can’t tell apart?)</li>
 </ol>
 </section>
-<section id="q3.-actually-fix-it-and-show-its-fixed" class="level2">
-<h2 class="anchored" data-anchor-id="q3.-actually-fix-it-and-show-its-fixed">Q3. Actually fix it, and show it’s fixed</h2>
+<section id="q3.-actually-fix-it-and-show-its-fixed-12-points" class="level2">
+<h2 class="anchored" data-anchor-id="q3.-actually-fix-it-and-show-its-fixed-12-points">Q3. Actually fix it, and show it’s fixed (12 points)</h2>
 <ol type="a">
 <li>Fix the model. You choose how (drop the redundant predictor, combine them, or use priors that make the model identifiable), and justify your choice in a sentence or two. Which fix is best <em>here</em>, and why?</li>
 <li>Show the fixed model’s R-hat, ESS, and that there are no warnings.</li>

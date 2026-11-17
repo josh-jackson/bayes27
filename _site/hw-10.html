@@ -167,9 +167,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#q1.-let-the-slopes-vary" id="toc-q1.-let-the-slopes-vary" class="nav-link active" data-scroll-target="#q1.-let-the-slopes-vary">Q1. Let the slopes vary</a></li>
-  <li><a href="#q2.-whose-slope" id="toc-q2.-whose-slope" class="nav-link" data-scroll-target="#q2.-whose-slope">Q2. Whose slope?</a></li>
-  <li><a href="#q3.-a-publication-ready-figure" id="toc-q3.-a-publication-ready-figure" class="nav-link" data-scroll-target="#q3.-a-publication-ready-figure">Q3. A publication-ready figure</a></li>
+  <li><a href="#q1.-let-the-slopes-vary-9-points" id="toc-q1.-let-the-slopes-vary-9-points" class="nav-link active" data-scroll-target="#q1.-let-the-slopes-vary-9-points">Q1. Let the slopes vary (9 points)</a></li>
+  <li><a href="#q2.-whose-slope-9-points" id="toc-q2.-whose-slope-9-points" class="nav-link" data-scroll-target="#q2.-whose-slope-9-points">Q2. Whose slope? (9 points)</a></li>
+  <li><a href="#q3.-a-publication-ready-figure-7-points" id="toc-q3.-a-publication-ready-figure-7-points" class="nav-link" data-scroll-target="#q3.-a-publication-ready-figure-7-points">Q3. A publication-ready figure (7 points)</a></li>
   </ul>
 </nav>
     </div>
@@ -195,30 +195,30 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p><strong>Due:</strong> Thursday, Apr 8 at 2:30 pm on Canvas · <strong>Size:</strong> light · <strong>Covers:</strong> <a href="./mlm-8b.html">Multilevel models 2</a></p>
-<p>Start from the <a href="hw-template.qmd" download="hw-template.qmd">homework template</a>, use <code>## Q1</code> to <code>## Q3</code> headings, and turn in both the <code>.qmd</code> and the rendered <code>.html</code>. Each question is graded 0 / 1 / 2 (missing / attempted / solid); answers in words count.</p>
+<p><strong>Due:</strong> Thursday, Apr 8 at 2:30 pm on Canvas · <strong>Points:</strong> 25 · <strong>Covers:</strong> <a href="./mlm-8b.html">Multilevel models 2</a></p>
+<p>Start from the <a href="hw-template.qmd" download="hw-template.qmd">homework template</a>, use <code>## Q1</code> to <code>## Q3</code> headings, and turn in both the <code>.qmd</code> and the rendered <code>.html</code>. Points for each question are in its heading; answers in words count.</p>
 <p><strong>Data.</strong> Your own nested data with a level-1 predictor (if you used your own data for HW 9), or the <strong>full</strong> sleep-deprivation data this time: all 10 days for all 18 people.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(sleepstudy, <span class="at">package =</span> <span class="st">"lme4"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<section id="q1.-let-the-slopes-vary" class="level2">
-<h2 class="anchored" data-anchor-id="q1.-let-the-slopes-vary">Q1. Let the slopes vary</h2>
+<section id="q1.-let-the-slopes-vary-9-points" class="level2">
+<h2 class="anchored" data-anchor-id="q1.-let-the-slopes-vary-9-points">Q1. Let the slopes vary (9 points)</h2>
 <ol type="a">
 <li>Fit <code>Reaction ~ 1 + Days + (1 + Days | Subject)</code> with priors for the fixed effects, both SDs, σ, and an <code>lkj(2)</code> prior on the correlation. Write the model in likelihood notation, including the multivariate normal for each person’s intercept and slope.</li>
 <li>Interpret, in ms and ms/day: the average slope, <code>sd(Days)</code> (how much do people differ in how much sleep loss slows them?), and <code>cor(Intercept, Days)</code>. Is there evidence that people who start slower also slow down faster (or less)? How sure are you, given 18 people?</li>
 <li>Compare this model with the varying-intercept-only model (<code>(1 | Subject)</code>) using LOO. Do varying slopes earn their keep?</li>
 </ol>
 </section>
-<section id="q2.-whose-slope" class="level2">
-<h2 class="anchored" data-anchor-id="q2.-whose-slope">Q2. Whose slope?</h2>
+<section id="q2.-whose-slope-9-points" class="level2">
+<h2 class="anchored" data-anchor-id="q2.-whose-slope-9-points">Q2. Whose slope? (9 points)</h2>
 <ol type="a">
 <li>Get each person’s slope (population slope + their deviation, draw by draw, e.g., <code>spread_draws(b_Days, r_Subject[Subject, term])</code>) with a 95% interval.</li>
 <li>Which people’s slopes are clearly steeper or shallower than average? Is anyone’s slope plausibly zero or negative, i.e., not affected by sleep loss at all?</li>
 <li>Compare one person’s partially pooled slope with the slope you’d get from fitting a regression to only that person’s 10 days (<code>lm()</code> on their data). Why are they different?</li>
 </ol>
 </section>
-<section id="q3.-a-publication-ready-figure" class="level2">
-<h2 class="anchored" data-anchor-id="q3.-a-publication-ready-figure">Q3. A publication-ready figure</h2>
+<section id="q3.-a-publication-ready-figure-7-points" class="level2">
+<h2 class="anchored" data-anchor-id="q3.-a-publication-ready-figure-7-points">Q3. A publication-ready figure (7 points)</h2>
 <p>Make one figure that meets the <a href="./homeworks.html#figures">checklist</a> showing <strong>both</strong> the population-average trajectory <strong>and</strong> individual trajectories:</p>
 <ul>
 <li>the population-average line with a 95% ribbon (<code>re_formula = NA</code>);</li>
