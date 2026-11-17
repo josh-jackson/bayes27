@@ -3369,7 +3369,7 @@ Type: response</code></pre>
 </div>
 </div>
 </div>
-<p>The lines aren’t parallel: that’s the interaction. This is the kind of figure HW 4 Q6a asks for.</p>
+<p>The lines aren’t parallel: that’s the interaction.</p>
 </section>
 <section id="simple-effects-then-the-interaction" class="slide level2 smaller">
 <h2>Simple effects, then the interaction</h2>
@@ -3450,7 +3450,7 @@ Type: response</code></pre>
 </div>
 </div>
 </div>
-<p>The cell-mean interval is our uncertainty about the <em>average</em> in that cell; it shrinks as the cell gets more people. The prediction interval adds σ, the person-to-person scatter, so it stays wide no matter how much data we have. (HW 4 Q2b.)</p>
+<p>The cell-mean interval is our uncertainty about the <em>average</em> in that cell; it shrinks as the cell gets more people. The prediction interval adds σ, the person-to-person scatter, so it stays wide no matter how much data we have.</p>
 </section>
 <section id="cell-means-coding-gives-the-same-cells" class="slide level2 smaller">
 <h2>Cell-means coding gives the same cells</h2>
@@ -3478,17 +3478,10 @@ strategypractice:sleep8h     83.6 80.9  86.4</code></pre>
 </div>
 <p>Essentially the same six cell means as <code>fac.1</code> (the priors differ slightly), read straight off the output. Differences and interaction contrasts work exactly as before with marginaleffects.</p>
 </section>
-<section id="interactions-a-slope-with-its-own-equation" class="slide level2 smaller">
-<h2>Interactions: a slope with its own equation</h2>
-<p>An interaction means the effect of one variable depends on another. In toolbox terms (lecture 3): <strong>the slope gets its own equation.</strong></p>
-<p><span class="math display">\[\mu_i = \beta_0 + \beta_{1i} X_i + \beta_2 Z_i \qquad \beta_{1i} = \beta_1 + \beta_3 Z_i\]</span></p>
-<p>Substitute and you get the familiar <span class="math inline">\(\mu_i = \beta_0 + \beta_1 X_i + \beta_2 Z_i + \beta_3 X_i Z_i\)</span>.</p>
-<ul>
-<li><span class="math inline">\(\beta_1\)</span> is now the slope of X <strong>when Z = 0</strong> (why centering Z matters)</li>
-<li><span class="math inline">\(\beta_3\)</span> is how much the slope of X changes for each unit of Z</li>
-<li>With an interaction there’s no single “main effect” of X: describe the slope of X <em>at chosen values of Z</em> (or the group difference at chosen values of X)</li>
-</ul>
-<p>The modeling is the easy part; interpreting is the work, and predictions, <code>slopes()</code>, and plots do most of it.</p>
+<section id="categorical-continuous-a-slope-for-each-group" class="slide level2 smaller">
+<h2>Categorical × continuous: a slope for each group?</h2>
+<p>The factorial model asked whether one <em>group difference</em> changes across another factor. Now one predictor is continuous, so the question becomes: <strong>does the slope of school success differ between control and treatment?</strong></p>
+<p>We’ll fit it three ways: parallel lines (one shared slope), separate slopes with index coding, and separate slopes with dummy coding. The lines are the same; only the parameters differ.</p>
 </section>
 <section id="nominal-plus-metriccontinuous-interaction" class="slide level2">
 <h2>Nominal plus metric/continuous interaction</h2>
@@ -3917,6 +3910,18 @@ Type: response</code></pre>
 </div>
 </div>
 </section>
+<section id="continuous-continuous-a-slope-with-its-own-equation" class="slide level2 smaller">
+<h2>Continuous × continuous: a slope with its own equation</h2>
+<p>An interaction means the effect of one variable depends on another. In toolbox terms (lecture 3): <strong>the slope gets its own equation.</strong></p>
+<p><span class="math display">\[\mu_i = \beta_0 + \beta_{1i} X_i + \beta_2 Z_i \qquad \beta_{1i} = \beta_1 + \beta_3 Z_i\]</span></p>
+<p>Substitute and you get the familiar <span class="math inline">\(\mu_i = \beta_0 + \beta_1 X_i + \beta_2 Z_i + \beta_3 X_i Z_i\)</span>. Next: X = school success, Z = friendship quality.</p>
+<ul>
+<li><span class="math inline">\(\beta_1\)</span> is now the slope of X <strong>when Z = 0</strong> (why centering Z matters)</li>
+<li><span class="math inline">\(\beta_3\)</span> is how much the slope of X changes for each unit of Z</li>
+<li>With an interaction there’s no single “main effect” of X: describe the slope of X <em>at chosen values of Z</em> (or the group difference at chosen values of X)</li>
+</ul>
+<p>The modeling is the easy part; interpreting is the work, and predictions, <code>slopes()</code>, and plots do most of it.</p>
+</section>
 <section id="default-priors-for-the-interaction-model" class="slide level2">
 <h2>Default priors for the interaction model</h2>
 <div class="cell">
@@ -4023,7 +4028,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </section>
 <section id="does-the-interaction-add-much" class="slide level2 smaller">
 <h2>Does the interaction add much?</h2>
-<p>Bayesian R² with and without the interaction (HW 4 Q5):</p>
+<p>Bayesian R² with and without the interaction:</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>

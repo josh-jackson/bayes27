@@ -95,7 +95,7 @@ Same intercept and $\sigma$ priors as lecture 1. The slope prior is 10 times wid
 | $\beta_1 \sim Normal(0, 5)$ | a parent 1 inch taller could mean children 10 inches taller or shorter. Deliberately silly; lecture 1's N(0, 0.5) says ±1 inch per inch |
 | $\sigma \sim Exponential(0.5)$ | children scatter around the line by ~2 inches on average, 95% sure under 6. Not a foot |
 
-This is the kind of justification HW 2 Q2 wants: a sentence in the units of your variables.
+Justify priors like this: a sentence in the units of your variables, not a label.
 
 ## Centering our predictors
 
@@ -428,7 +428,7 @@ ndraws(fit.1)
 `chains = 2`, `iter = 1000`, `warmup = 500`: each chain runs 1,000 iterations and throws away the first 500 while it finds its footing. 2 × (1000 − 500) = **1,000 draws**.
 
 -   More draws give a *sharper picture of the same posterior*: smoother histograms, more stable interval endpoints
--   They don't give you more *information* about the slope. That comes from the data (928 families) and the priors. The posterior SD won't shrink if you ask for 4,000 draws (HW 2 Q5)
+-   They don't give you more *information* about the slope. That comes from the data (928 families) and the priors. The posterior SD won't shrink if you ask for 4,000 draws
 
 ## spread_draws {.smaller}
 Instead of looking at all of our "draws" or samples for all variables we often want to look at just some of them. Spread draws is an oft used function similar to select in {dplyr}

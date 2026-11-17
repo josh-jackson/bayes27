@@ -677,7 +677,7 @@ avg_predictions(fac.1, by = c("sleep", "strategy")) %>%
   theme_classic(base_size = 14) + theme(legend.position = "top")
 ```
 
-The lines aren't parallel: that's the interaction. This is the kind of figure HW 4 Q6a asks for.
+The lines aren't parallel: that's the interaction.
 
 ## Simple effects, then the interaction {.smaller}
 
@@ -725,7 +725,7 @@ bind_rows("cell mean (epred)"        = predictions(fac.1, newdata = cell_grid) %
   theme_classic(base_size = 14) + theme(legend.position = "top")
 ```
 
-The cell-mean interval is our uncertainty about the *average* in that cell; it shrinks as the cell gets more people. The prediction interval adds σ, the person-to-person scatter, so it stays wide no matter how much data we have. (HW 4 Q2b.)
+The cell-mean interval is our uncertainty about the *average* in that cell; it shrinks as the cell gets more people. The prediction interval adds σ, the person-to-person scatter, so it stays wide no matter how much data we have.
 
 ## Cell-means coding gives the same cells {.smaller}
 
@@ -746,19 +746,11 @@ round(fixef(fac.2)[, c("Estimate", "Q2.5", "Q97.5")], 1)
 
 Essentially the same six cell means as `fac.1` (the priors differ slightly), read straight off the output. Differences and interaction contrasts work exactly as before with marginaleffects.
 
-## Interactions: a slope with its own equation {.smaller}
+## Categorical × continuous: a slope for each group? {.smaller}
 
-An interaction means the effect of one variable depends on another. In toolbox terms (lecture 3): **the slope gets its own equation.**
+The factorial model asked whether one *group difference* changes across another factor. Now one predictor is continuous, so the question becomes: **does the slope of school success differ between control and treatment?**
 
-$$\mu_i = \beta_0 + \beta_{1i} X_i + \beta_2 Z_i \qquad \beta_{1i} = \beta_1 + \beta_3 Z_i$$
-
-Substitute and you get the familiar $\mu_i = \beta_0 + \beta_1 X_i + \beta_2 Z_i + \beta_3 X_i Z_i$.
-
--   $\beta_1$ is now the slope of X **when Z = 0** (why centering Z matters)
--   $\beta_3$ is how much the slope of X changes for each unit of Z
--   With an interaction there's no single "main effect" of X: describe the slope of X *at chosen values of Z* (or the group difference at chosen values of X)
-
-The modeling is the easy part; interpreting is the work, and predictions, `slopes()`, and plots do most of it.
+We'll fit it three ways: parallel lines (one shared slope), separate slopes with index coding, and separate slopes with dummy coding. The lines are the same; only the parameters differ.
 
 ## Nominal plus metric/continuous interaction
 
@@ -1000,6 +992,20 @@ slopes(a.4,
 
 
 
+## Continuous × continuous: a slope with its own equation {.smaller}
+
+An interaction means the effect of one variable depends on another. In toolbox terms (lecture 3): **the slope gets its own equation.**
+
+$$\mu_i = \beta_0 + \beta_{1i} X_i + \beta_2 Z_i \qquad \beta_{1i} = \beta_1 + \beta_3 Z_i$$
+
+Substitute and you get the familiar $\mu_i = \beta_0 + \beta_1 X_i + \beta_2 Z_i + \beta_3 X_i Z_i$. Next: X = school success, Z = friendship quality.
+
+-   $\beta_1$ is now the slope of X **when Z = 0** (why centering Z matters)
+-   $\beta_3$ is how much the slope of X changes for each unit of Z
+-   With an interaction there's no single "main effect" of X: describe the slope of X *at chosen values of Z* (or the group difference at chosen values of X)
+
+The modeling is the easy part; interpreting is the work, and predictions, `slopes()`, and plots do most of it.
+
 ## Default priors for the interaction model
 
 ```{r}
@@ -1065,7 +1071,7 @@ b15 <- fixef(mr.15)[, "Estimate"]
 
 ## Does the interaction add much? {.smaller}
 
-Bayesian R² with and without the interaction (HW 4 Q5):
+Bayesian R² with and without the interaction:
 
 ```{r}
 #| code-fold: true

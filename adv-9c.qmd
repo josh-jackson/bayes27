@@ -673,8 +673,6 @@ The 2PL is the same skeleton with more indexing: a vector of abilities (`theta`)
 y ~ bernoulli_logit(a[item] .* (theta[person] - b[item]));
 ```
 
-You'll write it in HW 13.
-
 ## Drift diffusion models
 
 (1) the drift rate that describes a person’s tendency towards one or the other two alternatives

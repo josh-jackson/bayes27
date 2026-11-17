@@ -489,7 +489,7 @@ R-hat above 1.01, ESS around 150, and each leg slope's interval runs from about 
 mcmc_scatter(legs.1, pars = c("b_leg_left", "b_leg_right"), alpha = .3)
 ```
 
-The data only pin down the **sum** of the two slopes, so the posterior is a long, thin ridge. Running longer maps the ridge more thoroughly but can't make it narrower: **fix the model** (drop or combine the duplicate, or give the slopes real priors). HW 5 has you work through a version of this.
+The data only pin down the **sum** of the two slopes, so the posterior is a long, thin ridge. Running longer maps the ridge more thoroughly but can't make it narrower: **fix the model** (drop or combine the duplicate, or give the slopes real priors).
 
 ## Leap Frog steps and NUTS
 

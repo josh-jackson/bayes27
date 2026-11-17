@@ -272,7 +272,7 @@ Close, but only approximately. Summarizing wave 1 by a mean and an SD per parame
 -   the **correlation** between intercept and slope (small here, thanks to centering)
 -   everything about **σ**, which started over from its original prior
 
-The grid in lecture 1 carried the whole posterior forward, so it was exact. (This is HW 3 Q2c.)
+The grid in lecture 1 carried the whole posterior forward, so it was exact.
 
 ## Wide or long draws (recap) {.smaller}
 

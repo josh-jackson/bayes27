@@ -1054,7 +1054,7 @@
     "href": "mcmc-5.html#non-identified-the-shape",
     "title": "MCMC",
     "section": "Non-identified: the shape",
-    "text": "Non-identified: the shape\n\n\nCode\nmcmc_scatter(legs.1, pars = c(\"b_leg_left\", \"b_leg_right\"), alpha = .3)\n\n\n\nThe data only pin down the sum of the two slopes, so the posterior is a long, thin ridge. Running longer maps the ridge more thoroughly but can’t make it narrower: fix the model (drop or combine the duplicate, or give the slopes real priors). HW 5 has you work through a version of this."
+    "text": "Non-identified: the shape\n\n\nCode\nmcmc_scatter(legs.1, pars = c(\"b_leg_left\", \"b_leg_right\"), alpha = .3)\n\n\n\nThe data only pin down the sum of the two slopes, so the posterior is a long, thin ridge. Running longer maps the ridge more thoroughly but can’t make it narrower: fix the model (drop or combine the duplicate, or give the slopes real priors)."
   },
   {
     "objectID": "mcmc-5.html#leap-frog-steps-and-nuts",
@@ -5534,7 +5534,7 @@
     "href": "adv-9c.html#from-here-to-irt",
     "title": "Cognitive and IRT models",
     "section": "From here to IRT",
-    "text": "From here to IRT\nThe 2PL is the same skeleton with more indexing: a vector of abilities (theta), item difficulties and discriminations, and arrays saying which person and item each response belongs to. The likelihood line looks like\ny ~ bernoulli_logit(a[item] .* (theta[person] - b[item]));\nYou’ll write it in HW 13."
+    "text": "From here to IRT\nThe 2PL is the same skeleton with more indexing: a vector of abilities (theta), item difficulties and discriminations, and arrays saying which person and item each response belongs to. The likelihood line looks like\ny ~ bernoulli_logit(a[item] .* (theta[person] - b[item]));"
   },
   {
     "objectID": "adv-9c.html#drift-diffusion-models",
@@ -7203,13 +7203,6 @@
     "text": "Same plot with marginaleffects\n\n\nCode\nlibrary(marginaleffects)\npredictions(mr.1,\n             datagrid(FQ_c = 0,SS_c = seq(from = min(MR$SS_c), to = max(MR$SS_c))))  %&gt;% \n  get_draws() %&gt;% \n   ggplot(aes(x = SS_c, y = happiness)) +\n  stat_lineribbon(aes(y = draw), .width = c(.95), color = \"grey\") + geom_point(data = MR, size = 2)"
   },
   {
-    "objectID": "mr-4.html#friendship-quality-averaging-over-ss",
-    "href": "mr-4.html#friendship-quality-averaging-over-ss",
-    "title": "Multiple Regression",
-    "section": "Friendship quality, averaging over SS",
-    "text": "Friendship quality, averaging over SS\nFQ_c\n\n\nCode\nMR %&gt;% \n  data_grid(FQ_c = seq_range(FQ_c, n = 101), .model=MR) %&gt;%\n add_epred_draws(mr.1) %&gt;% \n  ggplot(aes(x = FQ_c, y = happiness)) +\n  stat_lineribbon(aes(y = .epred), .width = c(.95), color = \"grey\") + geom_point(data = MR, size = 2)"
-  },
-  {
     "objectID": "mr-4.html#conditional-prediction-plot",
     "href": "mr-4.html#conditional-prediction-plot",
     "title": "Multiple Regression",
@@ -7238,32 +7231,11 @@
     "text": "Posterior predictive check\n\n\nCode\npp_check(mr.1)"
   },
   {
-    "objectID": "mr-4.html#create-our-own-posterior-predictive-distribution",
-    "href": "mr-4.html#create-our-own-posterior-predictive-distribution",
-    "title": "Multiple Regression",
-    "section": "Create our own Posterior Predictive Distribution",
-    "text": "Create our own Posterior Predictive Distribution\n\n\nCode\nMR %&gt;% \n  select(-SES, -'intervention.group') %&gt;% \n add_predicted_draws(mr.1) %&gt;% \n    sample_draws(1) \n\n\n# A tibble: 118 × 13\n# Groups:   ID, friendship.quality, happiness, schoool.success, SS_c, FQ_c, iv,\n#   iv.d, .row [118]\n      ID friendship.quality happiness schoool.success   SS_c    FQ_c iv    iv.d \n   &lt;int&gt;              &lt;dbl&gt;     &lt;dbl&gt;           &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt; &lt;fct&gt; &lt;fct&gt;\n 1     1              10.2       3.20            6.16 -2.57   2.57   1     cont…\n 2     2               5.59      7.01            8.91  0.177 -2.03   1     cont…\n 3     3               6.58      6.17           10.5   1.81  -1.03   1     cont…\n 4     4               8.95      8.70           11.5   2.73   1.34   1     cont…\n 5     5               7.60      5.27            5.55 -3.18  -0.0152 1     cont…\n 6     6               8.16      5.12            7.51 -1.22   0.542  1     cont…\n 7     7               9.08      6.85            8.56 -0.173  1.47   1     cont…\n 8     8               3.41      1.77            4.1  -4.63  -4.20   1     cont…\n 9     9               8.66      3.75            5.39 -3.34   1.04   1     cont…\n10    10               4.85      5.45           13.9   5.18  -2.77   1     cont…\n# ℹ 108 more rows\n# ℹ 5 more variables: .row &lt;int&gt;, .chain &lt;int&gt;, .iteration &lt;int&gt;, .draw &lt;int&gt;,\n#   .prediction &lt;dbl&gt;"
-  },
-  {
-    "objectID": "mr-4.html#simulated-datasets",
-    "href": "mr-4.html#simulated-datasets",
-    "title": "Multiple Regression",
-    "section": "50 simulated datasets",
-    "text": "50 simulated datasets\n50*118 = 5900\n\n\nCode\nMR %&gt;% \n  select(-SES, -'intervention.group') %&gt;% \n add_predicted_draws(mr.1) %&gt;% \n    sample_draws(50) \n\n\n# A tibble: 5,900 × 13\n# Groups:   ID, friendship.quality, happiness, schoool.success, SS_c, FQ_c, iv,\n#   iv.d, .row [118]\n      ID friendship.quality happiness schoool.success  SS_c  FQ_c iv    iv.d   \n   &lt;int&gt;              &lt;dbl&gt;     &lt;dbl&gt;           &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;fct&gt; &lt;fct&gt;  \n 1     1               10.2      3.20            6.16 -2.57  2.57 1     control\n 2     1               10.2      3.20            6.16 -2.57  2.57 1     control\n 3     1               10.2      3.20            6.16 -2.57  2.57 1     control\n 4     1               10.2      3.20            6.16 -2.57  2.57 1     control\n 5     1               10.2      3.20            6.16 -2.57  2.57 1     control\n 6     1               10.2      3.20            6.16 -2.57  2.57 1     control\n 7     1               10.2      3.20            6.16 -2.57  2.57 1     control\n 8     1               10.2      3.20            6.16 -2.57  2.57 1     control\n 9     1               10.2      3.20            6.16 -2.57  2.57 1     control\n10     1               10.2      3.20            6.16 -2.57  2.57 1     control\n# ℹ 5,890 more rows\n# ℹ 5 more variables: .row &lt;int&gt;, .chain &lt;int&gt;, .iteration &lt;int&gt;, .draw &lt;int&gt;,\n#   .prediction &lt;dbl&gt;"
-  },
-  {
     "objectID": "mr-4.html#our-own-ppc-plot",
     "href": "mr-4.html#our-own-ppc-plot",
     "title": "Multiple Regression",
     "section": "Our own PPC plot",
     "text": "Our own PPC plot\n\n\nCode\nMR %&gt;% \n  select(-SES, -'intervention.group') %&gt;% \n add_predicted_draws(mr.1) %&gt;% \n    sample_draws(50) %&gt;% \n    ggplot(aes(.prediction, group = .draw)) +\n   geom_line(stat = \"density\", alpha = .1) +\n  geom_density(data = MR, aes(happiness), inherit.aes = FALSE, color = \"#0072B2\", linewidth = 1) +\n  labs(x = \"happiness\", subtitle = \"grey: 50 simulated datasets · blue: observed\") +\n  theme_classic()"
-  },
-  {
-    "objectID": "mr-4.html#our-own-ppc-with-marginaleffects",
-    "href": "mr-4.html#our-own-ppc-with-marginaleffects",
-    "title": "Multiple Regression",
-    "section": "Our own PPC with marginaleffects",
-    "text": "Our own PPC with marginaleffects\n\n\nCode\npredictions(mr.1,\n            type = \"prediction\")  %&gt;% \n  get_draws() %&gt;% \n    sample_draws(50, draw = \"drawid\") %&gt;% \n    ggplot(aes(draw, group = drawid)) +\n   geom_line(stat = \"density\", alpha = .1) +\n  geom_density(data = MR, aes(happiness), inherit.aes = FALSE, color = \"#0072B2\", linewidth = 1) +\n  labs(x = \"happiness\") +\n  theme_classic()"
   },
   {
     "objectID": "mr-4.html#predicted-vs.-observed",
@@ -7273,193 +7245,11 @@
     "text": "Predicted vs. observed\nThe model’s epred/fitted against the observed data\n\n\nCode\nMR %&gt;% \n add_epred_draws(mr.1) %&gt;% \n  ggplot(aes(x = happiness , y = .epred)) +\n  geom_abline(linetype = 2, color = \"grey50\", linewidth = .5) +\n  stat_interval(.width = c(.50, .95, .99)) +\n  labs(y = \"Predicted happiness\")+\n  xlim(0, 10) + ylim(0,10)"
   },
   {
-    "objectID": "mr-4.html#two-categorical-variables",
-    "href": "mr-4.html#two-categorical-variables",
-    "title": "Multiple Regression",
-    "section": "Two+ categorical variables",
-    "text": "Two+ categorical variables\n\n\nCode\nMR &lt;- MR %&gt;% \n  mutate(iv = factor(iv),\n         happy_c = happiness - mean(happiness),\n         # a second factor: SES split at the median (just to have a 2nd categorical\n         # variable to work with; in practice keep SES continuous, as we do later)\n         iv2 = factor(if_else(SES &gt; median(SES), \"high SES\", \"low SES\"),\n                      levels = c(\"low SES\", \"high SES\")))\n\nMR %&gt;% count(iv, iv2)\n\n\n  iv      iv2  n\n1  1  low SES 25\n2  1 high SES 19\n3  2  low SES 14\n4  2 high SES 21\n5  3  low SES 20\n6  3 high SES 19"
-  },
-  {
-    "objectID": "mr-4.html#two-factors-one-index-one-dummy",
-    "href": "mr-4.html#two-factors-one-index-one-dummy",
-    "title": "Multiple Regression",
-    "section": "Two factors: one index, one dummy",
-    "text": "Two factors: one index, one dummy\n\n\nCode\nmr.5 &lt;- \n  brm(family = gaussian,\n      happiness ~ 0 + iv + iv2,\n      prior = c(prior(normal(5, 2), class = b),                       # the iv group means\n                prior(normal(0, 1), class = b, coef = iv2highSES),    # a difference: centered on 0\n                prior(exponential(1), class = sigma)),\n      iter = 2000, warmup = 1000, chains = 2, cores = 2,\n      data = MR,\n      backend = \"cmdstanr\",\n      file = \"mr.5c\")"
-  },
-  {
-    "objectID": "mr-4.html#two-factor-results",
-    "href": "mr-4.html#two-factor-results",
-    "title": "Multiple Regression",
-    "section": "Two-factor results",
-    "text": "Two-factor results\n\nsummary(mr.5)\n\n Family: gaussian \n  Links: mu = identity \nFormula: happiness ~ 0 + iv + iv2 \n   Data: MR (Number of observations: 118) \n  Draws: 2 chains, each with iter = 2000; warmup = 1000; thin = 1;\n         total post-warmup draws = 2000\n\nRegression Coefficients:\n           Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\niv1            4.82      0.32     4.19     5.44 1.01     1984     1476\niv2            5.04      0.37     4.33     5.79 1.00     1596     1472\niv3            5.18      0.34     4.54     5.86 1.00     1615     1305\niv2highSES     0.42      0.32    -0.20     1.04 1.00     1480     1441\n\nFurther Distributional Parameters:\n      Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nsigma     1.90      0.13     1.67     2.17 1.00     2132     1357\n\nDraws were sampled using sample(hmc). For each parameter, Bulk_ESS\nand Tail_ESS are effective sample size measures, and Rhat is the potential\nscale reduction factor on split chains (at convergence, Rhat = 1)."
-  },
-  {
-    "objectID": "mr-4.html#brms-non-linear-syntax",
-    "href": "mr-4.html#brms-non-linear-syntax",
-    "title": "Multiple Regression",
-    "section": "brms non-linear syntax",
-    "text": "brms non-linear syntax\n{brms} does not automatically create index variables for more than 1 categorical variable. The 0 + treats the first variable as an index but not the second, such that the second has a standard dummy interpretation.\nWe need a new syntax to write the model we want. We will use non-linear syntax for this, and revisit the syntax later in the class for additional models.\nFor ANOVA I’ve found centering or standardizing your DV is helpful"
-  },
-  {
-    "objectID": "mr-4.html#non-linear-syntax-two-index-variables",
-    "href": "mr-4.html#non-linear-syntax-two-index-variables",
-    "title": "Multiple Regression",
-    "section": "Non-linear syntax: two index variables",
-    "text": "Non-linear syntax: two index variables\n\n\nCode\nmr.6 &lt;- \n  brm(family = gaussian,\n      bf(happy_c ~  a + b, # define 2 predictors\n         a ~ 0 + iv, # specify the predictors\n         b ~ 0 + iv2,\n         nl = TRUE), # use non-linear syntax\n      prior = c(prior(normal(0, 2), nlpar = a),\n                prior(normal(0, 2), nlpar = b),\n                prior(exponential(1), class = sigma)),\n      iter = 2000, warmup = 1000, chains = 4, cores = 4,\n      data = MR,\n      backend = \"cmdstanr\",\n      file = \"mr.6b\")"
-  },
-  {
-    "objectID": "mr-4.html#non-linear-results",
-    "href": "mr-4.html#non-linear-results",
-    "title": "Multiple Regression",
-    "section": "Non-linear results",
-    "text": "Non-linear results\n\nsummary(mr.6)\n\n Family: gaussian \n  Links: mu = identity \nFormula: happy_c ~ a + b \n         a ~ 0 + iv\n         b ~ 0 + iv2\n   Data: MR (Number of observations: 118) \n  Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;\n         total post-warmup draws = 4000\n\nRegression Coefficients:\n             Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\na_iv1           -0.20      0.96    -2.14     1.64 1.00      703      920\na_iv2            0.01      0.95    -1.86     1.85 1.00      719      938\na_iv3            0.15      0.95    -1.75     2.02 1.00      704      874\nb_iv2lowSES     -0.21      0.95    -2.05     1.68 1.00      691      886\nb_iv2highSES     0.25      0.94    -1.58     2.10 1.00      684      786\n\nFurther Distributional Parameters:\n      Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nsigma     1.90      0.12     1.67     2.16 1.00     1737     2018\n\nDraws were sampled using sample(hmc). For each parameter, Bulk_ESS\nand Tail_ESS are effective sample size measures, and Rhat is the potential\nscale reduction factor on split chains (at convergence, Rhat = 1)."
-  },
-  {
-    "objectID": "mr-4.html#group-means-centered-dv",
-    "href": "mr-4.html#group-means-centered-dv",
-    "title": "Multiple Regression",
-    "section": "Group means (centered DV)",
-    "text": "Group means (centered DV)\n\nget_variables(mr.6)\n\n [1] \"b_a_iv1\"        \"b_a_iv2\"        \"b_a_iv3\"        \"b_b_iv2lowSES\" \n [5] \"b_b_iv2highSES\" \"sigma\"          \"lprior\"         \"lp__\"          \n [9] \"accept_stat__\"  \"treedepth__\"    \"stepsize__\"     \"divergent__\"   \n[13] \"n_leapfrog__\"   \"energy__\"      \n\n\n\n\nCode\nmr.6 %&gt;%\n  gather_draws(b_a_iv1, b_a_iv2, b_a_iv3) %&gt;%\n  ggplot(aes(y = .variable, x = .value)) +\n  stat_dotsinterval()"
-  },
-  {
-    "objectID": "mr-4.html#add-the-mean-of-the-dv-back-in",
-    "href": "mr-4.html#add-the-mean-of-the-dv-back-in",
-    "title": "Multiple Regression",
-    "section": "Add the mean of the DV back in",
-    "text": "Add the mean of the DV back in\nAdd the mean of your DV back in\n\n\nCode\nmean_happy &lt;- mean(MR$happiness)   # 5.21: we centered the DV, so add it back\nmr.6 %&gt;%\n  spread_draws(b_a_iv1, b_a_iv2, b_a_iv3) %&gt;%\n  mutate(iv1 = b_a_iv1 + mean_happy) %&gt;% \n  mutate(iv2 = b_a_iv2 + mean_happy) %&gt;% \n  mutate(iv3 = b_a_iv3 + mean_happy) %&gt;% \n  gather_draws(iv1, iv2, iv3) %&gt;% \n  ggplot(aes(y = .variable, x = .value)) +\n  stat_dotsinterval()"
-  },
-  {
-    "objectID": "mr-4.html#group-means-summarized",
-    "href": "mr-4.html#group-means-summarized",
-    "title": "Multiple Regression",
-    "section": "Group means, summarized",
-    "text": "Group means, summarized\n\n\nCode\nmr.6 %&gt;%\n  spread_draws(b_a_iv1, b_a_iv2, b_a_iv3) %&gt;%\n  mutate(iv1 = b_a_iv1 + mean_happy) %&gt;% \n  mutate(iv2 = b_a_iv2 + mean_happy) %&gt;% \n  mutate(iv3 = b_a_iv3 + mean_happy) %&gt;% \n  gather_draws(iv1, iv2, iv3) %&gt;% \n  mean_qi()\n\n\n# A tibble: 3 × 7\n  .variable .value .lower .upper .width .point .interval\n  &lt;chr&gt;      &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;    \n1 iv1         5.01   3.07   6.85   0.95 mean   qi       \n2 iv2         5.23   3.35   7.07   0.95 mean   qi       \n3 iv3         5.36   3.46   7.24   0.95 mean   qi       \n\n\n\n\nCode\nMR %&gt;%\n  group_by(iv) %&gt;%\n  summarise(mean = mean(happiness), n = n())\n\n\n# A tibble: 3 × 3\n  iv     mean     n\n  &lt;fct&gt; &lt;dbl&gt; &lt;int&gt;\n1 1      5.00    44\n2 2      5.29    35\n3 3      5.38    39"
-  },
-  {
-    "objectID": "mr-4.html#each-draw-is-a-population",
-    "href": "mr-4.html#each-draw-is-a-population",
-    "title": "Multiple Regression",
-    "section": "Each draw is a population",
-    "text": "Each draw is a population\nEach posterior row implies a different population we are drawing from, much like each row represents a different regression line. Here, low-SES people in each group:\n\n\nCode\nMR %&gt;%\n  data_grid(iv, iv2 = \"low SES\") %&gt;%\n  add_epred_draws(mr.5, dpar = c(\"mu\", \"sigma\"), ndraws = 50) %&gt;%\n  ggplot(aes(y = iv)) +\n  stat_slab(aes(dist = \"norm\", arg1 = mu, arg2 = sigma),\n    slab_color = \"gray65\", alpha = 1/10, fill = NA) +\n  geom_point(aes(x = happiness), data = filter(MR, iv2 == \"low SES\"), shape = 21, fill = \"#9ECAE1\", size = 2) +\n  labs(x = \"happiness\")"
-  },
-  {
-    "objectID": "mr-4.html#redundant-predictors",
-    "href": "mr-4.html#redundant-predictors",
-    "title": "Multiple Regression",
-    "section": "Redundant predictors?",
-    "text": "Redundant predictors?\n\npairs(mr.1)"
-  },
-  {
-    "objectID": "mr-4.html#comparing-levels-ie-contrasts",
-    "href": "mr-4.html#comparing-levels-ie-contrasts",
-    "title": "Multiple Regression",
-    "section": "comparing levels ie contrasts",
-    "text": "comparing levels ie contrasts\nThe same contrasts by hand with tidybayes’s compare_levels(). (In this additive model, the differences between iv groups are the same at either SES level.)\n\nmr.5 %&gt;%\n  gather_draws(b_iv1, b_iv2, b_iv3) %&gt;%\n  compare_levels(.value, by = .variable) %&gt;%\n  ggplot(aes(y = .variable, x = .value)) +\n  stat_halfeye() +\n  geom_vline(xintercept = 0, linetype = 2)"
-  },
-  {
-    "objectID": "mr-4.html#the-draws-long-format",
-    "href": "mr-4.html#the-draws-long-format",
-    "title": "Multiple Regression",
-    "section": "The draws, long format",
-    "text": "The draws, long format\n\nmr.6 %&gt;%\n  gather_draws(b_a_iv1, b_a_iv2, b_a_iv3) \n\n# A tibble: 12,000 × 5\n# Groups:   .variable [3]\n   .chain .iteration .draw .variable  .value\n    &lt;int&gt;      &lt;int&gt; &lt;int&gt; &lt;chr&gt;       &lt;dbl&gt;\n 1      1          1     1 b_a_iv1    0.864 \n 2      1          2     2 b_a_iv1    0.0719\n 3      1          3     3 b_a_iv1    0.0250\n 4      1          4     4 b_a_iv1   -1.26  \n 5      1          5     5 b_a_iv1   -1.74  \n 6      1          6     6 b_a_iv1   -1.79  \n 7      1          7     7 b_a_iv1   -0.969 \n 8      1          8     8 b_a_iv1   -0.793 \n 9      1          9     9 b_a_iv1   -0.668 \n10      1         10    10 b_a_iv1   -1.33  \n# ℹ 11,990 more rows"
-  },
-  {
-    "objectID": "mr-4.html#compare_levels-output",
-    "href": "mr-4.html#compare_levels-output",
-    "title": "Multiple Regression",
-    "section": "compare_levels() output",
-    "text": "compare_levels() output\n\nmr.6 %&gt;%\n  gather_draws(b_a_iv1, b_a_iv2, b_a_iv3) %&gt;%\n  compare_levels(.value, by = .variable) \n\n# A tibble: 12,000 × 5\n# Groups:   .variable [3]\n   .chain .iteration .draw .variable         .value\n    &lt;int&gt;      &lt;int&gt; &lt;int&gt; &lt;chr&gt;              &lt;dbl&gt;\n 1      1          1     1 b_a_iv2 - b_a_iv1  0.378\n 2      1          2     2 b_a_iv2 - b_a_iv1  0.200\n 3      1          3     3 b_a_iv2 - b_a_iv1  0.365\n 4      1          4     4 b_a_iv2 - b_a_iv1 -0.129\n 5      1          5     5 b_a_iv2 - b_a_iv1  0.441\n 6      1          6     6 b_a_iv2 - b_a_iv1  0.809\n 7      1          7     7 b_a_iv2 - b_a_iv1 -0.179\n 8      1          8     8 b_a_iv2 - b_a_iv1  1.20 \n 9      1          9     9 b_a_iv2 - b_a_iv1  0.892\n10      1         10    10 b_a_iv2 - b_a_iv1 -0.395\n# ℹ 11,990 more rows"
-  },
-  {
-    "objectID": "mr-4.html#summarizing-the-contrasts",
-    "href": "mr-4.html#summarizing-the-contrasts",
-    "title": "Multiple Regression",
-    "section": "Summarizing the contrasts",
-    "text": "Summarizing the contrasts\n\nmr.6 %&gt;%\n  gather_draws(b_a_iv1, b_a_iv2, b_a_iv3) %&gt;%\n  compare_levels(.value, by = .variable) %&gt;%\n  group_by(.variable) %&gt;%  \n  mode_qi(.value)\n\n# A tibble: 3 × 7\n  .variable         .value .lower .upper .width .point .interval\n  &lt;chr&gt;              &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;    \n1 b_a_iv2 - b_a_iv1 0.174  -0.647   1.05   0.95 mode   qi       \n2 b_a_iv3 - b_a_iv1 0.342  -0.474   1.20   0.95 mode   qi       \n3 b_a_iv3 - b_a_iv2 0.0630 -0.716   1.02   0.95 mode   qi"
-  },
-  {
-    "objectID": "mr-4.html#an-index-for-every-cell",
-    "href": "mr-4.html#an-index-for-every-cell",
-    "title": "Multiple Regression",
-    "section": "An index for every cell",
-    "text": "An index for every cell\nWhat about an interaction between two categorical variables? The simplest index-coded version gives every cell (every combination of iv and iv2) its own mean, with one prior for all six:\n\n\nCode\nmr.7 &lt;- \n  brm(family = gaussian,\n      happy_c ~ 0 + iv:iv2,\n      prior = c(prior(normal(0, 2), class = b),\n                prior(exponential(1), class = sigma)),\n      iter = 2000, warmup = 1000, chains = 4, cores = 4,\n      data = MR,\n      backend = \"cmdstanr\",\n      file = \"mr.7\")\nfixef(mr.7)\n\n\n                  Estimate Est.Error       Q2.5     Q97.5\niv1:iv2lowSES  -0.32383905 0.3717521 -1.0417013 0.4113520\niv2:iv2lowSES  -0.25989036 0.4883080 -1.2286960 0.7019559\niv3:iv2lowSES  -0.10846585 0.4197611 -0.9516391 0.7188939\niv1:iv2highSES -0.05321064 0.4395241 -0.9335064 0.8166746\niv2:iv2highSES  0.30193537 0.4053392 -0.5077301 1.0939915\niv3:iv2highSES  0.44187375 0.4159345 -0.3616300 1.2519357\n\n\nCode\nmean_happy &lt;- mean(MR$happiness)   # we centered the DV, so add this back for plots"
-  },
-  {
-    "objectID": "mr-4.html#is-there-an-interaction-ask-the-cell-means",
-    "href": "mr-4.html#is-there-an-interaction-ask-the-cell-means",
-    "title": "Multiple Regression",
-    "section": "Is there an interaction? Ask the cell means",
-    "text": "Is there an interaction? Ask the cell means\nWith cell means, “is there an interaction?” becomes “does the high − low SES difference change across iv?”, a difference of differences computed from the draws:\n\n\nCode\ncells &lt;- avg_predictions(mr.7, by = c(\"iv\", \"iv2\")) %&gt;% get_draws()\n\ncells %&gt;% \n  mutate(draw = draw + mean_happy) %&gt;% \n  ggplot(aes(x = iv, y = draw, color = iv2, group = iv2)) +\n  stat_pointinterval(position = position_dodge(width = .3)) +\n  stat_summary(fun = median, geom = \"line\", position = position_dodge(width = .3)) +\n  labs(y = \"happiness\", color = NULL)"
-  },
-  {
-    "objectID": "mr-4.html#difference-of-differences",
-    "href": "mr-4.html#difference-of-differences",
-    "title": "Multiple Regression",
-    "section": "Difference of differences",
-    "text": "Difference of differences\nThe high − low SES gap in each iv group, then how much those gaps differ between groups (that’s the interaction):\n\n\nCode\ncells %&gt;% \n  select(drawid, iv, iv2, draw) %&gt;% \n  pivot_wider(names_from = iv2, values_from = draw) %&gt;% \n  mutate(ses_diff = `high SES` - `low SES`) %&gt;% \n  select(drawid, iv, ses_diff) %&gt;% \n  pivot_wider(names_from = iv, values_from = ses_diff, names_prefix = \"iv\") %&gt;% \n  transmute(`iv2 vs iv1` = iv2 - iv1, `iv3 vs iv1` = iv3 - iv1, `iv3 vs iv2` = iv3 - iv2) %&gt;% \n  pivot_longer(everything()) %&gt;% \n  group_by(name) %&gt;% \n  median_qi(value)\n\n\n# A tibble: 3 × 7\n  name         value .lower .upper .width .point .interval\n  &lt;chr&gt;        &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;    \n1 iv2 vs iv1  0.292   -1.42   1.97   0.95 median qi       \n2 iv3 vs iv1  0.282   -1.39   1.96   0.95 median qi       \n3 iv3 vs iv2 -0.0276  -1.74   1.72   0.95 median qi"
-  },
-  {
-    "objectID": "mr-4.html#a-32-factorial-the-data",
-    "href": "mr-4.html#a-32-factorial-the-data",
-    "title": "Multiple Regression",
-    "section": "A 3×2 factorial: the data",
-    "text": "A 3×2 factorial: the data\n\nanova &lt;- read_csv(\"anova.csv\")   # also at https://josh-jackson.github.io/bayes27/anova.csv\nanova &lt;- anova %&gt;% \n  mutate(SupportLevel = cut(Support, breaks = c(0, 5, 10, 18), labels = c(\"low\", \"med\", \"high\")),\n         condition = factor(group)) %&gt;%   # renamed: marginaleffects reserves the name \"group\"\n  select(-group)\nanova %&gt;% count(condition, SupportLevel)\n\n# A tibble: 6 × 3\n  condition SupportLevel     n\n  &lt;fct&gt;     &lt;fct&gt;        &lt;int&gt;\n1 Control   low              9\n2 Control   med             37\n3 Control   high            10\n4 Tx        low              3\n5 Tx        med             30\n6 Tx        high            29\n\n\nIf we want to fit a 3×2 ANOVA, what linear model are we running?"
-  },
-  {
-    "objectID": "mr-4.html#the-32-model-in-brmss-names",
-    "href": "mr-4.html#the-32-model-in-brmss-names",
-    "title": "Multiple Regression",
-    "section": "The 3×2 model, in brms’s names",
-    "text": "The 3×2 model, in brms’s names\n\\[\\text{Anxiety}_i \\sim \\text{Normal}(\\mu_i, \\sigma)\\]\n\\[\n\\begin{aligned}\n\\mu_i = \\beta_0 &+ \\beta_1\\,\\text{conditionTx}_i + \\beta_2\\,\\text{SupportLevelmed}_i + \\beta_3\\,\\text{SupportLevelhigh}_i \\\\\n&+ \\beta_4\\,(\\text{conditionTx} \\times \\text{SupportLevelmed})_i \\\\\n&+ \\beta_5\\,(\\text{conditionTx} \\times \\text{SupportLevelhigh})_i\n\\end{aligned}\n\\]\nEach name is a 0/1 dummy, exactly as it will appear in summary(). The reference cell (all dummies = 0) is Control with low support, so \\(\\beta_0\\) is that cell’s mean and every other coefficient is a difference from it."
-  },
-  {
     "objectID": "mr-4.html#fitting-the-factorial-model",
     "href": "mr-4.html#fitting-the-factorial-model",
     "title": "Multiple Regression",
     "section": "Fitting the factorial model",
     "text": "Fitting the factorial model\n\nfac.1 &lt;- \n  brm(family = gaussian,\n      score ~ strategy * sleep,\n      prior = c(prior(normal(70, 10), class = Intercept),\n                prior(normal(0, 10), class = b),\n                prior(exponential(.1), class = sigma)),\n      iter = 2000, warmup = 1000, chains = 4, cores = 4,\n      data = exam,\n      backend = \"cmdstanr\",\n      file = \"fac.1\")"
-  },
-  {
-    "objectID": "mr-4.html#factorial-results",
-    "href": "mr-4.html#factorial-results",
-    "title": "Multiple Regression",
-    "section": "Factorial results",
-    "text": "Factorial results\n\nsummary(mr.8b)\n\n Family: gaussian \n  Links: mu = identity \nFormula: Anxiety ~ condition * SupportLevel \n   Data: anova (Number of observations: 118) \n  Draws: 2 chains, each with iter = 2000; warmup = 1000; thin = 1;\n         total post-warmup draws = 2000\n\nRegression Coefficients:\n                             Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS\nIntercept                        8.49      0.64     7.23     9.71 1.00     1635\nconditionTx                     -0.28      0.92    -2.05     1.53 1.00     1177\nSupportLevelmed                 -0.34      0.72    -1.69     1.11 1.00     1596\nSupportLevelhigh                -2.58      0.85    -4.19    -0.98 1.00     1634\nconditionTx:SupportLevelmed      0.60      1.00    -1.33     2.51 1.00     1152\nconditionTx:SupportLevelhigh     0.58      1.08    -1.57     2.69 1.00     1124\n                             Tail_ESS\nIntercept                        1377\nconditionTx                      1223\nSupportLevelmed                  1558\nSupportLevelhigh                 1604\nconditionTx:SupportLevelmed      1455\nconditionTx:SupportLevelhigh     1229\n\nFurther Distributional Parameters:\n      Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nsigma     2.28      0.15     1.99     2.59 1.00     2174     1410\n\nDraws were sampled using sample(hmc). For each parameter, Bulk_ESS\nand Tail_ESS are effective sample size measures, and Rhat is the potential\nscale reduction factor on split chains (at convergence, Rhat = 1)."
-  },
-  {
-    "objectID": "mr-4.html#parameter-names",
-    "href": "mr-4.html#parameter-names",
-    "title": "Multiple Regression",
-    "section": "Parameter names",
-    "text": "Parameter names\n\n\nCode\nget_variables(mr.8b)\n\n\n [1] \"b_Intercept\"                         \n [2] \"b_conditionTx\"                       \n [3] \"b_SupportLevelmed\"                   \n [4] \"b_SupportLevelhigh\"                  \n [5] \"b_conditionTx:SupportLevelmed\"       \n [6] \"b_conditionTx:SupportLevelhigh\"      \n [7] \"sigma\"                               \n [8] \"Intercept\"                           \n [9] \"prior_Intercept\"                     \n[10] \"prior_b_conditionTx\"                 \n[11] \"prior_b_SupportLevelmed\"             \n[12] \"prior_b_SupportLevelhigh\"            \n[13] \"prior_b_conditionTx:SupportLevelmed\" \n[14] \"prior_b_conditionTx:SupportLevelhigh\"\n[15] \"prior_sigma\"                         \n[16] \"lprior\"                              \n[17] \"lp__\"                                \n[18] \"accept_stat__\"                       \n[19] \"treedepth__\"                         \n[20] \"stepsize__\"                          \n[21] \"divergent__\"                         \n[22] \"n_leapfrog__\"                        \n[23] \"energy__\""
-  },
-  {
-    "objectID": "mr-4.html#cell-means-by-hand-the-dummy-codes",
-    "href": "mr-4.html#cell-means-by-hand-the-dummy-codes",
-    "title": "Multiple Regression",
-    "section": "Cell means by hand: the dummy codes",
-    "text": "Cell means by hand: the dummy codes\nHow could we get posterior means for each of the 6 cells? Feed the 0/1 codes into the equation, draw by draw.\n\ncontrasts(anova$condition)\n\n        Tx\nControl  0\nTx       1\n\n\n\ncontrasts(anova$SupportLevel)\n\n     med high\nlow    0    0\nmed    1    0\nhigh   0    1"
-  },
-  {
-    "objectID": "mr-4.html#cell-means-by-hand",
-    "href": "mr-4.html#cell-means-by-hand",
-    "title": "Multiple Regression",
-    "section": "Cell means by hand",
-    "text": "Cell means by hand\n\n\nCode\nmr.8b %&gt;% \n  spread_draws(b_Intercept, b_conditionTx, b_SupportLevelmed, b_SupportLevelhigh,\n               `b_conditionTx:SupportLevelmed`, `b_conditionTx:SupportLevelhigh`) %&gt;% \n  mutate(Con_Lo  = b_Intercept,\n         Con_Med = b_Intercept + b_SupportLevelmed,\n         Con_Hi  = b_Intercept + b_SupportLevelhigh,\n         Tx_Lo   = b_Intercept + b_conditionTx,\n         Tx_Med  = b_Intercept + b_conditionTx + b_SupportLevelmed + `b_conditionTx:SupportLevelmed`,\n         Tx_Hi   = b_Intercept + b_conditionTx + b_SupportLevelhigh + `b_conditionTx:SupportLevelhigh`) %&gt;% \n  select(.draw, Con_Lo:Tx_Hi)\n\n\n# A tibble: 2,000 × 7\n   .draw Con_Lo Con_Med Con_Hi Tx_Lo Tx_Med Tx_Hi\n   &lt;int&gt;  &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;\n 1     1   8.92    9.14   5.85  8.61   8.56  5.69\n 2     2   7.31    7.97   5.17  7.99   8.57  6.58\n 3     3   7.65    8.03   5.35  8.17   8.60  6.28\n 4     4   8.41    8.18   6.07  7.81   8.69  6.38\n 5     5   8.51    8.06   6.27  8.04   8.43  6.37\n 6     6   8.62    8.40   5.54  8.48   8.57  5.76\n 7     7   9.73    8.34   5.09  8.19   8.26  5.58\n 8     8   9.57    8.68   6.45  6.76   8.66  6.10\n 9     9   8.42    8.36   5.41  7.64   8.32  5.88\n10    10   8.01    7.67   5.24  7.99   8.58  6.35\n# ℹ 1,990 more rows"
-  },
-  {
-    "objectID": "mr-4.html#a-difference-of-cell-means-by-hand",
-    "href": "mr-4.html#a-difference-of-cell-means-by-hand",
-    "title": "Multiple Regression",
-    "section": "A difference of cell means, by hand",
-    "text": "A difference of cell means, by hand\n\n\nCode\nmr.8b %&gt;% \n  spread_draws(b_Intercept, b_SupportLevelmed, b_SupportLevelhigh) %&gt;% \n  mutate(Con_Med = b_Intercept + b_SupportLevelmed,\n         Con_Hi  = b_Intercept + b_SupportLevelhigh,\n         hi_med_diff = Con_Hi - Con_Med) %&gt;% \n  mean_qi(hi_med_diff)\n\n\n# A tibble: 1 × 6\n  hi_med_diff .lower .upper .width .point .interval\n        &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;    \n1       -2.24  -3.64 -0.771   0.95 mean   qi"
-  },
-  {
-    "objectID": "mr-4.html#getting-cell-means-options",
-    "href": "mr-4.html#getting-cell-means-options",
-    "title": "Multiple Regression",
-    "section": "Getting cell means: options",
-    "text": "Getting cell means: options\n\nCompute them by hand from the draws (what we just did)\nFeed the same arithmetic to brms’s hypothesis() (handy with LOTS of parameters, as in MLMs)\nLet a package do it: {marginaleffects} (what we’ll use), or {emmeans}, which also works with brms models"
   },
   {
     "objectID": "mr-4.html#marginaleffects-what-it-does-by-default",
@@ -7469,60 +7259,11 @@
     "text": "marginaleffects: what it does by default\nFrom here on, {marginaleffects} is our main tool for contrasts and slopes. It makes choices for you; know them:\n\nThe grid. With no newdata, it makes a prediction for every row of your data. avg_*() then averages those, e.g. averaging over the observed mix of groups. Not the same as a “typical” person (newdata = \"mean\") or all factor combinations equally (newdata = \"balanced\"); a few slides on, two grids give two answers.\nThe summary. For a brms model, estimate is the posterior median, and the interval is equal-tailed (quantile) at 95%.\nThe scale. type = \"response\" (the default) vs. \"link\". It doesn’t matter yet, but it will for logistic and count models.\nThe escape hatch. get_draws() turns any result back into one row per draw, so you can check it by hand or plot it with tidybayes."
   },
   {
-    "objectID": "mr-4.html#support-level-means-averaged-over-the-observed-data",
-    "href": "mr-4.html#support-level-means-averaged-over-the-observed-data",
-    "title": "Multiple Regression",
-    "section": "Support-level means, averaged over the observed data",
-    "text": "Support-level means, averaged over the observed data\n\navg_predictions(mr.8b, by = \"SupportLevel\")\n\n\n SupportLevel Estimate 2.5 % 97.5 %\n         low      8.43  7.23   9.56\n         med      8.30  7.76   8.82\n         high     6.14  5.44   6.82\n\nType: response"
-  },
-  {
-    "objectID": "mr-4.html#or-over-a-balanced-grid",
-    "href": "mr-4.html#or-over-a-balanced-grid",
-    "title": "Multiple Regression",
-    "section": "…or over a balanced grid",
-    "text": "…or over a balanced grid\nEach support level averaged over Control and Tx equally, regardless of how many people were in each cell:\n\navg_predictions(mr.8b, newdata = \"balanced\", by = \"SupportLevel\")\n\n\n SupportLevel Estimate 2.5 % 97.5 %\n         low      8.37  7.04   9.58\n         med      8.31  7.76   8.83\n         high     6.06  5.32   6.83\n\nType: response"
-  },
-  {
-    "objectID": "mr-4.html#all-six-cell-means",
-    "href": "mr-4.html#all-six-cell-means",
-    "title": "Multiple Regression",
-    "section": "All six cell means",
-    "text": "All six cell means\n\npredictions(mr.8b, newdata = datagrid(SupportLevel = unique, condition = unique))\n\n\n SupportLevel condition Estimate 2.5 % 97.5 %\n         low    Control     8.49  7.23   9.71\n         low    Tx          8.23  6.34   9.95\n         med    Control     8.14  7.46   8.86\n         med    Tx          8.48  7.63   9.25\n         high   Control     5.90  4.65   7.16\n         high   Tx          6.21  5.41   7.03\n\nType: response"
-  },
-  {
-    "objectID": "mr-4.html#pairwise-contrasts-between-support-levels",
-    "href": "mr-4.html#pairwise-contrasts-between-support-levels",
-    "title": "Multiple Regression",
-    "section": "Pairwise contrasts between support levels",
-    "text": "Pairwise contrasts between support levels\n\navg_predictions(mr.8b, by = \"SupportLevel\", hypothesis = ~ pairwise)\n\n\n     Hypothesis Estimate 2.5 % 97.5 %\n (med) - (low)     -0.13 -1.37  1.169\n (high) - (low)    -2.29 -3.63 -0.927\n (high) - (med)    -2.16 -3.02 -1.292\n\nType: response"
-  },
-  {
-    "objectID": "mr-4.html#tx-vs.-control-within-each-support-level",
-    "href": "mr-4.html#tx-vs.-control-within-each-support-level",
-    "title": "Multiple Regression",
-    "section": "Tx vs. Control within each support level",
-    "text": "Tx vs. Control within each support level\n\navg_comparisons(mr.8b, variables = \"condition\", by = \"SupportLevel\")\n\n\n SupportLevel Estimate  2.5 % 97.5 %\n         low    -0.273 -2.050   1.53\n         med     0.321 -0.811   1.36\n         high    0.302 -1.142   1.80\n\nTerm: condition\nType: response\nComparison: Tx - Control\n\n\nIf the Tx − Control difference changes across support levels, that’s the interaction."
-  },
-  {
-    "objectID": "mr-4.html#plotting-the-contrasts",
-    "href": "mr-4.html#plotting-the-contrasts",
-    "title": "Multiple Regression",
-    "section": "Plotting the contrasts",
-    "text": "Plotting the contrasts\n\n\nCode\navg_predictions(mr.8b, by = \"SupportLevel\", hypothesis = ~ pairwise) %&gt;%\n  get_draws() %&gt;%\n  ggplot(aes(x = draw, y = hypothesis)) +\n  stat_halfeye() +\n  geom_vline(xintercept = 0, linetype = 2) +\n  labs(x = \"difference in anxiety\", y = NULL)"
-  },
-  {
     "objectID": "mr-4.html#the-interaction-plotted",
     "href": "mr-4.html#the-interaction-plotted",
     "title": "Multiple Regression",
     "section": "The interaction, plotted",
-    "text": "The interaction, plotted\n\n\nCode\navg_predictions(fac.1, by = c(\"sleep\", \"strategy\")) %&gt;% \n  get_draws() %&gt;% \n  ggplot(aes(x = sleep, y = draw, colour = strategy)) +\n  geom_point(data = exam, aes(y = score), alpha = .25, size = 1.2,\n             position = position_jitterdodge(jitter.width = .15, dodge.width = .5)) +\n  stat_summary(aes(group = strategy), fun = median, geom = \"line\", position = position_dodge(width = .5)) +\n  stat_pointinterval(position = position_dodge(width = .5), .width = .95) +\n  scale_colour_manual(values = c(reread = \"grey35\", practice = \"#D55E00\"),\n                      labels = c(reread = \"re-read\", practice = \"practice tests\")) +\n  labs(x = \"Sleep the night before\", y = \"Exam score\", colour = NULL,\n       caption = \"Points: students. Dots and bars: posterior medians and 95% intervals for each cell mean.\") +\n  theme_classic(base_size = 14) + theme(legend.position = \"top\")\n\n\n\n\n\n\n\n\n\nThe lines aren’t parallel: that’s the interaction. This is the kind of figure HW 4 Q6a asks for."
-  },
-  {
-    "objectID": "mr-4.html#interactions",
-    "href": "mr-4.html#interactions",
-    "title": "Multiple Regression",
-    "section": "Interactions",
-    "text": "Interactions\nContinuing our translation of previous skills to a Bayesian framework.\nInteractions reflect when the influence of one variable depends on another. No longer can speak of main effects, now one needs to describe the association between two (or more) variables and the DV. The result is that the interpretation is the hard part, not necessarily the modeling.\nAs models get more complex, interactions become more likely (anytime there is a boundary in the DV)"
+    "text": "The interaction, plotted\n\n\nCode\navg_predictions(fac.1, by = c(\"sleep\", \"strategy\")) %&gt;% \n  get_draws() %&gt;% \n  ggplot(aes(x = sleep, y = draw, colour = strategy)) +\n  geom_point(data = exam, aes(y = score), alpha = .25, size = 1.2,\n             position = position_jitterdodge(jitter.width = .15, dodge.width = .5)) +\n  stat_summary(aes(group = strategy), fun = median, geom = \"line\", position = position_dodge(width = .5)) +\n  stat_pointinterval(position = position_dodge(width = .5), .width = .95) +\n  scale_colour_manual(values = c(reread = \"grey35\", practice = \"#D55E00\"),\n                      labels = c(reread = \"re-read\", practice = \"practice tests\")) +\n  labs(x = \"Sleep the night before\", y = \"Exam score\", colour = NULL,\n       caption = \"Points: students. Dots and bars: posterior medians and 95% intervals for each cell mean.\") +\n  theme_classic(base_size = 14) + theme(legend.position = \"top\")\n\n\n\n\n\n\n\n\n\nThe lines aren’t parallel: that’s the interaction."
   },
   {
     "objectID": "mr-4.html#nominal-plus-metriccontinuous-interaction",
@@ -7574,13 +7315,6 @@
     "text": "Separate lines by group\n\n\nCode\nMR %&gt;%\n  group_by(iv.d) %&gt;%\n  data_grid(SS_c = seq_range(SS_c, n = 50), .model = MR) %&gt;%\n  add_epred_draws(mr.13, ndraws = 100) %&gt;%\n  ggplot(aes(x = SS_c, y = happiness, color = iv.d)) +\n  geom_line(aes(y = .epred, group = paste(iv.d, .draw)),alpha = .1) +\n  geom_point(data = MR)"
   },
   {
-    "objectID": "mr-4.html#the-grid-again",
-    "href": "mr-4.html#the-grid-again",
-    "title": "Multiple Regression",
-    "section": "The grid, again",
-    "text": "The grid, again\n\n\nCode\ndf &lt;- MR %&gt;%\n  group_by(iv.d) %&gt;%\n  data_grid(SS_c = seq_range(SS_c, n = 50), .model = MR)\ndf\n\n\n# A tibble: 200 × 11\n   iv.d     SS_c friendship.quality happiness schoool.success   SES\n   &lt;fct&gt;   &lt;dbl&gt;              &lt;dbl&gt;     &lt;dbl&gt;           &lt;dbl&gt; &lt;dbl&gt;\n 1 control -8.71               7.75      5.34            8.52  2.31\n 2 control -8.71               7.75      5.34            8.52  2.31\n 3 control -8.35               7.75      5.34            8.52  2.31\n 4 control -8.35               7.75      5.34            8.52  2.31\n 5 control -8.00               7.75      5.34            8.52  2.31\n 6 control -8.00               7.75      5.34            8.52  2.31\n 7 control -7.65               7.75      5.34            8.52  2.31\n 8 control -7.65               7.75      5.34            8.52  2.31\n 9 control -7.29               7.75      5.34            8.52  2.31\n10 control -7.29               7.75      5.34            8.52  2.31\n# ℹ 190 more rows\n# ℹ 5 more variables: intervention.group &lt;dbl&gt;, FQ_c &lt;dbl&gt;, iv &lt;chr&gt;,\n#   happy_c &lt;dbl&gt;, iv2 &lt;chr&gt;"
-  },
-  {
     "objectID": "mr-4.html#without-index-coding",
     "href": "mr-4.html#without-index-coding",
     "title": "Multiple Regression",
@@ -7600,13 +7334,6 @@
     "title": "Multiple Regression",
     "section": "Same lines, different parameters",
     "text": "Same lines, different parameters\n\n\nCode\nMR %&gt;%\n  group_by(iv.d) %&gt;%\n  data_grid(SS_c = seq_range(SS_c, n = 50), .model = MR) %&gt;%\n  add_epred_draws(mr.14, ndraws = 100) %&gt;%\n  ggplot(aes(x = SS_c, y = happiness, color = iv.d)) +\n  geom_line(aes(y = .epred, group = paste(iv.d, .draw)),alpha = .1) +\n  geom_point(data = MR)"
-  },
-  {
-    "objectID": "mr-4.html#predictions-behind-the-plot",
-    "href": "mr-4.html#predictions-behind-the-plot",
-    "title": "Multiple Regression",
-    "section": "Predictions behind the plot",
-    "text": "Predictions behind the plot\n\n\nCode\nMR %&gt;%\n  group_by(iv.d) %&gt;%\n  data_grid(SS_c = seq_range(SS_c, n = 50), .model = MR) %&gt;% \n  add_epred_draws(mr.14, ndraws = 100) \n\n\n# A tibble: 20,000 × 16\n# Groups:   iv.d, SS_c, friendship.quality, happiness, schoool.success, SES,\n#   intervention.group, FQ_c, iv, happy_c, iv2, .row [200]\n   iv.d     SS_c friendship.quality happiness schoool.success   SES\n   &lt;fct&gt;   &lt;dbl&gt;              &lt;dbl&gt;     &lt;dbl&gt;           &lt;dbl&gt; &lt;dbl&gt;\n 1 control -8.71               7.75      5.34            8.52  2.31\n 2 control -8.71               7.75      5.34            8.52  2.31\n 3 control -8.71               7.75      5.34            8.52  2.31\n 4 control -8.71               7.75      5.34            8.52  2.31\n 5 control -8.71               7.75      5.34            8.52  2.31\n 6 control -8.71               7.75      5.34            8.52  2.31\n 7 control -8.71               7.75      5.34            8.52  2.31\n 8 control -8.71               7.75      5.34            8.52  2.31\n 9 control -8.71               7.75      5.34            8.52  2.31\n10 control -8.71               7.75      5.34            8.52  2.31\n# ℹ 19,990 more rows\n# ℹ 10 more variables: intervention.group &lt;dbl&gt;, FQ_c &lt;dbl&gt;, iv &lt;chr&gt;,\n#   happy_c &lt;dbl&gt;, iv2 &lt;chr&gt;, .row &lt;int&gt;, .chain &lt;int&gt;, .iteration &lt;int&gt;,\n#   .draw &lt;int&gt;, .epred &lt;dbl&gt;"
   },
   {
     "objectID": "mr-4.html#group-slopes-by-hand",
@@ -7691,20 +7418,6 @@
     "title": "Multiple Regression",
     "section": "Slopes at specific SES values",
     "text": "Slopes at specific SES values\n\nslopes(a.4,\n  newdata = datagrid(\n    SES = 3))\n\n\n Term Contrast SES Estimate  2.5 % 97.5 %\n  iv     2 - 1   3   0.5028 -0.476   1.45\n  iv     3 - 1   3   0.6435 -0.362   1.67\n  SES    dY/dX   3  -0.0446 -0.654   0.56\n\nType: response\n\n\n\nslopes(a.4,\n  newdata = datagrid(\n    SES = 0))\n\n\n Term Contrast SES Estimate  2.5 % 97.5 %\n  iv     2 - 1   0  -0.6187 -2.642   1.52\n  iv     3 - 1   0  -0.4413 -2.453   1.50\n  SES    dY/dX   0  -0.0446 -0.654   0.56\n\nType: response"
-  },
-  {
-    "objectID": "mr-4.html#continuous-interaction-example",
-    "href": "mr-4.html#continuous-interaction-example",
-    "title": "Multiple Regression",
-    "section": "Continuous interaction example",
-    "text": "Continuous interaction example\n\n\nCode\nMultipleregression &lt;- read.csv(\"Multipleregression.csv\")\n\n\n\nMultipleregression$Support.r &lt;- (17.36 - Multipleregression$Support)/3\n\nmr.model &lt;- lm(Stress ~ Support.r + Anxiety, data = Multipleregression)\nlibrary(visreg)\nvisreg2d(mr.model,\"Support.r\", \"Anxiety\", plot.type = \"persp\")"
-  },
-  {
-    "objectID": "mr-4.html#adding-the-interaction",
-    "href": "mr-4.html#adding-the-interaction",
-    "title": "Multiple Regression",
-    "section": "Adding the interaction",
-    "text": "Adding the interaction\n\n\nCode\nMultipleregression  &lt;- read_csv(\"Multipleregression.csv\")\n\nMultipleregression$Support.r &lt;- (17.36 - Multipleregression$Support)/3\n\nmr.model &lt;- lm(Stress ~ Support.r* Anxiety, data = Multipleregression)\nlibrary(visreg)\nvisreg2d(mr.model,\"Support.r\", \"Anxiety\", plot.type = \"persp\")"
   },
   {
     "objectID": "mr-4.html#default-priors-for-the-interaction-model",
@@ -8159,7 +7872,7 @@
     "href": "regression-2.html#these-priors-in-inches",
     "title": "Regression part 1",
     "section": "These priors, in inches",
-    "text": "These priors, in inches\n\n\n\n\n\n\n\nPrior\nIn words\n\n\n\n\n\\(\\beta_0 \\sim Normal(66, 5)\\)\nchildren of average-height parents average 56–76 inches (95%). Anything outside that would be a strange population\n\n\n\\(\\beta_1 \\sim Normal(0, 5)\\)\na parent 1 inch taller could mean children 10 inches taller or shorter. Deliberately silly; lecture 1’s N(0, 0.5) says ±1 inch per inch\n\n\n\\(\\sigma \\sim Exponential(0.5)\\)\nchildren scatter around the line by ~2 inches on average, 95% sure under 6. Not a foot\n\n\n\nThis is the kind of justification HW 2 Q2 wants: a sentence in the units of your variables."
+    "text": "These priors, in inches\n\n\n\n\n\n\n\nPrior\nIn words\n\n\n\n\n\\(\\beta_0 \\sim Normal(66, 5)\\)\nchildren of average-height parents average 56–76 inches (95%). Anything outside that would be a strange population\n\n\n\\(\\beta_1 \\sim Normal(0, 5)\\)\na parent 1 inch taller could mean children 10 inches taller or shorter. Deliberately silly; lecture 1’s N(0, 0.5) says ±1 inch per inch\n\n\n\\(\\sigma \\sim Exponential(0.5)\\)\nchildren scatter around the line by ~2 inches on average, 95% sure under 6. Not a foot\n\n\n\nJustify priors like this: a sentence in the units of your variables, not a label."
   },
   {
     "objectID": "regression-2.html#same-posterior-two-routes",
@@ -8173,7 +7886,7 @@
     "href": "regression-2.html#where-do-1000-draws-come-from",
     "title": "Regression part 1",
     "section": "Where do 1,000 draws come from?",
-    "text": "Where do 1,000 draws come from?\n\nndraws(fit.1)\n\n[1] 1000\n\n\nchains = 2, iter = 1000, warmup = 500: each chain runs 1,000 iterations and throws away the first 500 while it finds its footing. 2 × (1000 − 500) = 1,000 draws.\n\nMore draws give a sharper picture of the same posterior: smoother histograms, more stable interval endpoints\nThey don’t give you more information about the slope. That comes from the data (928 families) and the priors. The posterior SD won’t shrink if you ask for 4,000 draws (HW 2 Q5)"
+    "text": "Where do 1,000 draws come from?\n\nndraws(fit.1)\n\n[1] 1000\n\n\nchains = 2, iter = 1000, warmup = 500: each chain runs 1,000 iterations and throws away the first 500 while it finds its footing. 2 × (1000 − 500) = 1,000 draws.\n\nMore draws give a sharper picture of the same posterior: smoother histograms, more stable interval endpoints\nThey don’t give you more information about the slope. That comes from the data (928 families) and the priors. The posterior SD won’t shrink if you ask for 4,000 draws"
   },
   {
     "objectID": "regression-2.html#pp_check-with-a-statistic",
@@ -8418,7 +8131,7 @@
     "href": "regression-3.html#two-steps-vs.-all-at-once",
     "title": "Regression part 2",
     "section": "Two steps vs. all at once",
-    "text": "Two steps vs. all at once\n\n\nCode\nbind_rows(\"wave 1 alone\"                   = as_tibble(fixef(h.s1), rownames = \"par\"),\n          \"wave 2, wave 1's posterior as prior\" = as_tibble(fixef(h.s2), rownames = \"par\"),\n          \"all 200 at once\"                = as_tibble(fixef(h.1), rownames = \"par\"), .id = \"fit\") %&gt;%\n  filter(par == \"happy_c\") %&gt;% select(-par) %&gt;%\n  mutate(across(where(is.numeric), \\(x) round(x, 2)))\n\n\n# A tibble: 3 × 5\n  fit                                 Estimate Est.Error  Q2.5 Q97.5\n  &lt;chr&gt;                                  &lt;dbl&gt;     &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;\n1 wave 1 alone                            0.26      0.2  -0.13  0.63\n2 wave 2, wave 1's posterior as prior     0.36      0.14  0.09  0.63\n3 all 200 at once                         0.34      0.13  0.07  0.58\n\n\nClose, but only approximately. Summarizing wave 1 by a mean and an SD per parameter throws away:\n\nthe posterior’s shape (fine here: it’s nearly normal)\nthe correlation between intercept and slope (small here, thanks to centering)\neverything about σ, which started over from its original prior\n\nThe grid in lecture 1 carried the whole posterior forward, so it was exact. (This is HW 3 Q2c.)"
+    "text": "Two steps vs. all at once\n\n\nCode\nbind_rows(\"wave 1 alone\"                   = as_tibble(fixef(h.s1), rownames = \"par\"),\n          \"wave 2, wave 1's posterior as prior\" = as_tibble(fixef(h.s2), rownames = \"par\"),\n          \"all 200 at once\"                = as_tibble(fixef(h.1), rownames = \"par\"), .id = \"fit\") %&gt;%\n  filter(par == \"happy_c\") %&gt;% select(-par) %&gt;%\n  mutate(across(where(is.numeric), \\(x) round(x, 2)))\n\n\n# A tibble: 3 × 5\n  fit                                 Estimate Est.Error  Q2.5 Q97.5\n  &lt;chr&gt;                                  &lt;dbl&gt;     &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;\n1 wave 1 alone                            0.26      0.2  -0.13  0.63\n2 wave 2, wave 1's posterior as prior     0.36      0.14  0.09  0.63\n3 all 200 at once                         0.34      0.13  0.07  0.58\n\n\nClose, but only approximately. Summarizing wave 1 by a mean and an SD per parameter throws away:\n\nthe posterior’s shape (fine here: it’s nearly normal)\nthe correlation between intercept and slope (small here, thanks to centering)\neverything about σ, which started over from its original prior\n\nThe grid in lecture 1 carried the whole posterior forward, so it was exact."
   },
   {
     "objectID": "regression-3.html#wide-or-long-draws-recap",
@@ -8540,39 +8253,11 @@
     "text": "Are the predictors redundant?\n\npairs(mr.1, variable = c(\"b_SS_c\", \"b_FQ_c\"))\n\n\nSchool success and friendship quality correlate −0.55 in the data, so their slopes are tied together in the posterior (correlation ≈ +0.55): when a draw gives SS more credit, it gives FQ more too, to explain the same variance. Correlated, but not redundant; truly redundant predictors make a long, thin ridge (lecture 5)."
   },
   {
-    "objectID": "mr-4.html#index-coding-with-more-than-one-factor",
-    "href": "mr-4.html#index-coding-with-more-than-one-factor",
-    "title": "Multiple Regression",
-    "section": "Index coding with more than one factor",
-    "text": "Index coding with more than one factor\n0 + iv + iv2 gave an index (a mean) for each iv group but a dummy for iv2: 0 + only removes one intercept, so only the first factor gets indexed. Options:\n\nEvery cell gets its own mean: 0 + iv:iv2. One prior for all cells (next slides)\nTwo separate index variables (as in Statistical Rethinking): not identified. Add 1 to every iv mean and subtract 1 from every iv2 mean and the predictions don’t change, so only the priors decide where they sit\nDefault (dummy) coding with priors on the differences, then get means and contrasts with marginaleffects\n\nRule of thumb: use index coding for one factor, or for all the cells of a factorial. Once you add continuous predictors and interactions, use the default coding and read the results through predictions and contrasts, not the coefficients. That’s what we do for the rest of the course."
-  },
-  {
-    "objectID": "mr-4.html#group-means-and-contrasts",
-    "href": "mr-4.html#group-means-and-contrasts",
-    "title": "Multiple Regression",
-    "section": "Group means and contrasts",
-    "text": "Group means and contrasts\n\n# each iv group averaged over low and high SES equally (\"balanced\"),\n# so groups are compared at the same SES mix\navg_predictions(mr.5, newdata = \"balanced\", by = \"iv\")\n\n\n iv Estimate 2.5 % 97.5 %\n  1     5.03  4.45   5.61\n  2     5.25  4.65   5.90\n  3     5.38  4.81   5.97\n\nType: response\n\navg_predictions(mr.5, newdata = \"balanced\", by = \"iv\", hypothesis = ~ pairwise)\n\n\n Hypothesis Estimate  2.5 % 97.5 %\n  (2) - (1)    0.225 -0.674   1.12\n  (3) - (1)    0.356 -0.478   1.16\n  (3) - (2)    0.134 -0.738   0.99\n\nType: response"
-  },
-  {
-    "objectID": "mr-4.html#compare_levels-summarized",
-    "href": "mr-4.html#compare_levels-summarized",
-    "title": "Multiple Regression",
-    "section": "compare_levels(), summarized",
-    "text": "compare_levels(), summarized\n\nmr.5 %&gt;%\n  gather_draws(b_iv1, b_iv2, b_iv3) %&gt;%\n  compare_levels(.value, by = .variable) %&gt;%\n  median_qi(.value)\n\n# A tibble: 3 × 7\n  .variable     .value .lower .upper .width .point .interval\n  &lt;chr&gt;          &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;    \n1 b_iv2 - b_iv1  0.225 -0.674  1.12    0.95 median qi       \n2 b_iv3 - b_iv1  0.356 -0.478  1.16    0.95 median qi       \n3 b_iv3 - b_iv2  0.134 -0.738  0.990   0.95 median qi"
-  },
-  {
     "objectID": "mr-4.html#each-cell-the-mean-vs.-a-new-person",
     "href": "mr-4.html#each-cell-the-mean-vs.-a-new-person",
     "title": "Multiple Regression",
     "section": "Each cell: the mean vs. a new person",
-    "text": "Each cell: the mean vs. a new person\n\n\nCode\ncell_grid &lt;- datagrid(model = fac.1, strategy = unique, sleep = unique)\nbind_rows(\"cell mean (epred)\"        = predictions(fac.1, newdata = cell_grid) %&gt;% get_draws(),\n          \"a new person (prediction)\" = predictions(fac.1, newdata = cell_grid, type = \"prediction\") %&gt;% get_draws(),\n          .id = \"interval\") %&gt;%\n  ggplot(aes(x = draw, y = sleep, colour = interval)) +\n  stat_pointinterval(position = position_dodge(width = .5), .width = .95) +\n  facet_wrap(~ strategy) +\n  scale_colour_manual(values = c(\"cell mean (epred)\" = \"#0072B2\", \"a new person (prediction)\" = \"grey55\")) +\n  labs(x = \"Exam score (95% intervals)\", y = \"Sleep\", colour = NULL) +\n  theme_classic(base_size = 14) + theme(legend.position = \"top\")\n\n\n\n\n\n\n\n\n\nThe cell-mean interval is our uncertainty about the average in that cell; it shrinks as the cell gets more people. The prediction interval adds σ, the person-to-person scatter, so it stays wide no matter how much data we have. (HW 4 Q2b.)"
-  },
-  {
-    "objectID": "mr-4.html#interactions-a-slope-with-its-own-equation",
-    "href": "mr-4.html#interactions-a-slope-with-its-own-equation",
-    "title": "Multiple Regression",
-    "section": "Interactions: a slope with its own equation",
-    "text": "Interactions: a slope with its own equation\nAn interaction means the effect of one variable depends on another. In toolbox terms (lecture 3): the slope gets its own equation.\n\\[\\mu_i = \\beta_0 + \\beta_{1i} X_i + \\beta_2 Z_i \\qquad \\beta_{1i} = \\beta_1 + \\beta_3 Z_i\\]\nSubstitute and you get the familiar \\(\\mu_i = \\beta_0 + \\beta_1 X_i + \\beta_2 Z_i + \\beta_3 X_i Z_i\\).\n\n\\(\\beta_1\\) is now the slope of X when Z = 0 (why centering Z matters)\n\\(\\beta_3\\) is how much the slope of X changes for each unit of Z\nWith an interaction there’s no single “main effect” of X: describe the slope of X at chosen values of Z (or the group difference at chosen values of X)\n\nThe modeling is the easy part; interpreting is the work, and predictions, slopes(), and plots do most of it."
+    "text": "Each cell: the mean vs. a new person\n\n\nCode\ncell_grid &lt;- datagrid(model = fac.1, strategy = unique, sleep = unique)\nbind_rows(\"cell mean (epred)\"        = predictions(fac.1, newdata = cell_grid) %&gt;% get_draws(),\n          \"a new person (prediction)\" = predictions(fac.1, newdata = cell_grid, type = \"prediction\") %&gt;% get_draws(),\n          .id = \"interval\") %&gt;%\n  ggplot(aes(x = draw, y = sleep, colour = interval)) +\n  stat_pointinterval(position = position_dodge(width = .5), .width = .95) +\n  facet_wrap(~ strategy) +\n  scale_colour_manual(values = c(\"cell mean (epred)\" = \"#0072B2\", \"a new person (prediction)\" = \"grey55\")) +\n  labs(x = \"Exam score (95% intervals)\", y = \"Sleep\", colour = NULL) +\n  theme_classic(base_size = 14) + theme(legend.position = \"top\")\n\n\n\n\n\n\n\n\n\nThe cell-mean interval is our uncertainty about the average in that cell; it shrinks as the cell gets more people. The prediction interval adds σ, the person-to-person scatter, so it stays wide no matter how much data we have."
   },
   {
     "objectID": "mr-4.html#the-model-is-a-surface",
@@ -8593,7 +8278,7 @@
     "href": "mr-4.html#does-the-interaction-add-much",
     "title": "Multiple Regression",
     "section": "Does the interaction add much?",
-    "text": "Does the interaction add much?\nBayesian R² with and without the interaction (HW 4 Q5):\n\n\nCode\nbind_rows(\"SS + FQ (mr.1)\"         = as_tibble(bayes_R2(mr.1)),\n          \"SS × FQ (mr.15)\"        = as_tibble(bayes_R2(mr.15)), .id = \"model\") %&gt;%\n  mutate(across(where(is.numeric), \\(x) round(x, 2)))\n\n\n# A tibble: 2 × 5\n  model           Estimate Est.Error  Q2.5 Q97.5\n  &lt;chr&gt;              &lt;dbl&gt;     &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;\n1 SS + FQ (mr.1)      0.31      0.06  0.2   0.41\n2 SS × FQ (mr.15)     0.36      0.05  0.25  0.46\n\n\nA small gain, with heavily overlapping intervals. R² can only go up when you add terms, so it can’t tell you whether the interaction is worth it; lecture 6 uses LOO for that."
+    "text": "Does the interaction add much?\nBayesian R² with and without the interaction:\n\n\nCode\nbind_rows(\"SS + FQ (mr.1)\"         = as_tibble(bayes_R2(mr.1)),\n          \"SS × FQ (mr.15)\"        = as_tibble(bayes_R2(mr.15)), .id = \"model\") %&gt;%\n  mutate(across(where(is.numeric), \\(x) round(x, 2)))\n\n\n# A tibble: 2 × 5\n  model           Estimate Est.Error  Q2.5 Q97.5\n  &lt;chr&gt;              &lt;dbl&gt;     &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;\n1 SS + FQ (mr.1)      0.31      0.06  0.2   0.41\n2 SS × FQ (mr.15)     0.36      0.05  0.25  0.46\n\n\nA small gain, with heavily overlapping intervals. R² can only go up when you add terms, so it can’t tell you whether the interaction is worth it; lecture 6 uses LOO for that."
   },
   {
     "objectID": "mr-4.html#two-categorical-predictors-a-2-3-study",
@@ -8624,13 +8309,6 @@
     "text": "What each coefficient means\n\n\nCode\nround(fixef(fac.1), 1)\n\n\n                         Estimate Est.Error Q2.5 Q97.5\nIntercept                    66.1       1.5 63.1  69.1\nstrategypractice              1.2       2.4 -3.2   6.0\nsleep6h                       6.0       2.0  1.9  10.0\nsleep8h                       4.8       2.2  0.4   9.0\nstrategypractice:sleep6h      3.4       3.0 -2.6   9.3\nstrategypractice:sleep8h     11.5       3.1  5.6  17.6\n\n\n\n\n\n\n\n\n\nCoefficient\nMeaning\n\n\n\n\nIntercept\nthe reference cell: re-read, 4 h\n\n\nstrategypractice\npractice − re-read, at 4 h only\n\n\nsleep6h, sleep8h\n6 h (8 h) − 4 h, for re-readers only\n\n\nstrategypractice:sleep6h (…8h)\nhow much bigger the practice advantage is at 6 h (8 h) than at 4 h\n\n\n\nEvery coefficient is a difference from the reference cell; none is a “main effect.” That’s why we interpret factorial models through predictions."
   },
   {
-    "objectID": "mr-4.html#cell-means-by-hand-and-with-marginaleffects",
-    "href": "mr-4.html#cell-means-by-hand-and-with-marginaleffects",
-    "title": "Multiple Regression",
-    "section": "Cell means: by hand and with marginaleffects",
-    "text": "Cell means: by hand and with marginaleffects\nOne cell by hand (practice, 8 h): add up the coefficients that are “on” for that cell, draw by draw.\n\nfac.1 %&gt;% \n  spread_draws(b_Intercept, b_strategypractice, b_sleep8h, `b_strategypractice:sleep8h`) %&gt;% \n  mutate(practice_8h = b_Intercept + b_strategypractice + b_sleep8h + `b_strategypractice:sleep8h`) %&gt;% \n  median_qi(practice_8h)\n\n# A tibble: 1 × 6\n  practice_8h .lower .upper .width .point .interval\n        &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;    \n1        83.7   81.0   86.3   0.95 median qi       \n\n\nAll six at once:\n\navg_predictions(fac.1, by = c(\"strategy\", \"sleep\"))\n\n\n strategy sleep Estimate 2.5 % 97.5 %\n reread      4h     66.1  63.1   69.1\n reread      6h     72.1  69.3   74.8\n reread      8h     70.9  67.9   74.0\n practice    4h     67.3  63.6   71.2\n practice    6h     76.7  73.9   79.6\n practice    8h     83.7  81.0   86.3\n\nType: response"
-  },
-  {
     "objectID": "mr-4.html#simple-effects-then-the-interaction",
     "href": "mr-4.html#simple-effects-then-the-interaction",
     "title": "Multiple Regression",
@@ -8657,5 +8335,19 @@
     "title": "Multiple Regression",
     "section": "Cell means, two ways",
     "text": "Cell means, two ways\nBy hand (practice, 8 h): add the coefficients that are “on” for that cell, draw by draw.\n\nfac.1 %&gt;% \n  spread_draws(b_Intercept, b_strategypractice, b_sleep8h, `b_strategypractice:sleep8h`) %&gt;% \n  mutate(practice_8h = b_Intercept + b_strategypractice + b_sleep8h + `b_strategypractice:sleep8h`) %&gt;% \n  median_qi(practice_8h)\n\n# A tibble: 1 × 6\n  practice_8h .lower .upper .width .point .interval\n        &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;    \n1        83.7   81.0   86.3   0.95 median qi       \n\n\nAll six at once:\n\navg_predictions(fac.1, by = c(\"strategy\", \"sleep\"))\n\n\n strategy sleep Estimate 2.5 % 97.5 %\n reread      4h     66.1  63.1   69.1\n reread      6h     72.1  69.3   74.8\n reread      8h     70.9  67.9   74.0\n practice    4h     67.3  63.6   71.2\n practice    6h     76.7  73.9   79.6\n practice    8h     83.7  81.0   86.3\n\nType: response"
+  },
+  {
+    "objectID": "mr-4.html#categorical-continuous-a-slope-for-each-group",
+    "href": "mr-4.html#categorical-continuous-a-slope-for-each-group",
+    "title": "Multiple Regression",
+    "section": "Categorical × continuous: a slope for each group?",
+    "text": "Categorical × continuous: a slope for each group?\nThe factorial model asked whether one group difference changes across another factor. Now one predictor is continuous, so the question becomes: does the slope of school success differ between control and treatment?\nWe’ll fit it three ways: parallel lines (one shared slope), separate slopes with index coding, and separate slopes with dummy coding. The lines are the same; only the parameters differ."
+  },
+  {
+    "objectID": "mr-4.html#continuous-continuous-a-slope-with-its-own-equation",
+    "href": "mr-4.html#continuous-continuous-a-slope-with-its-own-equation",
+    "title": "Multiple Regression",
+    "section": "Continuous × continuous: a slope with its own equation",
+    "text": "Continuous × continuous: a slope with its own equation\nAn interaction means the effect of one variable depends on another. In toolbox terms (lecture 3): the slope gets its own equation.\n\\[\\mu_i = \\beta_0 + \\beta_{1i} X_i + \\beta_2 Z_i \\qquad \\beta_{1i} = \\beta_1 + \\beta_3 Z_i\\]\nSubstitute and you get the familiar \\(\\mu_i = \\beta_0 + \\beta_1 X_i + \\beta_2 Z_i + \\beta_3 X_i Z_i\\). Next: X = school success, Z = friendship quality.\n\n\\(\\beta_1\\) is now the slope of X when Z = 0 (why centering Z matters)\n\\(\\beta_3\\) is how much the slope of X changes for each unit of Z\nWith an interaction there’s no single “main effect” of X: describe the slope of X at chosen values of Z (or the group difference at chosen values of X)\n\nThe modeling is the easy part; interpreting is the work, and predictions, slopes(), and plots do most of it."
   }
 ]

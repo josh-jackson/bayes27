@@ -9690,7 +9690,6 @@ IQ_c      0.07943066 0.04230501 -0.003929468 0.1636779</code></pre>
 <h2>From here to IRT</h2>
 <p>The 2PL is the same skeleton with more indexing: a vector of abilities (<code>theta</code>), item difficulties and discriminations, and arrays saying which person and item each response belongs to. The likelihood line looks like</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb49"><pre class="sourceCode numberSource stan number-lines code-with-copy"><code class="sourceCode stan"><span id="cb49-1"><a aria-label="1"></a>y ~ bernoulli_logit(a[item] .* (theta[person] - b[item]));</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>You’ll write it in HW 13.</p>
 </section>
 <section id="drift-diffusion-models" class="slide level2">
 <h2>Drift diffusion models</h2>

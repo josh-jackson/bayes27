@@ -10,7 +10,6 @@ project:
     - LSAT.csv
     - week3.csv
     - hw3.csv
-    - anova.csv
     - Multipleregression.csv
     - roaches.csv
     - trolley.csv
