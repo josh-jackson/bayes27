@@ -210,35 +210,77 @@ h.1b <-
 summary(h.1b, prob = .99)
 ```
 
+## What did the strange priors move? {.smaller .nostretch}
+
+```{r}
+#| code-fold: true
+#| fig-height: 2.3
+#| fig-width: 9
+#| out-width: "100%"
+library(patchwork)
+both <- bind_rows("Normal(0, 5) priors" = spread_draws(h.1, b_Intercept, b_happy_c),
+                  "strange priors"      = spread_draws(h.1b, b_Intercept, b_happy_c), .id = "priors")
+p.int   <- ggplot(both, aes(x = b_Intercept, fill = priors)) + stat_slab(alpha = .6) +
+  labs(x = "intercept (health at average happiness)", y = NULL)
+p.slope <- ggplot(both, aes(x = b_happy_c, fill = priors)) + stat_slab(alpha = .6) +
+  labs(x = "slope (health per unit of happiness)", y = NULL)
+(p.int | p.slope) + plot_layout(guides = "collect") &
+  theme_classic(base_size = 14) & theme(legend.position = "bottom") & scale_y_continuous(breaks = NULL)
+```
+
+-   **Slope:** barely moved. Its strange prior, Normal(10, 5), is wide compared with what the data say (posterior SD ≈ 0.13)
+-   **Intercept:** moved from 8.50 to 8.37. Normal(−5, 2) is much tighter. Roughly, the posterior is a precision-weighted average: data precision 1/0.2² = 25 vs. prior 1/2² = 0.25, so the prior gets ~1% of the weight: 1% × (8.5 − (−5)) ≈ 0.13
+
 ## priors
 
 -   With enough data, priors do not really matter
 -   With simple models, we can envision what priors make sense. With more complex, prior predictives will be very helpful
 -   Unless you have previous studies or population-level statistics, use weakly informative priors: slopes centered on 0, intercepts on a plausible value of the outcome (lecture 2). These rule out absurd values without overly influencing results
 
-## The posterior is made of samples
+## Today's posterior is tomorrow's prior, in brms {.smaller}
+
+Lecture 1 did this exactly on a grid. In brms, the posterior is draws, not a formula, so we summarize it as normal priors:
 
 ```{r}
 #| code-fold: true
+set.seed(27)
+half <- sample(nrow(week3), nrow(week3) / 2)
+h.s1 <- update(h.1, newdata = week3[half, ], seed = 27, file = "h.s1")        # wave 1
 
-h.1 %>% 
-spread_draws(b_Intercept, b_happy_c, sigma)
+p1 <- fixef(h.s1)                                                           # wave 1 posterior → wave 2 prior
+prior.seq <- c(prior_string(sprintf("normal(%.3f, %.3f)", p1["Intercept", "Estimate"], p1["Intercept", "Est.Error"]), class = "Intercept"),
+               prior_string(sprintf("normal(%.3f, %.3f)", p1["happy_c", "Estimate"],   p1["happy_c", "Est.Error"]),   class = "b"),
+               prior(cauchy(0, 10), class = sigma))
+h.s2 <- update(h.1, newdata = week3[-half, ], prior = prior.seq, seed = 27, file = "h.s2")   # wave 2
+prior.seq
 ```
 
-## gather_draws(): long format
+## Two steps vs. all at once {.smaller}
 
 ```{r}
-library(tidybayes)
-h.1 %>% 
-gather_draws(b_Intercept, b_happy_c, sigma)
+#| code-fold: true
+bind_rows("wave 1 alone"                   = as_tibble(fixef(h.s1), rownames = "par"),
+          "wave 2, wave 1's posterior as prior" = as_tibble(fixef(h.s2), rownames = "par"),
+          "all 200 at once"                = as_tibble(fixef(h.1), rownames = "par"), .id = "fit") %>%
+  filter(par == "happy_c") %>% select(-par) %>%
+  mutate(across(where(is.numeric), \(x) round(x, 2)))
 ```
 
-## Summarizing the draws
+Close, but only approximately. Summarizing wave 1 by a mean and an SD per parameter throws away:
+
+-   the posterior's **shape** (fine here: it's nearly normal)
+-   the **correlation** between intercept and slope (small here, thanks to centering)
+-   everything about **σ**, which started over from its original prior
+
+The grid in lecture 1 carried the whole posterior forward, so it was exact. (This is HW 3 Q2c.)
+
+## Wide or long draws (recap) {.smaller}
+
+Same draws, two shapes: `spread_draws()` gives one column per parameter (handy for computing), `gather_draws()` one row per parameter per draw (handy for plotting and summarizing several at once).
 
 ```{r}
-h.1 %>% 
-spread_draws(b_Intercept, b_happy_c, sigma) %>% 
-    mean_qi()
+h.1 %>% spread_draws(b_Intercept, b_happy_c, sigma) %>% head(3)
+h.1 %>% gather_draws(b_Intercept, b_happy_c, sigma) %>% mean_qi()
 ```
 
 ## Plotting all three posteriors
@@ -336,6 +378,8 @@ week3 <-week3 %>%
 table(week3$mood.group.d)
 
 ```
+
+`mood.group` has three groups (0 = control, 1 and 2 = two treatment arms). To keep the first example to two groups, we combine the treatment arms; the ANOVA section at the end has a three-group example.
 
 ## Dummy-coded model
 
@@ -459,28 +503,21 @@ predictions(h.2,
 avg_predictions(h.2, by = "mood.group.d")
 ```
 
-## Group means: gradient intervals
-
-
-```{r}
-avg_predictions(h.2, by = "mood.group.d") %>%  get_draws() %>% 
-   ggplot(aes( y = draw, x =mood.group.d)) +
-  stat_gradientinterval() +ylab("health")
-  
-```
-
-
-## Group means: eye plots
-
+## Group means: gradient vs. eye {.nostretch}
 
 ```{r}
-avg_predictions(h.2, by = "mood.group.d") %>%  get_draws() %>% 
-   ggplot(aes( y = draw, x =mood.group.d)) +
-  stat_eye() +ylab("health")
-  
+#| code-fold: true
+#| fig-height: 2.8
+#| fig-width: 9
+#| out-width: "100%"
+library(patchwork)
+gm <- avg_predictions(h.2, by = "mood.group.d") %>% get_draws()
+p.grad <- ggplot(gm, aes(y = draw, x = mood.group.d)) + stat_gradientinterval() + labs(y = "health", x = NULL)
+p.eye  <- ggplot(gm, aes(y = draw, x = mood.group.d)) + stat_eye() + labs(y = "health", x = NULL)
+p.grad | p.eye
 ```
 
-
+Same draws, two looks: the gradient fades with the density; the eye shows the density's shape.
 
 ## standardized difference in means
 
@@ -511,6 +548,19 @@ h.2 %>%
   mutate(`std.effect` =  difference / sigma) %>% 
   gather_draws(difference, std.effect) %>% 
   median_qi()
+```
+
+## One row, 1,000 draws {.smaller}
+
+marginaleffects prints one row per difference, but every row is a summary of draws:
+
+```{r}
+diff.me <- avg_predictions(h.2, by = "mood.group.d", hypothesis = ~ pairwise)
+diff.me
+diff.draws <- get_draws(diff.me)
+nrow(diff.draws)                                   # 1 difference × 1,000 draws
+c(median = median(diff.draws$draw), quantile(diff.draws$draw, c(.025, .975)))   # matches the row above
+nrow(get_draws(avg_predictions(h.2, by = "mood.group.d")))   # 2 group means × 1,000 draws
 ```
 
 ## Index variables {.smaller}
@@ -632,16 +682,6 @@ avg_predictions(h.3, by = "mood.group.d", hypothesis = "b2 - b1 = .5")
 ```
 
 
-
-## multiple comparison corrections {.smaller}
-
--   On the one hand, multiple comparisons are about error rates, which reference NHST and dichotomous decisions, and we don't have a null distribution in Bayes land
-
--   On the other hand, the idea that chance results come up with more shakes of the dice is about probability. We still want to make good decisions and strengthen inferences. Often decisions are needed.
-
--   With better priors "error rates" decrease. With less dichotomous thinking, error rates also vanish.
-
--   Bayes solution is better modeling + changing decision criteria
 
 ## posterior predictive checks
 
@@ -770,6 +810,27 @@ h.5R <-
 summary(h.5R)
 ```
 
+## For a t, σ isn't the SD {.smaller}
+
+σ dropped from about 2.8 (normal) to 1.7 (ν = 1). The data didn't change: σ means something different. For a t, σ is a **scale**, and
+
+$$\text{SD} = \sigma \sqrt{\frac{\nu}{\nu - 2}} \quad (\text{only when } \nu > 2)$$
+
+```{r}
+#| code-fold: true
+bind_rows(
+  "normal (h.3)"          = spread_draws(h.3, sigma) %>% mutate(nu = Inf),
+  "t, ν estimated (h.4R)" = spread_draws(h.4R, sigma, nu),
+  "t, ν = 1 (h.5R)"       = spread_draws(h.5R, sigma) %>% mutate(nu = 1), .id = "model") %>%
+  mutate(SD = ifelse(nu > 2, sigma * sqrt(ifelse(is.finite(nu), nu / (nu - 2), 1)), NA)) %>%
+  group_by(model) %>%
+  summarise(sigma = median(sigma), nu = median(nu), SD = median(SD)) %>%
+  mutate(across(where(is.numeric), \(x) round(x, 2)))
+```
+
+-   With ν = 1 (a Cauchy) the SD doesn't exist at all, so compare scales, not SDs, across likelihoods
+-   `h.4R` estimated ν ≈ 20 (posterior median): these data aren't very heavy-tailed, and the robust and normal models agree
+
 ## Robust vs. non-robust group means
 
 ::::: columns
@@ -843,7 +904,7 @@ $\gamma_1$ \~ Normal(0, 3)
 :::
 :::::
 
-## Index version
+## Index version {.smaller}
 
 Index variable for robust and unequal variances
 
@@ -853,8 +914,10 @@ $\mu_i$ = $\alpha_{\text{Group}[i]}$\
 log($\sigma_i$) = $\gamma_{\text{Group}[i]}$
 
 $\nu$ \~ Gamma(2,.1)\
-$\alpha_j$ \~ Normal(0, 3)\
+$\alpha_j$ \~ Normal(8, 3)\
 $\gamma_j$ \~ Normal(0, 3)
+
+Group means of health (which averages about 8.5) get Normal(8, 3). An earlier version used Normal(0, 3), which put the observed means almost 3 SDs from the prior's center and pulled them down a little. $\gamma_j$ is log(σ), so Normal(0, 3) is fine there.
 
 ## Robust, unequal variances: dummy coding
 
@@ -888,9 +951,9 @@ h.7 <-
      bf( health ~ 0 + mood.group.d,
          sigma ~ 0 + mood.group.d),
       prior = c(prior(gamma(2, .1), class = nu),
-                prior(normal(0, 3), class = b),
+                prior(normal(8, 3), class = b),
                 prior(normal(0, 3), class = b, dpar = sigma)),
-     file = "h.7.rds",
+     file = "h.7b.rds",   # old Normal(0, 3) prior on the means: h.7
      backend = "cmdstanr",
      data = week3)
 ```
@@ -931,6 +994,18 @@ post.h7 %>%
   ggplot(aes(y = key, x = value)) +
   stat_halfeye()
 ```
+
+## Do the variances differ? {.smaller}
+
+```{r}
+#| code-fold: true
+post.h7 %>%
+  mutate(`SD ratio (Tx / Control)` = `Sigma Tx` / `Sigma Control`) %>%
+  median_qi(`SD ratio (Tx / Control)`)
+mean(post.h7$`Sigma Tx` > post.h7$`Sigma Control`)
+```
+
+The ratio's interval comfortably includes 1, and the probability that Tx is more variable is near a coin flip: no evidence the groups differ in spread, so the equal-variance model was fine here. (With ν ≈ 30, these t scales are within a few % of the SDs.)
 
 ## Same recipe, any model {.smaller}
 
@@ -1074,6 +1149,34 @@ The same comparisons with marginaleffects (each row is a pairwise difference, su
 ```{r}
 avg_predictions(a.1, by = "iv", hypothesis = ~ pairwise)
 ```
+
+## Effect sizes, draw by draw
+
+```{r}
+#| code-fold: true
+#| fig-height: 3.5
+post.a.1 %>% 
+  gather_draws(`E_1-2`, `E_1-3`, `E_2-3`) %>% 
+  ggplot(aes(y = .variable, x = .value)) +
+  stat_halfeye() +
+  geom_vline(xintercept = 0, linetype = 2) +
+  labs(x = "standardized difference (difference / σ)", y = NULL)
+```
+
+Each difference divided by σ, draw by draw, so the effect size gets its own posterior and interval.
+
+## Multiple comparison corrections? {.smaller}
+
+Three groups, three pairwise differences. Do we need to correct?
+
+
+-   On the one hand, multiple comparisons are about error rates, which reference NHST and dichotomous decisions, and we don't have a null distribution in Bayes land
+
+-   On the other hand, the idea that chance results come up with more shakes of the dice is about probability. We still want to make good decisions and strengthen inferences. Often decisions are needed.
+
+-   With better priors "error rates" decrease. With less dichotomous thinking, error rates also vanish.
+
+-   Bayes solution is better modeling + changing decision criteria
 
 ## Contrasts with avg_slopes()
 

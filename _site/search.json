@@ -6584,7 +6584,7 @@
     "href": "regression-3.html#categorical-data",
     "title": "Regression part 2",
     "section": "Categorical data",
-    "text": "Categorical data\n\n\nCode\nlibrary(forcats)\nweek3 &lt;-week3 %&gt;% \n  mutate(mood.group.d = mood.group %&gt;%\n           factor() %&gt;% \n           fct_recode(\"control\" = \"0\", \"tx\" =\"1\",\"tx\" = \"2\")) \n       \ntable(week3$mood.group.d)\n\n\n\ncontrol      tx \n     66     134"
+    "text": "Categorical data\n\n\nCode\nlibrary(forcats)\nweek3 &lt;-week3 %&gt;% \n  mutate(mood.group.d = mood.group %&gt;%\n           factor() %&gt;% \n           fct_recode(\"control\" = \"0\", \"tx\" =\"1\",\"tx\" = \"2\")) \n       \ntable(week3$mood.group.d)\n\n\n\ncontrol      tx \n     66     134 \n\n\nmood.group has three groups (0 = control, 1 and 2 = two treatment arms). To keep the first example to two groups, we combine the treatment arms; the ANOVA section at the end has a three-group example."
   },
   {
     "objectID": "regression-3.html#dummy-coded-model",
@@ -6765,8 +6765,8 @@
     "objectID": "regression-3.html#multiple-comparison-corrections",
     "href": "regression-3.html#multiple-comparison-corrections",
     "title": "Regression part 2",
-    "section": "multiple comparison corrections",
-    "text": "multiple comparison corrections\n\nOn the one hand, multiple comparisons are about error rates, which reference NHST and dichotomous decisions, and we don’t have a null distribution in Bayes land\nOn the other hand, the idea that chance results come up with more shakes of the dice is about probability. We still want to make good decisions and strengthen inferences. Often decisions are needed.\nWith better priors “error rates” decrease. With less dichotomous thinking, error rates also vanish.\nBayes solution is better modeling + changing decision criteria"
+    "section": "Multiple comparison corrections?",
+    "text": "Multiple comparison corrections?\nThree groups, three pairwise differences. Do we need to correct?\n\nOn the one hand, multiple comparisons are about error rates, which reference NHST and dichotomous decisions, and we don’t have a null distribution in Bayes land\nOn the other hand, the idea that chance results come up with more shakes of the dice is about probability. We still want to make good decisions and strengthen inferences. Often decisions are needed.\nWith better priors “error rates” decrease. With less dichotomous thinking, error rates also vanish.\nBayes solution is better modeling + changing decision criteria"
   },
   {
     "objectID": "regression-3.html#posterior-predictive-checks",
@@ -6878,7 +6878,7 @@
     "href": "regression-3.html#index-version",
     "title": "Regression part 2",
     "section": "Index version",
-    "text": "Index version\nIndex variable for robust and unequal variances\nHealth ~ T( \\(\\nu\\) , \\(\\mu_i\\) , \\(\\sigma_i\\) )\n\\(\\mu_i\\) = \\(\\alpha_{\\text{Group}[i]}\\)\nlog(\\(\\sigma_i\\)) = \\(\\gamma_{\\text{Group}[i]}\\)\n\\(\\nu\\) ~ Gamma(2,.1)\n\\(\\alpha_j\\) ~ Normal(0, 3)\n\\(\\gamma_j\\) ~ Normal(0, 3)"
+    "text": "Index version\nIndex variable for robust and unequal variances\nHealth ~ T( \\(\\nu\\) , \\(\\mu_i\\) , \\(\\sigma_i\\) )\n\\(\\mu_i\\) = \\(\\alpha_{\\text{Group}[i]}\\)\nlog(\\(\\sigma_i\\)) = \\(\\gamma_{\\text{Group}[i]}\\)\n\\(\\nu\\) ~ Gamma(2,.1)\n\\(\\alpha_j\\) ~ Normal(8, 3)\n\\(\\gamma_j\\) ~ Normal(0, 3)\nGroup means of health (which averages about 8.5) get Normal(8, 3). An earlier version used Normal(0, 3), which put the observed means almost 3 SDs from the prior’s center and pulled them down a little. \\(\\gamma_j\\) is log(σ), so Normal(0, 3) is fine there."
   },
   {
     "objectID": "regression-3.html#robust-unequal-variances-dummy-coding",
@@ -6899,21 +6899,21 @@
     "href": "regression-3.html#robust-unequal-variances-index-coding",
     "title": "Regression part 2",
     "section": "Robust, unequal variances: index coding",
-    "text": "Robust, unequal variances: index coding\n\nh.7 &lt;- \n  brm(family = student,\n     bf( health ~ 0 + mood.group.d,\n         sigma ~ 0 + mood.group.d),\n      prior = c(prior(gamma(2, .1), class = nu),\n                prior(normal(0, 3), class = b),\n                prior(normal(0, 3), class = b, dpar = sigma)),\n     file = \"h.7.rds\",\n     backend = \"cmdstanr\",\n     data = week3)"
+    "text": "Robust, unequal variances: index coding\n\nh.7 &lt;- \n  brm(family = student,\n     bf( health ~ 0 + mood.group.d,\n         sigma ~ 0 + mood.group.d),\n      prior = c(prior(gamma(2, .1), class = nu),\n                prior(normal(8, 3), class = b),\n                prior(normal(0, 3), class = b, dpar = sigma)),\n     file = \"h.7b.rds\",   # old Normal(0, 3) prior on the means: h.7\n     backend = \"cmdstanr\",\n     data = week3)"
   },
   {
     "objectID": "regression-3.html#results-index-coding",
     "href": "regression-3.html#results-index-coding",
     "title": "Regression part 2",
     "section": "Results (index coding)",
-    "text": "Results (index coding)\n\nsummary(h.7)\n\n Family: student \n  Links: mu = identity; sigma = log \nFormula: health ~ 0 + mood.group.d \n         sigma ~ 0 + mood.group.d\n   Data: week3 (Number of observations: 200) \n  Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;\n         total post-warmup draws = 4000\n\nRegression Coefficients:\n                          Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS\nmood.group.dcontrol           7.90      0.35     7.24     8.60 1.00     4517\nmood.group.dtx                8.72      0.24     8.24     9.19 1.00     3935\nsigma_mood.group.dcontrol     1.02      0.09     0.84     1.20 1.00     3805\nsigma_mood.group.dtx          1.00      0.07     0.87     1.14 1.00     4192\n                          Tail_ESS\nmood.group.dcontrol           3237\nmood.group.dtx                2860\nsigma_mood.group.dcontrol     2861\nsigma_mood.group.dtx          3495\n\nFurther Distributional Parameters:\n   Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nnu    29.22     14.92     9.68    67.54 1.00     3413     3123\n\nDraws were sampled using sample(hmc). For each parameter, Bulk_ESS\nand Tail_ESS are effective sample size measures, and Rhat is the potential\nscale reduction factor on split chains (at convergence, Rhat = 1)."
+    "text": "Results (index coding)\n\nsummary(h.7)\n\n Family: student \n  Links: mu = identity; sigma = log \nFormula: health ~ 0 + mood.group.d \n         sigma ~ 0 + mood.group.d\n   Data: week3 (Number of observations: 200) \n  Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;\n         total post-warmup draws = 4000\n\nRegression Coefficients:\n                          Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS\nmood.group.dcontrol           8.00      0.36     7.29     8.74 1.00     4846\nmood.group.dtx                8.78      0.25     8.29     9.26 1.00     4783\nsigma_mood.group.dcontrol     1.01      0.09     0.83     1.20 1.00     4440\nsigma_mood.group.dtx          1.00      0.07     0.85     1.13 1.00     4389\n                          Tail_ESS\nmood.group.dcontrol           2630\nmood.group.dtx                2925\nsigma_mood.group.dcontrol     3050\nsigma_mood.group.dtx          3057\n\nFurther Distributional Parameters:\n   Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nnu    28.76     14.85     9.07    66.29 1.00     3595     2585\n\nDraws were sampled using sample(hmc). For each parameter, Bulk_ESS\nand Tail_ESS are effective sample size measures, and Rhat is the potential\nscale reduction factor on split chains (at convergence, Rhat = 1)."
   },
   {
     "objectID": "regression-3.html#back-to-the-sd-scale",
     "href": "regression-3.html#back-to-the-sd-scale",
     "title": "Regression part 2",
     "section": "Back to the SD scale",
-    "text": "Back to the SD scale\nThe sigmas are modeled through a (natural) log link (to constrain them to be positive). Convert log values (which range from −∞ to ∞) back to the original scale with exp().\n\n\nCode\npost.h7 &lt;- h.7 %&gt;% \n  spread_draws(b_mood.group.dcontrol,b_mood.group.dtx, b_sigma_mood.group.dcontrol,b_sigma_mood.group.dtx) %&gt;% \n  transmute(`Control`     = b_mood.group.dcontrol,\n            `Tx`  = b_mood.group.dtx,\n            `Sigma Control`    = b_sigma_mood.group.dcontrol%&gt;% exp(),\n            `Sigma Tx` = b_sigma_mood.group.dtx %&gt;% exp()) %&gt;% \n  mutate(`Differences`  = `Tx` - `Control`,\n         `Sigma Difference` = `Sigma Tx` - `Sigma Control`,\n         `Effect Size` = (`Differences`) / sqrt((`Sigma Control`^2 + `Sigma Tx`^2) / 2))\n\n\npost.h7 \n\n\n# A tibble: 4,000 × 7\n   Control    Tx `Sigma Control` `Sigma Tx` Differences `Sigma Difference`\n     &lt;dbl&gt; &lt;dbl&gt;           &lt;dbl&gt;      &lt;dbl&gt;       &lt;dbl&gt;              &lt;dbl&gt;\n 1    7.96  8.94            2.80       2.64      0.980             -0.162 \n 2    8.19  8.50            2.83       2.85      0.315              0.0199\n 3    6.97  8.92            3.19       2.55      1.95              -0.640 \n 4    8.37  8.31            2.51       2.95     -0.0616             0.441 \n 5    7.42  9.01            2.95       2.51      1.58              -0.448 \n 6    7.77  8.29            2.91       2.76      0.517             -0.151 \n 7    7.80  8.35            3.25       2.56      0.549             -0.695 \n 8    7.76  9.08            2.41       2.83      1.32               0.421 \n 9    8.33  8.69            3.20       2.73      0.366             -0.463 \n10    8.03  8.91            3.20       2.79      0.877             -0.409 \n# ℹ 3,990 more rows\n# ℹ 1 more variable: `Effect Size` &lt;dbl&gt;"
+    "text": "Back to the SD scale\nThe sigmas are modeled through a (natural) log link (to constrain them to be positive). Convert log values (which range from −∞ to ∞) back to the original scale with exp().\n\n\nCode\npost.h7 &lt;- h.7 %&gt;% \n  spread_draws(b_mood.group.dcontrol,b_mood.group.dtx, b_sigma_mood.group.dcontrol,b_sigma_mood.group.dtx) %&gt;% \n  transmute(`Control`     = b_mood.group.dcontrol,\n            `Tx`  = b_mood.group.dtx,\n            `Sigma Control`    = b_sigma_mood.group.dcontrol%&gt;% exp(),\n            `Sigma Tx` = b_sigma_mood.group.dtx %&gt;% exp()) %&gt;% \n  mutate(`Differences`  = `Tx` - `Control`,\n         `Sigma Difference` = `Sigma Tx` - `Sigma Control`,\n         `Effect Size` = (`Differences`) / sqrt((`Sigma Control`^2 + `Sigma Tx`^2) / 2))\n\n\npost.h7 \n\n\n# A tibble: 4,000 × 7\n   Control    Tx `Sigma Control` `Sigma Tx` Differences `Sigma Difference`\n     &lt;dbl&gt; &lt;dbl&gt;           &lt;dbl&gt;      &lt;dbl&gt;       &lt;dbl&gt;              &lt;dbl&gt;\n 1    7.88  8.68            2.80       2.69       0.802           -0.109  \n 2    8.48  9.19            3.22       3.06       0.705           -0.165  \n 3    8.11  8.74            2.79       2.86       0.632            0.0661 \n 4    7.71  8.67            2.53       2.64       0.960            0.114  \n 5    7.65  8.79            2.59       2.59       1.14             0.00550\n 6    7.57  8.68            2.57       2.51       1.10            -0.0569 \n 7    8.31  8.63            2.99       2.93       0.321           -0.0608 \n 8    7.65  8.49            2.81       2.74       0.835           -0.0691 \n 9    8.15  8.79            2.69       2.68       0.631           -0.00879\n10    8.02  8.45            2.52       2.75       0.429            0.234  \n# ℹ 3,990 more rows\n# ℹ 1 more variable: `Effect Size` &lt;dbl&gt;"
   },
   {
     "objectID": "regression-3.html#means-sds-and-effect-size",
@@ -8398,5 +8398,82 @@
     "title": "Regression part 2",
     "section": "Fitting the ANOVA model",
     "text": "Fitting the ANOVA model\nNote that we have one prior for all our groups\n\na.1 &lt;- \n  brm(family = gaussian,\n      happiness ~ 0 + iv,\n      prior = c(prior(normal(5, 2), class = b),\n                prior(exponential(1), class = sigma)),\n      iter = 2000, warmup = 1000, chains = 2, cores = 2,\n      data = MR,\n      sample_prior = \"yes\",\n      backend = \"cmdstanr\",\n      file = \"a.1\")"
+  },
+  {
+    "objectID": "regression-3.html#which-parameters-did-the-strange-priors-move",
+    "href": "regression-3.html#which-parameters-did-the-strange-priors-move",
+    "title": "Regression part 2",
+    "section": "Which parameters did the strange priors move?",
+    "text": "Which parameters did the strange priors move?\n\n\nCode\nlibrary(patchwork)\nboth &lt;- bind_rows(\"Normal(0, 5) priors\" = spread_draws(h.1, b_Intercept, b_happy_c),\n                  \"strange priors\"      = spread_draws(h.1b, b_Intercept, b_happy_c), .id = \"priors\")\np.int   &lt;- ggplot(both, aes(x = b_Intercept, fill = priors)) + stat_slab(alpha = .6) +\n  labs(x = \"intercept (health at average happiness)\", y = NULL)\np.slope &lt;- ggplot(both, aes(x = b_happy_c, fill = priors)) + stat_slab(alpha = .6) +\n  labs(x = \"slope (health per unit of happiness)\", y = NULL)\n(p.int | p.slope) + plot_layout(guides = \"collect\") &\n  theme_classic(base_size = 14) & theme(legend.position = \"bottom\") & scale_y_continuous(breaks = NULL)\n\n\n\n\n\n\n\n\n\n\nSlope: barely moved. Its strange prior, Normal(10, 5), is wide compared with what the data say (posterior SD ≈ 0.13)\nIntercept: moved from 8.50 to 8.37. Normal(−5, 2) is much tighter. Roughly, the posterior is a precision-weighted average: data precision 1/0.2² = 25 vs. prior 1/2² = 0.25, so the prior gets ~1% of the weight: 1% × (8.5 − (−5)) ≈ 0.13"
+  },
+  {
+    "objectID": "regression-3.html#todays-posterior-is-tomorrows-prior-in-brms",
+    "href": "regression-3.html#todays-posterior-is-tomorrows-prior-in-brms",
+    "title": "Regression part 2",
+    "section": "Today’s posterior is tomorrow’s prior, in brms",
+    "text": "Today’s posterior is tomorrow’s prior, in brms\nLecture 1 did this exactly on a grid. In brms, the posterior is draws, not a formula, so we summarize it as normal priors:\n\n\nCode\nset.seed(27)\nhalf &lt;- sample(nrow(week3), nrow(week3) / 2)\nh.s1 &lt;- update(h.1, newdata = week3[half, ], seed = 27, file = \"h.s1\")        # wave 1\n\np1 &lt;- fixef(h.s1)                                                           # wave 1 posterior → wave 2 prior\nprior.seq &lt;- c(prior_string(sprintf(\"normal(%.3f, %.3f)\", p1[\"Intercept\", \"Estimate\"], p1[\"Intercept\", \"Est.Error\"]), class = \"Intercept\"),\n               prior_string(sprintf(\"normal(%.3f, %.3f)\", p1[\"happy_c\", \"Estimate\"],   p1[\"happy_c\", \"Est.Error\"]),   class = \"b\"),\n               prior(cauchy(0, 10), class = sigma))\nh.s2 &lt;- update(h.1, newdata = week3[-half, ], prior = prior.seq, seed = 27, file = \"h.s2\")   # wave 2\nprior.seq\n\n\n                prior     class coef group resp dpar nlpar   lb   ub tag source\n normal(8.641, 0.306) Intercept                            &lt;NA&gt; &lt;NA&gt;       user\n normal(0.257, 0.200)         b                            &lt;NA&gt; &lt;NA&gt;       user\n        cauchy(0, 10)     sigma                            &lt;NA&gt; &lt;NA&gt;       user"
+  },
+  {
+    "objectID": "regression-3.html#two-steps-vs.-all-at-once",
+    "href": "regression-3.html#two-steps-vs.-all-at-once",
+    "title": "Regression part 2",
+    "section": "Two steps vs. all at once",
+    "text": "Two steps vs. all at once\n\n\nCode\nbind_rows(\"wave 1 alone\"                   = as_tibble(fixef(h.s1), rownames = \"par\"),\n          \"wave 2, wave 1's posterior as prior\" = as_tibble(fixef(h.s2), rownames = \"par\"),\n          \"all 200 at once\"                = as_tibble(fixef(h.1), rownames = \"par\"), .id = \"fit\") %&gt;%\n  filter(par == \"happy_c\") %&gt;% select(-par) %&gt;%\n  mutate(across(where(is.numeric), \\(x) round(x, 2)))\n\n\n# A tibble: 3 × 5\n  fit                                 Estimate Est.Error  Q2.5 Q97.5\n  &lt;chr&gt;                                  &lt;dbl&gt;     &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;\n1 wave 1 alone                            0.26      0.2  -0.13  0.63\n2 wave 2, wave 1's posterior as prior     0.36      0.14  0.09  0.63\n3 all 200 at once                         0.34      0.13  0.07  0.58\n\n\nClose, but only approximately. Summarizing wave 1 by a mean and an SD per parameter throws away:\n\nthe posterior’s shape (fine here: it’s nearly normal)\nthe correlation between intercept and slope (small here, thanks to centering)\neverything about σ, which started over from its original prior\n\nThe grid in lecture 1 carried the whole posterior forward, so it was exact. (This is HW 3 Q2c.)"
+  },
+  {
+    "objectID": "regression-3.html#wide-or-long-draws-recap",
+    "href": "regression-3.html#wide-or-long-draws-recap",
+    "title": "Regression part 2",
+    "section": "Wide or long draws (recap)",
+    "text": "Wide or long draws (recap)\nSame draws, two shapes: spread_draws() gives one column per parameter (handy for computing), gather_draws() one row per parameter per draw (handy for plotting and summarizing several at once).\n\nh.1 %&gt;% spread_draws(b_Intercept, b_happy_c, sigma) %&gt;% head(3)\n\n# A tibble: 3 × 6\n  .chain .iteration .draw b_Intercept b_happy_c sigma\n   &lt;int&gt;      &lt;int&gt; &lt;int&gt;       &lt;dbl&gt;     &lt;dbl&gt; &lt;dbl&gt;\n1      1          1     1        8.44     0.257  3.21\n2      1          2     2        8.40     0.273  3.13\n3      1          3     3        8.20     0.567  3.09\n\nh.1 %&gt;% gather_draws(b_Intercept, b_happy_c, sigma) %&gt;% mean_qi()\n\n# A tibble: 3 × 7\n  .variable   .value .lower .upper .width .point .interval\n  &lt;chr&gt;        &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;    \n1 b_happy_c    0.337 0.0731  0.582   0.95 mean   qi       \n2 b_Intercept  8.50  8.12    8.92    0.95 mean   qi       \n3 sigma        2.81  2.55    3.12    0.95 mean   qi"
+  },
+  {
+    "objectID": "regression-3.html#group-means-gradient-intervals-and-eye-plots",
+    "href": "regression-3.html#group-means-gradient-intervals-and-eye-plots",
+    "title": "Regression part 2",
+    "section": "Group means: gradient intervals and eye plots",
+    "text": "Group means: gradient intervals and eye plots\n\n\nCode\nlibrary(patchwork)\ngm &lt;- avg_predictions(h.2, by = \"mood.group.d\") %&gt;% get_draws()\np.grad &lt;- ggplot(gm, aes(y = draw, x = mood.group.d)) + stat_gradientinterval() + labs(y = \"health\", x = NULL)\np.eye  &lt;- ggplot(gm, aes(y = draw, x = mood.group.d)) + stat_eye() + labs(y = \"health\", x = NULL)\np.grad | p.eye\n\n\n\n\n\n\n\n\n\nSame draws, two looks: the gradient fades with the density; the eye shows the density’s shape."
+  },
+  {
+    "objectID": "regression-3.html#one-row-1000-draws",
+    "href": "regression-3.html#one-row-1000-draws",
+    "title": "Regression part 2",
+    "section": "One row, 1,000 draws",
+    "text": "One row, 1,000 draws\nmarginaleffects prints one row per difference, but every row is a summary of draws:\n\ndiff.me &lt;- avg_predictions(h.2, by = \"mood.group.d\", hypothesis = ~ pairwise)\ndiff.me\n\n\n       Hypothesis Estimate  2.5 % 97.5 %\n (tx) - (control)    0.791 -0.037   1.66\n\nType: response\n\ndiff.draws &lt;- get_draws(diff.me)\nnrow(diff.draws)                                   # 1 difference × 1,000 draws\n\n[1] 1000\n\nc(median = median(diff.draws$draw), quantile(diff.draws$draw, c(.025, .975)))   # matches the row above\n\n     median        2.5%       97.5% \n 0.79102900 -0.03703143  1.66481025 \n\nnrow(get_draws(avg_predictions(h.2, by = \"mood.group.d\")))   # 2 group means × 1,000 draws\n\n[1] 2000"
+  },
+  {
+    "objectID": "regression-3.html#for-a-t-σ-isnt-the-sd",
+    "href": "regression-3.html#for-a-t-σ-isnt-the-sd",
+    "title": "Regression part 2",
+    "section": "For a t, σ isn’t the SD",
+    "text": "For a t, σ isn’t the SD\nσ dropped from about 2.8 (normal) to 1.7 (ν = 1). The data didn’t change: σ means something different. For a t, σ is a scale, and\n\\[\\text{SD} = \\sigma \\sqrt{\\frac{\\nu}{\\nu - 2}} \\quad (\\text{only when } \\nu &gt; 2)\\]\n\n\nCode\nbind_rows(\n  \"normal (h.3)\"          = spread_draws(h.3, sigma) %&gt;% mutate(nu = Inf),\n  \"t, ν estimated (h.4R)\" = spread_draws(h.4R, sigma, nu),\n  \"t, ν = 1 (h.5R)\"       = spread_draws(h.5R, sigma) %&gt;% mutate(nu = 1), .id = \"model\") %&gt;%\n  mutate(SD = ifelse(nu &gt; 2, sigma * sqrt(ifelse(is.finite(nu), nu / (nu - 2), 1)), NA)) %&gt;%\n  group_by(model) %&gt;%\n  summarise(sigma = median(sigma), nu = median(nu), SD = median(SD)) %&gt;%\n  mutate(across(where(is.numeric), \\(x) round(x, 2)))\n\n\n# A tibble: 3 × 4\n  model                 sigma    nu    SD\n  &lt;chr&gt;                 &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;\n1 normal (h.3)           2.82 Inf    2.82\n2 t, ν = 1 (h.5R)        1.72   1   NA   \n3 t, ν estimated (h.4R)  2.7   20.4  2.86\n\n\n\nWith ν = 1 (a Cauchy) the SD doesn’t exist at all, so compare scales, not SDs, across likelihoods\nh.4R estimated ν ≈ 20 (posterior median): these data aren’t very heavy-tailed, and the robust and normal models agree"
+  },
+  {
+    "objectID": "regression-3.html#do-the-variances-differ",
+    "href": "regression-3.html#do-the-variances-differ",
+    "title": "Regression part 2",
+    "section": "Do the variances differ?",
+    "text": "Do the variances differ?\n\n\nCode\npost.h7 %&gt;%\n  mutate(`SD ratio (Tx / Control)` = `Sigma Tx` / `Sigma Control`) %&gt;%\n  median_qi(`SD ratio (Tx / Control)`)\n\n\n# A tibble: 1 × 6\n  `SD ratio (Tx / Control)` .lower .upper .width .point .interval\n                      &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;    \n1                     0.987  0.783   1.23   0.95 median qi       \n\n\nCode\nmean(post.h7$`Sigma Tx` &gt; post.h7$`Sigma Control`)\n\n\n[1] 0.45525\n\n\nThe ratio’s interval comfortably includes 1, and the probability that Tx is more variable is near a coin flip: no evidence the groups differ in spread, so the equal-variance model was fine here. (With ν ≈ 30, these t scales are within a few % of the SDs.)"
+  },
+  {
+    "objectID": "regression-3.html#effect-sizes-draw-by-draw",
+    "href": "regression-3.html#effect-sizes-draw-by-draw",
+    "title": "Regression part 2",
+    "section": "Effect sizes, draw by draw",
+    "text": "Effect sizes, draw by draw\n\n\nCode\npost.a.1 %&gt;% \n  gather_draws(`E_1-2`, `E_1-3`, `E_2-3`) %&gt;% \n  ggplot(aes(y = .variable, x = .value)) +\n  stat_halfeye() +\n  geom_vline(xintercept = 0, linetype = 2) +\n  labs(x = \"standardized difference (difference / σ)\", y = NULL)\n\n\n\nEach difference divided by σ, draw by draw, so the effect size gets its own posterior and interval."
+  },
+  {
+    "objectID": "regression-3.html#what-did-the-strange-priors-move",
+    "href": "regression-3.html#what-did-the-strange-priors-move",
+    "title": "Regression part 2",
+    "section": "What did the strange priors move?",
+    "text": "What did the strange priors move?\n\n\nCode\nlibrary(patchwork)\nboth &lt;- bind_rows(\"Normal(0, 5) priors\" = spread_draws(h.1, b_Intercept, b_happy_c),\n                  \"strange priors\"      = spread_draws(h.1b, b_Intercept, b_happy_c), .id = \"priors\")\np.int   &lt;- ggplot(both, aes(x = b_Intercept, fill = priors)) + stat_slab(alpha = .6) +\n  labs(x = \"intercept (health at average happiness)\", y = NULL)\np.slope &lt;- ggplot(both, aes(x = b_happy_c, fill = priors)) + stat_slab(alpha = .6) +\n  labs(x = \"slope (health per unit of happiness)\", y = NULL)\n(p.int | p.slope) + plot_layout(guides = \"collect\") &\n  theme_classic(base_size = 14) & theme(legend.position = \"bottom\") & scale_y_continuous(breaks = NULL)\n\n\n\n\n\n\n\n\n\n\nSlope: barely moved. Its strange prior, Normal(10, 5), is wide compared with what the data say (posterior SD ≈ 0.13)\nIntercept: moved from 8.50 to 8.37. Normal(−5, 2) is much tighter. Roughly, the posterior is a precision-weighted average: data precision 1/0.2² = 25 vs. prior 1/2² = 0.25, so the prior gets ~1% of the weight: 1% × (8.5 − (−5)) ≈ 0.13"
+  },
+  {
+    "objectID": "regression-3.html#group-means-gradient-vs.-eye",
+    "href": "regression-3.html#group-means-gradient-vs.-eye",
+    "title": "Regression part 2",
+    "section": "Group means: gradient vs. eye",
+    "text": "Group means: gradient vs. eye\n\n\nCode\nlibrary(patchwork)\ngm &lt;- avg_predictions(h.2, by = \"mood.group.d\") %&gt;% get_draws()\np.grad &lt;- ggplot(gm, aes(y = draw, x = mood.group.d)) + stat_gradientinterval() + labs(y = \"health\", x = NULL)\np.eye  &lt;- ggplot(gm, aes(y = draw, x = mood.group.d)) + stat_eye() + labs(y = \"health\", x = NULL)\np.grad | p.eye\n\n\n\n\n\n\n\n\n\nSame draws, two looks: the gradient fades with the density; the eye shows the density’s shape."
   }
 ]
