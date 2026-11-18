@@ -8594,5 +8594,26 @@
     "title": "MCMC",
     "section": "Escape 2: we don’t need the evidence",
     "text": "Escape 2: we don’t need the evidence\n\\[p(\\theta | data) = \\frac{p(data | \\theta) \\times p(\\theta )}{p(data)}\\]\nThe evidence doesn’t depend on \\(\\theta\\): it’s the same number for every possible value. So\n\\[ p(\\theta | data) \\propto p(data | \\theta) \\times p(\\theta ) \\] “The posterior is proportional to the likelihood × the prior.”\nAnd when we compare two values of \\(\\theta\\), the evidence cancels:\n\\[\\frac{p(\\theta_1 | data)}{p(\\theta_2 | data)} = \\frac{p(data | \\theta_1)\\, p(\\theta_1)}{p(data | \\theta_2)\\, p(\\theta_2)}\\]\nThat’s all MCMC needs. It never computes the posterior’s height; it only asks “is this value more or less plausible than where I am now?” (the Metropolis acceptance ratio, coming up)."
+  },
+  {
+    "objectID": "mcmc-5.html#why-a-whole-lecture-on-mcmc",
+    "href": "mcmc-5.html#why-a-whole-lecture-on-mcmc",
+    "title": "MCMC",
+    "section": "Why a whole lecture on MCMC?",
+    "text": "Why a whole lecture on MCMC?\n\nEvery brm() you’ve run so far has quietly run MCMC. The “chains” it reports, the Rhat and Bulk_ESS columns, and the occasional warning in red all come from it.\nYou don’t need to be able to build a sampler. You do need to be able to:\n\nsay what the draws are\ntell when to trust them\nknow what to do when brms complains\n\nToday: open the hood just far enough to do those three things. (Reviewers increasingly ask for convergence diagnostics, too.)"
+  },
+  {
+    "objectID": "mcmc-5.html#from-a-grid-to-a-pile-of-draws",
+    "href": "mcmc-5.html#from-a-grid-to-a-pile-of-draws",
+    "title": "MCMC",
+    "section": "From a grid to a pile of draws",
+    "text": "From a grid to a pile of draws\n\nLecture 1: the posterior is a pile of guesses, more of them where the posterior is higher. Every summary we use is counting in that pile.\nOn a grid we built the pile by scoring every possible value. Fine for one or two parameters; hopeless for ten (100 values each = 100^10 scores).\nMCMC gets the same kind of pile without the grid: it wanders through parameter values, spending more time where prior × likelihood is higher.\nThink of marbles in a bag: we can’t see inside, but if we draw enough marbles we learn what the bag holds."
+  },
+  {
+    "objectID": "mcmc-5.html#ways-to-get-a-posterior",
+    "href": "mcmc-5.html#ways-to-get-a-posterior",
+    "title": "MCMC",
+    "section": "Ways to get a posterior",
+    "text": "Ways to get a posterior\n\n\n\n\n\n\n\n\nApproach\nIdea\nWhen it works\n\n\n\n\nGrid\nscore every possible value\n1–2 parameters (lecture 1)\n\n\nConjugate math\npick a prior that makes the answer a known formula\na few simple models\n\n\nApproximation\nassume the posterior is roughly normal\nlarge samples, simple models\n\n\nMCMC\ndraw samples from it\nalmost anything: what brms does\n\n\n\nThe rest of the lecture: why the direct route is hard, how MCMC gets around it, and how to check that it worked."
   }
 ]

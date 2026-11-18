@@ -204,14 +204,67 @@
 </div>
 
 </section>
-<section id="how-do-we-estimate-the-posterior" class="slide level2 smaller">
-<h2>How do we estimate the posterior?</h2>
+<section id="why-a-whole-lecture-on-mcmc" class="slide level2 smaller">
+<h2>Why a whole lecture on MCMC?</h2>
 <ul>
-<li><p>Grid, normal (quadratic) approximations, analytic/conjugate, MCMC</p></li>
-<li><p>MCMC refers to a set of algorithms that sample from a probability distribution</p></li>
-<li><p>Logic: if we don’t know a distribution we draw samples from it. Instead of computations to directly specify the shape of the posterior, we get samples from this distribution and use these samples to describe the posterior.</p></li>
-<li><p>Think of marbles in the bag – we don’t know what that looks like but we can sample from it to compute a posterior.</p></li>
+<li><p>Every <code>brm()</code> you’ve run so far has quietly run MCMC. The “chains” it reports, the <code>Rhat</code> and <code>Bulk_ESS</code> columns, and the occasional warning in red all come from it.</p></li>
+<li><p>You don’t need to be able to build a sampler. You do need to be able to:</p>
+<ol type="1">
+<li>say what the draws <em>are</em></li>
+<li>tell when to trust them</li>
+<li>know what to do when brms complains</li>
+</ol></li>
+<li><p>Today: open the hood just far enough to do those three things. (Reviewers increasingly ask for convergence diagnostics, too.)</p></li>
 </ul>
+</section>
+<section id="from-a-grid-to-a-pile-of-draws" class="slide level2 smaller">
+<h2>From a grid to a pile of draws</h2>
+<ul>
+<li><p>Lecture 1: the posterior is a <strong>pile of guesses</strong>, more of them where the posterior is higher. Every summary we use is counting in that pile.</p></li>
+<li><p>On a grid we built the pile by scoring every possible value. Fine for one or two parameters; hopeless for ten (100 values each = 100^10 scores).</p></li>
+<li><p>MCMC gets the same kind of pile <strong>without the grid</strong>: it wanders through parameter values, spending more time where prior × likelihood is higher.</p></li>
+<li><p>Think of marbles in a bag: we can’t see inside, but if we draw enough marbles we learn what the bag holds.</p></li>
+</ul>
+</section>
+<section id="ways-to-get-a-posterior" class="slide level2 smaller">
+<h2>Ways to get a posterior</h2>
+<table class="caption-top">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Approach</th>
+<th>Idea</th>
+<th>When it works</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Grid</td>
+<td>score every possible value</td>
+<td>1–2 parameters (lecture 1)</td>
+</tr>
+<tr class="even">
+<td>Conjugate math</td>
+<td>pick a prior that makes the answer a known formula</td>
+<td>a few simple models</td>
+</tr>
+<tr class="odd">
+<td>Approximation</td>
+<td>assume the posterior is roughly normal</td>
+<td>large samples, simple models</td>
+</tr>
+<tr class="even">
+<td><strong>MCMC</strong></td>
+<td>draw samples from it</td>
+<td>almost anything: what brms does</td>
+</tr>
+</tbody>
+</table>
+<p>The rest of the lecture: why the direct route is hard, how MCMC gets around it, and how to check that it worked.</p>
 </section>
 <section id="why-this-way" class="slide level2 smaller">
 <h2>Why this way?</h2>

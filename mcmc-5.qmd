@@ -7,14 +7,38 @@ execute:
   echo: true
 ---
 
-## How do we estimate the posterior? {.smaller}
--   Grid, normal (quadratic) approximations, analytic/conjugate, MCMC
+## Why a whole lecture on MCMC? {.smaller}
 
--   MCMC refers to a set of algorithms that sample from a probability distribution
+-   Every `brm()` you've run so far has quietly run MCMC. The "chains" it reports, the `Rhat` and `Bulk_ESS` columns, and the occasional warning in red all come from it.
 
--   Logic: if we don't know a distribution we draw samples from it. Instead of computations to directly specify the shape of the posterior, we get samples from this distribution and use these samples to describe the posterior.
+-   You don't need to be able to build a sampler. You do need to be able to:
 
--   Think of marbles in the bag -- we don't know what that looks like but we can sample from it to compute a posterior.
+    1.  say what the draws *are*
+    2.  tell when to trust them
+    3.  know what to do when brms complains
+
+-   Today: open the hood just far enough to do those three things. (Reviewers increasingly ask for convergence diagnostics, too.)
+
+## From a grid to a pile of draws {.smaller}
+
+-   Lecture 1: the posterior is a **pile of guesses**, more of them where the posterior is higher. Every summary we use is counting in that pile.
+
+-   On a grid we built the pile by scoring every possible value. Fine for one or two parameters; hopeless for ten (100 values each = 100^10 scores).
+
+-   MCMC gets the same kind of pile **without the grid**: it wanders through parameter values, spending more time where prior × likelihood is higher.
+
+-   Think of marbles in a bag: we can't see inside, but if we draw enough marbles we learn what the bag holds.
+
+## Ways to get a posterior {.smaller}
+
+| Approach | Idea | When it works |
+|---|---|---|
+| Grid | score every possible value | 1–2 parameters (lecture 1) |
+| Conjugate math | pick a prior that makes the answer a known formula | a few simple models |
+| Approximation | assume the posterior is roughly normal | large samples, simple models |
+| **MCMC** | draw samples from it | almost anything: what brms does |
+
+The rest of the lecture: why the direct route is hard, how MCMC gets around it, and how to check that it worked.
 
 ## Why this way? {.smaller}
 
