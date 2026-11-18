@@ -293,6 +293,86 @@
 <p><span class="math display">\[\frac{p(\theta_1 | data)}{p(\theta_2 | data)} = \frac{p(data | \theta_1)\, p(\theta_1)}{p(data | \theta_2)\, p(\theta_2)}\]</span></p>
 <p>That’s all MCMC needs: likelihood × prior, never the evidence.</p>
 </section>
+<section id="the-posterior-is-a-landscape" class="slide level2 smaller nostretch">
+<h2>The posterior is a landscape</h2>
+<p>Every spot on the map is one set of parameter values. Its <strong>height</strong> is prior × likelihood: how well those values explain the data, weighted by what we believed beforehand.</p>
+<div class="columns">
+<div class="column" style="width:55%;">
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a aria-label="1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-2"><a aria-label="2"></a><span class="co"># a made-up two-parameter posterior with a curved ridge</span></span>
+<span id="cb1-3"><a aria-label="3"></a>log_target <span class="ot">&lt;-</span> <span class="cf">function</span>(x, y) <span class="fu">dnorm</span>(x, <span class="dv">0</span>, <span class="fl">1.2</span>, <span class="at">log =</span> <span class="cn">TRUE</span>) <span class="sc">+</span> <span class="fu">dnorm</span>(y, <span class="fl">0.6</span> <span class="sc">*</span> x<span class="sc">^</span><span class="dv">2</span> <span class="sc">-</span> <span class="dv">1</span>, <span class="fl">0.6</span>, <span class="at">log =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb1-4"><a aria-label="4"></a>landscape <span class="ot">&lt;-</span> <span class="fu">expand_grid</span>(<span class="at">x =</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="fl">3.5</span>, <span class="fl">3.5</span>, <span class="at">length.out =</span> <span class="dv">200</span>), <span class="at">y =</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="fl">2.5</span>, <span class="dv">6</span>, <span class="at">length.out =</span> <span class="dv">200</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb1-5"><a aria-label="5"></a>  <span class="fu">mutate</span>(<span class="at">height =</span> <span class="fu">exp</span>(<span class="fu">log_target</span>(x, y)))</span>
+<span id="cb1-6"><a aria-label="6"></a><span class="fu">ggplot</span>(landscape, <span class="fu">aes</span>(x, y, <span class="at">fill =</span> height)) <span class="sc">+</span></span>
+<span id="cb1-7"><a aria-label="7"></a>  <span class="fu">geom_raster</span>() <span class="sc">+</span></span>
+<span id="cb1-8"><a aria-label="8"></a>  <span class="fu">scale_fill_viridis_c</span>(<span class="at">option =</span> <span class="st">"magma"</span>, <span class="at">guide =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
+<span id="cb1-9"><a aria-label="9"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="fu">expression</span>(theta[<span class="dv">1</span>]), <span class="at">y =</span> <span class="fu">expression</span>(theta[<span class="dv">2</span>])) <span class="sc">+</span></span>
+<span id="cb1-10"><a aria-label="10"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">14</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure>
+<p><img data-src="mcmc-5_files/figure-revealjs/unnamed-chunk-1-1.png" style="width:100.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+</div><div class="column" style="width:45%;">
+<ul>
+<li><strong>Maximum likelihood</strong> finds the summit</li>
+<li><strong>Bayes</strong> wants the whole map: where the high ground is, and how much of it there is</li>
+<li>With 2 parameters we can draw it. With 50 (a typical multilevel model) nobody can: we’re exploring in the dark</li>
+</ul>
+</div></div>
+</section>
+<section id="a-hiker-in-the-fog" class="slide level2 smaller nostretch">
+<h2>A hiker in the fog</h2>
+<p>The hiker sees only the ground underfoot. One rule: <strong>step somewhere nearby; if it’s higher, go; if it’s lower, go only sometimes.</strong></p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a aria-label="1"></a><span class="fu">library</span>(patchwork)</span>
+<span id="cb2-2"><a aria-label="2"></a><span class="fu">set.seed</span>(<span class="dv">11</span>)</span>
+<span id="cb2-3"><a aria-label="3"></a>n_steps <span class="ot">&lt;-</span> <span class="dv">6000</span></span>
+<span id="cb2-4"><a aria-label="4"></a>path <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="cn">NA</span>, n_steps, <span class="dv">2</span>); here <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="sc">-</span><span class="dv">2</span>)                  <span class="co"># start somewhere low</span></span>
+<span id="cb2-5"><a aria-label="5"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n_steps) {</span>
+<span id="cb2-6"><a aria-label="6"></a>  step <span class="ot">&lt;-</span> here <span class="sc">+</span> <span class="fu">rnorm</span>(<span class="dv">2</span>, <span class="dv">0</span>, <span class="fl">0.4</span>)</span>
+<span id="cb2-7"><a aria-label="7"></a>  <span class="cf">if</span> (<span class="fu">log</span>(<span class="fu">runif</span>(<span class="dv">1</span>)) <span class="sc">&lt;</span> <span class="fu">log_target</span>(step[<span class="dv">1</span>], step[<span class="dv">2</span>]) <span class="sc">-</span> <span class="fu">log_target</span>(here[<span class="dv">1</span>], here[<span class="dv">2</span>])) here <span class="ot">&lt;-</span> step</span>
+<span id="cb2-8"><a aria-label="8"></a>  path[i, ] <span class="ot">&lt;-</span> here</span>
+<span id="cb2-9"><a aria-label="9"></a>}</span>
+<span id="cb2-10"><a aria-label="10"></a>path <span class="ot">&lt;-</span> <span class="fu">as_tibble</span>(path, <span class="at">.name_repair =</span> <span class="sc">~</span> <span class="fu">c</span>(<span class="st">"x"</span>, <span class="st">"y"</span>)) <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">step =</span> <span class="fu">row_number</span>())</span>
+<span id="cb2-11"><a aria-label="11"></a>base <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(landscape, <span class="fu">aes</span>(x, y)) <span class="sc">+</span></span>
+<span id="cb2-12"><a aria-label="12"></a>  <span class="fu">geom_contour</span>(<span class="fu">aes</span>(<span class="at">z =</span> height), <span class="at">colour =</span> <span class="st">"grey70"</span>, <span class="at">bins =</span> <span class="dv">8</span>) <span class="sc">+</span></span>
+<span id="cb2-13"><a aria-label="13"></a>  <span class="fu">coord_cartesian</span>(<span class="at">xlim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">3.5</span>, <span class="fl">3.5</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">2.5</span>, <span class="dv">6</span>)) <span class="sc">+</span></span>
+<span id="cb2-14"><a aria-label="14"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="fu">expression</span>(theta[<span class="dv">1</span>]), <span class="at">y =</span> <span class="fu">expression</span>(theta[<span class="dv">2</span>])) <span class="sc">+</span> <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">13</span>)</span>
+<span id="cb2-15"><a aria-label="15"></a>(base <span class="sc">+</span> <span class="fu">geom_path</span>(<span class="at">data =</span> <span class="fu">filter</span>(path, step <span class="sc">&lt;=</span> <span class="dv">150</span>), <span class="at">colour =</span> <span class="st">"#D55E00"</span>) <span class="sc">+</span></span>
+<span id="cb2-16"><a aria-label="16"></a>   <span class="fu">geom_point</span>(<span class="at">data =</span> <span class="fu">filter</span>(path, step <span class="sc">==</span> <span class="dv">1</span>), <span class="at">colour =</span> <span class="st">"#D55E00"</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb2-17"><a aria-label="17"></a>   <span class="fu">labs</span>(<span class="at">subtitle =</span> <span class="st">"the first 150 steps, from a bad start"</span>)) <span class="sc">|</span></span>
+<span id="cb2-18"><a aria-label="18"></a>(base <span class="sc">+</span> <span class="fu">geom_point</span>(<span class="at">data =</span> <span class="fu">filter</span>(path, step <span class="sc">&gt;</span> <span class="dv">1000</span>), <span class="at">alpha =</span> .<span class="dv">08</span>, <span class="at">size =</span> .<span class="dv">6</span>, <span class="at">colour =</span> <span class="st">"#0072B2"</span>) <span class="sc">+</span></span>
+<span id="cb2-19"><a aria-label="19"></a>   <span class="fu">labs</span>(<span class="at">subtitle =</span> <span class="st">"5,000 footprints later"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure>
+<p><img data-src="mcmc-5_files/figure-revealjs/unnamed-chunk-2-1.png" style="width:100.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The hiker never sees the map, yet the footprints pile up where the land is high, in proportion to its height. <strong>The footprints are the posterior draws.</strong> That’s MCMC.</p>
+</section>
+<section id="born-at-los-alamos-used-everywhere" class="slide level2 smaller">
+<h2>Born at Los Alamos, used everywhere</h2>
+<ul>
+<li><strong>1953:</strong> Nicholas Metropolis, Arianna and Marshall Rosenbluth, and Augusta and Edward Teller needed to average over more arrangements of atoms than could ever be listed. On MANIAC, one of the first computers, they used the hiker’s rule: wander, preferring likely states. (Arianna Rosenbluth wrote the code.)</li>
+<li><strong>1970:</strong> Hastings generalized it. <strong>1990:</strong> Gelfand and Smith showed statisticians it made Bayesian models practical, and Bayesian statistics took off</li>
+<li>Named one of the <strong>top 10 algorithms of the 20th century</strong></li>
+<li>Still everywhere, because it works when the landscape is too big to map: physicists estimating the parameters of the universe from the cosmic microwave background, biologists reconstructing evolutionary trees, epidemiologists estimating the effects of COVID-19 lockdowns, election forecasters, and every <code>brm()</code> you run</li>
+</ul>
+</section>
 <section id="markov-chain-monte-carlo" class="slide level2 smaller">
 <h2>Markov Chain Monte Carlo</h2>
 <ul>
@@ -345,62 +425,62 @@
 <img data-src="met5.png" class="r-stretch"></section>
 <section id="metropolis-in-15-lines" class="slide level2 smaller">
 <h2>Metropolis in 15 lines</h2>
-<p>McElreath’s King Markov (SR 9.1): 10 islands in a ring, island <em>k</em> has population proportional to <em>k</em>, and the king wants to visit each island in proportion to its population. Each week he flips a coin to propose a neighbor and moves with probability (proposal population / current population). Here the “posterior” is just the island number.</p>
+<p>The hiker’s rule on the smallest possible landscape. McElreath’s King Markov (SR 9.1): 10 islands in a ring, island <em>k</em> has population proportional to <em>k</em>, and the king wants to visit each island in proportion to its population. Each week he flips a coin to propose a neighbor and moves with probability (proposal population / current population). Here the “posterior” is just the island number.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a aria-label="1"></a>num <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
-<span id="cb1-2"><a aria-label="2"></a>positions <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">0</span>, num) </span>
-<span id="cb1-3"><a aria-label="3"></a>current   <span class="ot">&lt;-</span> <span class="dv">10</span></span>
-<span id="cb1-4"><a aria-label="4"></a></span>
-<span id="cb1-5"><a aria-label="5"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>num) {</span>
-<span id="cb1-6"><a aria-label="6"></a>  </span>
-<span id="cb1-7"><a aria-label="7"></a>  <span class="co"># record current position </span></span>
-<span id="cb1-8"><a aria-label="8"></a>  positions[i] <span class="ot">&lt;-</span> current</span>
-<span id="cb1-9"><a aria-label="9"></a>  <span class="co"># flip a coin to propose a neighboring island</span></span>
-<span id="cb1-10"><a aria-label="10"></a>  proposal <span class="ot">&lt;-</span> current <span class="sc">+</span> <span class="fu">sample</span>(<span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>), <span class="at">size =</span> <span class="dv">1</span>)</span>
-<span id="cb1-11"><a aria-label="11"></a>  <span class="co"># the islands form a ring: 1 and 10 are neighbors</span></span>
-<span id="cb1-12"><a aria-label="12"></a>  <span class="cf">if</span> (proposal <span class="sc">&lt;</span> <span class="dv">1</span>) proposal <span class="ot">&lt;-</span> <span class="dv">10</span></span>
-<span id="cb1-13"><a aria-label="13"></a>  <span class="cf">if</span> (proposal <span class="sc">&gt;</span> <span class="dv">10</span>) proposal <span class="ot">&lt;-</span> <span class="dv">1</span></span>
-<span id="cb1-14"><a aria-label="14"></a>  <span class="co"># move with probability proposal / current (always move "uphill")</span></span>
-<span id="cb1-15"><a aria-label="15"></a>  prob_move <span class="ot">&lt;-</span> proposal<span class="sc">/</span>current</span>
-<span id="cb1-16"><a aria-label="16"></a>  current <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(<span class="fu">runif</span>(<span class="dv">1</span>) <span class="sc">&lt;</span> prob_move, proposal, current)</span>
-<span id="cb1-17"><a aria-label="17"></a>  </span>
-<span id="cb1-18"><a aria-label="18"></a>}  </span>
-<span id="cb1-19"><a aria-label="19"></a></span>
-<span id="cb1-20"><a aria-label="20"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb1-21"><a aria-label="21"></a></span>
-<span id="cb1-22"><a aria-label="22"></a><span class="fu">tibble</span>(<span class="at">week   =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">1000</span>,</span>
-<span id="cb1-23"><a aria-label="23"></a>       <span class="at">iteration =</span> positions) <span class="sc">%&gt;%</span></span>
-<span id="cb1-24"><a aria-label="24"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> week, <span class="at">y =</span> iteration)) <span class="sc">+</span></span>
-<span id="cb1-25"><a aria-label="25"></a>  <span class="fu">geom_point</span>(<span class="at">shape =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb1-26"><a aria-label="26"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">seq</span>(<span class="at">from =</span> <span class="dv">0</span>, <span class="at">to =</span> <span class="dv">1000</span>, <span class="at">by =</span> <span class="dv">100</span>)) <span class="sc">+</span></span>
-<span id="cb1-27"><a aria-label="27"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">2</span>, <span class="dv">13</span>), <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="at">from =</span> <span class="sc">-</span><span class="dv">2</span>, <span class="at">to =</span> <span class="dv">15</span>, <span class="at">by =</span> <span class="dv">2</span>)) <span class="sc">+</span></span>
-<span id="cb1-28"><a aria-label="28"></a>  <span class="fu">coord_cartesian</span>(<span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1000</span>)) <span class="sc">+</span></span>
-<span id="cb1-29"><a aria-label="29"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"The king's path: one island per week"</span>) <span class="sc">+</span></span>
-<span id="cb1-30"><a aria-label="30"></a>  <span class="fu">xlab</span>(<span class="st">"week (iteration)"</span>) <span class="sc">+</span> <span class="fu">ylab</span>(<span class="st">"island"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a aria-label="1"></a>num <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
+<span id="cb3-2"><a aria-label="2"></a>positions <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">0</span>, num) </span>
+<span id="cb3-3"><a aria-label="3"></a>current   <span class="ot">&lt;-</span> <span class="dv">10</span></span>
+<span id="cb3-4"><a aria-label="4"></a></span>
+<span id="cb3-5"><a aria-label="5"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>num) {</span>
+<span id="cb3-6"><a aria-label="6"></a>  </span>
+<span id="cb3-7"><a aria-label="7"></a>  <span class="co"># record current position </span></span>
+<span id="cb3-8"><a aria-label="8"></a>  positions[i] <span class="ot">&lt;-</span> current</span>
+<span id="cb3-9"><a aria-label="9"></a>  <span class="co"># flip a coin to propose a neighboring island</span></span>
+<span id="cb3-10"><a aria-label="10"></a>  proposal <span class="ot">&lt;-</span> current <span class="sc">+</span> <span class="fu">sample</span>(<span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>), <span class="at">size =</span> <span class="dv">1</span>)</span>
+<span id="cb3-11"><a aria-label="11"></a>  <span class="co"># the islands form a ring: 1 and 10 are neighbors</span></span>
+<span id="cb3-12"><a aria-label="12"></a>  <span class="cf">if</span> (proposal <span class="sc">&lt;</span> <span class="dv">1</span>) proposal <span class="ot">&lt;-</span> <span class="dv">10</span></span>
+<span id="cb3-13"><a aria-label="13"></a>  <span class="cf">if</span> (proposal <span class="sc">&gt;</span> <span class="dv">10</span>) proposal <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb3-14"><a aria-label="14"></a>  <span class="co"># move with probability proposal / current (always move "uphill")</span></span>
+<span id="cb3-15"><a aria-label="15"></a>  prob_move <span class="ot">&lt;-</span> proposal<span class="sc">/</span>current</span>
+<span id="cb3-16"><a aria-label="16"></a>  current <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(<span class="fu">runif</span>(<span class="dv">1</span>) <span class="sc">&lt;</span> prob_move, proposal, current)</span>
+<span id="cb3-17"><a aria-label="17"></a>  </span>
+<span id="cb3-18"><a aria-label="18"></a>}  </span>
+<span id="cb3-19"><a aria-label="19"></a></span>
+<span id="cb3-20"><a aria-label="20"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb3-21"><a aria-label="21"></a></span>
+<span id="cb3-22"><a aria-label="22"></a><span class="fu">tibble</span>(<span class="at">week   =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">1000</span>,</span>
+<span id="cb3-23"><a aria-label="23"></a>       <span class="at">iteration =</span> positions) <span class="sc">%&gt;%</span></span>
+<span id="cb3-24"><a aria-label="24"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> week, <span class="at">y =</span> iteration)) <span class="sc">+</span></span>
+<span id="cb3-25"><a aria-label="25"></a>  <span class="fu">geom_point</span>(<span class="at">shape =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb3-26"><a aria-label="26"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">seq</span>(<span class="at">from =</span> <span class="dv">0</span>, <span class="at">to =</span> <span class="dv">1000</span>, <span class="at">by =</span> <span class="dv">100</span>)) <span class="sc">+</span></span>
+<span id="cb3-27"><a aria-label="27"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">2</span>, <span class="dv">13</span>), <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="at">from =</span> <span class="sc">-</span><span class="dv">2</span>, <span class="at">to =</span> <span class="dv">15</span>, <span class="at">by =</span> <span class="dv">2</span>)) <span class="sc">+</span></span>
+<span id="cb3-28"><a aria-label="28"></a>  <span class="fu">coord_cartesian</span>(<span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1000</span>)) <span class="sc">+</span></span>
+<span id="cb3-29"><a aria-label="29"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"The king's path: one island per week"</span>) <span class="sc">+</span></span>
+<span id="cb3-30"><a aria-label="30"></a>  <span class="fu">xlab</span>(<span class="st">"week (iteration)"</span>) <span class="sc">+</span> <span class="fu">ylab</span>(<span class="st">"island"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
 </div>
-<img data-src="mcmc-5_files/figure-revealjs/unnamed-chunk-1-1.png" width="960" class="r-stretch"></section>
+<img data-src="mcmc-5_files/figure-revealjs/unnamed-chunk-3-1.png" width="960" class="r-stretch"></section>
 <section id="where-the-chain-spent-its-time" class="slide level2 smaller nostretch">
 <h2>Where the chain spent its time</h2>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a aria-label="1"></a><span class="fu">tibble</span>(<span class="at">island =</span> positions) <span class="sc">%&gt;%</span></span>
-<span id="cb2-2"><a aria-label="2"></a>  <span class="fu">count</span>(island) <span class="sc">%&gt;%</span></span>
-<span id="cb2-3"><a aria-label="3"></a>  <span class="fu">mutate</span>(<span class="at">share =</span> n <span class="sc">/</span> <span class="fu">sum</span>(n), <span class="at">target =</span> island <span class="sc">/</span> <span class="fu">sum</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb2-4"><a aria-label="4"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> island)) <span class="sc">+</span></span>
-<span id="cb2-5"><a aria-label="5"></a>  <span class="fu">geom_col</span>(<span class="fu">aes</span>(<span class="at">y =</span> share), <span class="at">fill =</span> <span class="st">"grey70"</span>) <span class="sc">+</span></span>
-<span id="cb2-6"><a aria-label="6"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">y =</span> target), <span class="at">colour =</span> <span class="st">"#D55E00"</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
-<span id="cb2-7"><a aria-label="7"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>) <span class="sc">+</span></span>
-<span id="cb2-8"><a aria-label="8"></a>  <span class="fu">labs</span>(<span class="at">y =</span> <span class="st">"share of weeks"</span>, <span class="at">subtitle =</span> <span class="st">"bars: where the chain went · orange: the target (proportional to island number)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a aria-label="1"></a><span class="fu">tibble</span>(<span class="at">island =</span> positions) <span class="sc">%&gt;%</span></span>
+<span id="cb4-2"><a aria-label="2"></a>  <span class="fu">count</span>(island) <span class="sc">%&gt;%</span></span>
+<span id="cb4-3"><a aria-label="3"></a>  <span class="fu">mutate</span>(<span class="at">share =</span> n <span class="sc">/</span> <span class="fu">sum</span>(n), <span class="at">target =</span> island <span class="sc">/</span> <span class="fu">sum</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb4-4"><a aria-label="4"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> island)) <span class="sc">+</span></span>
+<span id="cb4-5"><a aria-label="5"></a>  <span class="fu">geom_col</span>(<span class="fu">aes</span>(<span class="at">y =</span> share), <span class="at">fill =</span> <span class="st">"grey70"</span>) <span class="sc">+</span></span>
+<span id="cb4-6"><a aria-label="6"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">y =</span> target), <span class="at">colour =</span> <span class="st">"#D55E00"</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb4-7"><a aria-label="7"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>) <span class="sc">+</span></span>
+<span id="cb4-8"><a aria-label="8"></a>  <span class="fu">labs</span>(<span class="at">y =</span> <span class="st">"share of weeks"</span>, <span class="at">subtitle =</span> <span class="st">"bars: where the chain went · orange: the target (proportional to island number)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
 <figure>
-<p><img data-src="mcmc-5_files/figure-revealjs/unnamed-chunk-2-1.png" style="width:90.0%"></p>
+<p><img data-src="mcmc-5_files/figure-revealjs/unnamed-chunk-4-1.png" style="width:90.0%"></p>
 </figure>
 </div>
 </div>
@@ -411,17 +491,17 @@
 <h2>Metropolis on a real posterior</h2>
 <p>Galton’s children’s heights again, estimating the mean μ (σ fixed at 2.5 to keep it one-dimensional) with lecture 1’s prior, μ ~ Normal(66, 5). Same recipe as the king, with a continuous “island”:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a aria-label="1"></a>heights <span class="ot">&lt;-</span> psychTools<span class="sc">::</span>galton<span class="sc">$</span>child</span>
-<span id="cb3-2"><a aria-label="2"></a>log_post <span class="ot">&lt;-</span> <span class="cf">function</span>(mu) <span class="fu">sum</span>(<span class="fu">dnorm</span>(heights, mu, <span class="fl">2.5</span>, <span class="at">log =</span> <span class="cn">TRUE</span>)) <span class="sc">+</span> <span class="fu">dnorm</span>(mu, <span class="dv">66</span>, <span class="dv">5</span>, <span class="at">log =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb3-3"><a aria-label="3"></a></span>
-<span id="cb3-4"><a aria-label="4"></a><span class="fu">set.seed</span>(<span class="dv">27</span>)</span>
-<span id="cb3-5"><a aria-label="5"></a>chain <span class="ot">&lt;-</span> <span class="fu">numeric</span>(<span class="dv">5000</span>)</span>
-<span id="cb3-6"><a aria-label="6"></a>current <span class="ot">&lt;-</span> <span class="dv">60</span>                                   <span class="co"># a deliberately bad start</span></span>
-<span id="cb3-7"><a aria-label="7"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">5000</span>) {</span>
-<span id="cb3-8"><a aria-label="8"></a>  proposal <span class="ot">&lt;-</span> current <span class="sc">+</span> <span class="fu">rnorm</span>(<span class="dv">1</span>, <span class="dv">0</span>, <span class="fl">0.2</span>)        <span class="co"># a small random step</span></span>
-<span id="cb3-9"><a aria-label="9"></a>  <span class="cf">if</span> (<span class="fu">log</span>(<span class="fu">runif</span>(<span class="dv">1</span>)) <span class="sc">&lt;</span> <span class="fu">log_post</span>(proposal) <span class="sc">-</span> <span class="fu">log_post</span>(current)) current <span class="ot">&lt;-</span> proposal   <span class="co"># ratio, on the log scale</span></span>
-<span id="cb3-10"><a aria-label="10"></a>  chain[i] <span class="ot">&lt;-</span> current</span>
-<span id="cb3-11"><a aria-label="11"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a aria-label="1"></a>heights <span class="ot">&lt;-</span> psychTools<span class="sc">::</span>galton<span class="sc">$</span>child</span>
+<span id="cb5-2"><a aria-label="2"></a>log_post <span class="ot">&lt;-</span> <span class="cf">function</span>(mu) <span class="fu">sum</span>(<span class="fu">dnorm</span>(heights, mu, <span class="fl">2.5</span>, <span class="at">log =</span> <span class="cn">TRUE</span>)) <span class="sc">+</span> <span class="fu">dnorm</span>(mu, <span class="dv">66</span>, <span class="dv">5</span>, <span class="at">log =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb5-3"><a aria-label="3"></a></span>
+<span id="cb5-4"><a aria-label="4"></a><span class="fu">set.seed</span>(<span class="dv">27</span>)</span>
+<span id="cb5-5"><a aria-label="5"></a>chain <span class="ot">&lt;-</span> <span class="fu">numeric</span>(<span class="dv">5000</span>)</span>
+<span id="cb5-6"><a aria-label="6"></a>current <span class="ot">&lt;-</span> <span class="dv">60</span>                                   <span class="co"># a deliberately bad start</span></span>
+<span id="cb5-7"><a aria-label="7"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">5000</span>) {</span>
+<span id="cb5-8"><a aria-label="8"></a>  proposal <span class="ot">&lt;-</span> current <span class="sc">+</span> <span class="fu">rnorm</span>(<span class="dv">1</span>, <span class="dv">0</span>, <span class="fl">0.2</span>)        <span class="co"># a small random step</span></span>
+<span id="cb5-9"><a aria-label="9"></a>  <span class="cf">if</span> (<span class="fu">log</span>(<span class="fu">runif</span>(<span class="dv">1</span>)) <span class="sc">&lt;</span> <span class="fu">log_post</span>(proposal) <span class="sc">-</span> <span class="fu">log_post</span>(current)) current <span class="ot">&lt;-</span> proposal   <span class="co"># ratio, on the log scale</span></span>
+<span id="cb5-10"><a aria-label="10"></a>  chain[i] <span class="ot">&lt;-</span> current</span>
+<span id="cb5-11"><a aria-label="11"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Comparing on the log scale (a difference instead of a ratio) avoids the tiny-number problem from lecture 1.</p>
 </section>
@@ -430,24 +510,24 @@
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a aria-label="1"></a><span class="fu">library</span>(patchwork)</span>
-<span id="cb4-2"><a aria-label="2"></a><span class="co"># exact posterior for a normal mean with known sigma (conjugate)</span></span>
-<span id="cb4-3"><a aria-label="3"></a>post_prec <span class="ot">&lt;-</span> <span class="fu">length</span>(heights) <span class="sc">/</span> <span class="fl">2.5</span><span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span> <span class="dv">1</span> <span class="sc">/</span> <span class="dv">5</span><span class="sc">^</span><span class="dv">2</span></span>
-<span id="cb4-4"><a aria-label="4"></a>post_mean <span class="ot">&lt;-</span> (<span class="fu">sum</span>(heights) <span class="sc">/</span> <span class="fl">2.5</span><span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span> <span class="dv">66</span> <span class="sc">/</span> <span class="dv">5</span><span class="sc">^</span><span class="dv">2</span>) <span class="sc">/</span> post_prec</span>
-<span id="cb4-5"><a aria-label="5"></a>p.trace <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">iteration =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">5000</span>, <span class="at">mu =</span> chain) <span class="sc">%&gt;%</span></span>
-<span id="cb4-6"><a aria-label="6"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(iteration, mu)) <span class="sc">+</span> <span class="fu">geom_line</span>(<span class="at">linewidth =</span> .<span class="dv">3</span>) <span class="sc">+</span></span>
-<span id="cb4-7"><a aria-label="7"></a>  <span class="fu">annotate</span>(<span class="st">"rect"</span>, <span class="at">xmin =</span> <span class="dv">0</span>, <span class="at">xmax =</span> <span class="dv">1000</span>, <span class="at">ymin =</span> <span class="sc">-</span><span class="cn">Inf</span>, <span class="at">ymax =</span> <span class="cn">Inf</span>, <span class="at">alpha =</span> .<span class="dv">15</span>, <span class="at">fill =</span> <span class="st">"#D55E00"</span>) <span class="sc">+</span></span>
-<span id="cb4-8"><a aria-label="8"></a>  <span class="fu">labs</span>(<span class="at">y =</span> <span class="fu">expression</span>(mu), <span class="at">subtitle =</span> <span class="st">"shaded: warmup, discarded"</span>) <span class="sc">+</span> <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">13</span>)</span>
-<span id="cb4-9"><a aria-label="9"></a>p.dens <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">mu =</span> chain[<span class="sc">-</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">1000</span>)]) <span class="sc">%&gt;%</span></span>
-<span id="cb4-10"><a aria-label="10"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(mu)) <span class="sc">+</span> <span class="fu">geom_histogram</span>(<span class="fu">aes</span>(<span class="at">y =</span> <span class="fu">after_stat</span>(density)), <span class="at">bins =</span> <span class="dv">40</span>, <span class="at">fill =</span> <span class="st">"grey75"</span>, <span class="at">colour =</span> <span class="st">"white"</span>) <span class="sc">+</span></span>
-<span id="cb4-11"><a aria-label="11"></a>  <span class="fu">stat_function</span>(<span class="at">fun =</span> dnorm, <span class="at">args =</span> <span class="fu">list</span>(post_mean, <span class="dv">1</span> <span class="sc">/</span> <span class="fu">sqrt</span>(post_prec)), <span class="at">colour =</span> <span class="st">"#0072B2"</span>, <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb4-12"><a aria-label="12"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="fu">expression</span>(mu), <span class="at">y =</span> <span class="cn">NULL</span>, <span class="at">subtitle =</span> <span class="st">"grey: 4,000 draws · blue: the exact posterior"</span>) <span class="sc">+</span> <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">13</span>)</span>
-<span id="cb4-13"><a aria-label="13"></a>p.trace <span class="sc">|</span> p.dens</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a aria-label="1"></a><span class="fu">library</span>(patchwork)</span>
+<span id="cb6-2"><a aria-label="2"></a><span class="co"># exact posterior for a normal mean with known sigma (conjugate)</span></span>
+<span id="cb6-3"><a aria-label="3"></a>post_prec <span class="ot">&lt;-</span> <span class="fu">length</span>(heights) <span class="sc">/</span> <span class="fl">2.5</span><span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span> <span class="dv">1</span> <span class="sc">/</span> <span class="dv">5</span><span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb6-4"><a aria-label="4"></a>post_mean <span class="ot">&lt;-</span> (<span class="fu">sum</span>(heights) <span class="sc">/</span> <span class="fl">2.5</span><span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span> <span class="dv">66</span> <span class="sc">/</span> <span class="dv">5</span><span class="sc">^</span><span class="dv">2</span>) <span class="sc">/</span> post_prec</span>
+<span id="cb6-5"><a aria-label="5"></a>p.trace <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">iteration =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">5000</span>, <span class="at">mu =</span> chain) <span class="sc">%&gt;%</span></span>
+<span id="cb6-6"><a aria-label="6"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(iteration, mu)) <span class="sc">+</span> <span class="fu">geom_line</span>(<span class="at">linewidth =</span> .<span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb6-7"><a aria-label="7"></a>  <span class="fu">annotate</span>(<span class="st">"rect"</span>, <span class="at">xmin =</span> <span class="dv">0</span>, <span class="at">xmax =</span> <span class="dv">1000</span>, <span class="at">ymin =</span> <span class="sc">-</span><span class="cn">Inf</span>, <span class="at">ymax =</span> <span class="cn">Inf</span>, <span class="at">alpha =</span> .<span class="dv">15</span>, <span class="at">fill =</span> <span class="st">"#D55E00"</span>) <span class="sc">+</span></span>
+<span id="cb6-8"><a aria-label="8"></a>  <span class="fu">labs</span>(<span class="at">y =</span> <span class="fu">expression</span>(mu), <span class="at">subtitle =</span> <span class="st">"shaded: warmup, discarded"</span>) <span class="sc">+</span> <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">13</span>)</span>
+<span id="cb6-9"><a aria-label="9"></a>p.dens <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">mu =</span> chain[<span class="sc">-</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">1000</span>)]) <span class="sc">%&gt;%</span></span>
+<span id="cb6-10"><a aria-label="10"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(mu)) <span class="sc">+</span> <span class="fu">geom_histogram</span>(<span class="fu">aes</span>(<span class="at">y =</span> <span class="fu">after_stat</span>(density)), <span class="at">bins =</span> <span class="dv">40</span>, <span class="at">fill =</span> <span class="st">"grey75"</span>, <span class="at">colour =</span> <span class="st">"white"</span>) <span class="sc">+</span></span>
+<span id="cb6-11"><a aria-label="11"></a>  <span class="fu">stat_function</span>(<span class="at">fun =</span> dnorm, <span class="at">args =</span> <span class="fu">list</span>(post_mean, <span class="dv">1</span> <span class="sc">/</span> <span class="fu">sqrt</span>(post_prec)), <span class="at">colour =</span> <span class="st">"#0072B2"</span>, <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb6-12"><a aria-label="12"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="fu">expression</span>(mu), <span class="at">y =</span> <span class="cn">NULL</span>, <span class="at">subtitle =</span> <span class="st">"grey: 4,000 draws · blue: the exact posterior"</span>) <span class="sc">+</span> <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">13</span>)</span>
+<span id="cb6-13"><a aria-label="13"></a>p.trace <span class="sc">|</span> p.dens</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
 <figure>
-<p><img data-src="mcmc-5_files/figure-revealjs/unnamed-chunk-4-1.png" style="width:100.0%"></p>
+<p><img data-src="mcmc-5_files/figure-revealjs/unnamed-chunk-6-1.png" style="width:100.0%"></p>
 </figure>
 </div>
 </div>
@@ -467,46 +547,46 @@
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a aria-label="1"></a>data <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"week3.csv"</span>) <span class="sc">%&gt;%</span>   <span class="co"># also at https://josh-jackson.github.io/bayes27/week3.csv</span></span>
-<span id="cb5-2"><a aria-label="2"></a>  <span class="fu">select</span>(<span class="sc">-</span>ID, <span class="sc">-</span>SES)</span>
-<span id="cb5-3"><a aria-label="3"></a></span>
-<span id="cb5-4"><a aria-label="4"></a><span class="fu">library</span>(ggExtra)</span>
-<span id="cb5-5"><a aria-label="5"></a></span>
-<span id="cb5-6"><a aria-label="6"></a>p <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(data, <span class="fu">aes</span>(<span class="at">x=</span>friends, <span class="at">y=</span>health)) <span class="sc">+</span></span>
-<span id="cb5-7"><a aria-label="7"></a>      <span class="fu">geom_point</span>() <span class="sc">+</span></span>
-<span id="cb5-8"><a aria-label="8"></a>      <span class="fu">theme</span>(<span class="at">legend.position=</span><span class="st">"none"</span>)</span>
-<span id="cb5-9"><a aria-label="9"></a></span>
-<span id="cb5-10"><a aria-label="10"></a>p2 <span class="ot">&lt;-</span> <span class="fu">ggMarginal</span>(p, <span class="at">type=</span><span class="st">"density"</span>)</span>
-<span id="cb5-11"><a aria-label="11"></a>p2</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a aria-label="1"></a>data <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"week3.csv"</span>) <span class="sc">%&gt;%</span>   <span class="co"># also at https://josh-jackson.github.io/bayes27/week3.csv</span></span>
+<span id="cb7-2"><a aria-label="2"></a>  <span class="fu">select</span>(<span class="sc">-</span>ID, <span class="sc">-</span>SES)</span>
+<span id="cb7-3"><a aria-label="3"></a></span>
+<span id="cb7-4"><a aria-label="4"></a><span class="fu">library</span>(ggExtra)</span>
+<span id="cb7-5"><a aria-label="5"></a></span>
+<span id="cb7-6"><a aria-label="6"></a>p <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(data, <span class="fu">aes</span>(<span class="at">x=</span>friends, <span class="at">y=</span>health)) <span class="sc">+</span></span>
+<span id="cb7-7"><a aria-label="7"></a>      <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb7-8"><a aria-label="8"></a>      <span class="fu">theme</span>(<span class="at">legend.position=</span><span class="st">"none"</span>)</span>
+<span id="cb7-9"><a aria-label="9"></a></span>
+<span id="cb7-10"><a aria-label="10"></a>p2 <span class="ot">&lt;-</span> <span class="fu">ggMarginal</span>(p, <span class="at">type=</span><span class="st">"density"</span>)</span>
+<span id="cb7-11"><a aria-label="11"></a>p2</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
 </div>
-<img data-src="mcmc-5_files/figure-revealjs/unnamed-chunk-5-1.png" width="960" class="r-stretch"></section>
+<img data-src="mcmc-5_files/figure-revealjs/unnamed-chunk-7-1.png" width="960" class="r-stretch"></section>
 <section id="a-correlated-posterior" class="slide level2">
 <h2>A correlated posterior</h2>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a aria-label="1"></a>samples <span class="ot">=</span> <span class="dv">200</span></span>
-<span id="cb6-2"><a aria-label="2"></a>r <span class="ot">=</span> <span class="fl">0.93</span></span>
-<span id="cb6-3"><a aria-label="3"></a></span>
-<span id="cb6-4"><a aria-label="4"></a>cor.dat <span class="ot">=</span> MASS<span class="sc">::</span><span class="fu">mvrnorm</span>(<span class="at">n=</span>samples, <span class="at">mu=</span><span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>), <span class="at">Sigma=</span><span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">1</span>, r, r, <span class="dv">1</span>), <span class="at">nrow=</span><span class="dv">2</span>), <span class="at">empirical=</span><span class="cn">TRUE</span>)</span>
-<span id="cb6-5"><a aria-label="5"></a>X <span class="ot">=</span> cor.dat[, <span class="dv">1</span>]  <span class="co"># standard normal (mu=0, sd=1)</span></span>
-<span id="cb6-6"><a aria-label="6"></a>Y <span class="ot">=</span> cor.dat[, <span class="dv">2</span>]  <span class="co"># standard normal (mu=0, sd=1)</span></span>
-<span id="cb6-7"><a aria-label="7"></a></span>
-<span id="cb6-8"><a aria-label="8"></a>cor <span class="ot">&lt;-</span> <span class="fu">tibble</span>(X,Y)</span>
-<span id="cb6-9"><a aria-label="9"></a></span>
-<span id="cb6-10"><a aria-label="10"></a>cor <span class="sc">%&gt;%</span> </span>
-<span id="cb6-11"><a aria-label="11"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> X, <span class="at">y =</span> Y, <span class="at">fill =</span> <span class="fu">after_stat</span>(density))) <span class="sc">+</span></span>
-<span id="cb6-12"><a aria-label="12"></a>  <span class="fu">stat_density_2d</span>(<span class="at">geom =</span> <span class="st">"raster"</span>, <span class="at">contour =</span> F) <span class="sc">+</span></span>
-<span id="cb6-13"><a aria-label="13"></a>  <span class="fu">scale_fill_viridis_c</span>(<span class="at">option =</span> <span class="st">"D"</span>) <span class="sc">+</span></span>
-<span id="cb6-14"><a aria-label="14"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="fu">expression</span>(theta[<span class="dv">1</span>]),</span>
-<span id="cb6-15"><a aria-label="15"></a>       <span class="at">y =</span> <span class="fu">expression</span>(theta[<span class="dv">2</span>])) <span class="sc">+</span></span>
-<span id="cb6-16"><a aria-label="16"></a>  <span class="fu">coord_equal</span>() </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a aria-label="1"></a>samples <span class="ot">=</span> <span class="dv">200</span></span>
+<span id="cb8-2"><a aria-label="2"></a>r <span class="ot">=</span> <span class="fl">0.93</span></span>
+<span id="cb8-3"><a aria-label="3"></a></span>
+<span id="cb8-4"><a aria-label="4"></a>cor.dat <span class="ot">=</span> MASS<span class="sc">::</span><span class="fu">mvrnorm</span>(<span class="at">n=</span>samples, <span class="at">mu=</span><span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>), <span class="at">Sigma=</span><span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">1</span>, r, r, <span class="dv">1</span>), <span class="at">nrow=</span><span class="dv">2</span>), <span class="at">empirical=</span><span class="cn">TRUE</span>)</span>
+<span id="cb8-5"><a aria-label="5"></a>X <span class="ot">=</span> cor.dat[, <span class="dv">1</span>]  <span class="co"># standard normal (mu=0, sd=1)</span></span>
+<span id="cb8-6"><a aria-label="6"></a>Y <span class="ot">=</span> cor.dat[, <span class="dv">2</span>]  <span class="co"># standard normal (mu=0, sd=1)</span></span>
+<span id="cb8-7"><a aria-label="7"></a></span>
+<span id="cb8-8"><a aria-label="8"></a>cor <span class="ot">&lt;-</span> <span class="fu">tibble</span>(X,Y)</span>
+<span id="cb8-9"><a aria-label="9"></a></span>
+<span id="cb8-10"><a aria-label="10"></a>cor <span class="sc">%&gt;%</span> </span>
+<span id="cb8-11"><a aria-label="11"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> X, <span class="at">y =</span> Y, <span class="at">fill =</span> <span class="fu">after_stat</span>(density))) <span class="sc">+</span></span>
+<span id="cb8-12"><a aria-label="12"></a>  <span class="fu">stat_density_2d</span>(<span class="at">geom =</span> <span class="st">"raster"</span>, <span class="at">contour =</span> F) <span class="sc">+</span></span>
+<span id="cb8-13"><a aria-label="13"></a>  <span class="fu">scale_fill_viridis_c</span>(<span class="at">option =</span> <span class="st">"D"</span>) <span class="sc">+</span></span>
+<span id="cb8-14"><a aria-label="14"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="fu">expression</span>(theta[<span class="dv">1</span>]),</span>
+<span id="cb8-15"><a aria-label="15"></a>       <span class="at">y =</span> <span class="fu">expression</span>(theta[<span class="dv">2</span>])) <span class="sc">+</span></span>
+<span id="cb8-16"><a aria-label="16"></a>  <span class="fu">coord_equal</span>() </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
 </div>
-<img data-src="mcmc-5_files/figure-revealjs/unnamed-chunk-6-1.png" width="960" class="r-stretch"></section>
+<img data-src="mcmc-5_files/figure-revealjs/unnamed-chunk-8-1.png" width="960" class="r-stretch"></section>
 <section id="gibbs" class="slide level2 smaller">
 <h2>Gibbs</h2>
 <ul>
@@ -521,7 +601,7 @@
 <li>Both struggle when parameters are strongly correlated, like the posterior below: moving one parameter at a time (Gibbs) or with small random steps (Metropolis) creeps slowly along the narrow ridge. Metropolis also needs its step size tuned: too small and it takes forever to explore, too large and most proposals are rejected.</li>
 </ul>
 
-<img data-src="mcmc-5_files/figure-revealjs/unnamed-chunk-7-1.png" width="960" class="r-stretch"></section>
+<img data-src="mcmc-5_files/figure-revealjs/unnamed-chunk-9-1.png" width="960" class="r-stretch"></section>
 <section id="concentration-of-measure" class="slide level2">
 <h2>Concentration of measure</h2>
 <ul>
@@ -598,25 +678,25 @@
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a aria-label="1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb7-2"><a aria-label="2"></a><span class="fu">library</span>(brms)</span>
-<span id="cb7-3"><a aria-label="3"></a></span>
-<span id="cb7-4"><a aria-label="4"></a>week3 <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"week3.csv"</span>) <span class="sc">%&gt;%</span>   <span class="co"># also at https://josh-jackson.github.io/bayes27/week3.csv</span></span>
-<span id="cb7-5"><a aria-label="5"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="sc">-</span>ID, <span class="sc">-</span>SES) <span class="sc">%&gt;%</span> </span>
-<span id="cb7-6"><a aria-label="6"></a>  <span class="fu">mutate</span>(<span class="at">mood.group.d =</span> <span class="fu">factor</span>(mood.group) <span class="sc">%&gt;%</span> </span>
-<span id="cb7-7"><a aria-label="7"></a>           <span class="fu">fct_recode</span>(<span class="st">"control"</span> <span class="ot">=</span> <span class="st">"0"</span>, <span class="st">"tx"</span> <span class="ot">=</span> <span class="st">"1"</span>, <span class="st">"tx"</span> <span class="ot">=</span> <span class="st">"2"</span>))</span>
-<span id="cb7-8"><a aria-label="8"></a></span>
-<span id="cb7-9"><a aria-label="9"></a></span>
-<span id="cb7-10"><a aria-label="10"></a>h<span class="fl">.3</span> <span class="ot">&lt;-</span> </span>
-<span id="cb7-11"><a aria-label="11"></a>  <span class="fu">brm</span>(<span class="at">family =</span> gaussian,</span>
-<span id="cb7-12"><a aria-label="12"></a>      health <span class="sc">~</span> <span class="dv">0</span> <span class="sc">+</span> mood.group.d,</span>
-<span id="cb7-13"><a aria-label="13"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">10</span>), <span class="at">class =</span> b),</span>
-<span id="cb7-14"><a aria-label="14"></a>                <span class="fu">prior</span>(<span class="fu">cauchy</span>(<span class="dv">0</span>, <span class="dv">10</span>), <span class="at">class =</span> sigma)),</span>
-<span id="cb7-15"><a aria-label="15"></a>      <span class="at">data =</span> week3,</span>
-<span id="cb7-16"><a aria-label="16"></a>      <span class="at">iter =</span> <span class="dv">1000</span>, <span class="at">warmup =</span> <span class="dv">500</span>, <span class="at">chains =</span> <span class="dv">2</span>, <span class="at">cores =</span> <span class="dv">2</span>,</span>
-<span id="cb7-17"><a aria-label="17"></a>      <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
-<span id="cb7-18"><a aria-label="18"></a>      <span class="at">file =</span> <span class="st">"h.3"</span>)</span>
-<span id="cb7-19"><a aria-label="19"></a><span class="fu">summary</span>(h<span class="fl">.3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a aria-label="1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb9-2"><a aria-label="2"></a><span class="fu">library</span>(brms)</span>
+<span id="cb9-3"><a aria-label="3"></a></span>
+<span id="cb9-4"><a aria-label="4"></a>week3 <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"week3.csv"</span>) <span class="sc">%&gt;%</span>   <span class="co"># also at https://josh-jackson.github.io/bayes27/week3.csv</span></span>
+<span id="cb9-5"><a aria-label="5"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="sc">-</span>ID, <span class="sc">-</span>SES) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-6"><a aria-label="6"></a>  <span class="fu">mutate</span>(<span class="at">mood.group.d =</span> <span class="fu">factor</span>(mood.group) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-7"><a aria-label="7"></a>           <span class="fu">fct_recode</span>(<span class="st">"control"</span> <span class="ot">=</span> <span class="st">"0"</span>, <span class="st">"tx"</span> <span class="ot">=</span> <span class="st">"1"</span>, <span class="st">"tx"</span> <span class="ot">=</span> <span class="st">"2"</span>))</span>
+<span id="cb9-8"><a aria-label="8"></a></span>
+<span id="cb9-9"><a aria-label="9"></a></span>
+<span id="cb9-10"><a aria-label="10"></a>h<span class="fl">.3</span> <span class="ot">&lt;-</span> </span>
+<span id="cb9-11"><a aria-label="11"></a>  <span class="fu">brm</span>(<span class="at">family =</span> gaussian,</span>
+<span id="cb9-12"><a aria-label="12"></a>      health <span class="sc">~</span> <span class="dv">0</span> <span class="sc">+</span> mood.group.d,</span>
+<span id="cb9-13"><a aria-label="13"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">10</span>), <span class="at">class =</span> b),</span>
+<span id="cb9-14"><a aria-label="14"></a>                <span class="fu">prior</span>(<span class="fu">cauchy</span>(<span class="dv">0</span>, <span class="dv">10</span>), <span class="at">class =</span> sigma)),</span>
+<span id="cb9-15"><a aria-label="15"></a>      <span class="at">data =</span> week3,</span>
+<span id="cb9-16"><a aria-label="16"></a>      <span class="at">iter =</span> <span class="dv">1000</span>, <span class="at">warmup =</span> <span class="dv">500</span>, <span class="at">chains =</span> <span class="dv">2</span>, <span class="at">cores =</span> <span class="dv">2</span>,</span>
+<span id="cb9-17"><a aria-label="17"></a>      <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
+<span id="cb9-18"><a aria-label="18"></a>      <span class="at">file =</span> <span class="st">"h.3"</span>)</span>
+<span id="cb9-19"><a aria-label="19"></a><span class="fu">summary</span>(h<span class="fl">.3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: gaussian 
@@ -646,12 +726,12 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a aria-label="1"></a><span class="fu">library</span>(bayesplot)</span>
-<span id="cb9-2"><a aria-label="2"></a><span class="fu">mcmc_acf</span>(h<span class="fl">.3</span>, <span class="at">pars =</span> <span class="fu">c</span>(<span class="st">"b_mood.group.dcontrol"</span>, <span class="st">"b_mood.group.dtx"</span>, <span class="st">"sigma"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a aria-label="1"></a><span class="fu">library</span>(bayesplot)</span>
+<span id="cb11-2"><a aria-label="2"></a><span class="fu">mcmc_acf</span>(h<span class="fl">.3</span>, <span class="at">pars =</span> <span class="fu">c</span>(<span class="st">"b_mood.group.dcontrol"</span>, <span class="st">"b_mood.group.dtx"</span>, <span class="st">"sigma"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
 </div>
-<img data-src="mcmc-5_files/figure-revealjs/unnamed-chunk-9-1.png" width="960" class="r-stretch"><p>Each bar is the correlation between a draw and the draw <em>lag</em> steps later, within a chain. Here it drops to about 0 after a lag or two: the draws are nearly independent, so ESS is close to the number of draws.</p>
+<img data-src="mcmc-5_files/figure-revealjs/unnamed-chunk-11-1.png" width="960" class="r-stretch"><p>Each bar is the correlation between a draw and the draw <em>lag</em> steps later, within a chain. Here it drops to about 0 after a lag or two: the draws are nearly independent, so ESS is close to the number of draws.</p>
 </section>
 <section id="how-many-chains-do-you-need" class="slide level2 smaller">
 <h2>How many chains do you need?</h2>
@@ -673,15 +753,15 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a aria-label="1"></a>h<span class="fl">.3</span>w <span class="ot">&lt;-</span> <span class="fu">update</span>(h<span class="fl">.3</span>, <span class="at">save_warmup =</span> <span class="cn">TRUE</span>, <span class="at">chains =</span> <span class="dv">4</span>, <span class="at">cores =</span> <span class="dv">4</span>, <span class="at">init =</span> <span class="dv">10</span>, <span class="at">seed =</span> <span class="dv">27</span>, <span class="at">file =</span> <span class="st">"h.3w"</span>)</span>
-<span id="cb10-2"><a aria-label="2"></a><span class="fu">mcmc_trace</span>(<span class="fu">as_draws_array</span>(h<span class="fl">.3</span>w, <span class="at">inc_warmup =</span> <span class="cn">TRUE</span>), <span class="at">pars =</span> <span class="st">"b_mood.group.dcontrol"</span>,</span>
-<span id="cb10-3"><a aria-label="3"></a>           <span class="at">n_warmup =</span> <span class="dv">500</span>, <span class="at">window =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">150</span>)) <span class="sc">+</span></span>
-<span id="cb10-4"><a aria-label="4"></a>  <span class="fu">labs</span>(<span class="at">subtitle =</span> <span class="st">"the first 150 of 500 warmup iterations"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a aria-label="1"></a>h<span class="fl">.3</span>w <span class="ot">&lt;-</span> <span class="fu">update</span>(h<span class="fl">.3</span>, <span class="at">save_warmup =</span> <span class="cn">TRUE</span>, <span class="at">chains =</span> <span class="dv">4</span>, <span class="at">cores =</span> <span class="dv">4</span>, <span class="at">init =</span> <span class="dv">10</span>, <span class="at">seed =</span> <span class="dv">27</span>, <span class="at">file =</span> <span class="st">"h.3w"</span>)</span>
+<span id="cb12-2"><a aria-label="2"></a><span class="fu">mcmc_trace</span>(<span class="fu">as_draws_array</span>(h<span class="fl">.3</span>w, <span class="at">inc_warmup =</span> <span class="cn">TRUE</span>), <span class="at">pars =</span> <span class="st">"b_mood.group.dcontrol"</span>,</span>
+<span id="cb12-3"><a aria-label="3"></a>           <span class="at">n_warmup =</span> <span class="dv">500</span>, <span class="at">window =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">150</span>)) <span class="sc">+</span></span>
+<span id="cb12-4"><a aria-label="4"></a>  <span class="fu">labs</span>(<span class="at">subtitle =</span> <span class="st">"the first 150 of 500 warmup iterations"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
 <figure>
-<p><img data-src="mcmc-5_files/figure-revealjs/unnamed-chunk-10-1.png" style="width:100.0%"></p>
+<p><img data-src="mcmc-5_files/figure-revealjs/unnamed-chunk-12-1.png" style="width:100.0%"></p>
 </figure>
 </div>
 </div>
@@ -693,22 +773,22 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a aria-label="1"></a><span class="fu">plot</span>(h<span class="fl">.3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a aria-label="1"></a><span class="fu">plot</span>(h<span class="fl">.3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
 </div>
-<img data-src="mcmc-5_files/figure-revealjs/unnamed-chunk-11-1.png" width="960" class="r-stretch"></section>
+<img data-src="mcmc-5_files/figure-revealjs/unnamed-chunk-13-1.png" width="960" class="r-stretch"></section>
 <section id="rank-plots" class="slide level2">
 <h2>Rank plots</h2>
 <p>A more sensitive check than trace plots: pool all draws, rank them, then plot each chain’s ranks as a histogram. If the chains are exploring the same distribution, every chain’s histogram is roughly <strong>flat</strong> (each chain gets its fair share of low, middle, and high values).</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a aria-label="1"></a><span class="fu">mcmc_rank_overlay</span>(h<span class="fl">.3</span>, <span class="at">pars =</span> <span class="fu">c</span>(<span class="st">"b_mood.group.dcontrol"</span>, <span class="st">"b_mood.group.dtx"</span>, <span class="st">"sigma"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a aria-label="1"></a><span class="fu">mcmc_rank_overlay</span>(h<span class="fl">.3</span>, <span class="at">pars =</span> <span class="fu">c</span>(<span class="st">"b_mood.group.dcontrol"</span>, <span class="st">"b_mood.group.dtx"</span>, <span class="st">"sigma"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
 </div>
-<img data-src="mcmc-5_files/figure-revealjs/unnamed-chunk-12-1.png" width="960" class="r-stretch"><p>A chain whose histogram bulges at one end is stuck in part of the posterior, even if its trace plot looks like a fuzzy caterpillar.</p>
+<img data-src="mcmc-5_files/figure-revealjs/unnamed-chunk-14-1.png" width="960" class="r-stretch"><p>A chain whose histogram bulges at one end is stuck in part of the posterior, even if its trace plot looks like a fuzzy caterpillar.</p>
 </section>
 <section id="r-hat" class="slide level2">
 <h2>R-hat</h2>
@@ -801,15 +881,15 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a aria-label="1"></a>div.t <span class="ot">&lt;-</span></span>
-<span id="cb13-2"><a aria-label="2"></a>  <span class="fu">brm</span>(<span class="at">data =</span> <span class="fu">list</span>(<span class="at">y =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>)), </span>
-<span id="cb13-3"><a aria-label="3"></a>      <span class="at">family =</span> gaussian,</span>
-<span id="cb13-4"><a aria-label="4"></a>      y <span class="sc">~</span> <span class="dv">1</span>,</span>
-<span id="cb13-5"><a aria-label="5"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">1000</span>), <span class="at">class =</span> Intercept),</span>
-<span id="cb13-6"><a aria-label="6"></a>                <span class="fu">prior</span>(<span class="fu">exponential</span>(<span class="fl">0.0001</span>), <span class="at">class =</span> sigma)),</span>
-<span id="cb13-7"><a aria-label="7"></a>      <span class="at">iter =</span> <span class="dv">2000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">chains =</span> <span class="dv">2</span>,</span>
-<span id="cb13-8"><a aria-label="8"></a>      <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
-<span id="cb13-9"><a aria-label="9"></a>      <span class="at">file =</span> <span class="st">"div.t"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a aria-label="1"></a>div.t <span class="ot">&lt;-</span></span>
+<span id="cb15-2"><a aria-label="2"></a>  <span class="fu">brm</span>(<span class="at">data =</span> <span class="fu">list</span>(<span class="at">y =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>)), </span>
+<span id="cb15-3"><a aria-label="3"></a>      <span class="at">family =</span> gaussian,</span>
+<span id="cb15-4"><a aria-label="4"></a>      y <span class="sc">~</span> <span class="dv">1</span>,</span>
+<span id="cb15-5"><a aria-label="5"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">1000</span>), <span class="at">class =</span> Intercept),</span>
+<span id="cb15-6"><a aria-label="6"></a>                <span class="fu">prior</span>(<span class="fu">exponential</span>(<span class="fl">0.0001</span>), <span class="at">class =</span> sigma)),</span>
+<span id="cb15-7"><a aria-label="7"></a>      <span class="at">iter =</span> <span class="dv">2000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">chains =</span> <span class="dv">2</span>,</span>
+<span id="cb15-8"><a aria-label="8"></a>      <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
+<span id="cb15-9"><a aria-label="9"></a>      <span class="at">file =</span> <span class="st">"div.t"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 </section>
@@ -818,7 +898,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a aria-label="1"></a><span class="fu">summary</span>(div.t)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a aria-label="1"></a><span class="fu">summary</span>(div.t)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: gaussian 
@@ -847,34 +927,34 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a aria-label="1"></a><span class="fu">pairs</span>(div.t, </span>
-<span id="cb16-2"><a aria-label="2"></a>      <span class="at">np =</span> <span class="fu">nuts_params</span>(div.t),</span>
-<span id="cb16-3"><a aria-label="3"></a>      <span class="at">off_diag_args =</span> <span class="fu">list</span>(<span class="at">size =</span> <span class="dv">1</span><span class="sc">/</span><span class="dv">4</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a aria-label="1"></a><span class="fu">pairs</span>(div.t, </span>
+<span id="cb18-2"><a aria-label="2"></a>      <span class="at">np =</span> <span class="fu">nuts_params</span>(div.t),</span>
+<span id="cb18-3"><a aria-label="3"></a>      <span class="at">off_diag_args =</span> <span class="fu">list</span>(<span class="at">size =</span> <span class="dv">1</span><span class="sc">/</span><span class="dv">4</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
 </div>
-<img data-src="mcmc-5_files/figure-revealjs/unnamed-chunk-15-1.png" width="960" class="r-stretch"></section>
+<img data-src="mcmc-5_files/figure-revealjs/unnamed-chunk-17-1.png" width="960" class="r-stretch"></section>
 <section id="divergences-in-trace-plots" class="slide level2">
 <h2>Divergences in trace plots</h2>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a aria-label="1"></a><span class="fu">plot</span>(div.t)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a aria-label="1"></a><span class="fu">plot</span>(div.t)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
 </div>
-<img data-src="mcmc-5_files/figure-revealjs/unnamed-chunk-16-1.png" width="960" class="r-stretch"></section>
+<img data-src="mcmc-5_files/figure-revealjs/unnamed-chunk-18-1.png" width="960" class="r-stretch"></section>
 <section id="fixing-the-divergences-better-priors" class="slide level2 smaller">
 <h2>Fixing the divergences: better priors</h2>
 <p>Same two data points, priors on a sensible scale:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a aria-label="1"></a>div.ok <span class="ot">&lt;-</span> <span class="fu">brm</span>(<span class="at">data =</span> <span class="fu">list</span>(<span class="at">y =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>)), <span class="at">family =</span> gaussian, y <span class="sc">~</span> <span class="dv">1</span>,</span>
-<span id="cb18-2"><a aria-label="2"></a>              <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">10</span>), <span class="at">class =</span> Intercept),</span>
-<span id="cb18-3"><a aria-label="3"></a>                        <span class="fu">prior</span>(<span class="fu">exponential</span>(<span class="dv">1</span>), <span class="at">class =</span> sigma)),</span>
-<span id="cb18-4"><a aria-label="4"></a>              <span class="at">iter =</span> <span class="dv">2000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">chains =</span> <span class="dv">2</span>, <span class="at">seed =</span> <span class="dv">27</span>,</span>
-<span id="cb18-5"><a aria-label="5"></a>              <span class="at">backend =</span> <span class="st">"cmdstanr"</span>, <span class="at">file =</span> <span class="st">"div.ok"</span>)</span>
-<span id="cb18-6"><a aria-label="6"></a>count_div <span class="ot">&lt;-</span> <span class="cf">function</span>(m) <span class="fu">sum</span>(<span class="fu">subset</span>(<span class="fu">nuts_params</span>(m), Parameter <span class="sc">==</span> <span class="st">"divergent__"</span>)<span class="sc">$</span>Value)</span>
-<span id="cb18-7"><a aria-label="7"></a><span class="fu">c</span>(<span class="at">vague_priors =</span> <span class="fu">count_div</span>(div.t), <span class="at">sensible_priors =</span> <span class="fu">count_div</span>(div.ok))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a aria-label="1"></a>div.ok <span class="ot">&lt;-</span> <span class="fu">brm</span>(<span class="at">data =</span> <span class="fu">list</span>(<span class="at">y =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>)), <span class="at">family =</span> gaussian, y <span class="sc">~</span> <span class="dv">1</span>,</span>
+<span id="cb20-2"><a aria-label="2"></a>              <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">10</span>), <span class="at">class =</span> Intercept),</span>
+<span id="cb20-3"><a aria-label="3"></a>                        <span class="fu">prior</span>(<span class="fu">exponential</span>(<span class="dv">1</span>), <span class="at">class =</span> sigma)),</span>
+<span id="cb20-4"><a aria-label="4"></a>              <span class="at">iter =</span> <span class="dv">2000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">chains =</span> <span class="dv">2</span>, <span class="at">seed =</span> <span class="dv">27</span>,</span>
+<span id="cb20-5"><a aria-label="5"></a>              <span class="at">backend =</span> <span class="st">"cmdstanr"</span>, <span class="at">file =</span> <span class="st">"div.ok"</span>)</span>
+<span id="cb20-6"><a aria-label="6"></a>count_div <span class="ot">&lt;-</span> <span class="cf">function</span>(m) <span class="fu">sum</span>(<span class="fu">subset</span>(<span class="fu">nuts_params</span>(m), Parameter <span class="sc">==</span> <span class="st">"divergent__"</span>)<span class="sc">$</span>Value)</span>
+<span id="cb20-7"><a aria-label="7"></a><span class="fu">c</span>(<span class="at">vague_priors =</span> <span class="fu">count_div</span>(div.t), <span class="at">sensible_priors =</span> <span class="fu">count_div</span>(div.ok))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>   vague_priors sensible_priors 
             623               0 </code></pre>
@@ -888,22 +968,22 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a aria-label="1"></a><span class="fu">set.seed</span>(<span class="dv">5</span>)</span>
-<span id="cb20-2"><a aria-label="2"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
-<span id="cb20-3"><a aria-label="3"></a>legs <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">height    =</span> <span class="fu">rnorm</span>(n, <span class="dv">10</span>, <span class="dv">2</span>),</span>
-<span id="cb20-4"><a aria-label="4"></a>               <span class="at">leg_prop  =</span> <span class="fu">runif</span>(n, .<span class="dv">4</span>, .<span class="dv">5</span>),</span>
-<span id="cb20-5"><a aria-label="5"></a>               <span class="at">leg_left  =</span> leg_prop <span class="sc">*</span> height <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="dv">0</span>, .<span class="dv">02</span>),</span>
-<span id="cb20-6"><a aria-label="6"></a>               <span class="at">leg_right =</span> leg_prop <span class="sc">*</span> height <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="dv">0</span>, .<span class="dv">02</span>))</span>
-<span id="cb20-7"><a aria-label="7"></a><span class="fu">cor</span>(legs<span class="sc">$</span>leg_left, legs<span class="sc">$</span>leg_right)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a aria-label="1"></a><span class="fu">set.seed</span>(<span class="dv">5</span>)</span>
+<span id="cb22-2"><a aria-label="2"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb22-3"><a aria-label="3"></a>legs <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">height    =</span> <span class="fu">rnorm</span>(n, <span class="dv">10</span>, <span class="dv">2</span>),</span>
+<span id="cb22-4"><a aria-label="4"></a>               <span class="at">leg_prop  =</span> <span class="fu">runif</span>(n, .<span class="dv">4</span>, .<span class="dv">5</span>),</span>
+<span id="cb22-5"><a aria-label="5"></a>               <span class="at">leg_left  =</span> leg_prop <span class="sc">*</span> height <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="dv">0</span>, .<span class="dv">02</span>),</span>
+<span id="cb22-6"><a aria-label="6"></a>               <span class="at">leg_right =</span> leg_prop <span class="sc">*</span> height <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="dv">0</span>, .<span class="dv">02</span>))</span>
+<span id="cb22-7"><a aria-label="7"></a><span class="fu">cor</span>(legs<span class="sc">$</span>leg_left, legs<span class="sc">$</span>leg_right)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.9996139</code></pre>
 </div>
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a aria-label="1"></a>legs<span class="fl">.1</span> <span class="ot">&lt;-</span> <span class="fu">brm</span>(height <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> leg_left <span class="sc">+</span> leg_right, <span class="at">data =</span> legs,</span>
-<span id="cb22-2"><a aria-label="2"></a>              <span class="at">iter =</span> <span class="dv">400</span>, <span class="at">warmup =</span> <span class="dv">100</span>, <span class="at">chains =</span> <span class="dv">4</span>, <span class="at">cores =</span> <span class="dv">4</span>, <span class="at">seed =</span> <span class="dv">5</span>,</span>
-<span id="cb22-3"><a aria-label="3"></a>              <span class="at">backend =</span> <span class="st">"cmdstanr"</span>, <span class="at">file =</span> <span class="st">"legs.1"</span>)    <span class="co"># brms default (flat) priors on the slopes</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a aria-label="1"></a>legs<span class="fl">.1</span> <span class="ot">&lt;-</span> <span class="fu">brm</span>(height <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> leg_left <span class="sc">+</span> leg_right, <span class="at">data =</span> legs,</span>
+<span id="cb24-2"><a aria-label="2"></a>              <span class="at">iter =</span> <span class="dv">400</span>, <span class="at">warmup =</span> <span class="dv">100</span>, <span class="at">chains =</span> <span class="dv">4</span>, <span class="at">cores =</span> <span class="dv">4</span>, <span class="at">seed =</span> <span class="dv">5</span>,</span>
+<span id="cb24-3"><a aria-label="3"></a>              <span class="at">backend =</span> <span class="st">"cmdstanr"</span>, <span class="at">file =</span> <span class="st">"legs.1"</span>)    <span class="co"># brms default (flat) priors on the slopes</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 </section>
@@ -912,7 +992,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a aria-label="1"></a><span class="fu">summary</span>(legs<span class="fl">.1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a aria-label="1"></a><span class="fu">summary</span>(legs<span class="fl">.1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: gaussian 
@@ -944,27 +1024,27 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a aria-label="1"></a><span class="fu">mcmc_scatter</span>(legs<span class="fl">.1</span>, <span class="at">pars =</span> <span class="fu">c</span>(<span class="st">"b_leg_left"</span>, <span class="st">"b_leg_right"</span>), <span class="at">alpha =</span> .<span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a aria-label="1"></a><span class="fu">mcmc_scatter</span>(legs<span class="fl">.1</span>, <span class="at">pars =</span> <span class="fu">c</span>(<span class="st">"b_leg_left"</span>, <span class="st">"b_leg_right"</span>), <span class="at">alpha =</span> .<span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
 </div>
-<img data-src="mcmc-5_files/figure-revealjs/unnamed-chunk-20-1.png" width="960" class="r-stretch"><p>The data only pin down the <strong>sum</strong> of the two slopes, so the posterior is a long, thin ridge. Running longer maps the ridge more thoroughly but can’t make it narrower: <strong>fix the model</strong> (drop or combine the duplicate, or give the slopes real priors).</p>
+<img data-src="mcmc-5_files/figure-revealjs/unnamed-chunk-22-1.png" width="960" class="r-stretch"><p>The data only pin down the <strong>sum</strong> of the two slopes, so the posterior is a long, thin ridge. Running longer maps the ridge more thoroughly but can’t make it narrower: <strong>fix the model</strong> (drop or combine the duplicate, or give the slopes real priors).</p>
 </section>
 <section id="autocorrelation-and-ess-side-by-side" class="slide level2 smaller nostretch">
 <h2>Autocorrelation and ESS, side by side</h2>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a aria-label="1"></a>ess_of <span class="ot">&lt;-</span> <span class="cf">function</span>(m, par) <span class="fu">round</span>(posterior<span class="sc">::</span><span class="fu">ess_bulk</span>(posterior<span class="sc">::</span><span class="fu">extract_variable_matrix</span>(<span class="fu">as_draws_array</span>(m), par)))</span>
-<span id="cb26-2"><a aria-label="2"></a>(<span class="fu">mcmc_acf</span>(h<span class="fl">.3</span>, <span class="at">pars =</span> <span class="st">"b_mood.group.dcontrol"</span>) <span class="sc">+</span></span>
-<span id="cb26-3"><a aria-label="3"></a>   <span class="fu">labs</span>(<span class="at">title =</span> <span class="fu">paste0</span>(<span class="st">"h.3: ESS ≈ "</span>, <span class="fu">ess_of</span>(h<span class="fl">.3</span>, <span class="st">"b_mood.group.dcontrol"</span>), <span class="st">" of "</span>, <span class="fu">ndraws</span>(h<span class="fl">.3</span>), <span class="st">" draws"</span>))) <span class="sc">|</span></span>
-<span id="cb26-4"><a aria-label="4"></a>(<span class="fu">mcmc_acf</span>(legs<span class="fl">.1</span>, <span class="at">pars =</span> <span class="st">"b_leg_left"</span>) <span class="sc">+</span></span>
-<span id="cb26-5"><a aria-label="5"></a>   <span class="fu">labs</span>(<span class="at">title =</span> <span class="fu">paste0</span>(<span class="st">"legs.1: ESS ≈ "</span>, <span class="fu">ess_of</span>(legs<span class="fl">.1</span>, <span class="st">"b_leg_left"</span>), <span class="st">" of "</span>, <span class="fu">ndraws</span>(legs<span class="fl">.1</span>), <span class="st">" draws"</span>)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a aria-label="1"></a>ess_of <span class="ot">&lt;-</span> <span class="cf">function</span>(m, par) <span class="fu">round</span>(posterior<span class="sc">::</span><span class="fu">ess_bulk</span>(posterior<span class="sc">::</span><span class="fu">extract_variable_matrix</span>(<span class="fu">as_draws_array</span>(m), par)))</span>
+<span id="cb28-2"><a aria-label="2"></a>(<span class="fu">mcmc_acf</span>(h<span class="fl">.3</span>, <span class="at">pars =</span> <span class="st">"b_mood.group.dcontrol"</span>) <span class="sc">+</span></span>
+<span id="cb28-3"><a aria-label="3"></a>   <span class="fu">labs</span>(<span class="at">title =</span> <span class="fu">paste0</span>(<span class="st">"h.3: ESS ≈ "</span>, <span class="fu">ess_of</span>(h<span class="fl">.3</span>, <span class="st">"b_mood.group.dcontrol"</span>), <span class="st">" of "</span>, <span class="fu">ndraws</span>(h<span class="fl">.3</span>), <span class="st">" draws"</span>))) <span class="sc">|</span></span>
+<span id="cb28-4"><a aria-label="4"></a>(<span class="fu">mcmc_acf</span>(legs<span class="fl">.1</span>, <span class="at">pars =</span> <span class="st">"b_leg_left"</span>) <span class="sc">+</span></span>
+<span id="cb28-5"><a aria-label="5"></a>   <span class="fu">labs</span>(<span class="at">title =</span> <span class="fu">paste0</span>(<span class="st">"legs.1: ESS ≈ "</span>, <span class="fu">ess_of</span>(legs<span class="fl">.1</span>, <span class="st">"b_leg_left"</span>), <span class="st">" of "</span>, <span class="fu">ndraws</span>(legs<span class="fl">.1</span>), <span class="st">" draws"</span>)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
 <figure>
-<p><img data-src="mcmc-5_files/figure-revealjs/unnamed-chunk-21-1.png" style="width:100.0%"></p>
+<p><img data-src="mcmc-5_files/figure-revealjs/unnamed-chunk-23-1.png" style="width:100.0%"></p>
 </figure>
 </div>
 </div>
@@ -975,8 +1055,8 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <h2>Running longer doesn’t fix it</h2>
 <p>Ten times the iterations:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a aria-label="1"></a>legs<span class="fl">.2</span> <span class="ot">&lt;-</span> <span class="fu">update</span>(legs<span class="fl">.1</span>, <span class="at">iter =</span> <span class="dv">4000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">seed =</span> <span class="dv">5</span>, <span class="at">file =</span> <span class="st">"legs.2"</span>)</span>
-<span id="cb27-2"><a aria-label="2"></a><span class="fu">summary</span>(legs<span class="fl">.2</span>)<span class="sc">$</span>fixed[, <span class="fu">c</span>(<span class="st">"Estimate"</span>, <span class="st">"l-95% CI"</span>, <span class="st">"u-95% CI"</span>, <span class="st">"Rhat"</span>, <span class="st">"Bulk_ESS"</span>)] <span class="sc">%&gt;%</span> <span class="fu">round</span>(<span class="dv">2</span>) <span class="sc">%&gt;%</span> <span class="fu">transform</span>(<span class="at">Bulk_ESS =</span> <span class="fu">round</span>(Bulk_ESS))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a aria-label="1"></a>legs<span class="fl">.2</span> <span class="ot">&lt;-</span> <span class="fu">update</span>(legs<span class="fl">.1</span>, <span class="at">iter =</span> <span class="dv">4000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">seed =</span> <span class="dv">5</span>, <span class="at">file =</span> <span class="st">"legs.2"</span>)</span>
+<span id="cb29-2"><a aria-label="2"></a><span class="fu">summary</span>(legs<span class="fl">.2</span>)<span class="sc">$</span>fixed[, <span class="fu">c</span>(<span class="st">"Estimate"</span>, <span class="st">"l-95% CI"</span>, <span class="st">"u-95% CI"</span>, <span class="st">"Rhat"</span>, <span class="st">"Bulk_ESS"</span>)] <span class="sc">%&gt;%</span> <span class="fu">round</span>(<span class="dv">2</span>) <span class="sc">%&gt;%</span> <span class="fu">transform</span>(<span class="at">Bulk_ESS =</span> <span class="fu">round</span>(Bulk_ESS))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>          Estimate l-95% CI u-95% CI Rhat Bulk_ESS
 Intercept     1.79     1.22     2.36    1    12279
@@ -990,9 +1070,9 @@ leg_right     1.19    -3.37     5.71    1     4946</code></pre>
 <h2>Fixing the model</h2>
 <p>The data only know the <strong>sum</strong> of the slopes, and that sum was well estimated all along:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a aria-label="1"></a><span class="fu">library</span>(tidybayes)</span>
-<span id="cb29-2"><a aria-label="2"></a>legs<span class="fl">.2</span> <span class="sc">%&gt;%</span> <span class="fu">spread_draws</span>(b_leg_left, b_leg_right) <span class="sc">%&gt;%</span> </span>
-<span id="cb29-3"><a aria-label="3"></a>  <span class="fu">mutate</span>(<span class="at">sum_of_slopes =</span> b_leg_left <span class="sc">+</span> b_leg_right) <span class="sc">%&gt;%</span> <span class="fu">median_qi</span>(sum_of_slopes)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a aria-label="1"></a><span class="fu">library</span>(tidybayes)</span>
+<span id="cb31-2"><a aria-label="2"></a>legs<span class="fl">.2</span> <span class="sc">%&gt;%</span> <span class="fu">spread_draws</span>(b_leg_left, b_leg_right) <span class="sc">%&gt;%</span> </span>
+<span id="cb31-3"><a aria-label="3"></a>  <span class="fu">mutate</span>(<span class="at">sum_of_slopes =</span> b_leg_left <span class="sc">+</span> b_leg_right) <span class="sc">%&gt;%</span> <span class="fu">median_qi</span>(sum_of_slopes)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 1 × 6
   sum_of_slopes .lower .upper .width .point .interval
@@ -1002,9 +1082,9 @@ leg_right     1.19    -3.37     5.71    1     4946</code></pre>
 </div>
 <p>Drop the redundant predictor and the model is identified:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a aria-label="1"></a>legs<span class="fl">.3</span> <span class="ot">&lt;-</span> <span class="fu">brm</span>(height <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> leg_left, <span class="at">data =</span> legs, <span class="at">chains =</span> <span class="dv">4</span>, <span class="at">cores =</span> <span class="dv">4</span>, <span class="at">seed =</span> <span class="dv">5</span>,</span>
-<span id="cb31-2"><a aria-label="2"></a>              <span class="at">backend =</span> <span class="st">"cmdstanr"</span>, <span class="at">file =</span> <span class="st">"legs.3"</span>)</span>
-<span id="cb31-3"><a aria-label="3"></a><span class="fu">summary</span>(legs<span class="fl">.3</span>)<span class="sc">$</span>fixed[, <span class="fu">c</span>(<span class="st">"Estimate"</span>, <span class="st">"l-95% CI"</span>, <span class="st">"u-95% CI"</span>, <span class="st">"Rhat"</span>, <span class="st">"Bulk_ESS"</span>)] <span class="sc">%&gt;%</span> <span class="fu">round</span>(<span class="dv">2</span>) <span class="sc">%&gt;%</span> <span class="fu">transform</span>(<span class="at">Bulk_ESS =</span> <span class="fu">round</span>(Bulk_ESS))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a aria-label="1"></a>legs<span class="fl">.3</span> <span class="ot">&lt;-</span> <span class="fu">brm</span>(height <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> leg_left, <span class="at">data =</span> legs, <span class="at">chains =</span> <span class="dv">4</span>, <span class="at">cores =</span> <span class="dv">4</span>, <span class="at">seed =</span> <span class="dv">5</span>,</span>
+<span id="cb33-2"><a aria-label="2"></a>              <span class="at">backend =</span> <span class="st">"cmdstanr"</span>, <span class="at">file =</span> <span class="st">"legs.3"</span>)</span>
+<span id="cb33-3"><a aria-label="3"></a><span class="fu">summary</span>(legs<span class="fl">.3</span>)<span class="sc">$</span>fixed[, <span class="fu">c</span>(<span class="st">"Estimate"</span>, <span class="st">"l-95% CI"</span>, <span class="st">"u-95% CI"</span>, <span class="st">"Rhat"</span>, <span class="st">"Bulk_ESS"</span>)] <span class="sc">%&gt;%</span> <span class="fu">round</span>(<span class="dv">2</span>) <span class="sc">%&gt;%</span> <span class="fu">transform</span>(<span class="at">Bulk_ESS =</span> <span class="fu">round</span>(Bulk_ESS))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>          Estimate l-95% CI u-95% CI Rhat Bulk_ESS
 Intercept     1.80     1.22     2.35    1     4574
@@ -1026,16 +1106,16 @@ leg_left      1.84     1.72     1.96    1     4527</code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a aria-label="1"></a>h<span class="fl">.3</span> <span class="ot">&lt;-</span> </span>
-<span id="cb33-2"><a aria-label="2"></a>  <span class="fu">brm</span>(<span class="at">family =</span> gaussian,</span>
-<span id="cb33-3"><a aria-label="3"></a>      health <span class="sc">~</span> <span class="dv">0</span> <span class="sc">+</span> mood.group.d,</span>
-<span id="cb33-4"><a aria-label="4"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">10</span>), <span class="at">class =</span> b),</span>
-<span id="cb33-5"><a aria-label="5"></a>                <span class="fu">prior</span>(<span class="fu">cauchy</span>(<span class="dv">0</span>, <span class="dv">10</span>), <span class="at">class =</span> sigma)),</span>
-<span id="cb33-6"><a aria-label="6"></a>      <span class="at">data =</span> week3,</span>
-<span id="cb33-7"><a aria-label="7"></a>      <span class="at">iter =</span> <span class="dv">1000</span>, <span class="at">warmup =</span> <span class="dv">500</span>, <span class="at">chains =</span> <span class="dv">2</span>, <span class="at">cores =</span> <span class="dv">2</span>, </span>
-<span id="cb33-8"><a aria-label="8"></a>      <span class="at">control =</span> <span class="fu">list</span>(<span class="at">adapt_delta =</span> .<span class="dv">95</span>), <span class="co"># default is .8 </span></span>
-<span id="cb33-9"><a aria-label="9"></a>      <span class="at">file =</span> <span class="st">"h.3_adapt"</span>)   <span class="co"># a new file name, or brms just loads the old fit</span></span>
-<span id="cb33-10"><a aria-label="10"></a><span class="fu">summary</span>(h<span class="fl">.3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a aria-label="1"></a>h<span class="fl">.3</span> <span class="ot">&lt;-</span> </span>
+<span id="cb35-2"><a aria-label="2"></a>  <span class="fu">brm</span>(<span class="at">family =</span> gaussian,</span>
+<span id="cb35-3"><a aria-label="3"></a>      health <span class="sc">~</span> <span class="dv">0</span> <span class="sc">+</span> mood.group.d,</span>
+<span id="cb35-4"><a aria-label="4"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">10</span>), <span class="at">class =</span> b),</span>
+<span id="cb35-5"><a aria-label="5"></a>                <span class="fu">prior</span>(<span class="fu">cauchy</span>(<span class="dv">0</span>, <span class="dv">10</span>), <span class="at">class =</span> sigma)),</span>
+<span id="cb35-6"><a aria-label="6"></a>      <span class="at">data =</span> week3,</span>
+<span id="cb35-7"><a aria-label="7"></a>      <span class="at">iter =</span> <span class="dv">1000</span>, <span class="at">warmup =</span> <span class="dv">500</span>, <span class="at">chains =</span> <span class="dv">2</span>, <span class="at">cores =</span> <span class="dv">2</span>, </span>
+<span id="cb35-8"><a aria-label="8"></a>      <span class="at">control =</span> <span class="fu">list</span>(<span class="at">adapt_delta =</span> .<span class="dv">95</span>), <span class="co"># default is .8 </span></span>
+<span id="cb35-9"><a aria-label="9"></a>      <span class="at">file =</span> <span class="st">"h.3_adapt"</span>)   <span class="co"># a new file name, or brms just loads the old fit</span></span>
+<span id="cb35-10"><a aria-label="10"></a><span class="fu">summary</span>(h<span class="fl">.3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 </section>
@@ -1045,16 +1125,16 @@ leg_left      1.84     1.72     1.96    1     4527</code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a aria-label="1"></a>h<span class="fl">.3</span> <span class="ot">&lt;-</span> </span>
-<span id="cb34-2"><a aria-label="2"></a>  <span class="fu">brm</span>(<span class="at">family =</span> gaussian,</span>
-<span id="cb34-3"><a aria-label="3"></a>      health <span class="sc">~</span> <span class="dv">0</span> <span class="sc">+</span> mood.group.d,</span>
-<span id="cb34-4"><a aria-label="4"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">10</span>), <span class="at">class =</span> b),</span>
-<span id="cb34-5"><a aria-label="5"></a>                <span class="fu">prior</span>(<span class="fu">cauchy</span>(<span class="dv">0</span>, <span class="dv">10</span>), <span class="at">class =</span> sigma)),</span>
-<span id="cb34-6"><a aria-label="6"></a>      <span class="at">data =</span> week3,</span>
-<span id="cb34-7"><a aria-label="7"></a>      <span class="at">iter =</span> <span class="dv">1000</span>, <span class="at">warmup =</span> <span class="dv">500</span>, <span class="at">chains =</span> <span class="dv">2</span>, <span class="at">cores =</span> <span class="dv">2</span>, </span>
-<span id="cb34-8"><a aria-label="8"></a>      <span class="at">control =</span> <span class="fu">list</span>(<span class="at">max_treedepth =</span> <span class="dv">15</span>), <span class="co"># default is 10</span></span>
-<span id="cb34-9"><a aria-label="9"></a>      <span class="at">file =</span> <span class="st">"h.3_treedepth"</span>)</span>
-<span id="cb34-10"><a aria-label="10"></a><span class="fu">summary</span>(h<span class="fl">.3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a aria-label="1"></a>h<span class="fl">.3</span> <span class="ot">&lt;-</span> </span>
+<span id="cb36-2"><a aria-label="2"></a>  <span class="fu">brm</span>(<span class="at">family =</span> gaussian,</span>
+<span id="cb36-3"><a aria-label="3"></a>      health <span class="sc">~</span> <span class="dv">0</span> <span class="sc">+</span> mood.group.d,</span>
+<span id="cb36-4"><a aria-label="4"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">10</span>), <span class="at">class =</span> b),</span>
+<span id="cb36-5"><a aria-label="5"></a>                <span class="fu">prior</span>(<span class="fu">cauchy</span>(<span class="dv">0</span>, <span class="dv">10</span>), <span class="at">class =</span> sigma)),</span>
+<span id="cb36-6"><a aria-label="6"></a>      <span class="at">data =</span> week3,</span>
+<span id="cb36-7"><a aria-label="7"></a>      <span class="at">iter =</span> <span class="dv">1000</span>, <span class="at">warmup =</span> <span class="dv">500</span>, <span class="at">chains =</span> <span class="dv">2</span>, <span class="at">cores =</span> <span class="dv">2</span>, </span>
+<span id="cb36-8"><a aria-label="8"></a>      <span class="at">control =</span> <span class="fu">list</span>(<span class="at">max_treedepth =</span> <span class="dv">15</span>), <span class="co"># default is 10</span></span>
+<span id="cb36-9"><a aria-label="9"></a>      <span class="at">file =</span> <span class="st">"h.3_treedepth"</span>)</span>
+<span id="cb36-10"><a aria-label="10"></a><span class="fu">summary</span>(h<span class="fl">.3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 </section>

@@ -74,6 +74,75 @@ $$\frac{p(\theta_1 | data)}{p(\theta_2 | data)} = \frac{p(data | \theta_1)\, p(\
 
 That's all MCMC needs: likelihood × prior, never the evidence.
 
+## The posterior is a landscape {.smaller .nostretch}
+
+Every spot on the map is one set of parameter values. Its **height** is prior × likelihood: how well those values explain the data, weighted by what we believed beforehand.
+
+:::: columns
+::: {.column width="55%"}
+```{r}
+#| code-fold: true
+#| fig-height: 3.6
+#| fig-width: 5
+#| out-width: "100%"
+library(tidyverse)
+# a made-up two-parameter posterior with a curved ridge
+log_target <- function(x, y) dnorm(x, 0, 1.2, log = TRUE) + dnorm(y, 0.6 * x^2 - 1, 0.6, log = TRUE)
+landscape <- expand_grid(x = seq(-3.5, 3.5, length.out = 200), y = seq(-2.5, 6, length.out = 200)) %>%
+  mutate(height = exp(log_target(x, y)))
+ggplot(landscape, aes(x, y, fill = height)) +
+  geom_raster() +
+  scale_fill_viridis_c(option = "magma", guide = "none") +
+  labs(x = expression(theta[1]), y = expression(theta[2])) +
+  theme_classic(base_size = 14)
+```
+:::
+::: {.column width="45%"}
+-   **Maximum likelihood** finds the summit
+-   **Bayes** wants the whole map: where the high ground is, and how much of it there is
+-   With 2 parameters we can draw it. With 50 (a typical multilevel model) nobody can: we're exploring in the dark
+:::
+::::
+
+## A hiker in the fog {.smaller .nostretch}
+
+The hiker sees only the ground underfoot. One rule: **step somewhere nearby; if it's higher, go; if it's lower, go only sometimes.**
+
+```{r}
+#| code-fold: true
+#| fig-height: 3
+#| fig-width: 9
+#| out-width: "100%"
+library(patchwork)
+set.seed(11)
+n_steps <- 6000
+path <- matrix(NA, n_steps, 2); here <- c(3, -2)                  # start somewhere low
+for (i in 1:n_steps) {
+  step <- here + rnorm(2, 0, 0.4)
+  if (log(runif(1)) < log_target(step[1], step[2]) - log_target(here[1], here[2])) here <- step
+  path[i, ] <- here
+}
+path <- as_tibble(path, .name_repair = ~ c("x", "y")) %>% mutate(step = row_number())
+base <- ggplot(landscape, aes(x, y)) +
+  geom_contour(aes(z = height), colour = "grey70", bins = 8) +
+  coord_cartesian(xlim = c(-3.5, 3.5), ylim = c(-2.5, 6)) +
+  labs(x = expression(theta[1]), y = expression(theta[2])) + theme_classic(base_size = 13)
+(base + geom_path(data = filter(path, step <= 150), colour = "#D55E00") +
+   geom_point(data = filter(path, step == 1), colour = "#D55E00", size = 3) +
+   labs(subtitle = "the first 150 steps, from a bad start")) |
+(base + geom_point(data = filter(path, step > 1000), alpha = .08, size = .6, colour = "#0072B2") +
+   labs(subtitle = "5,000 footprints later"))
+```
+
+The hiker never sees the map, yet the footprints pile up where the land is high, in proportion to its height. **The footprints are the posterior draws.** That's MCMC.
+
+## Born at Los Alamos, used everywhere {.smaller}
+
+-   **1953:** Nicholas Metropolis, Arianna and Marshall Rosenbluth, and Augusta and Edward Teller needed to average over more arrangements of atoms than could ever be listed. On MANIAC, one of the first computers, they used the hiker's rule: wander, preferring likely states. (Arianna Rosenbluth wrote the code.)
+-   **1970:** Hastings generalized it. **1990:** Gelfand and Smith showed statisticians it made Bayesian models practical, and Bayesian statistics took off
+-   Named one of the **top 10 algorithms of the 20th century**
+-   Still everywhere, because it works when the landscape is too big to map: physicists estimating the parameters of the universe from the cosmic microwave background, biologists reconstructing evolutionary trees, epidemiologists estimating the effects of COVID-19 lockdowns, election forecasters, and every `brm()` you run
+
 ## Markov Chain Monte Carlo {.smaller}
 
 -   Markov Chain: random process that moves between states, where the next state depends only on the current state. This is the "memoryless" property: given where you are now, where you were before adds nothing. (Draws are still correlated with earlier draws through the chain, which is why we'll check autocorrelation.)
@@ -130,7 +199,7 @@ Steps of algorithm:
 
 ## Metropolis in 15 lines {.smaller}
 
-McElreath's King Markov (SR 9.1): 10 islands in a ring, island *k* has population proportional to *k*, and the king wants to visit each island in proportion to its population. Each week he flips a coin to propose a neighbor and moves with probability (proposal population / current population). Here the "posterior" is just the island number.
+The hiker's rule on the smallest possible landscape. McElreath's King Markov (SR 9.1): 10 islands in a ring, island *k* has population proportional to *k*, and the king wants to visit each island in proportion to its population. Each week he flips a coin to propose a neighbor and moves with probability (proposal population / current population). Here the "posterior" is just the island number.
 
 ```{r}
 #| code-fold: true
