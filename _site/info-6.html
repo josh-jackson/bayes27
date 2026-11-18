@@ -491,10 +491,9 @@ Number of Fisher Scoring iterations: 2</code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a aria-label="1"></a><span class="co"># can compute CI bc we are varying sigma (not plotted)</span></span>
-<span id="cb24-2"><a aria-label="2"></a>p_grid <span class="sc">%&gt;%</span></span>
-<span id="cb24-3"><a aria-label="3"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> mu, <span class="at">y =</span> log_likelihood )) <span class="sc">+</span></span>
-<span id="cb24-4"><a aria-label="4"></a>    <span class="fu">stat_lineribbon</span>(<span class="at">.width =</span> <span class="fu">c</span>(.<span class="dv">0</span>), <span class="at">alpha =</span> .<span class="dv">4</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a aria-label="1"></a>p_grid <span class="sc">%&gt;%</span></span>
+<span id="cb24-2"><a aria-label="2"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> mu, <span class="at">y =</span> log_likelihood )) <span class="sc">+</span></span>
+<span id="cb24-3"><a aria-label="3"></a>    <span class="fu">stat_lineribbon</span>(<span class="at">.width =</span> <span class="fu">c</span>(.<span class="dv">0</span>), <span class="at">alpha =</span> .<span class="dv">4</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
 </div>
@@ -546,7 +545,7 @@ Number of Fisher Scoring iterations: 2</code></pre>
 </ul>
 <p>A dice roll is 2.585 bits. Best to think about this is each bit like a yes/no question that halves the possibilities. 1. even? 2. greater than 3?</p>
 <ul>
-<li>~Half the time you can logically deduce with 2 questions (2 bits), but sometimes you need 3 questions, hence ~2.5 bits of info.</li>
+<li>With yes/no questions, some outcomes take 2 questions and some take 3 (2.67 on average with the best strategy). 2.585 bits is the theoretical minimum average.</li>
 </ul>
 </section>
 <section id="bits-and-probabilities" class="slide level2">
@@ -594,7 +593,7 @@ Number of Fisher Scoring iterations: 2</code></pre>
 <ul>
 <li><p>Entropy, H(p), tells us how hard it is to make an accurate prediction. For non-uniform distributions we take a probability-weighted sum of the log probabilities</p></li>
 <li><p>H(p) = <span class="math inline">\(-\sum p_ilog(p_i)\)</span></p></li>
-<li><p>Think of tossing rocks into 10 buckets. Each bucket can have a probability associated with getting a rock. H(p) is maximized when the ps are equal. That is the distribution that can arise the most ways</p></li>
+<li><p>Think of tossing 10 pebbles into 5 buckets. Each bucket can have a probability associated with getting a rock. H(p) is maximized when the ps are equal. That is the distribution that can arise the most ways</p></li>
 </ul>
 </section>
 <section id="pebbles-in-buckets" class="slide level2">
@@ -694,7 +693,7 @@ Number of Fisher Scoring iterations: 2</code></pre>
 <h2>LOO &amp; PSIS-LOO</h2>
 <ul>
 <li><p>Leaving out 1 observation per fold is called leave-one-out (LOO) cross validation. Great in theory, but computationally difficult.</p></li>
-<li><p>Pareto Smoothed Importance Sampling (PSIS). Importance is similar to “deleted residuals” where on a case by case basis we asked whether this data point impacts the posterior. Instead of rerunning your model N data points times, importance scores are used to weight each datapoint, resulting in an equivalent to LOO without actually doing LOO. Cross validation for free!</p></li>
+<li><p>Pareto Smoothed Importance Sampling (PSIS) reuses the posterior draws we already have. For each observation, it reweights the draws to approximate the posterior we would have gotten without that observation (draws that fit that point especially well get less weight). No refitting: cross validation almost for free!</p></li>
 </ul>
 </section>
 <section id="psis-loo-example-mr.12" class="slide level2">
@@ -759,7 +758,7 @@ See help('pareto-k-diagnostic') for details.</code></pre>
 <ul>
 <li><p>elpd_loo: the expected log pointwise predictive density for new data (an out-of-sample lppd). Larger is better. Probabilities are always equal or less than 1, and thus log predictive probabilities are 0 or negative</p></li>
 <li><p>p_loo is the effective number of parameters</p></li>
-<li><p>looic is -2(elpd). Low scores better. Why -2? Because of chi-square history and/or for Gaussian model with known variance -2 log score is equal to squared error.</p></li>
+<li><p>looic is -2(elpd). Low scores better. Why −2? Chi-square history, and for a Gaussian model with known σ, −2 × log score is the squared error (scaled by σ², plus a constant).</p></li>
 </ul>
 </section>
 <section id="pareto-k-can-we-trust-psis-loo" class="slide level2 smaller">
@@ -1009,7 +1008,7 @@ b_0 &amp;\sim \text{Normal}(5, 2) \qquad b_1, b_2, b_3 \sim \text{Normal}(0, 1) 
 <section id="waic" class="slide level2">
 <h2>WAIC</h2>
 <p><span class="math display">\[\text{WAIC}(y, \theta) = -2 \big (\text{lppd} - \underbrace{\sum_i \operatorname{var}_\theta \log p(y_i | \theta)}_\text{penalty term} \big)\]</span></p>
-<p>lppd = log pointwise predictive density = deviance over the entire posterior</p>
+<p>lppd = log pointwise predictive density, the log score averaged over the entire posterior (−2 × lppd is the Bayesian version of the deviance)</p>
 <p>Similar in form to old friend: <span class="math display">\[\text{AIC} = -2 \log p(y | \hat\theta_{MLE}) + 2p\]</span></p>
 </section>
 <section id="waic-example" class="slide level2">
@@ -1196,7 +1195,7 @@ iv.dtx:SS_c | 1.000 |       3007</code></pre>
 <ul>
 <li><p>You can find a high PD for an effect that is quite small. Similar to a p &lt; .05 with a large sample size. Is it still meaningful?</p></li>
 <li><p>Leads to other NHST foibles like dichotomous thinking</p></li>
-<li><p>More similar to a 1-tailed p-value if you keep alpha = .05. So maybe look at 97.5 PDs?</p></li>
+<li><p>pd = 95% matches a <em>one</em>-tailed p of .05. To match the usual two-tailed .05, you’d need pd = 97.5%</p></li>
 </ul>
 </section>
 <section id="the-nil-hypothesis" class="slide level2">
@@ -1211,7 +1210,7 @@ iv.dtx:SS_c | 1.000 |       3007</code></pre>
 <h2>ROPE</h2>
 <ul>
 <li><p>Rather than concluding that an effect is present when it simply differs from zero, we ask how probable it is that the effect lies outside a range that counts as “practically no effect”.</p></li>
-<li><p>Region of Practical Equivalence - a small range of parameter values that are considered to be practically equivalent to the null. E.g,. std b = [-.07, .07]</p></li>
+<li><p>Region of Practical Equivalence - a small range of parameter values that are considered to be practically equivalent to the null. E.g., a standardized b within [−0.1, 0.1]</p></li>
 <li><p>Let the user define an area around the null value enclosing values that are equivalent to the null</p></li>
 </ul>
 </section>
@@ -1219,7 +1218,7 @@ iv.dtx:SS_c | 1.000 |       3007</code></pre>
 <h2>Using a ROPE</h2>
 <ul>
 <li><p>Compare our 95% (or whatever value you want) CI/HDPI to see if it overlaps with the ROPE. Some suggest using full posterior rather than a CI.</p></li>
-<li><p>If this percentage is sufficiently low, the null hypothesis is rejected. If this percentage is sufficiently high, the null hypothesis is accepted.</p></li>
+<li><p>Then look at the percentage of that interval (or posterior) inside the ROPE. If it’s very low, the null is rejected; if it’s very high, the null is accepted (the effect is practically zero).</p></li>
 <li><p>Note: rejecting the ROPE means rejecting <em>all</em> practically-null values, not just exactly 0.</p></li>
 </ul>
 </section>
@@ -1555,17 +1554,16 @@ BF
 <h2>Association with p values</h2>
 <ul>
 <li><p>Similar in that they both provide a continuous metric to compare two hypotheses</p></li>
-<li><p>For a fixed sample size, p-values can be directly transformed into Bayes-Factors and vice versa, and of course into any effect size metric.</p></li>
+<li><p>For a given test, sample size and prior, a p-value can be converted into a Bayes factor and vice versa</p></li>
 <li><p>Remember that p values are a composite of an effect size and sample size. Same is true with BF.</p></li>
 </ul>
 </section>
 <section id="alternative-to-p-values" class="slide level2">
 <h2>Alternative to p-values</h2>
 <ul>
-<li><p>Easier interpretation. (ratio of two likelihoods). P values are misunderstood.</p></li>
+<li><p>Easier interpretation (a ratio of two marginal likelihoods: how well each hypothesis predicted the data). P values are misunderstood.</p></li>
 <li><p>Doesn’t involve imaginary sampling distributions</p></li>
 <li><p>Can provide evidence in favor of a null</p></li>
-<li><p>Works better as an effect size substitute than a p-value</p></li>
 <li><p>Less dichotomous thinking as there isn’t a BF one <em>needs</em> to surpass</p></li>
 </ul>
 </section>
@@ -1722,9 +1720,9 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 
 Parameter   |       BF
 ----------------------
-(Intercept) | 2.24e+47
-SS_c        | 2.98e+04
-FQ_c        |    11.00
+(Intercept) | 1.59e+47
+SS_c        | 2.87e+04
+FQ_c        |     9.49
 
 * Evidence Against The Null: 0</code></pre>
 </div>
@@ -1769,9 +1767,9 @@ FQ_c        |    11.00
 
 Parameter   |       BF
 ----------------------
-(Intercept) | 1.12e+46
-SS_c        | 4.07e+04
-FQ_c        |    0.541
+(Intercept) | 9.82e+45
+SS_c        | 4.30e+04
+FQ_c        |    0.549
 
 * Evidence Against The Null: 0</code></pre>
 </div>
@@ -1787,9 +1785,9 @@ FQ_c        |    0.541
 
 Parameter   |       BF
 ----------------------
-(Intercept) | 2.88e+46
-SS_c        |   569.77
-FQ_c        |     1.57
+(Intercept) | 3.29e+46
+SS_c        |   497.41
+FQ_c        |     1.38
 
 * Evidence Against The Null: [-0.189, 0.189]</code></pre>
 </div>
@@ -1871,9 +1869,9 @@ FQ_c        |     1.57
 
 Parameter   |       BF
 ----------------------
-(Intercept) | 1.49e+34
-SS_c        | 3.58e+04
-FQ_c        |     4.98
+(Intercept) | 1.39e+34
+SS_c        | 3.64e+04
+FQ_c        |     4.84
 
 * Evidence Against The Null: 0</code></pre>
 </div>
@@ -1889,9 +1887,9 @@ FQ_c        |     4.98
 
 Parameter   |       BF
 ----------------------
-(Intercept) | 4.51e+34
-SS_c        | 2.41e+04
-FQ_c        |    10.17
+(Intercept) | 3.80e+34
+SS_c        | 2.94e+04
+FQ_c        |     9.94
 
 * Evidence Against The Null: 0</code></pre>
 </div>
@@ -1954,13 +1952,13 @@ FQ_c        |    10.17
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">School success</td>
-<td style="text-align: right;">35786.8</td>
-<td style="text-align: right;">24118.5</td>
+<td style="text-align: right;">36414.3</td>
+<td style="text-align: right;">29393.0</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">Friendship quality</td>
-<td style="text-align: right;">5.0</td>
-<td style="text-align: right;">10.2</td>
+<td style="text-align: right;">4.8</td>
+<td style="text-align: right;">9.9</td>
 </tr>
 </tbody>
 </table>
@@ -1968,7 +1966,7 @@ FQ_c        |    10.17
 </div>
 <ul>
 <li>The BF compares “the effect is 0” to “the effect is something like <em>the prior</em> says.” A wide prior spreads its bets over huge slopes the data rule out, so it makes the alternative look worse.</li>
-<li>For friendship quality, just narrowing the prior more than doubles the BF (4.6 → 11): “moderate” becomes “strong” with the same data. School success is so far from 0 that any prior gives an enormous BF (the numbers move, the conclusion doesn’t).</li>
+<li>For friendship quality, just narrowing the prior about doubles the BF (4.8 → 9.9): from “moderate” to the edge of “strong” with the same data. (BFs estimated from draws wobble a bit from run to run.) School success is so far from 0 that any prior gives an enormous BF (the numbers move, the conclusion doesn’t).</li>
 <li>The posterior (and so CIs, pd and ROPE) hardly cares about the prior here. <strong>The BF cares a lot.</strong> Always report the prior along with a BF.</li>
 </ul>
 </section>
@@ -2032,7 +2030,7 @@ FQ_c        |    10.17
 </section>
 <section id="an-example-results-sentence" class="slide level2">
 <h2>An example Results sentence</h2>
-<p>“Students in the treatment group were somewhat happier at average school success (<em>b</em> = 0.36 points on the 1–10 scale, 95% CI [−0.21, 0.92]; pd = 89%), but 27% of the posterior fell inside our ROPE of ±0.2 points, so the data can’t yet tell a small benefit from none.”</p>
+<p>“Students in the treatment group were somewhat happier at average school success (<em>b</em> = 0.36 points on the 1–10 scale, 95% CI [-0.21, 0.92]; pd = 89%), but 27% of the posterior fell inside our ROPE of ±0.2 points, so the data can’t yet tell a small benefit from none.”</p>
 </section>
 <section id="multiple-comparisons" class="slide level2 smaller">
 <h2>Multiple comparisons</h2>

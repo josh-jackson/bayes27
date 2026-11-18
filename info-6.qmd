@@ -204,7 +204,6 @@ p_grid %>%
 
 ```{r}
 #| code-fold: true
-# can compute CI bc we are varying sigma (not plotted)
 p_grid %>%
   ggplot(aes(x = mu, y = log_likelihood )) +
     stat_lineribbon(.width = c(.0), alpha = .4)
@@ -255,7 +254,7 @@ information(x) = −log2(p(x)), where log2() is the base-2 logarithm and p(x) is
 
 A dice roll is 2.585 bits. Best to think about this is each bit like a yes/no question that halves the possibilities. 1. even? 2. greater than 3?
 
--   \~Half the time you can logically deduce with 2 questions (2 bits), but sometimes you need 3 questions, hence \~2.5 bits of info.
+-   With yes/no questions, some outcomes take 2 questions and some take 3 (2.67 on average with the best strategy). 2.585 bits is the theoretical minimum average.
 
 ## Bits and probabilities
 
@@ -307,7 +306,7 @@ We use bits rather than direct probabilities because it is easier to add bits th
 
 -   H(p) = $-\sum p_ilog(p_i)$
 
--   Think of tossing rocks into 10 buckets. Each bucket can have a probability associated with getting a rock. H(p) is maximized when the ps are equal. That is the distribution that can arise the most ways
+-   Think of tossing 10 pebbles into 5 buckets. Each bucket can have a probability associated with getting a rock. H(p) is maximized when the ps are equal. That is the distribution that can arise the most ways
 
 ## Pebbles in buckets
 
@@ -404,7 +403,7 @@ In words: for each observation, average its likelihood over the $S$ posterior dr
 
 -   Leaving out 1 observation per fold is called leave-one-out (LOO) cross validation. Great in theory, but computationally difficult.
 
--   Pareto Smoothed Importance Sampling (PSIS). Importance is similar to "deleted residuals" where on a case by case basis we asked whether this data point impacts the posterior. Instead of rerunning your model N data points times, importance scores are used to weight each datapoint, resulting in an equivalent to LOO without actually doing LOO. Cross validation for free!
+-   Pareto Smoothed Importance Sampling (PSIS) reuses the posterior draws we already have. For each observation, it reweights the draws to approximate the posterior we would have gotten without that observation (draws that fit that point especially well get less weight). No refitting: cross validation almost for free!
 
 ## PSIS-LOO example: `mr.12`
 
@@ -428,7 +427,7 @@ mr.12$criteria$loo
 
 -   p_loo is the effective number of parameters
 
--   looic is -2(elpd). Low scores better. Why -2? Because of chi-square history and/or for Gaussian model with known variance -2 log score is equal to squared error.
+-   looic is -2(elpd). Low scores better. Why −2? Chi-square history, and for a Gaussian model with known σ, −2 × log score is the squared error (scaled by σ², plus a constant).
 
 ## Pareto *k*: can we trust PSIS-LOO? {.smaller}
 
@@ -511,7 +510,7 @@ loo_compare(mr.11, mr.12, criterion = "loo")
 1.  If |elpd_diff| \< 4, the models predict about equally well.
 2.  If it's larger, compare it to se_diff (a rough signal-to-noise ratio).
 
--   Here elpd_diff / se_diff = 17 / 6.3 ≈ 2.7: `mr.12` is expected to predict new data clearly better.
+-   Here elpd_diff / se_diff = `r cmp_1112 <- loo_compare(mr.11, mr.12); round(abs(cmp_1112[2, "elpd_diff"]))` / `r round(cmp_1112[2, "se_diff"], 1)` ≈ `r round(abs(cmp_1112[2, "elpd_diff"]) / cmp_1112[2, "se_diff"], 1)`: `mr.12` is expected to predict new data clearly better.
 
 ## A third model: add the interaction {.smaller}
 
@@ -557,7 +556,7 @@ loo_compare(mr.11, mr.12, mr.14b)
 ## Reading the comparison
 
 -   In-sample $R^2$ rewards every added parameter. LOO only rewards parameters that help predict *new* data.
--   Here the interaction raises $R^2$ from .27 to .32, but its LOO advantage over `mr.12` (3.7, se 3.4) is under 4: a modest gain in prediction, not a clear one. (Whether the interaction is *real* is a different question; see the next section.)
+-   Here the interaction raises $R^2$ from `r sub("^0", "", sprintf("%.2f", median(bayes_R2(mr.12, summary = FALSE))))` to `r sub("^0", "", sprintf("%.2f", median(bayes_R2(mr.14b, summary = FALSE))))`, but its LOO advantage over `mr.12` (`r cmp_1214 <- loo_compare(mr.12, mr.14b); sprintf("%.1f", abs(cmp_1214[2, "elpd_diff"]))`, se `r sprintf("%.1f", cmp_1214[2, "se_diff"])`) is under 4: a modest gain in prediction, not a clear one. (Whether the interaction is *real* is a different question; see the next section.)
 
 ## Information Criteria
 
@@ -573,7 +572,7 @@ loo_compare(mr.11, mr.12, mr.14b)
 
 $$\text{WAIC}(y, \theta) = -2 \big (\text{lppd} - \underbrace{\sum_i \operatorname{var}_\theta \log p(y_i | \theta)}_\text{penalty term} \big)$$
 
-lppd = log pointwise predictive density = deviance over the entire posterior
+lppd = log pointwise predictive density, the log score averaged over the entire posterior (−2 × lppd is the Bayesian version of the deviance)
 
 Similar in form to old friend:
 $$\text{AIC} = -2 \log p(y | \hat\theta_{MLE}) + 2p$$
@@ -668,7 +667,7 @@ tx_draws %>%
             pd            = max(prob_positive, prob_negative))
 ```
 
-About 89% of the posterior says the treatment helps (at average school success). Suggestive, not conclusive: roughly a two-sided p ≈ .21.
+About `r round(100 * mean(tx_draws$b_iv.dtx > 0))`% of the posterior says the treatment helps (at average school success). Suggestive, not conclusive: roughly a two-sided p ≈ `r sub("^0", "", sprintf("%.2f", 2 * (1 - mean(tx_draws$b_iv.dtx > 0))))`.
 
 ## `describe_posterior()`
 
@@ -682,7 +681,7 @@ describe_posterior(mr.14b)
 
 -   Leads to other NHST foibles like dichotomous thinking
 
--   More similar to a 1-tailed p-value if you keep alpha = .05. So maybe look at 97.5 PDs?
+-   pd = 95% matches a *one*-tailed p of .05. To match the usual two-tailed .05, you'd need pd = 97.5%
 
 ## The nil hypothesis
 
@@ -696,7 +695,7 @@ describe_posterior(mr.14b)
 
 -   Rather than concluding that an effect is present when it simply differs from zero, we ask how probable it is that the effect lies outside a range that counts as "practically no effect".
 
--   Region of Practical Equivalence - a small range of parameter values that are considered to be practically equivalent to the null. E.g,. std b = \[-.07, .07\]
+-   Region of Practical Equivalence - a small range of parameter values that are considered to be practically equivalent to the null. E.g., a standardized b within \[−0.1, 0.1\]
 
 -   Let the user define an area around the null value enclosing values that are equivalent to the null
 
@@ -704,7 +703,7 @@ describe_posterior(mr.14b)
 
 -   Compare our 95% (or whatever value you want) CI/HDPI to see if it overlaps with the ROPE. Some suggest using full posterior rather than a CI.
 
--   If this percentage is sufficiently low, the null hypothesis is rejected. If this percentage is sufficiently high, the null hypothesis is accepted.
+-   Then look at the percentage of that interval (or posterior) inside the ROPE. If it's very low, the null is rejected; if it's very high, the null is accepted (the effect is practically zero).
 
 -   Note: rejecting the ROPE means rejecting *all* practically-null values, not just exactly 0.
 
@@ -729,7 +728,7 @@ tx_draws %>%
 rope(mr.14b, range = c(-0.2, 0.2), parameters = "^b_iv.dtx$", ci = 1)
 ```
 
-About 27% of the posterior is practically zero and about 70% is a meaningful benefit. We can't call it either "no effect" or "an effect" with confidence; we need more data.
+About `r round(100 * mean(abs(tx_draws$b_iv.dtx) < 0.2))`% of the posterior is practically zero and about `r round(100 * mean(tx_draws$b_iv.dtx >= 0.2))`% is a meaningful benefit. We can't call it either "no effect" or "an effect" with confidence; we need more data.
 
 ## A publication-ready posterior {.smaller}
 
@@ -902,19 +901,17 @@ interpret_bf(1.95)
 
 -   Similar in that they both provide a continuous metric to compare two hypotheses
 
--   For a fixed sample size, p-values can be directly transformed into Bayes-Factors and vice versa, and of course into any effect size metric.
+-   For a given test, sample size and prior, a p-value can be converted into a Bayes factor and vice versa
 
 -   Remember that p values are a composite of an effect size and sample size. Same is true with BF.
 
 ## Alternative to p-values
 
--   Easier interpretation. (ratio of two likelihoods). P values are misunderstood.
+-   Easier interpretation (a ratio of two marginal likelihoods: how well each hypothesis predicted the data). P values are misunderstood.
 
 -   Doesn't involve imaginary sampling distributions
 
 -   Can provide evidence in favor of a null
-
--   Works better as an effect size substitute than a p-value
 
 -   Less dichotomous thinking as there isn't a BF one *needs* to surpass
 
@@ -1173,7 +1170,7 @@ tibble(parameter = c("School success", "Friendship quality"),
 ```
 
 -   The BF compares "the effect is 0" to "the effect is something like *the prior* says." A wide prior spreads its bets over huge slopes the data rule out, so it makes the alternative look worse.
--   For friendship quality, just narrowing the prior more than doubles the BF (4.6 → 11): "moderate" becomes "strong" with the same data. School success is so far from 0 that any prior gives an enormous BF (the numbers move, the conclusion doesn't).
+-   For friendship quality, just narrowing the prior about doubles the BF (`r sprintf("%.1f", exp(bf.info.1$log_BF[bf.info.1$Parameter == "b_FQ_c"]))` → `r sprintf("%.1f", exp(bf.info.2$log_BF[bf.info.2$Parameter == "b_FQ_c"]))`): from "moderate" to the edge of "strong" with the same data. (BFs estimated from draws wobble a bit from run to run.) School success is so far from 0 that any prior gives an enormous BF (the numbers move, the conclusion doesn't).
 -   The posterior (and so CIs, pd and ROPE) hardly cares about the prior here. **The BF cares a lot.** Always report the prior along with a BF.
 
 ## Which tool answers which question? {.smaller}
@@ -1198,7 +1195,7 @@ tibble(parameter = c("School success", "Friendship quality"),
 
 ## An example Results sentence
 
- "Students in the treatment group were somewhat happier at average school success (*b* = 0.36 points on the 1–10 scale, 95% CI [−0.21, 0.92]; pd = 89%), but 27% of the posterior fell inside our ROPE of ±0.2 points, so the data can't yet tell a small benefit from none."
+ "Students in the treatment group were somewhat happier at average school success (*b* = `r sprintf("%.2f", tx_sum$med)` points on the 1–10 scale, 95% CI [`r sprintf("%.2f", tx_sum$lo)`, `r sprintf("%.2f", tx_sum$hi)`]; pd = `r round(100 * tx_sum$pd)`%), but `r round(100 * tx_sum$rope)`% of the posterior fell inside our ROPE of ±0.2 points, so the data can't yet tell a small benefit from none."
 
 ## Multiple comparisons {.smaller}
 
