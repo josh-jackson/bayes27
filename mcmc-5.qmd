@@ -548,7 +548,7 @@ Each flick travels across much of the ridge, so successive draws are far apart. 
 
 -   Stan computes them exactly and automatically from your model code (automatic differentiation, or "autodiff"). You never write a derivative, and that's what makes HMC practical.
 
--   One consequence: the slope has to exist, so Stan's parameters must be continuous. (No discrete parameters, like "which of 3 groups is this person in?", unless you average over them.)
+-   One consequence: the slope has to exist, so the *parameters* Stan estimates (intercepts, slopes, sigmas, cutpoints) must be continuous. Your *data* can be anything: dummy variables, counts, yes/no outcomes, and ordered categories all work fine
 
 -   We still never compute the evidence integral. At each small step the puck only needs the height and slope where it is right now, and the recorded spots give us the full posterior.
 

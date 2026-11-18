@@ -803,7 +803,7 @@
 <ul>
 <li><p>Simulating the glide means computing the gradient (one slope per parameter) at every small step of every flick. For a model with 50 parameters and thousands of flicks, that’s millions of derivatives.</p></li>
 <li><p>Stan computes them exactly and automatically from your model code (automatic differentiation, or “autodiff”). You never write a derivative, and that’s what makes HMC practical.</p></li>
-<li><p>One consequence: the slope has to exist, so Stan’s parameters must be continuous. (No discrete parameters, like “which of 3 groups is this person in?”, unless you average over them.)</p></li>
+<li><p>One consequence: the slope has to exist, so the <em>parameters</em> Stan estimates (intercepts, slopes, sigmas, cutpoints) must be continuous. Your <em>data</em> can be anything: dummy variables, counts, yes/no outcomes, and ordered categories all work fine</p></li>
 <li><p>We still never compute the evidence integral. At each small step the puck only needs the height and slope where it is right now, and the recorded spots give us the full posterior.</p></li>
 </ul>
 </section>
