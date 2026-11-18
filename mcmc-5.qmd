@@ -694,7 +694,7 @@ In roughly this order:
 
 | Warning | What it means | Usual cause | First things to try |
 |---|---|---|---|
-| Divergent transitions | the sampler hit regions it can't follow; **results may be biased** | sharp curvature: tiny data with vague priors, funnels in multilevel models | better priors; `adapt_delta = .95` or `.99`; non-centered parameterization |
+| Divergent transitions | the sampler hit regions it can't follow; **results may be biased** | sharp curvature: tiny data with vague priors, funnels in multilevel models | better priors; `adapt_delta = .95` or `.99` |
 | Max treedepth | the sampler took the longest allowed trajectories; an **efficiency** warning | long, narrow posteriors (e.g., near-duplicate predictors), flat priors | fix the model first; then `max_treedepth = 12` or more |
 
 Rule of thumb: **divergences and non-identified models need a model fix; sampler settings are a last resort.**
@@ -892,7 +892,7 @@ The standard fix is the **non-centered parameterization**: sample standardized e
 
 $$z_j \sim \text{Normal}(0, 1), \qquad u_j = \tau \, z_j$$
 
-Same model, different geometry: the $z_j$ don't get squeezed when $\tau$ is small. brms already does this for you (you'll see it in `stancode()` in the multilevel weeks), but knowing why helps when you write your own Stan code.
+Same model, different geometry: the $z_j$ don't get squeezed when $\tau$ is small. **brms already does this automatically** for every group-level term like `(1 | group)`, so you never have to. If a brms multilevel model still shows divergences, use the fixes from earlier: better priors (especially on $\tau$) and a higher `adapt_delta`.
 
 ## Every time you fit a model {.smaller}
 

@@ -914,7 +914,7 @@
     "href": "mcmc-5.html#which-warning-which-fix-2",
     "title": "MCMC",
     "section": "Which warning, which fix? (2)",
-    "text": "Which warning, which fix? (2)\n\n\n\n\n\n\n\n\n\nWarning\nWhat it means\nUsual cause\nFirst things to try\n\n\n\n\nDivergent transitions\nthe sampler hit regions it can’t follow; results may be biased\nsharp curvature: tiny data with vague priors, funnels in multilevel models\nbetter priors; adapt_delta = .95 or .99; non-centered parameterization\n\n\nMax treedepth\nthe sampler took the longest allowed trajectories; an efficiency warning\nlong, narrow posteriors (e.g., near-duplicate predictors), flat priors\nfix the model first; then max_treedepth = 12 or more\n\n\n\nRule of thumb: divergences and non-identified models need a model fix; sampler settings are a last resort."
+    "text": "Which warning, which fix? (2)\n\n\n\n\n\n\n\n\n\nWarning\nWhat it means\nUsual cause\nFirst things to try\n\n\n\n\nDivergent transitions\nthe sampler hit regions it can’t follow; results may be biased\nsharp curvature: tiny data with vague priors, funnels in multilevel models\nbetter priors; adapt_delta = .95 or .99\n\n\nMax treedepth\nthe sampler took the longest allowed trajectories; an efficiency warning\nlong, narrow posteriors (e.g., near-duplicate predictors), flat priors\nfix the model first; then max_treedepth = 12 or more\n\n\n\nRule of thumb: divergences and non-identified models need a model fix; sampler settings are a last resort."
   },
   {
     "objectID": "mcmc-5.html#divergent-transitions",
@@ -991,7 +991,7 @@
     "href": "mcmc-5.html#preview-divergences-in-multilevel-models",
     "title": "MCMC",
     "section": "Preview: divergences in multilevel models",
-    "text": "Preview: divergences in multilevel models\nThe most common place you’ll see divergences is a multilevel model with few groups or a small between-group SD. If group effects are \\(u_j \\sim \\text{Normal}(0, \\tau)\\), then when \\(\\tau\\) is near 0 all the \\(u_j\\) are squeezed near 0, and the posterior takes a funnel shape that HMC can’t follow with one step size.\nThe standard fix is the non-centered parameterization: sample standardized effects and scale them,\n\\[z_j \\sim \\text{Normal}(0, 1), \\qquad u_j = \\tau \\, z_j\\]\nSame model, different geometry: the \\(z_j\\) don’t get squeezed when \\(\\tau\\) is small. brms already does this for you (you’ll see it in stancode() in the multilevel weeks), but knowing why helps when you write your own Stan code."
+    "text": "Preview: divergences in multilevel models\nThe most common place you’ll see divergences is a multilevel model with few groups or a small between-group SD. If group effects are \\(u_j \\sim \\text{Normal}(0, \\tau)\\), then when \\(\\tau\\) is near 0 all the \\(u_j\\) are squeezed near 0, and the posterior takes a funnel shape that HMC can’t follow with one step size.\nThe standard fix is the non-centered parameterization: sample standardized effects and scale them,\n\\[z_j \\sim \\text{Normal}(0, 1), \\qquad u_j = \\tau \\, z_j\\]\nSame model, different geometry: the \\(z_j\\) don’t get squeezed when \\(\\tau\\) is small. brms already does this automatically for every group-level term like (1 | group), so you never have to. If a brms multilevel model still shows divergences, use the fixes from earlier: better priors (especially on \\(\\tau\\)) and a higher adapt_delta."
   },
   {
     "objectID": "info-6.html#this-time",

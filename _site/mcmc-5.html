@@ -1021,7 +1021,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <td>Divergent transitions</td>
 <td>the sampler hit regions it can’t follow; <strong>results may be biased</strong></td>
 <td>sharp curvature: tiny data with vague priors, funnels in multilevel models</td>
-<td>better priors; <code>adapt_delta = .95</code> or <code>.99</code>; non-centered parameterization</td>
+<td>better priors; <code>adapt_delta = .95</code> or <code>.99</code></td>
 </tr>
 <tr class="even">
 <td>Max treedepth</td>
@@ -1302,7 +1302,7 @@ leg_left      1.84     1.72     1.96    1     4527</code></pre>
 <p>The most common place you’ll see divergences is a multilevel model with few groups or a small between-group SD. If group effects are <span class="math inline">\(u_j \sim \text{Normal}(0, \tau)\)</span>, then when <span class="math inline">\(\tau\)</span> is near 0 all the <span class="math inline">\(u_j\)</span> are squeezed near 0, and the posterior takes a <strong>funnel</strong> shape that HMC can’t follow with one step size.</p>
 <p>The standard fix is the <strong>non-centered parameterization</strong>: sample standardized effects and scale them,</p>
 <p><span class="math display">\[z_j \sim \text{Normal}(0, 1), \qquad u_j = \tau \, z_j\]</span></p>
-<p>Same model, different geometry: the <span class="math inline">\(z_j\)</span> don’t get squeezed when <span class="math inline">\(\tau\)</span> is small. brms already does this for you (you’ll see it in <code>stancode()</code> in the multilevel weeks), but knowing why helps when you write your own Stan code.</p>
+<p>Same model, different geometry: the <span class="math inline">\(z_j\)</span> don’t get squeezed when <span class="math inline">\(\tau\)</span> is small. <strong>brms already does this automatically</strong> for every group-level term like <code>(1 | group)</code>, so you never have to. If a brms multilevel model still shows divergences, use the fixes from earlier: better priors (especially on <span class="math inline">\(\tau\)</span>) and a higher <code>adapt_delta</code>.</p>
 </section>
 <section id="every-time-you-fit-a-model" class="slide level2 smaller">
 <h2>Every time you fit a model</h2>
