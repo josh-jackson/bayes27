@@ -721,32 +721,11 @@
     "text": "Posterior predictive distribution: what it’s for\n\nWe compare the simulated datasets with the original data to check whether the model + its posterior can (approximately) reproduce what we observed.\nIf not, then you should question both your model and the posterior.\nWe can also use the model+posterior to generate (new) predictions about novel scenarios, e.g., those that don’t exist in the dataset"
   },
   {
-    "objectID": "mcmc-5.html#how-do-we-estimate-the-posterior",
-    "href": "mcmc-5.html#how-do-we-estimate-the-posterior",
-    "title": "MCMC",
-    "section": "How do we estimate the posterior?",
-    "text": "How do we estimate the posterior?\n\nGrid, normal (quadratic) approximations, analytic/conjugate, MCMC\nMCMC refers to a set of algorithms that sample from a probability distribution\nLogic: if we don’t know a distribution we draw samples from it. Instead of computations to directly specify the shape of the posterior, we get samples from this distribution and use these samples to describe the posterior.\nThink of marbles in the bag – we don’t know what that looks like but we can sample from it to compute a posterior."
-  },
-  {
     "objectID": "mcmc-5.html#why-this-way",
     "href": "mcmc-5.html#why-this-way",
     "title": "MCMC",
     "section": "Why this way?",
     "text": "Why this way?\n\nShort answer: computation is difficult.\nComputation of the posterior requires three terms: a prior, a likelihood and the evidence. The evidence (aka probability of the data; marginal likelihood) normalizes the posterior so it integrates (adds up) to 1.\nWe assume a prior distribution and we can compute a likelihood based on what we know about the distribution we assumed for the DGP (most of the time). The tricky part is the evidence. This makes computation analytically intractable.\n\n\\[ p(x) = \\int_\\theta p(x|\\theta)p(\\theta)d(\\theta) \\]\nTwo ways around this integral: make it easy (conjugate priors), or avoid it entirely (MCMC)."
-  },
-  {
-    "objectID": "mcmc-5.html#conjugate-priors",
-    "href": "mcmc-5.html#conjugate-priors",
-    "title": "MCMC",
-    "section": "Conjugate priors",
-    "text": "Conjugate priors\n\nWith many parameters it is basically impossible to compute analytically. “Bayesian analysis is hard because integrals are hard”. Maximization (derivatives) is easier than integrals, which is why frequentist is so popular.\nConjugate priors are a less computational heavy approach to solving the integral problem. If posterior is from the same family as prior then it is easier to compute the evidence. E.g., a normal likelihood (with known σ) and a normal prior on the mean give a normal posterior; a binomial likelihood and a beta prior give a beta posterior (what we did on the grid in week 1); for a variance, the conjugate prior is an inverse-gamma. As a result the posterior, p( \\(\\theta\\) | data), becomes analytically tractable."
-  },
-  {
-    "objectID": "mcmc-5.html#why-we-can-ignore-the-evidence",
-    "href": "mcmc-5.html#why-we-can-ignore-the-evidence",
-    "title": "MCMC",
-    "section": "Why we can ignore the evidence",
-    "text": "Why we can ignore the evidence\n\\[p(\\theta | data) = \\frac{p(data | \\theta) \\times p(\\theta )}{p(data)}\\]\nThe evidence is a constant with respect to \\(\\theta\\) so the equation is often presented as:\n\\[ p(\\theta | data) \\propto p(data | \\theta) \\times p(\\theta ) \\] “The posterior is proportional to the likelihood X the prior.”\nAs long as we can calculate the right side of the equation we can then sample from the posterior distribution"
   },
   {
     "objectID": "mcmc-5.html#markov-chain-monte-carlo",
@@ -805,25 +784,11 @@
     "text": "Metropolis, step by step (5)\n\nStep size = how big the random nudge is, and it matters\nToo small: almost every proposal is accepted, but the hiker inches along and rarely makes it across a valley to another hill\nToo big: proposals often land far down in low ground (like this one) and get rejected, so the hiker stands still a lot"
   },
   {
-    "objectID": "mcmc-5.html#samples-in-the-long-run",
-    "href": "mcmc-5.html#samples-in-the-long-run",
-    "title": "MCMC",
-    "section": "samples in the long run…",
-    "text": "samples in the long run…\n…will approximate the posterior distribution. The resulting chain will have the correct density in proportion to the posterior distribution.\n\n\nCode\nnum &lt;- 1000\npositions &lt;- rep(0, num) \ncurrent   &lt;- 10\n\nfor (i in 1:num) {\n  \n  # record current position \n  positions[i] &lt;- current\n  # flip coin to generate proposal\n  proposal &lt;- current + sample(c(-1, 1), size = 1)\n  # now make sure he loops around the archipelago \n  if (proposal &lt; 1) proposal &lt;- 10\n  if (proposal &gt; 10) proposal &lt;- 1\n  # move?\n  prob_move &lt;- proposal/current\n  current &lt;- ifelse(runif(1) &lt; prob_move, proposal, current)\n  \n}  \n\nlibrary(tidyverse)\n\ntibble(week   = 1:1000,\n       iteration = positions) %&gt;%\n  ggplot(aes(x = week, y = iteration)) +\n  geom_point(shape = 1) +\n  scale_x_continuous(breaks = seq(from = 0, to = 1000, by = 100)) +\n  scale_y_continuous(limits = c(-2, 13), breaks = seq(from = -2, to = 15, by = 2)) +\n  coord_cartesian(xlim = c(0, 1000)) +\n  labs(title = \"Metropolis algorithm\")+\n  xlab(\"iteration\") + ylab(\"value\")"
-  },
-  {
     "objectID": "mcmc-5.html#multivariate-posterior-distributions",
     "href": "mcmc-5.html#multivariate-posterior-distributions",
     "title": "MCMC",
     "section": "Multivariate posterior distributions",
     "text": "Multivariate posterior distributions\n\nPosteriors are not simple hill climbing exercises, instead they represent high dimensional spaces. These high dimensional spaces make it such that there is a lot of space to explore.\nTo visualize posteriors we usually “marginalize” them: look at one parameter at a time, averaged over all the others."
-  },
-  {
-    "objectID": "mcmc-5.html#two-variables-at-once",
-    "href": "mcmc-5.html#two-variables-at-once",
-    "title": "MCMC",
-    "section": "Two variables at once",
-    "text": "Two variables at once\n\n\nCode\ndata &lt;- read.csv(\"week3.csv\") %&gt;%   # also at https://josh-jackson.github.io/bayes27/week3.csv\n  select(-ID, -SES)\n\nlibrary(ggExtra)\n\np &lt;- ggplot(data, aes(x=friends, y=health)) +\n      geom_point() +\n      theme(legend.position=\"none\")\n\np2 &lt;- ggMarginal(p, type=\"density\")\np2"
   },
   {
     "objectID": "mcmc-5.html#a-correlated-posterior",
@@ -851,49 +816,14 @@
     "href": "mcmc-5.html#concentration-of-measure",
     "title": "MCMC",
     "section": "Concentration of measure",
-    "text": "Concentration of measure\n\nWith high dimensional posteriors we need a different approach than guess and check. Becomes inefficient with greater rejections or exploration of same space.\nCannot just focus on the mode, we need to focus on the volume. The volume is an important part of the integral we are trying to solve with MCMC. Most of the volume is away from the mode."
-  },
-  {
-    "objectID": "mcmc-5.html#where-the-volume-is-1",
-    "href": "mcmc-5.html#where-the-volume-is-1",
-    "title": "MCMC",
-    "section": "Where the volume is (1)",
-    "text": "Where the volume is (1)"
-  },
-  {
-    "objectID": "mcmc-5.html#where-the-volume-is-2",
-    "href": "mcmc-5.html#where-the-volume-is-2",
-    "title": "MCMC",
-    "section": "Where the volume is (2)",
-    "text": "Where the volume is (2)"
-  },
-  {
-    "objectID": "mcmc-5.html#where-the-volume-is-3",
-    "href": "mcmc-5.html#where-the-volume-is-3",
-    "title": "MCMC",
-    "section": "Where the volume is (3)",
-    "text": "Where the volume is (3)"
+    "text": "Concentration of measure\n\nWith many parameters, guess and check (Metropolis) becomes very inefficient: most proposals get rejected, or the chain keeps re-exploring the same ground.\nThe reason is surprising. Probability = height × room. The mode is the highest point, but there’s almost no room near it. Far out there’s lots of room but almost no height. With many parameters, most of the probability ends up in between, away from the mode."
   },
   {
     "objectID": "mcmc-5.html#hamiltonian-mcmc",
     "href": "mcmc-5.html#hamiltonian-mcmc",
     "title": "MCMC",
     "section": "Hamiltonian MCMC",
-    "text": "Hamiltonian MCMC\n\nA different approach to guess and check; a physics simulation!\nPretend you have a hockey puck and flick it on an air hockey table that represent the minus log of the posterior (for a gaussian this would be a valley or a bowl). After a flick, we will record the position after a certain time. No rejections (almost)! Depending on the topography the puck will go slower or faster and change direction.\nProposals based on the gradient, which is just the slope via derivative."
-  },
-  {
-    "objectID": "mcmc-5.html#gradient-descent",
-    "href": "mcmc-5.html#gradient-descent",
-    "title": "MCMC",
-    "section": "gradient descent",
-    "text": "gradient descent\n\nMaximum likelihood is \\(L(\\theta|X) = f(X|\\theta)\\) , the probability of obtaining data 𝑋 given some value of theta 𝜃, with some likelihood function that allows this calculation\nGradient descent is one such algorithm that could see what theta most likely.\nThe EM algorithm (Expectation–Maximization) is another common one. More of an iterative hike (E-step to M-step) rather than skateboarding"
-  },
-  {
-    "objectID": "mcmc-5.html#gradient-descent-pictured",
-    "href": "mcmc-5.html#gradient-descent-pictured",
-    "title": "MCMC",
-    "section": "Gradient descent, pictured",
-    "text": "Gradient descent, pictured"
+    "text": "Hamiltonian MCMC\n\nInstead of guessing a direction, use the slope of the posterior (the gradient) to glide along the band. Long steps, and they still get accepted. It’s a physics simulation!\nPretend you have a hockey puck and flick it on an air hockey table that represent the minus log of the posterior (for a gaussian this would be a valley or a bowl). After a flick, we will record the position after a certain time. No rejections (almost)! Depending on the topography the puck will go slower or faster and change direction.\nProposals based on the gradient, which is just the slope via derivative."
   },
   {
     "objectID": "mcmc-5.html#visualize-h-mcmc",
@@ -931,25 +861,11 @@
     "text": "A model to diagnose\n\n\nCode\nlibrary(tidyverse)\nlibrary(brms)\n\nweek3 &lt;- read.csv(\"week3.csv\") %&gt;%   # also at https://josh-jackson.github.io/bayes27/week3.csv\n  dplyr::select(-ID, -SES) %&gt;% \n  mutate(mood.group.d = factor(mood.group) %&gt;% \n           fct_recode(\"control\" = \"0\", \"tx\" = \"1\", \"tx\" = \"2\"))\n\n\nh.3 &lt;- \n  brm(family = gaussian,\n      health ~ 0 + mood.group.d,\n      prior = c(prior(normal(0, 10), class = b),\n                prior(cauchy(0, 10), class = sigma)),\n      data = week3,\n      iter = 1000, warmup = 500, chains = 2, cores = 2,\n      backend = \"cmdstanr\",\n      file = \"h.3\")\nsummary(h.3)\n\n\n Family: gaussian \n  Links: mu = identity \nFormula: health ~ 0 + mood.group.d \n   Data: week3 (Number of observations: 200) \n  Draws: 2 chains, each with iter = 1000; warmup = 500; thin = 1;\n         total post-warmup draws = 1000\n\nRegression Coefficients:\n                    Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nmood.group.dcontrol     7.98      0.35     7.25     8.66 1.00      858      677\nmood.group.dtx          8.78      0.24     8.29     9.21 1.00      882      656\n\nFurther Distributional Parameters:\n      Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nsigma     2.83      0.14     2.57     3.10 1.00     1086      609\n\nDraws were sampled using sample(hmc). For each parameter, Bulk_ESS\nand Tail_ESS are effective sample size measures, and Rhat is the potential\nscale reduction factor on split chains (at convergence, Rhat = 1)."
   },
   {
-    "objectID": "mcmc-5.html#auto-regressive-correlation-across-chains",
-    "href": "mcmc-5.html#auto-regressive-correlation-across-chains",
-    "title": "MCMC",
-    "section": "Auto regressive correlation across chains",
-    "text": "Auto regressive correlation across chains\n\n\nCode\nlibrary(bayesplot)\nmcmc_acf(h.3, pars = c(\"b_mood.group.dcontrol\", \"b_mood.group.dtx\", \"sigma\"))"
-  },
-  {
     "objectID": "mcmc-5.html#how-many-chains-do-you-need",
     "href": "mcmc-5.html#how-many-chains-do-you-need",
     "title": "MCMC",
     "section": "How many chains do you need?",
     "text": "How many chains do you need?\n\nEnough to check convergence: several chains from different starting points should end up describing the same distribution.\nMore chains cost more warmup (each chain throws its own away), and they only run in parallel if you have the cores.\nThe Stan team suggests that 4 chains are adequate for checking convergence. brms defaults are iter = 2000 and warmup = 1000 which yields 4000 usable posterior samples ((iter - warmup) * chains).\n\nWhen setting up models: one short chain to debug, four chains for verification and inference"
-  },
-  {
-    "objectID": "mcmc-5.html#how-many-chains-the-recommendation",
-    "href": "mcmc-5.html#how-many-chains-the-recommendation",
-    "title": "MCMC",
-    "section": "How many chains: the recommendation",
-    "text": "How many chains: the recommendation\n\nThe Stan team suggests that 4 chains are adequate for checking convergence. brms defaults are iter = 2000 and warmup = 1000 which yields 4000 usable posterior samples ((iter - warmup) * chains).\n\nWhen setting up models: one short chain to debug, four chains for verification and inference"
   },
   {
     "objectID": "mcmc-5.html#checking-convergence",
@@ -8631,17 +8547,45 @@
     "text": "Born at Los Alamos, used everywhere\n\n1953: Nicholas Metropolis, Arianna and Marshall Rosenbluth, and Augusta and Edward Teller needed to average over more arrangements of atoms than could ever be listed. On MANIAC, one of the first computers, they used the hiker’s rule: wander, preferring likely states. (Arianna Rosenbluth wrote the code.)\n1970: Hastings generalized it. 1990: Gelfand and Smith showed statisticians it made Bayesian models practical, and Bayesian statistics took off\nNamed one of the top 10 algorithms of the 20th century\nStill everywhere, because it works when the landscape is too big to map: physicists estimating the parameters of the universe from the cosmic microwave background, biologists reconstructing evolutionary trees, epidemiologists estimating the effects of COVID-19 lockdowns, election forecasters, and every brm() you run"
   },
   {
-    "objectID": "mcmc-5.html#did-the-king-visit-in-proportion-to-population",
-    "href": "mcmc-5.html#did-the-king-visit-in-proportion-to-population",
-    "title": "MCMC",
-    "section": "Did the king visit in proportion to population?",
-    "text": "Did the king visit in proportion to population?\nIsland 10 has 10× the people of island 1, so it should get 10× the weeks (orange dots: 18% vs 2%). Grey bars: the share of weeks the king actually spent on each island.\n\n\nCode\nlibrary(patchwork)\n# the same rule, run for 100,000 weeks\nrun_king &lt;- function(num, start = 10) {\n  positions &lt;- rep(0, num); current &lt;- start\n  for (i in 1:num) {\n    positions[i] &lt;- current\n    proposal &lt;- current + sample(c(-1, 1), size = 1)\n    if (proposal &lt; 1) proposal &lt;- 10\n    if (proposal &gt; 10) proposal &lt;- 1\n    current &lt;- ifelse(runif(1) &lt; proposal / current, proposal, current)\n  }\n  positions\n}\npositions_long &lt;- run_king(1e5)\n\nvisit_plot &lt;- function(pos, title) {\n  tibble(island = pos) %&gt;%\n    count(island) %&gt;%\n    mutate(share = n / sum(n), target = island / sum(1:10)) %&gt;%\n    ggplot(aes(x = island)) +\n    geom_col(aes(y = share), fill = \"grey70\") +\n    geom_point(aes(y = target), colour = \"#D55E00\", size = 3) +\n    scale_x_continuous(breaks = 1:10) +\n    coord_cartesian(ylim = c(0, .2)) +\n    labs(y = \"share of weeks\", title = title) +\n    theme_classic(base_size = 13)\n}\nvisit_plot(positions, \"after 1,000 weeks\") | visit_plot(positions_long, \"after 100,000 weeks\")\n\n\n\n\n\n\n\n\n\n\n1,000 weeks: rough. The king moves one island at a time, so he lingers in one neighborhood for weeks before drifting to the next, and a short run over- or under-counts whole stretches of islands\n100,000 weeks: right on target. He never computed those percentages; he only compared neighbors"
-  },
-  {
     "objectID": "mcmc-5.html#did-the-king-hit-his-target",
     "href": "mcmc-5.html#did-the-king-hit-his-target",
     "title": "MCMC",
     "section": "Did the king hit his target?",
     "text": "Did the king hit his target?\nOrange: the target. Island 10 has 10× the people of island 1, so it should get 10× the weeks (18% vs 2%). Grey: the share of weeks the king actually spent there.\n\n\nCode\ntibble(island = positions) %&gt;%\n  count(island) %&gt;%\n  mutate(share = n / sum(n), target = island / sum(1:10)) %&gt;%\n  ggplot(aes(x = island)) +\n  geom_col(aes(y = share), fill = \"grey70\") +\n  geom_point(aes(y = target), colour = \"#D55E00\", size = 3) +\n  scale_x_continuous(breaks = 1:10) +\n  labs(y = \"share of weeks\", title = \"after 1,000 weeks\") +\n  theme_classic(base_size = 13)\n\n\n\n\n\n\n\n\n\n\n1,000 weeks is about 19 years of island hopping, and the king never computed those percentages; he only compared neighbors\nClose but not exact. As the number of weeks grows, the grey bars get closer and closer to the orange target"
+  },
+  {
+    "objectID": "mcmc-5.html#where-the-room-is-1",
+    "href": "mcmc-5.html#where-the-room-is-1",
+    "title": "MCMC",
+    "section": "Where the room is (1)",
+    "text": "Where the room is (1)\nOne parameter: the middle third of the range is 1/3 of the space."
+  },
+  {
+    "objectID": "mcmc-5.html#where-the-room-is-2",
+    "href": "mcmc-5.html#where-the-room-is-2",
+    "title": "MCMC",
+    "section": "Where the room is (2)",
+    "text": "Where the room is (2)\nTwo parameters: the middle square is 1/9 of the space."
+  },
+  {
+    "objectID": "mcmc-5.html#where-the-room-is-3",
+    "href": "mcmc-5.html#where-the-room-is-3",
+    "title": "MCMC",
+    "section": "Where the room is (3)",
+    "text": "Where the room is (3)\nThree parameters: the middle cube is 1/27. With 10 parameters it’s 1/59,049 (0.002%). Almost all the room is out toward the edges."
+  },
+  {
+    "objectID": "mcmc-5.html#why-that-breaks-the-hiker",
+    "href": "mcmc-5.html#why-that-breaks-the-hiker",
+    "title": "MCMC",
+    "section": "Why that breaks the hiker",
+    "text": "Why that breaks the hiker\nFrom a spot in that band, almost every random direction leads off it: outward to low ground, or inward where there’s no room. So most Metropolis proposals get rejected. Here is Metropolis on a normal posterior, same step size (0.5 SD) every time:\n\n\nCode\nmetropolis_accept &lt;- function(n_par, step = 0.5, n_iter = 5000) {\n  here &lt;- rep(0, n_par); accepted &lt;- 0\n  for (i in 1:n_iter) {\n    proposal &lt;- here + rnorm(n_par, 0, step)\n    if (log(runif(1)) &lt; sum(dnorm(proposal, log = TRUE)) - sum(dnorm(here, log = TRUE))) {\n      here &lt;- proposal; accepted &lt;- accepted + 1\n    }\n  }\n  accepted / n_iter\n}\nset.seed(1)\ntibble(parameters = c(1, 10, 100)) %&gt;%\n  mutate(`proposals accepted` = scales::percent(map_dbl(parameters, metropolis_accept), accuracy = 0.1)) %&gt;%\n  knitr::kable()\n\n\n\n\n\nparameters\nproposals accepted\n\n\n\n\n1\n83.7%\n\n\n10\n44.6%\n\n\n100\n0.0%\n\n\n\n\n\n\nThe usual fix: shrink the steps as the number of parameters grows. Then proposals are accepted, but the hiker inches along and successive draws are nearly identical\nWhat we want instead: a sampler that knows which way the band curves, so it can take long steps and stay on it"
+  },
+  {
+    "objectID": "mcmc-5.html#near-the-peak-all-at-once",
+    "href": "mcmc-5.html#near-the-peak-all-at-once",
+    "title": "MCMC",
+    "section": "Near the peak, all at once?",
+    "text": "Near the peak, all at once?\nSay each parameter is normal (and independent, to keep it simple). One parameter is within 1 SD of its peak in 68% of draws. To be near the mode of the whole model, every parameter has to be within 1 SD at once.\n\n\nCode\nwithin_1sd &lt;- pnorm(1) - pnorm(-1)                     # 0.68\ntibble(parameters = 1:25, share = within_1sd^parameters) %&gt;%\n  ggplot(aes(parameters, share)) +\n  geom_line(colour = \"#0072B2\", linewidth = 1) +\n  geom_point(colour = \"#0072B2\") +\n  scale_y_continuous(labels = scales::percent) +\n  labs(x = \"number of parameters\", y = \"draws with every\\nparameter within 1 SD\") +\n  theme_classic(base_size = 13)\n\n\n\n\n\n\n\n\n\n\n10 parameters: 2% of draws (a typical draw has about 3 parameters out past 1 SD). 100 parameters: about 1 in 40 quadrillion\nSo you’ll never see a draw near the mode, though it’s the single most likely point. The draws live in a band away from it, and that’s where the sampler has to work"
   }
 ]

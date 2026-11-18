@@ -406,25 +406,78 @@ cor %>%
 
 ## Concentration of measure
 
--   With high dimensional posteriors we need a different approach than guess and check. Becomes inefficient with greater rejections or exploration of same space.
+-   With many parameters, guess and check (Metropolis) becomes very inefficient: most proposals get rejected, or the chain keeps re-exploring the same ground.
 
--   Cannot just focus on the mode, we need to focus on the volume. The volume is an important part of the integral we are trying to solve with MCMC. Most of the volume is away from the mode.
+-   The reason is surprising. **Probability = height × room.** The mode is the highest point, but there's almost no room near it. Far out there's lots of room but almost no height. With many parameters, most of the probability ends up in between, away from the mode.
 
-## Where the volume is (1)
+## Where the room is (1)
 
-![](met6.png)
+One parameter: the middle third of the range is **1/3** of the space.
 
-## Where the volume is (2)
+![](met6.png){.r-stretch}
 
-![](met7.png)
+## Where the room is (2)
 
-## Where the volume is (3)
+Two parameters: the middle square is **1/9** of the space.
 
-![](met8.png)
+![](met7.png){.r-stretch}
 
-## Hamiltonian MCMC
+## Where the room is (3)
 
--   A different approach to guess and check; a physics simulation!
+Three parameters: the middle cube is **1/27**. With 10 parameters it's 1/59,049 (0.002%). Almost all the room is out toward the edges.
+
+![](met8.png){.r-stretch}
+
+## Near the peak, all at once? {.smaller .nostretch}
+
+Say each parameter is normal (and independent, to keep it simple). One parameter is within 1 SD of its peak in 68% of draws. To be near the mode of the *whole* model, **every** parameter has to be within 1 SD at once.
+
+```{r}
+#| code-fold: true
+#| fig-height: 2.2
+#| fig-width: 8
+#| out-width: "70%"
+within_1sd <- pnorm(1) - pnorm(-1)                     # 0.68
+tibble(parameters = 1:25, share = within_1sd^parameters) %>%
+  ggplot(aes(parameters, share)) +
+  geom_line(colour = "#0072B2", linewidth = 1) +
+  geom_point(colour = "#0072B2") +
+  scale_y_continuous(labels = scales::percent) +
+  labs(x = "number of parameters", y = "draws with every\nparameter within 1 SD") +
+  theme_classic(base_size = 13)
+```
+
+-   10 parameters: `r round(100 * (pnorm(1) - pnorm(-1))^10)`% of draws (a typical draw has about 3 parameters out past 1 SD). 100 parameters: about 1 in 40 quadrillion
+-   So you'll never see a draw near the mode, though it's the single most likely point. The draws live in a band away from it, and that's where the sampler has to work
+
+## Why that breaks the hiker {.smaller}
+
+From a spot in that band, almost every random direction leads off it: outward to low ground, or inward where there's no room. So most Metropolis proposals get rejected. Here is Metropolis on a normal posterior, same step size (0.5 SD) every time:
+
+```{r}
+#| code-fold: true
+metropolis_accept <- function(n_par, step = 0.5, n_iter = 5000) {
+  here <- rep(0, n_par); accepted <- 0
+  for (i in 1:n_iter) {
+    proposal <- here + rnorm(n_par, 0, step)
+    if (log(runif(1)) < sum(dnorm(proposal, log = TRUE)) - sum(dnorm(here, log = TRUE))) {
+      here <- proposal; accepted <- accepted + 1
+    }
+  }
+  accepted / n_iter
+}
+set.seed(1)
+tibble(parameters = c(1, 10, 100)) %>%
+  mutate(`proposals accepted` = scales::percent(map_dbl(parameters, metropolis_accept), accuracy = 0.1)) %>%
+  knitr::kable()
+```
+
+-   The usual fix: shrink the steps as the number of parameters grows. Then proposals are accepted, but the hiker inches along and successive draws are nearly identical
+-   What we want instead: a sampler that knows which way the band curves, so it can take long steps and stay on it
+
+## Hamiltonian MCMC {.smaller}
+
+-   Instead of guessing a direction, use the slope of the posterior (the gradient) to glide along the band. Long steps, and they still get accepted. It's a physics simulation!
 
 -   Pretend you have a hockey puck and flick it on an air hockey table that represent the minus log of the posterior (for a gaussian this would be a valley or a bowl). After a flick, we will record the position after a certain time. No rejections (almost)! Depending on the topography the puck will go slower or faster and change direction.
 
