@@ -221,20 +221,24 @@
 <li><p>We assume a prior distribution and we can compute a likelihood based on what we know about the distribution we assumed for the DGP (most of the time). The tricky part is the evidence. This makes computation analytically intractable.</p></li>
 </ul>
 <p><span class="math display">\[ p(x) = \int_\theta p(x|\theta)p(\theta)d(\theta) \]</span></p>
+<p>Two ways around this integral: make it easy (conjugate priors), or avoid it entirely (MCMC).</p>
 </section>
-<section id="conjugate-priors" class="slide level2 smaller">
-<h2>Conjugate priors</h2>
+<section id="escape-1-conjugate-priors" class="slide level2 smaller">
+<h2>Escape 1: conjugate priors</h2>
 <ul>
 <li><p>With many parameters it is basically impossible to compute analytically. “Bayesian analysis is hard because integrals are hard”. Maximization (derivatives) is easier than integrals, which is why frequentist is so popular.</p></li>
 <li><p>Conjugate priors are a less computational heavy approach to solving the integral problem. If posterior is from the same family as prior then it is easier to compute the evidence. E.g., a normal likelihood (with known σ) and a normal prior on the mean give a normal posterior; a binomial likelihood and a beta prior give a beta posterior (what we did on the grid in week 1); for a variance, the conjugate prior is an inverse-gamma. As a result the posterior, p( <span class="math inline">\(\theta\)</span> | data), becomes analytically tractable.</p></li>
+<li><p>The catch: only a handful of simple prior–likelihood pairs are conjugate. Logistic regression, multilevel models, and most of what we’ll fit this semester have none, so we need another way.</p></li>
 </ul>
 </section>
-<section id="why-we-can-ignore-the-evidence" class="slide level2">
-<h2>Why we can ignore the evidence</h2>
+<section id="escape-2-we-dont-need-the-evidence" class="slide level2 smaller">
+<h2>Escape 2: we don’t need the evidence</h2>
 <p><span class="math display">\[p(\theta | data) = \frac{p(data | \theta) \times p(\theta )}{p(data)}\]</span></p>
-<p>The evidence is a constant with respect to <span class="math inline">\(\theta\)</span> so the equation is often presented as:</p>
-<p><span class="math display">\[ p(\theta | data) \propto p(data | \theta) \times p(\theta ) \]</span> “The posterior is proportional to the likelihood X the prior.”</p>
-<p>As long as we can calculate the right side of the equation we can then sample from the posterior distribution</p>
+<p>The evidence doesn’t depend on <span class="math inline">\(\theta\)</span>: it’s the same number for every possible value. So</p>
+<p><span class="math display">\[ p(\theta | data) \propto p(data | \theta) \times p(\theta ) \]</span> “The posterior is proportional to the likelihood × the prior.”</p>
+<p>And when we <strong>compare</strong> two values of <span class="math inline">\(\theta\)</span>, the evidence cancels:</p>
+<p><span class="math display">\[\frac{p(\theta_1 | data)}{p(\theta_2 | data)} = \frac{p(data | \theta_1)\, p(\theta_1)}{p(data | \theta_2)\, p(\theta_2)}\]</span></p>
+<p>That’s all MCMC needs. It never computes the posterior’s height; it only asks “is this value more or less plausible than where I am now?” (the Metropolis acceptance ratio, coming up).</p>
 </section>
 <section id="markov-chain-monte-carlo" class="slide level2 smaller">
 <h2>Markov Chain Monte Carlo</h2>

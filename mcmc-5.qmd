@@ -26,21 +26,29 @@ execute:
 
 $$ p(x) = \int_\theta p(x|\theta)p(\theta)d(\theta) $$
 
-## Conjugate priors {.smaller}
+Two ways around this integral: make it easy (conjugate priors), or avoid it entirely (MCMC).
+
+## Escape 1: conjugate priors {.smaller}
 
 -   With many parameters it is basically impossible to compute analytically. "Bayesian analysis is hard because integrals are hard". Maximization (derivatives) is easier than integrals, which is why frequentist is so popular.
 
 -   Conjugate priors are a less computational heavy approach to solving the integral problem. If posterior is from the same family as prior then it is easier to compute the evidence. E.g., a normal likelihood (with known σ) and a normal prior on the mean give a normal posterior; a binomial likelihood and a beta prior give a beta posterior (what we did on the grid in week 1); for a variance, the conjugate prior is an inverse-gamma. As a result the posterior, p( $\theta$ \| data), becomes analytically tractable.
 
-## Why we can ignore the evidence
+-   The catch: only a handful of simple prior–likelihood pairs are conjugate. Logistic regression, multilevel models, and most of what we'll fit this semester have none, so we need another way.
+
+## Escape 2: we don't need the evidence {.smaller}
 
 $$p(\theta | data) = \frac{p(data | \theta) \times p(\theta )}{p(data)}$$
 
-The evidence is a constant with respect to $\theta$ so the equation is often presented as:
+The evidence doesn't depend on $\theta$: it's the same number for every possible value. So
 
-$$ p(\theta | data) \propto p(data | \theta) \times p(\theta ) $$ "The posterior is proportional to the likelihood X the prior."
+$$ p(\theta | data) \propto p(data | \theta) \times p(\theta ) $$ "The posterior is proportional to the likelihood × the prior."
 
-As long as we can calculate the right side of the equation we can then sample from the posterior distribution
+And when we **compare** two values of $\theta$, the evidence cancels:
+
+$$\frac{p(\theta_1 | data)}{p(\theta_2 | data)} = \frac{p(data | \theta_1)\, p(\theta_1)}{p(data | \theta_2)\, p(\theta_2)}$$
+
+That's all MCMC needs. It never computes the posterior's height; it only asks "is this value more or less plausible than where I am now?" (the Metropolis acceptance ratio, coming up).
 
 ## Markov Chain Monte Carlo {.smaller}
 

@@ -732,7 +732,7 @@
     "href": "mcmc-5.html#why-this-way",
     "title": "MCMC",
     "section": "Why this way?",
-    "text": "Why this way?\n\nShort answer: computation is difficult.\nComputation of the posterior requires three terms: a prior, a likelihood and the evidence. The evidence (aka probability of the data; marginal likelihood) normalizes the posterior so it integrates (adds up) to 1.\nWe assume a prior distribution and we can compute a likelihood based on what we know about the distribution we assumed for the DGP (most of the time). The tricky part is the evidence. This makes computation analytically intractable.\n\n\\[ p(x) = \\int_\\theta p(x|\\theta)p(\\theta)d(\\theta) \\]"
+    "text": "Why this way?\n\nShort answer: computation is difficult.\nComputation of the posterior requires three terms: a prior, a likelihood and the evidence. The evidence (aka probability of the data; marginal likelihood) normalizes the posterior so it integrates (adds up) to 1.\nWe assume a prior distribution and we can compute a likelihood based on what we know about the distribution we assumed for the DGP (most of the time). The tricky part is the evidence. This makes computation analytically intractable.\n\n\\[ p(x) = \\int_\\theta p(x|\\theta)p(\\theta)d(\\theta) \\]\nTwo ways around this integral: make it easy (conjugate priors), or avoid it entirely (MCMC)."
   },
   {
     "objectID": "mcmc-5.html#conjugate-priors",
@@ -8580,5 +8580,19 @@
     "title": "MCMC",
     "section": "Every time you fit a model",
     "text": "Every time you fit a model\n\nRead the warnings brms prints. Don’t ignore them\nR-hat &lt; 1.01 for every parameter\nBulk and Tail ESS &gt; 400 for every parameter you report\nTrace and rank plots: fuzzy caterpillars, flat rank histograms\nZero divergences. Any divergence means look at the model, not just adapt_delta\npp_check(): the model can sample well and still be the wrong model\n\nIf something fails: check the model first (priors, redundant parameters), run longer second, tune the sampler last."
+  },
+  {
+    "objectID": "mcmc-5.html#escape-1-conjugate-priors",
+    "href": "mcmc-5.html#escape-1-conjugate-priors",
+    "title": "MCMC",
+    "section": "Escape 1: conjugate priors",
+    "text": "Escape 1: conjugate priors\n\nWith many parameters it is basically impossible to compute analytically. “Bayesian analysis is hard because integrals are hard”. Maximization (derivatives) is easier than integrals, which is why frequentist is so popular.\nConjugate priors are a less computational heavy approach to solving the integral problem. If posterior is from the same family as prior then it is easier to compute the evidence. E.g., a normal likelihood (with known σ) and a normal prior on the mean give a normal posterior; a binomial likelihood and a beta prior give a beta posterior (what we did on the grid in week 1); for a variance, the conjugate prior is an inverse-gamma. As a result the posterior, p( \\(\\theta\\) | data), becomes analytically tractable.\nThe catch: only a handful of simple prior–likelihood pairs are conjugate. Logistic regression, multilevel models, and most of what we’ll fit this semester have none, so we need another way."
+  },
+  {
+    "objectID": "mcmc-5.html#escape-2-we-dont-need-the-evidence",
+    "href": "mcmc-5.html#escape-2-we-dont-need-the-evidence",
+    "title": "MCMC",
+    "section": "Escape 2: we don’t need the evidence",
+    "text": "Escape 2: we don’t need the evidence\n\\[p(\\theta | data) = \\frac{p(data | \\theta) \\times p(\\theta )}{p(data)}\\]\nThe evidence doesn’t depend on \\(\\theta\\): it’s the same number for every possible value. So\n\\[ p(\\theta | data) \\propto p(data | \\theta) \\times p(\\theta ) \\] “The posterior is proportional to the likelihood × the prior.”\nAnd when we compare two values of \\(\\theta\\), the evidence cancels:\n\\[\\frac{p(\\theta_1 | data)}{p(\\theta_2 | data)} = \\frac{p(data | \\theta_1)\\, p(\\theta_1)}{p(data | \\theta_2)\\, p(\\theta_2)}\\]\nThat’s all MCMC needs. It never computes the posterior’s height; it only asks “is this value more or less plausible than where I am now?” (the Metropolis acceptance ratio, coming up)."
   }
 ]
