@@ -1264,17 +1264,23 @@ leg_left      1.84     1.72     1.96    1     4527</code></pre>
 </div>
 </div>
 </section>
-<section id="leap-frog-steps-and-nuts" class="slide level2">
-<h2>Leap Frog steps and NUTS</h2>
+<section id="the-two-sampler-settings" class="slide level2 smaller">
+<h2>The two sampler settings</h2>
+<p>Each flick of the puck has two settings. Stan picks both automatically, and two <code>control</code> options let you nudge them.</p>
 <ul>
-<li><p>Need to figure out the correct 1) step size (time interval) and 2) number of leap frog steps (the small steps of each glide, where the gradient is calculated).</p></li>
-<li><p>Step size is done through warm up samples.</p></li>
-<li><p>Number of steps is done with NUTS, the No U-Turn Sampler. It extends the puck’s path (forward and backward in time) until the path starts to double back on itself, a “U-turn”, so each region gets as many steps as it needs and no more.</p></li>
+<li><strong>Step size:</strong> how finely each glide is simulated (the small “leapfrog” steps, each needing the gradient). Warmup tunes it. Smaller steps follow sharp curves more faithfully, so fewer divergences, but each flick takes longer.
+<ul>
+<li><code>adapt_delta</code> (default .8) is the acceptance rate warmup aims for. Raising it to .95 or .99 makes warmup choose smaller steps.</li>
+</ul></li>
+<li><strong>Glide length:</strong> how many steps per flick. NUTS, the No U-Turn Sampler, keeps extending the glide (forward and backward in time) until the path starts to double back on itself, a “U-turn”. Each region gets as many steps as it needs and no more.
+<ul>
+<li><code>max_treedepth</code> (default 10) caps the glide at 2<sup>10</sup> = 1,024 steps. Hitting the cap is the “max treedepth” warning.</li>
+</ul></li>
 </ul>
 </section>
 <section id="fixing-divergences-adapt_delta" class="slide level2">
 <h2>Fixing divergences: adapt_delta</h2>
-<p>If dealing with divergent transitions, increasing the acceptance probability during warm up will result in smaller steps (smaller time interval) and a longer sampling time (but more robust sampling).</p>
+<p>Smaller steps, slower sampling, fewer divergences. Set it in <code>control</code>, and reach for it only after the model is right (better priors usually fix divergences).</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -1291,9 +1297,9 @@ leg_left      1.84     1.72     1.96    1     4527</code></pre>
 </details>
 </div>
 </section>
-<section id="tree-depth" class="slide level2">
-<h2>tree depth</h2>
-<p>Divergent transitions are a validity concern, hitting the maximum treedepth is an efficiency concern. When the maximum allowed tree depth is reached it means the H-MCMC sampler is terminating to avoid excessively long execution time. Treedepth is associated with steps via: 2^treedepth, with 2^10 = 1024 leapfrog steps the default.</p>
+<section id="raising-max_treedepth" class="slide level2">
+<h2>Raising max_treedepth</h2>
+<p>Divergent transitions are a validity concern; hitting the maximum treedepth is an efficiency concern: the glides were cut short, so the sampler explores more slowly. Fix the model first (often a long, narrow posterior); if the model is right, raise the cap.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>

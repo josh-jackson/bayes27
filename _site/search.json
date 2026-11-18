@@ -966,25 +966,11 @@
     "text": "Non-identified: the shape\n\n\nCode\nmcmc_scatter(legs.1, pars = c(\"b_leg_left\", \"b_leg_right\"), alpha = .3)\n\n\n\nThe data only pin down the sum of the two slopes, so the posterior is a long, thin ridge. Running longer maps the ridge more thoroughly but can’t make it narrower: fix the model (drop or combine the duplicate, or give the slopes real priors)."
   },
   {
-    "objectID": "mcmc-5.html#leap-frog-steps-and-nuts",
-    "href": "mcmc-5.html#leap-frog-steps-and-nuts",
-    "title": "MCMC",
-    "section": "Leap Frog steps and NUTS",
-    "text": "Leap Frog steps and NUTS\n\nNeed to figure out the correct 1) step size (time interval) and 2) number of leap frog steps (the small steps of each glide, where the gradient is calculated).\nStep size is done through warm up samples.\nNumber of steps is done with NUTS, the No U-Turn Sampler. It extends the puck’s path (forward and backward in time) until the path starts to double back on itself, a “U-turn”, so each region gets as many steps as it needs and no more."
-  },
-  {
     "objectID": "mcmc-5.html#fixing-divergences-adapt_delta",
     "href": "mcmc-5.html#fixing-divergences-adapt_delta",
     "title": "MCMC",
     "section": "Fixing divergences: adapt_delta",
-    "text": "Fixing divergences: adapt_delta\nIf dealing with divergent transitions, increasing the acceptance probability during warm up will result in smaller steps (smaller time interval) and a longer sampling time (but more robust sampling).\n\n\nCode\nh.3 &lt;- \n  brm(family = gaussian,\n      health ~ 0 + mood.group.d,\n      prior = c(prior(normal(0, 10), class = b),\n                prior(cauchy(0, 10), class = sigma)),\n      data = week3,\n      iter = 1000, warmup = 500, chains = 2, cores = 2, \n      control = list(adapt_delta = .95), # default is .8 \n      file = \"h.3_adapt\")   # a new file name, or brms just loads the old fit\nsummary(h.3)"
-  },
-  {
-    "objectID": "mcmc-5.html#tree-depth",
-    "href": "mcmc-5.html#tree-depth",
-    "title": "MCMC",
-    "section": "tree depth",
-    "text": "tree depth\nDivergent transitions are a validity concern, hitting the maximum treedepth is an efficiency concern. When the maximum allowed tree depth is reached it means the H-MCMC sampler is terminating to avoid excessively long execution time. Treedepth is associated with steps via: 2^treedepth, with 2^10 = 1024 leapfrog steps the default.\n\n\nCode\nh.3 &lt;- \n  brm(family = gaussian,\n      health ~ 0 + mood.group.d,\n      prior = c(prior(normal(0, 10), class = b),\n                prior(cauchy(0, 10), class = sigma)),\n      data = week3,\n      iter = 1000, warmup = 500, chains = 2, cores = 2, \n      control = list(max_treedepth = 15), # default is 10\n      file = \"h.3_treedepth\")\nsummary(h.3)"
+    "text": "Fixing divergences: adapt_delta\nSmaller steps, slower sampling, fewer divergences. Set it in control, and reach for it only after the model is right (better priors usually fix divergences).\n\n\nCode\nh.3 &lt;- \n  brm(family = gaussian,\n      health ~ 0 + mood.group.d,\n      prior = c(prior(normal(0, 10), class = b),\n                prior(cauchy(0, 10), class = sigma)),\n      data = week3,\n      iter = 1000, warmup = 500, chains = 2, cores = 2, \n      control = list(adapt_delta = .95), # default is .8 \n      file = \"h.3_adapt\")   # a new file name, or brms just loads the old fit\nsummary(h.3)"
   },
   {
     "objectID": "mcmc-5.html#preview-divergences-in-multilevel-models",
@@ -8587,5 +8573,19 @@
     "title": "MCMC",
     "section": "Autocorrelation sets the ESS",
     "text": "Autocorrelation sets the ESS\nHow correlated is each draw with the draw lag steps later? (Averaged over chains.)\n\n\nCode\nacf_by_lag &lt;- function(m, par, model_label) {\n  draws_mat &lt;- posterior::extract_variable_matrix(as_draws_array(m), par)   # iterations x chains\n  ess &lt;- round(posterior::ess_bulk(draws_mat))\n  acf_mat &lt;- apply(draws_mat, 2, function(chain) acf(chain, lag.max = 20, plot = FALSE)$acf)\n  tibble(lag = 0:20, autocorrelation = rowMeans(acf_mat),\n         model = paste0(model_label, \": ESS ≈ \", ess, \" of \", length(draws_mat), \" draws\"))\n}\nbind_rows(acf_by_lag(h.3, \"b_mood.group.dcontrol\", \"h.3 (mood groups)\"),\n          acf_by_lag(legs.1, \"b_leg_left\", \"legs.1 (two legs, the ridge)\")) %&gt;%\n  ggplot(aes(lag, autocorrelation, colour = model)) +\n  geom_hline(yintercept = 0, colour = \"grey70\") +\n  geom_line(linewidth = 1) + geom_point() +\n  scale_colour_manual(values = c(\"#0072B2\", \"#D55E00\"), name = NULL) +\n  theme_classic(base_size = 14) + theme(legend.position = \"inside\", legend.position.inside = c(.62, .8))\n\n\n\n\n\n\n\n\n\n\nh.3: the correlation drops to about 0 after one step, so its draws are nearly independent and the ESS is close to the number of draws\nlegs.1: on a ridge, each draw is close to the last, so the correlation fades slowly and the draws are worth far fewer independent ones"
+  },
+  {
+    "objectID": "mcmc-5.html#the-two-sampler-settings",
+    "href": "mcmc-5.html#the-two-sampler-settings",
+    "title": "MCMC",
+    "section": "The two sampler settings",
+    "text": "The two sampler settings\nEach flick of the puck has two settings. Stan picks both automatically, and two control options let you nudge them.\n\nStep size: how finely each glide is simulated (the small “leapfrog” steps, each needing the gradient). Warmup tunes it. Smaller steps follow sharp curves more faithfully, so fewer divergences, but each flick takes longer.\n\nadapt_delta (default .8) is the acceptance rate warmup aims for. Raising it to .95 or .99 makes warmup choose smaller steps.\n\nGlide length: how many steps per flick. NUTS, the No U-Turn Sampler, keeps extending the glide (forward and backward in time) until the path starts to double back on itself, a “U-turn”. Each region gets as many steps as it needs and no more.\n\nmax_treedepth (default 10) caps the glide at 210 = 1,024 steps. Hitting the cap is the “max treedepth” warning."
+  },
+  {
+    "objectID": "mcmc-5.html#raising-max_treedepth",
+    "href": "mcmc-5.html#raising-max_treedepth",
+    "title": "MCMC",
+    "section": "Raising max_treedepth",
+    "text": "Raising max_treedepth\nDivergent transitions are a validity concern; hitting the maximum treedepth is an efficiency concern: the glides were cut short, so the sampler explores more slowly. Fix the model first (often a long, narrow posterior); if the model is right, raise the cap.\n\n\nCode\nh.3 &lt;- \n  brm(family = gaussian,\n      health ~ 0 + mood.group.d,\n      prior = c(prior(normal(0, 10), class = b),\n                prior(cauchy(0, 10), class = sigma)),\n      data = week3,\n      iter = 1000, warmup = 500, chains = 2, cores = 2, \n      control = list(max_treedepth = 15), # default is 10\n      file = \"h.3_treedepth\")\nsummary(h.3)"
   }
 ]

@@ -852,17 +852,19 @@ legs.3 <- brm(height ~ 1 + leg_left, data = legs, chains = 4, cores = 4, seed = 
 summary(legs.3)$fixed[, c("Estimate", "l-95% CI", "u-95% CI", "Rhat", "Bulk_ESS")] %>% round(2) %>% transform(Bulk_ESS = round(Bulk_ESS))
 ```
 
-## Leap Frog steps and NUTS
+## The two sampler settings {.smaller}
 
--   Need to figure out the correct 1) step size (time interval) and 2) number of leap frog steps (the small steps of each glide, where the gradient is calculated).
+Each flick of the puck has two settings. Stan picks both automatically, and two `control` options let you nudge them.
 
--   Step size is done through warm up samples.
+-   **Step size:** how finely each glide is simulated (the small "leapfrog" steps, each needing the gradient). Warmup tunes it. Smaller steps follow sharp curves more faithfully, so fewer divergences, but each flick takes longer.
+    -   `adapt_delta` (default .8) is the acceptance rate warmup aims for. Raising it to .95 or .99 makes warmup choose smaller steps.
 
--   Number of steps is done with NUTS, the No U-Turn Sampler. It extends the puck's path (forward and backward in time) until the path starts to double back on itself, a "U-turn", so each region gets as many steps as it needs and no more.
+-   **Glide length:** how many steps per flick. NUTS, the No U-Turn Sampler, keeps extending the glide (forward and backward in time) until the path starts to double back on itself, a "U-turn". Each region gets as many steps as it needs and no more.
+    -   `max_treedepth` (default 10) caps the glide at 2^10^ = 1,024 steps. Hitting the cap is the "max treedepth" warning.
 
 ## Fixing divergences: adapt_delta
 
-If dealing with divergent transitions, increasing the acceptance probability during warm up will result in smaller steps (smaller time interval) and a longer sampling time (but more robust sampling).
+Smaller steps, slower sampling, fewer divergences. Set it in `control`, and reach for it only after the model is right (better priors usually fix divergences).
 
 ```{r, eval = FALSE}
 #| code-fold: true
@@ -878,9 +880,9 @@ h.3 <-
 summary(h.3)
 ```
 
-## tree depth
+## Raising max_treedepth
 
-Divergent transitions are a validity concern, hitting the maximum treedepth is an efficiency concern. When the maximum allowed tree depth is reached it means the H-MCMC sampler is terminating to avoid excessively long execution time. Treedepth is associated with steps via: 2\^treedepth, with 2\^10 = 1024 leapfrog steps the default.
+Divergent transitions are a validity concern; hitting the maximum treedepth is an efficiency concern: the glides were cut short, so the sampler explores more slowly. Fix the model first (often a long, narrow posterior); if the model is right, raise the cap.
 
 ```{r, eval = FALSE}
 #| code-fold: true
