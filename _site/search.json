@@ -812,13 +812,6 @@
     "text": "samples in the long run…\n…will approximate the posterior distribution. The resulting chain will have the correct density in proportion to the posterior distribution.\n\n\nCode\nnum &lt;- 1000\npositions &lt;- rep(0, num) \ncurrent   &lt;- 10\n\nfor (i in 1:num) {\n  \n  # record current position \n  positions[i] &lt;- current\n  # flip coin to generate proposal\n  proposal &lt;- current + sample(c(-1, 1), size = 1)\n  # now make sure he loops around the archipelago \n  if (proposal &lt; 1) proposal &lt;- 10\n  if (proposal &gt; 10) proposal &lt;- 1\n  # move?\n  prob_move &lt;- proposal/current\n  current &lt;- ifelse(runif(1) &lt; prob_move, proposal, current)\n  \n}  \n\nlibrary(tidyverse)\n\ntibble(week   = 1:1000,\n       iteration = positions) %&gt;%\n  ggplot(aes(x = week, y = iteration)) +\n  geom_point(shape = 1) +\n  scale_x_continuous(breaks = seq(from = 0, to = 1000, by = 100)) +\n  scale_y_continuous(limits = c(-2, 13), breaks = seq(from = -2, to = 15, by = 2)) +\n  coord_cartesian(xlim = c(0, 1000)) +\n  labs(title = \"Metropolis algorithm\")+\n  xlab(\"iteration\") + ylab(\"value\")"
   },
   {
-    "objectID": "mcmc-5.html#where-the-chain-spent-its-time",
-    "href": "mcmc-5.html#where-the-chain-spent-its-time",
-    "title": "MCMC",
-    "section": "Where the chain spent its time",
-    "text": "Where the chain spent its time\n\n\nCode\ntibble(island = positions) %&gt;%\n  count(island) %&gt;%\n  mutate(share = n / sum(n), target = island / sum(1:10)) %&gt;%\n  ggplot(aes(x = island)) +\n  geom_col(aes(y = share), fill = \"grey70\") +\n  geom_point(aes(y = target), colour = \"#D55E00\", size = 3) +\n  scale_x_continuous(breaks = 1:10) +\n  labs(y = \"share of weeks\", subtitle = \"bars: where the chain went · orange: the target (proportional to island number)\")\n\n\n\n\n\n\n\n\n\nThe king never computed the target distribution; he only compared neighbors. In the long run, the chain visits each island in proportion to its population."
-  },
-  {
     "objectID": "mcmc-5.html#multivariate-posterior-distributions",
     "href": "mcmc-5.html#multivariate-posterior-distributions",
     "title": "MCMC",
