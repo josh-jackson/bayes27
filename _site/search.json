@@ -823,7 +823,7 @@
     "href": "mcmc-5.html#hamiltonian-mcmc",
     "title": "MCMC",
     "section": "Hamiltonian MCMC",
-    "text": "Hamiltonian MCMC\n\nInstead of guessing a direction, use the slope of the posterior (the gradient) to glide along the band. Long steps, and they still get accepted. It’s a physics simulation!\nPretend you have a hockey puck and flick it on an air hockey table that represent the minus log of the posterior (for a gaussian this would be a valley or a bowl). After a flick, we will record the position after a certain time. No rejections (almost)! Depending on the topography the puck will go slower or faster and change direction.\nProposals based on the gradient, which is just the slope via derivative."
+    "text": "Hamiltonian MCMC\n\nFlip the landscape upside down. The high ground (plausible values) becomes the bottom of a bowl. (Technically the bowl is the negative log posterior; for a normal posterior it’s a smooth bowl.)\nFlick a puck. Each iteration, give a puck a random flick: random direction, random speed. It glides across the frictionless bowl, speeding up as it slides toward plausible values and slowing as it climbs toward implausible ones. The random flick is what keeps this a sampler: every flick sends the puck somewhere new.\nRecord where it stops. After a set amount of glide time, freeze the puck and record its spot as the next draw. (How long to glide? Stan picks that automatically: NUTS, later.)\nBecause the puck follows the shape of the bowl, it can travel far and still land somewhere plausible, so almost every flick is accepted. (The glide is simulated in small steps, so there’s still a quick check for errors.)"
   },
   {
     "objectID": "mcmc-5.html#visualize-h-mcmc",
@@ -837,7 +837,7 @@
     "href": "mcmc-5.html#gradients-and-autodiff",
     "title": "MCMC",
     "section": "Gradients and autodiff",
-    "text": "Gradients and autodiff\n\nIf proposals depend on the curvature or gradient in the posterior how do we calculate that? Derivatives. Lots of them.\nAutomatic differentiation (autodiff) computes those gradients exactly and efficiently, which is what makes HMC practical.\nWe are not calculating the posterior directly, but instead just local estimation of the curvature (not full integral).\nThe samples give us a full picture of the posterior."
+    "text": "Gradients and autodiff\n\nSimulating the glide means computing the gradient (one slope per parameter) at every small step of every flick. For a model with 50 parameters and thousands of flicks, that’s millions of derivatives.\nStan computes them exactly and automatically from your model code (automatic differentiation, or “autodiff”). You never write a derivative, and that’s what makes HMC practical.\nOne consequence: the slope has to exist, so Stan’s parameters must be continuous. (No discrete parameters, like “which of 3 groups is this person in?”, unless you average over them.)\nWe still never compute the evidence integral. At each small step the puck only needs the height and slope where it is right now, and the recorded spots give us the full posterior."
   },
   {
     "objectID": "mcmc-5.html#can-we-ensure-accurate-posteriors",
@@ -970,7 +970,7 @@
     "href": "mcmc-5.html#leap-frog-steps-and-nuts",
     "title": "MCMC",
     "section": "Leap Frog steps and NUTS",
-    "text": "Leap Frog steps and NUTS\n\nNeed to figure out the correct 1) step size (time interval) and 2) number of leap frog steps (where the gradients are calculated).\nStep size is done through warm up samples.\nNumber of steps is done with NUTS, the No U-Turn Sampler. It extends the puck’s path (forward and backward in time) until the path starts to double back on itself, a “U-turn”, so each region gets as many steps as it needs and no more."
+    "text": "Leap Frog steps and NUTS\n\nNeed to figure out the correct 1) step size (time interval) and 2) number of leap frog steps (the small steps of each glide, where the gradient is calculated).\nStep size is done through warm up samples.\nNumber of steps is done with NUTS, the No U-Turn Sampler. It extends the puck’s path (forward and backward in time) until the path starts to double back on itself, a “U-turn”, so each region gets as many steps as it needs and no more."
   },
   {
     "objectID": "mcmc-5.html#fixing-divergences-adapt_delta",
@@ -8439,14 +8439,7 @@
     "href": "mcmc-5.html#what-the-gradient-is-for",
     "title": "MCMC",
     "section": "What the gradient is for",
-    "text": "What the gradient is for\n\nThe gradient is the slope of the (log) posterior surface where you are now: which way is uphill, and how steep\nOptimizers (maximum likelihood: lm(), glm(), lme4) follow it uphill to the single peak and stop. One answer, no distribution\nHMC uses the same gradient differently: the puck feels the slope and glides across the surface, so it explores the whole posterior, spending time in proportion to its height instead of stopping at the top\nSame ingredient, two goals: find the top (optimization) vs. map the whole mountain (sampling)"
-  },
-  {
-    "objectID": "mcmc-5.html#following-the-gradient-pictured",
-    "href": "mcmc-5.html#following-the-gradient-pictured",
-    "title": "MCMC",
-    "section": "Following the gradient, pictured",
-    "text": "Following the gradient, pictured"
+    "text": "What the gradient is for\n\nTo simulate the glide, the computer needs the slope of the bowl where the puck is right now: which way is downhill, and how steep. That slope is the gradient\nOptimizers (maximum likelihood: lm(), glm(), lme4) use the same gradient to slide straight to the bottom and stop. One answer, no distribution\nHMC uses it differently: the flicked puck glides back and forth across the bowl, and the spots where it’s recorded are draws from the whole posterior\nSame ingredient, two goals: find the best point (optimization) vs. map the whole posterior (sampling)"
   },
   {
     "objectID": "mcmc-5.html#what-warmup-does",
@@ -8587,5 +8580,12 @@
     "title": "MCMC",
     "section": "Where the space is (3)",
     "text": "Where the space is (3)\nThree parameters: the middle cube is 1/27. With 10 parameters it’s 1/59,049 (0.002%). Almost all the space is out toward the edges."
+  },
+  {
+    "objectID": "mcmc-5.html#the-puck-on-our-landscape",
+    "href": "mcmc-5.html#the-puck-on-our-landscape",
+    "title": "MCMC",
+    "section": "The puck on our landscape",
+    "text": "The puck on our landscape\nThe same curved posterior the hiker explored. Each orange path is one flick; the dot is where the puck was frozen and recorded.\n\n\nCode\n# slope of the log posterior (the gradient), worked out by hand for this landscape\ngradient &lt;- function(q) {\n  r &lt;- q[2] - 0.6 * q[1]^2 + 1\n  c(-q[1] / 1.44 + r / 0.36 * 1.2 * q[1], -r / 0.36)\n}\nset.seed(4)\nn_flicks &lt;- 1000; step &lt;- 0.05; n_steps &lt;- 70          # glide time = 70 small steps\nhere &lt;- c(1.5, 0.3); draws &lt;- matrix(NA, n_flicks, 2); glides &lt;- list()\nfor (i in 1:n_flicks) {\n  speed &lt;- rnorm(2)                                       # the random flick\n  q &lt;- here; p &lt;- speed; trail &lt;- matrix(NA, n_steps + 1, 2); trail[1, ] &lt;- q\n  p &lt;- p + step / 2 * gradient(q)                         # simulate the glide (leapfrog)\n  for (s in 1:n_steps) {\n    q &lt;- q + step * p; trail[s + 1, ] &lt;- q\n    if (s &lt; n_steps) p &lt;- p + step * gradient(q)\n  }\n  p &lt;- p + step / 2 * gradient(q)\n  energy_before &lt;- -log_target(here[1], here[2]) + sum(speed^2) / 2\n  energy_after  &lt;- -log_target(q[1], q[2]) + sum(p^2) / 2\n  if (log(runif(1)) &lt; energy_before - energy_after) here &lt;- q   # the quick error check\n  draws[i, ] &lt;- here\n  if (i &lt;= 5) glides[[i]] &lt;- as_tibble(trail, .name_repair = ~ c(\"x\", \"y\")) %&gt;% mutate(flick = i)\n}\nglides &lt;- bind_rows(glides)\ndraws  &lt;- as_tibble(draws, .name_repair = ~ c(\"x\", \"y\"))\n(base + geom_path(data = glides, aes(group = flick), colour = \"#D55E00\") +\n   geom_point(data = glides %&gt;% group_by(flick) %&gt;% slice_tail(n = 1), colour = \"#D55E00\", size = 2.5) +\n   labs(subtitle = \"the first 5 flicks\")) |\n(base + geom_point(data = draws, alpha = .15, size = .6, colour = \"#0072B2\") +\n   labs(subtitle = \"1,000 flicks\"))\n\n\n\n\n\n\n\n\n\nEach flick travels across much of the ridge, so successive draws are far apart. A flick costs more computing than a footstep (70 small steps, each needing the gradient), but 1,000 flicks map the ridge about as well as the hiker’s 5,000 footprints."
   }
 ]

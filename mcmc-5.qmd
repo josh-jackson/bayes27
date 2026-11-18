@@ -479,36 +479,77 @@ tibble(parameters = c(1, 10, 100)) %>%
 
 ## Hamiltonian MCMC {.smaller}
 
--   Instead of guessing a direction, use the slope of the posterior (the gradient) to glide along the band. Long steps, and they still get accepted. It's a physics simulation!
+-   **Flip the landscape upside down.** The high ground (plausible values) becomes the bottom of a bowl. (Technically the bowl is the negative log posterior; for a normal posterior it's a smooth bowl.)
 
--   Pretend you have a hockey puck and flick it on an air hockey table that represent the minus log of the posterior (for a gaussian this would be a valley or a bowl). After a flick, we will record the position after a certain time. No rejections (almost)! Depending on the topography the puck will go slower or faster and change direction.
+-   **Flick a puck.** Each iteration, give a puck a random flick: random direction, random speed. It glides across the frictionless bowl, speeding up as it slides toward plausible values and slowing as it climbs toward implausible ones. The random flick is what keeps this a *sampler*: every flick sends the puck somewhere new.
 
--   Proposals based on the `gradient`, which is just the slope via derivative.
+-   **Record where it stops.** After a set amount of glide time, freeze the puck and record its spot as the next draw. (How long to glide? Stan picks that automatically: NUTS, later.)
+
+-   Because the puck follows the shape of the bowl, it can travel far and still land somewhere plausible, so almost every flick is accepted. (The glide is simulated in small steps, so there's still a quick check for errors.)
 
 ## What the gradient is for {.smaller}
 
--   The **gradient** is the slope of the (log) posterior surface where you are now: which way is uphill, and how steep
--   **Optimizers** (maximum likelihood: `lm()`, `glm()`, `lme4`) follow it uphill to the single peak and stop. One answer, no distribution
--   **HMC** uses the same gradient differently: the puck feels the slope and glides across the surface, so it explores the *whole* posterior, spending time in proportion to its height instead of stopping at the top
--   Same ingredient, two goals: find the top (optimization) vs. map the whole mountain (sampling)
+-   To simulate the glide, the computer needs the slope of the bowl where the puck is right now: which way is downhill, and how steep. That slope is the **gradient**
+-   **Optimizers** (maximum likelihood: `lm()`, `glm()`, `lme4`) use the same gradient to slide straight to the bottom and stop. One answer, no distribution
+-   **HMC** uses it differently: the flicked puck glides back and forth across the bowl, and the spots where it's recorded are draws from the *whole* posterior
+-   Same ingredient, two goals: find the best point (optimization) vs. map the whole posterior (sampling)
 
-## Following the gradient, pictured
+## The puck on our landscape {.smaller .nostretch}
 
-![](met9.png)
+The same curved posterior the hiker explored. Each orange path is one flick; the dot is where the puck was frozen and recorded.
+
+```{r}
+#| code-fold: true
+#| fig-height: 2.8
+#| fig-width: 9
+#| out-width: "95%"
+# slope of the log posterior (the gradient), worked out by hand for this landscape
+gradient <- function(q) {
+  r <- q[2] - 0.6 * q[1]^2 + 1
+  c(-q[1] / 1.44 + r / 0.36 * 1.2 * q[1], -r / 0.36)
+}
+set.seed(4)
+n_flicks <- 1000; step <- 0.05; n_steps <- 70          # glide time = 70 small steps
+here <- c(1.5, 0.3); draws <- matrix(NA, n_flicks, 2); glides <- list()
+for (i in 1:n_flicks) {
+  speed <- rnorm(2)                                       # the random flick
+  q <- here; p <- speed; trail <- matrix(NA, n_steps + 1, 2); trail[1, ] <- q
+  p <- p + step / 2 * gradient(q)                         # simulate the glide (leapfrog)
+  for (s in 1:n_steps) {
+    q <- q + step * p; trail[s + 1, ] <- q
+    if (s < n_steps) p <- p + step * gradient(q)
+  }
+  p <- p + step / 2 * gradient(q)
+  energy_before <- -log_target(here[1], here[2]) + sum(speed^2) / 2
+  energy_after  <- -log_target(q[1], q[2]) + sum(p^2) / 2
+  if (log(runif(1)) < energy_before - energy_after) here <- q   # the quick error check
+  draws[i, ] <- here
+  if (i <= 5) glides[[i]] <- as_tibble(trail, .name_repair = ~ c("x", "y")) %>% mutate(flick = i)
+}
+glides <- bind_rows(glides)
+draws  <- as_tibble(draws, .name_repair = ~ c("x", "y"))
+(base + geom_path(data = glides, aes(group = flick), colour = "#D55E00") +
+   geom_point(data = glides %>% group_by(flick) %>% slice_tail(n = 1), colour = "#D55E00", size = 2.5) +
+   labs(subtitle = "the first 5 flicks")) |
+(base + geom_point(data = draws, alpha = .15, size = .6, colour = "#0072B2") +
+   labs(subtitle = "1,000 flicks"))
+```
+
+Each flick travels across much of the ridge, so successive draws are far apart. A flick costs more computing than a footstep (70 small steps, each needing the gradient), but 1,000 flicks map the ridge about as well as the hiker's 5,000 footprints.
 
 ## Visualize H-MCMC
 
 [chi-feng.github.io/mcmc-demo](https://chi-feng.github.io/mcmc-demo/app.html): try Random Walk Metropolis vs. Hamiltonian Monte Carlo on the "banana" or "donut" target.
 
-## Gradients and autodiff
+## Gradients and autodiff {.smaller}
 
--   If proposals depend on the curvature or gradient in the posterior how do we calculate that? Derivatives. Lots of them.
+-   Simulating the glide means computing the gradient (one slope per parameter) at every small step of every flick. For a model with 50 parameters and thousands of flicks, that's millions of derivatives.
 
--   Automatic differentiation (autodiff) computes those gradients exactly and efficiently, which is what makes HMC practical.
+-   Stan computes them exactly and automatically from your model code (automatic differentiation, or "autodiff"). You never write a derivative, and that's what makes HMC practical.
 
--   We are not calculating the posterior directly, but instead just local estimation of the curvature (not full integral).
+-   One consequence: the slope has to exist, so Stan's parameters must be continuous. (No discrete parameters, like "which of 3 groups is this person in?", unless you average over them.)
 
--   The samples give us a full picture of the posterior.
+-   We still never compute the evidence integral. At each small step the puck only needs the height and slope where it is right now, and the recorded spots give us the full posterior.
 
 ## Can we ensure accurate posteriors?
 
@@ -797,7 +838,7 @@ summary(legs.3)$fixed[, c("Estimate", "l-95% CI", "u-95% CI", "Rhat", "Bulk_ESS"
 
 ## Leap Frog steps and NUTS
 
--   Need to figure out the correct 1) step size (time interval) and 2) number of leap frog steps (where the gradients are calculated).
+-   Need to figure out the correct 1) step size (time interval) and 2) number of leap frog steps (the small steps of each glide, where the gradient is calculated).
 
 -   Step size is done through warm up samples.
 
