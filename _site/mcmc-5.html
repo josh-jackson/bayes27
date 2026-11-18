@@ -631,7 +631,7 @@
 <ul>
 <li><p>With many parameters, guess and check (Metropolis) becomes very inefficient: most proposals get rejected, or the chain keeps re-exploring the same ground.</p></li>
 <li><p>The reason is surprising. Think of where people live in a city. Downtown has the most people per block, but downtown is small. The suburbs are less crowded, but they cover far more area, so most people live in the suburbs.</p></li>
-<li><p>A posterior works the same way: <strong>probability = height × how much space</strong>. The mode is downtown: the highest point (most plausible values), but only a tiny sliver of all the possible combinations of parameter values is near it. With many parameters, most of the probability ends up in the “suburbs”, away from the mode.</p></li>
+<li><p>A posterior works the same way. How much probability a region holds depends on two things: <strong>how high</strong> the posterior is there (how crowded), and <strong>how many combinations of parameter values</strong> the region contains (how big). The mode is downtown: the highest point, but only a tiny sliver of all the combinations is near it. With many parameters, most of the probability, and so most of the sampler’s time, ends up in the “suburbs”, away from the mode.</p></li>
 </ul>
 </section>
 <section id="where-the-space-is-1" class="slide level2">
