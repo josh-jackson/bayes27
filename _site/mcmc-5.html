@@ -411,20 +411,36 @@
 </section>
 <section id="metropolis-step-by-step-2" class="slide level2">
 <h2>Metropolis, step by step (2)</h2>
-
-<img data-src="met2.png" class="r-stretch"></section>
-<section id="metropolis-step-by-step-3" class="slide level2">
+<p><strong>Start</strong> somewhere, anywhere. (Stan picks random starting values for you.)</p>
+<img data-src="met2.png" class="r-stretch">
+</section>
+<section id="metropolis-step-by-step-3" class="slide level2 smaller">
 <h2>Metropolis, step by step (3)</h2>
-
-<img data-src="met3.png" class="r-stretch"></section>
-<section id="metropolis-step-by-step-4" class="slide level2">
+<ul>
+<li><strong>Propose:</strong> new θ = current θ + a random nudge, e.g.&nbsp;Normal(0, step size). Here the nudge happens to land downhill.</li>
+<li><strong>Ratio:</strong> height there ÷ height here (the two horizontal lines) = 0.24 / 0.34 ≈ 0.7</li>
+<li><strong>Decide:</strong> draw <code>runif(1)</code>. Below 0.7, move; otherwise stay put and record this spot again. So this downhill move happens 70% of the time.</li>
+</ul>
+<img data-src="met3b.png" class="r-stretch">
+</section>
+<section id="metropolis-step-by-step-4" class="slide level2 smaller">
 <h2>Metropolis, step by step (4)</h2>
-
-<img data-src="met4.png" class="r-stretch"></section>
-<section id="metropolis-step-by-step-5" class="slide level2">
+<ul>
+<li>Another proposal, this time uphill: ratio = 0.58 / 0.34 ≈ 1.7</li>
+<li>Every <code>runif(1)</code> is below 1.7, so <strong>uphill moves always happen</strong></li>
+<li>Repeat thousands of times. The hiker spends time in each place in proportion to its height, and the recorded spots are the posterior draws.</li>
+</ul>
+<img data-src="met4b.png" class="r-stretch">
+</section>
+<section id="metropolis-step-by-step-5" class="slide level2 smaller">
 <h2>Metropolis, step by step (5)</h2>
-
-<img data-src="met5.png" class="r-stretch"></section>
+<ul>
+<li><strong>Step size</strong> = how big the random nudge is, and it matters</li>
+<li><strong>Too small:</strong> almost every proposal is accepted, but the hiker inches along and rarely makes it across a valley to another hill</li>
+<li><strong>Too big:</strong> proposals often land far down in low ground (like this one) and get rejected, so the hiker stands still a lot</li>
+</ul>
+<img data-src="met5b.png" class="r-stretch">
+</section>
 <section id="metropolis-in-15-lines" class="slide level2 smaller">
 <h2>Metropolis in 15 lines</h2>
 <p>The hiker’s rule on the smallest possible landscape. McElreath’s King Markov (SR 9.1): 10 islands in a ring, island <em>k</em> has population proportional to <em>k</em>, and the king wants to visit each island in proportion to its population. Each week he flips a coin to propose a neighbor and moves with probability (proposal population / current population). Here the “posterior” is just the island number.</p>

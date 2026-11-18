@@ -781,28 +781,28 @@
     "href": "mcmc-5.html#metropolis-step-by-step-2",
     "title": "MCMC",
     "section": "Metropolis, step by step (2)",
-    "text": "Metropolis, step by step (2)"
+    "text": "Metropolis, step by step (2)\nStart somewhere, anywhere. (Stan picks random starting values for you.)"
   },
   {
     "objectID": "mcmc-5.html#metropolis-step-by-step-3",
     "href": "mcmc-5.html#metropolis-step-by-step-3",
     "title": "MCMC",
     "section": "Metropolis, step by step (3)",
-    "text": "Metropolis, step by step (3)"
+    "text": "Metropolis, step by step (3)\n\nPropose: new θ = current θ + a random nudge, e.g. Normal(0, step size). Here the nudge happens to land downhill.\nRatio: height there ÷ height here (the two horizontal lines) = 0.24 / 0.34 ≈ 0.7\nDecide: draw runif(1). Below 0.7, move; otherwise stay put and record this spot again. So this downhill move happens 70% of the time."
   },
   {
     "objectID": "mcmc-5.html#metropolis-step-by-step-4",
     "href": "mcmc-5.html#metropolis-step-by-step-4",
     "title": "MCMC",
     "section": "Metropolis, step by step (4)",
-    "text": "Metropolis, step by step (4)"
+    "text": "Metropolis, step by step (4)\n\nAnother proposal, this time uphill: ratio = 0.58 / 0.34 ≈ 1.7\nEvery runif(1) is below 1.7, so uphill moves always happen\nRepeat thousands of times. The hiker spends time in each place in proportion to its height, and the recorded spots are the posterior draws."
   },
   {
     "objectID": "mcmc-5.html#metropolis-step-by-step-5",
     "href": "mcmc-5.html#metropolis-step-by-step-5",
     "title": "MCMC",
     "section": "Metropolis, step by step (5)",
-    "text": "Metropolis, step by step (5)"
+    "text": "Metropolis, step by step (5)\n\nStep size = how big the random nudge is, and it matters\nToo small: almost every proposal is accepted, but the hiker inches along and rarely makes it across a valley to another hill\nToo big: proposals often land far down in low ground (like this one) and get rejected, so the hiker stands still a lot"
   },
   {
     "objectID": "mcmc-5.html#samples-in-the-long-run",

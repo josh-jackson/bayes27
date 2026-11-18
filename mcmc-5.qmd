@@ -186,19 +186,33 @@ Now the side view: one parameter along the bottom, and height (likelihood × pri
 
 ## Metropolis, step by step (2)
 
-![](met2.png)
+**Start** somewhere, anywhere. (Stan picks random starting values for you.)
 
-## Metropolis, step by step (3)
+![](met2.png){.r-stretch}
 
-![](met3.png)
+## Metropolis, step by step (3) {.smaller}
 
-## Metropolis, step by step (4)
+-   **Propose:** new θ = current θ + a random nudge, e.g. Normal(0, step size). Here the nudge happens to land downhill.
+-   **Ratio:** height there ÷ height here (the two horizontal lines) = 0.24 / 0.34 ≈ 0.7
+-   **Decide:** draw `runif(1)`. Below 0.7, move; otherwise stay put and record this spot again. So this downhill move happens 70% of the time.
 
-![](met4.png)
+![](met3b.png){.r-stretch}
 
-## Metropolis, step by step (5)
+## Metropolis, step by step (4) {.smaller}
 
-![](met5.png)
+-   Another proposal, this time uphill: ratio = 0.58 / 0.34 ≈ 1.7
+-   Every `runif(1)` is below 1.7, so **uphill moves always happen**
+-   Repeat thousands of times. The hiker spends time in each place in proportion to its height, and the recorded spots are the posterior draws.
+
+![](met4b.png){.r-stretch}
+
+## Metropolis, step by step (5) {.smaller}
+
+-   **Step size** = how big the random nudge is, and it matters
+-   **Too small:** almost every proposal is accepted, but the hiker inches along and rarely makes it across a valley to another hill
+-   **Too big:** proposals often land far down in low ground (like this one) and get rejected, so the hiker stands still a lot
+
+![](met5b.png){.r-stretch}
 
 ## Metropolis in 15 lines {.smaller}
 
