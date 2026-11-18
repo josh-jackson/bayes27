@@ -816,7 +816,7 @@
     "href": "mcmc-5.html#concentration-of-measure",
     "title": "MCMC",
     "section": "Concentration of measure",
-    "text": "Concentration of measure\n\nWith many parameters, guess and check (Metropolis) becomes very inefficient: most proposals get rejected, or the chain keeps re-exploring the same ground.\nThe reason is surprising. Probability = height × room. The mode is the highest point, but there’s almost no room near it. Far out there’s lots of room but almost no height. With many parameters, most of the probability ends up in between, away from the mode."
+    "text": "Concentration of measure\n\nWith many parameters, guess and check (Metropolis) becomes very inefficient: most proposals get rejected, or the chain keeps re-exploring the same ground.\nThe reason is surprising. Think of where people live in a city. Downtown has the most people per block, but downtown is small. The suburbs are less crowded, but they cover far more area, so most people live in the suburbs.\nA posterior works the same way: probability = height × how much space. The mode is downtown: the highest point (most plausible values), but only a tiny sliver of all the possible combinations of parameter values is near it. With many parameters, most of the probability ends up in the “suburbs”, away from the mode."
   },
   {
     "objectID": "mcmc-5.html#hamiltonian-mcmc",
@@ -8554,32 +8554,11 @@
     "text": "Did the king hit his target?\nOrange: the target. Island 10 has 10× the people of island 1, so it should get 10× the weeks (18% vs 2%). Grey: the share of weeks the king actually spent there.\n\n\nCode\ntibble(island = positions) %&gt;%\n  count(island) %&gt;%\n  mutate(share = n / sum(n), target = island / sum(1:10)) %&gt;%\n  ggplot(aes(x = island)) +\n  geom_col(aes(y = share), fill = \"grey70\") +\n  geom_point(aes(y = target), colour = \"#D55E00\", size = 3) +\n  scale_x_continuous(breaks = 1:10) +\n  labs(y = \"share of weeks\", title = \"after 1,000 weeks\") +\n  theme_classic(base_size = 13)\n\n\n\n\n\n\n\n\n\n\n1,000 weeks is about 19 years of island hopping, and the king never computed those percentages; he only compared neighbors\nClose but not exact. As the number of weeks grows, the grey bars get closer and closer to the orange target"
   },
   {
-    "objectID": "mcmc-5.html#where-the-room-is-1",
-    "href": "mcmc-5.html#where-the-room-is-1",
-    "title": "MCMC",
-    "section": "Where the room is (1)",
-    "text": "Where the room is (1)\nOne parameter: the middle third of the range is 1/3 of the space."
-  },
-  {
-    "objectID": "mcmc-5.html#where-the-room-is-2",
-    "href": "mcmc-5.html#where-the-room-is-2",
-    "title": "MCMC",
-    "section": "Where the room is (2)",
-    "text": "Where the room is (2)\nTwo parameters: the middle square is 1/9 of the space."
-  },
-  {
-    "objectID": "mcmc-5.html#where-the-room-is-3",
-    "href": "mcmc-5.html#where-the-room-is-3",
-    "title": "MCMC",
-    "section": "Where the room is (3)",
-    "text": "Where the room is (3)\nThree parameters: the middle cube is 1/27. With 10 parameters it’s 1/59,049 (0.002%). Almost all the room is out toward the edges."
-  },
-  {
     "objectID": "mcmc-5.html#why-that-breaks-the-hiker",
     "href": "mcmc-5.html#why-that-breaks-the-hiker",
     "title": "MCMC",
     "section": "Why that breaks the hiker",
-    "text": "Why that breaks the hiker\nFrom a spot in that band, almost every random direction leads off it: outward to low ground, or inward where there’s no room. So most Metropolis proposals get rejected. Here is Metropolis on a normal posterior, same step size (0.5 SD) every time:\n\n\nCode\nmetropolis_accept &lt;- function(n_par, step = 0.5, n_iter = 5000) {\n  here &lt;- rep(0, n_par); accepted &lt;- 0\n  for (i in 1:n_iter) {\n    proposal &lt;- here + rnorm(n_par, 0, step)\n    if (log(runif(1)) &lt; sum(dnorm(proposal, log = TRUE)) - sum(dnorm(here, log = TRUE))) {\n      here &lt;- proposal; accepted &lt;- accepted + 1\n    }\n  }\n  accepted / n_iter\n}\nset.seed(1)\ntibble(parameters = c(1, 10, 100)) %&gt;%\n  mutate(`proposals accepted` = scales::percent(map_dbl(parameters, metropolis_accept), accuracy = 0.1)) %&gt;%\n  knitr::kable()\n\n\n\n\n\nparameters\nproposals accepted\n\n\n\n\n1\n83.7%\n\n\n10\n44.6%\n\n\n100\n0.0%\n\n\n\n\n\n\nThe usual fix: shrink the steps as the number of parameters grows. Then proposals are accepted, but the hiker inches along and successive draws are nearly identical\nWhat we want instead: a sampler that knows which way the band curves, so it can take long steps and stay on it"
+    "text": "Why that breaks the hiker\nFrom a spot in that band, almost every random direction leads off it, mostly outward to low ground. So most Metropolis proposals get rejected. Here is Metropolis on a normal posterior, same step size (0.5 SD) every time:\n\n\nCode\nmetropolis_accept &lt;- function(n_par, step = 0.5, n_iter = 5000) {\n  here &lt;- rep(0, n_par); accepted &lt;- 0\n  for (i in 1:n_iter) {\n    proposal &lt;- here + rnorm(n_par, 0, step)\n    if (log(runif(1)) &lt; sum(dnorm(proposal, log = TRUE)) - sum(dnorm(here, log = TRUE))) {\n      here &lt;- proposal; accepted &lt;- accepted + 1\n    }\n  }\n  accepted / n_iter\n}\nset.seed(1)\ntibble(parameters = c(1, 10, 100)) %&gt;%\n  mutate(`proposals accepted` = scales::percent(map_dbl(parameters, metropolis_accept), accuracy = 0.1)) %&gt;%\n  knitr::kable()\n\n\n\n\n\nparameters\nproposals accepted\n\n\n\n\n1\n83.7%\n\n\n10\n44.6%\n\n\n100\n0.0%\n\n\n\n\n\n\nThe usual fix: shrink the steps as the number of parameters grows. Then proposals are accepted, but the hiker inches along and successive draws are nearly identical\nWhat we want instead: a sampler that knows which way the band curves, so it can take long steps and stay on it"
   },
   {
     "objectID": "mcmc-5.html#near-the-peak-all-at-once",
@@ -8587,5 +8566,26 @@
     "title": "MCMC",
     "section": "Near the peak, all at once?",
     "text": "Near the peak, all at once?\nSay each parameter is normal (and independent, to keep it simple). One parameter is within 1 SD of its peak in 68% of draws. To be near the mode of the whole model, every parameter has to be within 1 SD at once.\n\n\nCode\nwithin_1sd &lt;- pnorm(1) - pnorm(-1)                     # 0.68\ntibble(parameters = 1:25, share = within_1sd^parameters) %&gt;%\n  ggplot(aes(parameters, share)) +\n  geom_line(colour = \"#0072B2\", linewidth = 1) +\n  geom_point(colour = \"#0072B2\") +\n  scale_y_continuous(labels = scales::percent) +\n  labs(x = \"number of parameters\", y = \"draws with every\\nparameter within 1 SD\") +\n  theme_classic(base_size = 13)\n\n\n\n\n\n\n\n\n\n\n10 parameters: 2% of draws (a typical draw has about 3 parameters out past 1 SD). 100 parameters: about 1 in 40 quadrillion\nSo you’ll never see a draw near the mode, though it’s the single most likely point. The draws live in a band away from it, and that’s where the sampler has to work"
+  },
+  {
+    "objectID": "mcmc-5.html#where-the-space-is-1",
+    "href": "mcmc-5.html#where-the-space-is-1",
+    "title": "MCMC",
+    "section": "Where the space is (1)",
+    "text": "Where the space is (1)\nOne parameter: the middle third of the range is 1/3 of the space."
+  },
+  {
+    "objectID": "mcmc-5.html#where-the-space-is-2",
+    "href": "mcmc-5.html#where-the-space-is-2",
+    "title": "MCMC",
+    "section": "Where the space is (2)",
+    "text": "Where the space is (2)\nTwo parameters: the middle square is 1/9 of the space."
+  },
+  {
+    "objectID": "mcmc-5.html#where-the-space-is-3",
+    "href": "mcmc-5.html#where-the-space-is-3",
+    "title": "MCMC",
+    "section": "Where the space is (3)",
+    "text": "Where the space is (3)\nThree parameters: the middle cube is 1/27. With 10 parameters it’s 1/59,049 (0.002%). Almost all the space is out toward the edges."
   }
 ]

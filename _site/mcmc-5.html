@@ -626,26 +626,27 @@
 </ul>
 
 <img data-src="mcmc-5_files/figure-revealjs/unnamed-chunk-9-1.png" width="960" class="r-stretch"></section>
-<section id="concentration-of-measure" class="slide level2">
+<section id="concentration-of-measure" class="slide level2 smaller">
 <h2>Concentration of measure</h2>
 <ul>
 <li><p>With many parameters, guess and check (Metropolis) becomes very inefficient: most proposals get rejected, or the chain keeps re-exploring the same ground.</p></li>
-<li><p>The reason is surprising. <strong>Probability = height × room.</strong> The mode is the highest point, but there’s almost no room near it. Far out there’s lots of room but almost no height. With many parameters, most of the probability ends up in between, away from the mode.</p></li>
+<li><p>The reason is surprising. Think of where people live in a city. Downtown has the most people per block, but downtown is small. The suburbs are less crowded, but they cover far more area, so most people live in the suburbs.</p></li>
+<li><p>A posterior works the same way: <strong>probability = height × how much space</strong>. The mode is downtown: the highest point (most plausible values), but only a tiny sliver of all the possible combinations of parameter values is near it. With many parameters, most of the probability ends up in the “suburbs”, away from the mode.</p></li>
 </ul>
 </section>
-<section id="where-the-room-is-1" class="slide level2">
-<h2>Where the room is (1)</h2>
+<section id="where-the-space-is-1" class="slide level2">
+<h2>Where the space is (1)</h2>
 <p>One parameter: the middle third of the range is <strong>1/3</strong> of the space.</p>
 <img data-src="met6.png" class="r-stretch">
 </section>
-<section id="where-the-room-is-2" class="slide level2">
-<h2>Where the room is (2)</h2>
+<section id="where-the-space-is-2" class="slide level2">
+<h2>Where the space is (2)</h2>
 <p>Two parameters: the middle square is <strong>1/9</strong> of the space.</p>
 <img data-src="met7.png" class="r-stretch">
 </section>
-<section id="where-the-room-is-3" class="slide level2">
-<h2>Where the room is (3)</h2>
-<p>Three parameters: the middle cube is <strong>1/27</strong>. With 10 parameters it’s 1/59,049 (0.002%). Almost all the room is out toward the edges.</p>
+<section id="where-the-space-is-3" class="slide level2">
+<h2>Where the space is (3)</h2>
+<p>Three parameters: the middle cube is <strong>1/27</strong>. With 10 parameters it’s 1/59,049 (0.002%). Almost all the space is out toward the edges.</p>
 <img data-src="met8.png" class="r-stretch">
 </section>
 <section id="near-the-peak-all-at-once" class="slide level2 smaller nostretch">
@@ -678,7 +679,7 @@
 </section>
 <section id="why-that-breaks-the-hiker" class="slide level2 smaller">
 <h2>Why that breaks the hiker</h2>
-<p>From a spot in that band, almost every random direction leads off it: outward to low ground, or inward where there’s no room. So most Metropolis proposals get rejected. Here is Metropolis on a normal posterior, same step size (0.5 SD) every time:</p>
+<p>From a spot in that band, almost every random direction leads off it, mostly outward to low ground. So most Metropolis proposals get rejected. Here is Metropolis on a normal posterior, same step size (0.5 SD) every time:</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
