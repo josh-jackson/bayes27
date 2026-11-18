@@ -64,15 +64,15 @@ Two ways around this integral: make it easy (conjugate priors), or avoid it enti
 
 $$p(\theta | data) = \frac{p(data | \theta) \times p(\theta )}{p(data)}$$
 
-The evidence doesn't depend on $\theta$: it's the same number for every possible value. So
+The denominator, $p(data)$, is called the **evidence**: the probability of the data, averaged over every possible $\theta$. It's the same number for every value of $\theta$, so the posterior is proportional to the likelihood × the prior:
 
-$$ p(\theta | data) \propto p(data | \theta) \times p(\theta ) $$ "The posterior is proportional to the likelihood × the prior."
+$$ p(\theta | data) \propto p(data | \theta) \times p(\theta ) $$
 
-And when we **compare** two values of $\theta$, the evidence cancels:
+Why compare two values? A sampler moves from one value of $\theta$ to the next, and to decide whether to move it asks: "is this new value more plausible than the one I'm at?" In that comparison, the evidence cancels:
 
 $$\frac{p(\theta_1 | data)}{p(\theta_2 | data)} = \frac{p(data | \theta_1)\, p(\theta_1)}{p(data | \theta_2)\, p(\theta_2)}$$
 
-That's all MCMC needs. It never computes the posterior's height; it only asks "is this value more or less plausible than where I am now?" (the Metropolis acceptance ratio, coming up).
+That's all MCMC needs: likelihood × prior, never the evidence.
 
 ## Markov Chain Monte Carlo {.smaller}
 

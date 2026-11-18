@@ -287,11 +287,11 @@
 <section id="escape-2-we-dont-need-the-evidence" class="slide level2 smaller">
 <h2>Escape 2: we don’t need the evidence</h2>
 <p><span class="math display">\[p(\theta | data) = \frac{p(data | \theta) \times p(\theta )}{p(data)}\]</span></p>
-<p>The evidence doesn’t depend on <span class="math inline">\(\theta\)</span>: it’s the same number for every possible value. So</p>
-<p><span class="math display">\[ p(\theta | data) \propto p(data | \theta) \times p(\theta ) \]</span> “The posterior is proportional to the likelihood × the prior.”</p>
-<p>And when we <strong>compare</strong> two values of <span class="math inline">\(\theta\)</span>, the evidence cancels:</p>
+<p>The denominator, <span class="math inline">\(p(data)\)</span>, is called the <strong>evidence</strong>: the probability of the data, averaged over every possible <span class="math inline">\(\theta\)</span>. It’s the same number for every value of <span class="math inline">\(\theta\)</span>, so the posterior is proportional to the likelihood × the prior:</p>
+<p><span class="math display">\[ p(\theta | data) \propto p(data | \theta) \times p(\theta ) \]</span></p>
+<p>Why compare two values? A sampler moves from one value of <span class="math inline">\(\theta\)</span> to the next, and to decide whether to move it asks: “is this new value more plausible than the one I’m at?” In that comparison, the evidence cancels:</p>
 <p><span class="math display">\[\frac{p(\theta_1 | data)}{p(\theta_2 | data)} = \frac{p(data | \theta_1)\, p(\theta_1)}{p(data | \theta_2)\, p(\theta_2)}\]</span></p>
-<p>That’s all MCMC needs. It never computes the posterior’s height; it only asks “is this value more or less plausible than where I am now?” (the Metropolis acceptance ratio, coming up).</p>
+<p>That’s all MCMC needs: likelihood × prior, never the evidence.</p>
 </section>
 <section id="markov-chain-monte-carlo" class="slide level2 smaller">
 <h2>Markov Chain Monte Carlo</h2>
