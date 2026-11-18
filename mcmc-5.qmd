@@ -650,14 +650,17 @@ The chains start in different places and find the same region within a few dozen
 plot(h.3)
 ```
 
-## Rank plots
+## Rank plots {.smaller .nostretch}
 
 A more sensitive check than trace plots: pool all draws, rank them, then plot each chain's ranks as a histogram. If the chains are exploring the same distribution, every chain's histogram is roughly **flat** (each chain gets its fair share of low, middle, and high values).
 
 ```{r}
 #| code-fold: true
-#| fig-height: 3.5
-mcmc_rank_overlay(h.3, pars = c("b_mood.group.dcontrol", "b_mood.group.dtx", "sigma"))
+#| fig-height: 3.1
+#| fig-width: 10
+#| out-width: "100%"
+mcmc_rank_overlay(h.3, pars = c("b_mood.group.dcontrol", "b_mood.group.dtx", "sigma")) +
+  theme(text = element_text(size = 15))
 ```
 
 A chain whose histogram bulges at one end is stuck in part of the posterior, even if its trace plot looks like a fuzzy caterpillar.

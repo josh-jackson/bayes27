@@ -930,17 +930,24 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 
 </div>
 <img data-src="mcmc-5_files/figure-revealjs/unnamed-chunk-16-1.png" width="960" class="r-stretch"></section>
-<section id="rank-plots" class="slide level2">
+<section id="rank-plots" class="slide level2 smaller nostretch">
 <h2>Rank plots</h2>
 <p>A more sensitive check than trace plots: pool all draws, rank them, then plot each chain’s ranks as a histogram. If the chains are exploring the same distribution, every chain’s histogram is roughly <strong>flat</strong> (each chain gets its fair share of low, middle, and high values).</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a aria-label="1"></a><span class="fu">mcmc_rank_overlay</span>(h<span class="fl">.3</span>, <span class="at">pars =</span> <span class="fu">c</span>(<span class="st">"b_mood.group.dcontrol"</span>, <span class="st">"b_mood.group.dtx"</span>, <span class="st">"sigma"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a aria-label="1"></a><span class="fu">mcmc_rank_overlay</span>(h<span class="fl">.3</span>, <span class="at">pars =</span> <span class="fu">c</span>(<span class="st">"b_mood.group.dcontrol"</span>, <span class="st">"b_mood.group.dtx"</span>, <span class="st">"sigma"</span>)) <span class="sc">+</span></span>
+<span id="cb17-2"><a aria-label="2"></a>  <span class="fu">theme</span>(<span class="at">text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">15</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-
+<div class="cell-output-display">
+<div>
+<figure>
+<p><img data-src="mcmc-5_files/figure-revealjs/unnamed-chunk-17-1.png" style="width:100.0%"></p>
+</figure>
 </div>
-<img data-src="mcmc-5_files/figure-revealjs/unnamed-chunk-17-1.png" width="960" class="r-stretch"><p>A chain whose histogram bulges at one end is stuck in part of the posterior, even if its trace plot looks like a fuzzy caterpillar.</p>
+</div>
+</div>
+<p>A chain whose histogram bulges at one end is stuck in part of the posterior, even if its trace plot looks like a fuzzy caterpillar.</p>
 </section>
 <section id="r-hat" class="slide level2">
 <h2>R-hat</h2>

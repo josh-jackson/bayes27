@@ -886,7 +886,7 @@
     "href": "mcmc-5.html#rank-plots",
     "title": "MCMC",
     "section": "Rank plots",
-    "text": "Rank plots\nA more sensitive check than trace plots: pool all draws, rank them, then plot each chain’s ranks as a histogram. If the chains are exploring the same distribution, every chain’s histogram is roughly flat (each chain gets its fair share of low, middle, and high values).\n\n\nCode\nmcmc_rank_overlay(h.3, pars = c(\"b_mood.group.dcontrol\", \"b_mood.group.dtx\", \"sigma\"))\n\n\n\nA chain whose histogram bulges at one end is stuck in part of the posterior, even if its trace plot looks like a fuzzy caterpillar."
+    "text": "Rank plots\nA more sensitive check than trace plots: pool all draws, rank them, then plot each chain’s ranks as a histogram. If the chains are exploring the same distribution, every chain’s histogram is roughly flat (each chain gets its fair share of low, middle, and high values).\n\n\nCode\nmcmc_rank_overlay(h.3, pars = c(\"b_mood.group.dcontrol\", \"b_mood.group.dtx\", \"sigma\")) +\n  theme(text = element_text(size = 15))\n\n\n\n\n\n\n\n\n\nA chain whose histogram bulges at one end is stuck in part of the posterior, even if its trace plot looks like a fuzzy caterpillar."
   },
   {
     "objectID": "mcmc-5.html#r-hat",
