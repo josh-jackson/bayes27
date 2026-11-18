@@ -493,6 +493,7 @@ tibble(parameters = c(1, 10, 100)) %>%
 -   **Optimizers** (maximum likelihood: `lm()`, `glm()`, `lme4`) use the same gradient to slide straight to the bottom and stop. One answer, no distribution
 -   **HMC** uses it differently: the flicked puck glides back and forth across the bowl, and the spots where it's recorded are draws from the *whole* posterior
 -   Same ingredient, two goals: find the best point (optimization) vs. map the whole posterior (sampling)
+-   The gradient is everywhere in modern AI. Training an LLM like ChatGPT or Claude is **gradient descent**: billions of parameters, nudged over and over a little way downhill on "how wrong were the predictions?" until the error is small. That's optimization (one best set of weights), not sampling. And the computer finds those slopes with the same trick Stan uses: autodiff (coming up)
 
 ## The puck on our landscape {.smaller .nostretch}
 

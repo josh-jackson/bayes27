@@ -8439,7 +8439,7 @@
     "href": "mcmc-5.html#what-the-gradient-is-for",
     "title": "MCMC",
     "section": "What the gradient is for",
-    "text": "What the gradient is for\n\nTo simulate the glide, the computer needs the slope of the bowl where the puck is right now: which way is downhill, and how steep. That slope is the gradient\nOptimizers (maximum likelihood: lm(), glm(), lme4) use the same gradient to slide straight to the bottom and stop. One answer, no distribution\nHMC uses it differently: the flicked puck glides back and forth across the bowl, and the spots where it’s recorded are draws from the whole posterior\nSame ingredient, two goals: find the best point (optimization) vs. map the whole posterior (sampling)"
+    "text": "What the gradient is for\n\nTo simulate the glide, the computer needs the slope of the bowl where the puck is right now: which way is downhill, and how steep. That slope is the gradient\nOptimizers (maximum likelihood: lm(), glm(), lme4) use the same gradient to slide straight to the bottom and stop. One answer, no distribution\nHMC uses it differently: the flicked puck glides back and forth across the bowl, and the spots where it’s recorded are draws from the whole posterior\nSame ingredient, two goals: find the best point (optimization) vs. map the whole posterior (sampling)\nThe gradient is everywhere in modern AI. Training an LLM like ChatGPT or Claude is gradient descent: billions of parameters, nudged over and over a little way downhill on “how wrong were the predictions?” until the error is small. That’s optimization (one best set of weights), not sampling. And the computer finds those slopes with the same trick Stan uses: autodiff (coming up)"
   },
   {
     "objectID": "mcmc-5.html#what-warmup-does",
