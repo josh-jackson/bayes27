@@ -980,13 +980,6 @@
     "text": "Preview: divergences in multilevel models\nThe most common place you’ll see divergences is a multilevel model with few groups or a small between-group SD. If group effects are \\(u_j \\sim \\text{Normal}(0, \\tau)\\), then when \\(\\tau\\) is near 0 all the \\(u_j\\) are squeezed near 0, and the posterior takes a funnel shape that HMC can’t follow with one step size.\nThe standard fix is the non-centered parameterization: sample standardized effects and scale them,\n\\[z_j \\sim \\text{Normal}(0, 1), \\qquad u_j = \\tau \\, z_j\\]\nSame model, different geometry: the \\(z_j\\) don’t get squeezed when \\(\\tau\\) is small. brms already does this automatically for every group-level term like (1 | group), so you never have to. If a brms multilevel model still shows divergences, use the fixes from earlier: better priors (especially on \\(\\tau\\)) and a higher adapt_delta."
   },
   {
-    "objectID": "info-6.html#this-time",
-    "href": "info-6.html#this-time",
-    "title": "Information, NHST and model fit",
-    "section": "This time:",
-    "text": "This time:\n\nModel and parameter evaluation.\n\nHow do we test our coefficients?\n\nHow do we choose the best model?\n\nWhat sort of indexes can we use to evaluate fit?"
-  },
-  {
     "objectID": "info-6.html#nhst",
     "href": "info-6.html#nhst",
     "title": "Information, NHST and model fit",
@@ -1055,48 +1048,6 @@
     "title": "Information, NHST and model fit",
     "section": "−2LL vs deviance",
     "text": "−2LL vs deviance\n\n\nCode\n-2*logLik(mod.a)\n\n\n'log Lik.' 976.4654 (df=3)\n\n\n\n\nCode\nsummary(mod.a)\n\n\n\nCall:\nglm(formula = health ~ 1 + happy, data = data)\n\nCoefficients:\n            Estimate Std. Error t value Pr(&gt;|t|)    \n(Intercept)   7.6269     0.3982  19.151   &lt;2e-16 ***\nhappy         0.3376     0.1321   2.557   0.0113 *  \n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\n(Dispersion parameter for gaussian family taken to be 7.802939)\n\n    Null deviance: 1596  on 199  degrees of freedom\nResidual deviance: 1545  on 198  degrees of freedom\nAIC: 982.47\n\nNumber of Fisher Scoring iterations: 2"
-  },
-  {
-    "objectID": "info-6.html#grid-approximation-with-likelihoods",
-    "href": "info-6.html#grid-approximation-with-likelihoods",
-    "title": "Information, NHST and model fit",
-    "section": "Grid approximation with likelihoods",
-    "text": "Grid approximation with likelihoods\nLet’s use likelihood to estimate a model. We will use grid approximation to calculate plausible parameter values.\n\n\nCode\nlibrary(psychTools)\ngalton.data &lt;- galton\ngrid &lt;-\n  crossing(mu = seq(from = 66, to = 69, length.out = 200), sigma = seq(from = 2, to = 3, length.out = 200))\ngrid\n\n\n# A tibble: 40,000 × 2\n      mu sigma\n   &lt;dbl&gt; &lt;dbl&gt;\n 1    66  2   \n 2    66  2.01\n 3    66  2.01\n 4    66  2.02\n 5    66  2.02\n 6    66  2.03\n 7    66  2.03\n 8    66  2.04\n 9    66  2.04\n10    66  2.05\n# ℹ 39,990 more rows"
-  },
-  {
-    "objectID": "info-6.html#computing-the-likelihood",
-    "href": "info-6.html#computing-the-likelihood",
-    "title": "Information, NHST and model fit",
-    "section": "Computing the likelihood",
-    "text": "Computing the likelihood\n\nAfter defining the grid space we need to calculate the likelihood.\nLikelihood of our data (each child’s height) assuming each part of our grid is true. So if we take the first line of our grid (mu = 66, sigma = 2) we can see how likely each child’s height (all 928) is with dnorm(height, 66, 2)\nWe sum the LLs across all 928 children for each spot in the grid to get the total log-likelihood for that grid spot"
-  },
-  {
-    "objectID": "info-6.html#million-calculations",
-    "href": "info-6.html#million-calculations",
-    "title": "Information, NHST and model fit",
-    "section": "37 million calculations",
-    "text": "37 million calculations\n40,000 grid points * 928 participants = 37,120,000 calculations\n\n\nCode\nlibrary(purrr)\ngrid_function &lt;- function(mu, sigma) {\n  dnorm(galton.data$child, mean = mu, sd = sigma, log = T) %&gt;%\n    sum()\n  }\n\np_grid &lt;-\n  grid %&gt;%\n  mutate(log_likelihood = map2(mu, sigma, grid_function)) %&gt;%\n  unnest(log_likelihood)\n  p_grid\n\n\n# A tibble: 40,000 × 3\n      mu sigma log_likelihood\n   &lt;dbl&gt; &lt;dbl&gt;          &lt;dbl&gt;\n 1    66  2            -2737.\n 2    66  2.01         -2733.\n 3    66  2.01         -2729.\n 4    66  2.02         -2725.\n 5    66  2.02         -2721.\n 6    66  2.03         -2718.\n 7    66  2.03         -2714.\n 8    66  2.04         -2710.\n 9    66  2.04         -2707.\n10    66  2.05         -2703.\n# ℹ 39,990 more rows"
-  },
-  {
-    "objectID": "info-6.html#the-log-likelihood-surface",
-    "href": "info-6.html#the-log-likelihood-surface",
-    "title": "Information, NHST and model fit",
-    "section": "The log-likelihood surface",
-    "text": "The log-likelihood surface\n\n\nCode\nlibrary(viridis)\np_grid %&gt;%\n  ggplot(aes(x = mu, y = sigma, fill = log_likelihood)) +\n  geom_raster(interpolate = T) +\n  scale_fill_viridis_c(option = \"C\") +\n  labs(x = expression(mu),\n       y = expression(sigma)) +\n  theme(panel.grid = element_blank())"
-  },
-  {
-    "objectID": "info-6.html#log-likelihood-for-mu",
-    "href": "info-6.html#log-likelihood-for-mu",
-    "title": "Information, NHST and model fit",
-    "section": "Log-likelihood for \\(\\mu\\)",
-    "text": "Log-likelihood for \\(\\mu\\)\n\n\nCode\np_grid %&gt;%\n  ggplot(aes(x = mu, y = log_likelihood )) +\n    stat_lineribbon(.width = c(.0), alpha = .4)"
-  },
-  {
-    "objectID": "info-6.html#leveraging-likelihoods",
-    "href": "info-6.html#leveraging-likelihoods",
-    "title": "Information, NHST and model fit",
-    "section": "Leveraging likelihoods",
-    "text": "Leveraging likelihoods\nWe don’t use grid approximation to calculate our posterior, but the LLs are super helpful to evaluate our model.\nHowever, this being bayes, we are going to work with something slightly different from what LLs we are used to.\nIn doing so we accomplish: 1. a principled way to choose likelihood function and 2. a way to evaluate models"
   },
   {
     "objectID": "info-6.html#information-theory",
@@ -1274,32 +1225,25 @@
     "text": "What if some k are too high?\nHigh k usually means an outlier or a model that is too flexible for its data (e.g., one parameter per person). Options, from cheapest to most expensive:\n\n# 1. moment matching: adjusts the draws for the bad points (needs save_pars(all = TRUE) when fitting)\nmodel &lt;- add_criterion(model, \"loo\", moment_match = TRUE)\n\n# 2. actually refit without each bad point (fine if there are only a few)\nmodel &lt;- add_criterion(model, \"loo\", reloo = TRUE)\n\n# 3. K-fold cross validation: refit K times (e.g., 10), no shortcut at all\nmodel &lt;- add_criterion(model, \"kfold\", K = 10)\n\nAnd look at those observations! A high k is also a model check: the model is surprised by them."
   },
   {
-    "objectID": "info-6.html#a-second-model-mr.11",
-    "href": "info-6.html#a-second-model-mr.11",
-    "title": "Information, NHST and model fit",
-    "section": "A second model: mr.11",
-    "text": "A second model: mr.11\n\n\nCode\nmr.11 &lt;- readRDS(\"mr.11.rds\")\nsummary(mr.11)\n\n\n Family: gaussian \n  Links: mu = identity \nFormula: happiness ~ 1 + (1 | iv) \n   Data: MR (Number of observations: 118) \n  Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;\n         total post-warmup draws = 4000\n\nMultilevel Hyperparameters:\n~iv (Number of levels: 3) \n              Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nsd(Intercept)     0.48      0.53     0.01     2.01 1.01      512      418\n\nRegression Coefficients:\n          Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nIntercept     5.20      0.35     4.37     5.96 1.02      413      168\n\nFurther Distributional Parameters:\n      Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nsigma     1.90      0.12     1.68     2.17 1.00     2357     2185\n\nDraws were sampled using sample(hmc). For each parameter, Bulk_ESS\nand Tail_ESS are effective sample size measures, and Rhat is the potential\nscale reduction factor on split chains (at convergence, Rhat = 1)."
-  },
-  {
     "objectID": "info-6.html#loo-for-mr.11",
     "href": "info-6.html#loo-for-mr.11",
     "title": "Information, NHST and model fit",
     "section": "LOO for mr.11",
-    "text": "LOO for mr.11\n\n\nCode\nmr.11 &lt;- add_criterion(mr.11, \"loo\")\nloo(mr.11)\n\n\n\nComputed from 4000 by 118 log-likelihood matrix.\n\n         Estimate   SE\nelpd_loo   -245.1  8.3\np_loo         3.1  0.5\nlooic       490.1 16.7\n------\nMCSE of elpd_loo is 0.0.\nMCSE and ESS estimates assume MCMC draws (r_eff in [0.5, 1.0]).\n\nAll Pareto k estimates are good (k &lt; 0.7).\nSee help('pareto-k-diagnostic') for details."
+    "text": "LOO for mr.11\n\n\nCode\nmr.11 &lt;- add_criterion(mr.11, \"loo\")\nloo(mr.11)\n\n\n\nComputed from 4000 by 118 log-likelihood matrix.\n\n         Estimate   SE\nelpd_loo   -245.0  8.5\np_loo         3.3  0.7\nlooic       490.1 17.0\n------\nMCSE of elpd_loo is 0.0.\nMCSE and ESS estimates assume MCMC draws (r_eff in [0.8, 1.0]).\n\nAll Pareto k estimates are good (k &lt; 0.7).\nSee help('pareto-k-diagnostic') for details."
   },
   {
     "objectID": "info-6.html#comparing-models-with-loo_compare",
     "href": "info-6.html#comparing-models-with-loo_compare",
     "title": "Information, NHST and model fit",
     "section": "Comparing models with loo_compare()",
-    "text": "Comparing models with loo_compare()\n\nloo_compare output rank orders models such that the best fitting model appears on top\n\n\n\nCode\nloo_compare(mr.11, mr.12, criterion = \"loo\")\n\n\n model elpd_diff se_diff p_worse diag_diff diag_elpd\n mr.12       0.0     0.0      NA                    \n mr.11     -17.0     6.3    1.00"
+    "text": "Comparing models with loo_compare()\n\nloo_compare output rank orders models such that the best fitting model appears on top\n\n\n\nCode\nloo_compare(mr.11, mr.12, criterion = \"loo\")\n\n\n model elpd_diff se_diff p_worse diag_diff diag_elpd\n mr.12       0.0     0.0      NA                    \n mr.11     -16.9     6.4    1.00"
   },
   {
     "objectID": "info-6.html#how-big-a-difference-matters",
     "href": "info-6.html#how-big-a-difference-matters",
     "title": "Information, NHST and model fit",
     "section": "How big a difference matters?",
-    "text": "How big a difference matters?\n\n\n model elpd_diff se_diff p_worse diag_diff diag_elpd\n mr.12       0.0     0.0      NA                    \n mr.11     -17.0     6.3    1.00                    \n\n\n\nThe Stan team recommends that:\n\n\nIf |elpd_diff| &lt; 4, the models predict about equally well.\nIf it’s larger, compare it to se_diff (a rough signal-to-noise ratio).\n\n\nHere elpd_diff / se_diff = 17 / 6.3 ≈ 2.7: mr.12 is expected to predict new data clearly better."
+    "text": "How big a difference matters?\n\n\n model elpd_diff se_diff p_worse diag_diff diag_elpd\n mr.12       0.0     0.0      NA                    \n mr.11     -16.9     6.4    1.00                    \n\n\n\nThe Stan team recommends that:\n\n\nIf |elpd_diff| &lt; 4, the models predict about equally well.\nIf it’s larger, compare it to se_diff (a rough signal-to-noise ratio).\n\n\nHere elpd_diff / se_diff = 17 / 6.4 ≈ 2.7: mr.12 is expected to predict new data clearly better."
   },
   {
     "objectID": "info-6.html#a-third-model-add-the-interaction",
@@ -1313,7 +1257,7 @@
     "href": "info-6.html#r²-always-goes-up.-does-loo",
     "title": "Information, NHST and model fit",
     "section": "R² always goes up. Does LOO?",
-    "text": "R² always goes up. Does LOO?\n\n\nCode\nmods &lt;- list(`mr.11: happiness ~ (1 | group)` = mr.11,\n             `mr.12: ~ tx + school` = mr.12,\n             `mr.14b: ~ tx * school` = mr.14b)\ntibble(model    = names(mods),\n       R2       = map_dbl(mods, ~ median(bayes_R2(.x, summary = FALSE))),\n       elpd_loo = map_dbl(mods, ~ .x$criteria$loo$estimates[\"elpd_loo\", \"Estimate\"]),\n       p_loo    = map_dbl(mods, ~ .x$criteria$loo$estimates[\"p_loo\", \"Estimate\"])) %&gt;%\n  knitr::kable(digits = 2)\n\n\n\n\n\nmodel\nR2\nelpd_loo\np_loo\n\n\n\n\nmr.11: happiness ~ (1 | group)\n0.01\n-245.07\n3.12\n\n\nmr.12: ~ tx + school\n0.27\n-228.12\n4.04\n\n\nmr.14b: ~ tx * school\n0.32\n-224.45\n5.02\n\n\n\n\n\nCode\nloo_compare(mr.11, mr.12, mr.14b)\n\n\n  model elpd_diff se_diff p_worse       diag_diff diag_elpd\n mr.14b       0.0     0.0      NA                          \n  mr.12      -3.7     3.4    0.86 |elpd_diff| &lt; 4          \n  mr.11     -20.6     7.3    1.00"
+    "text": "R² always goes up. Does LOO?\n\n\nCode\nmods &lt;- list(`mr.11: ~ tx` = mr.11,\n             `mr.12: ~ tx + school` = mr.12,\n             `mr.14b: ~ tx * school` = mr.14b)\ntibble(model    = names(mods),\n       R2       = map_dbl(mods, ~ median(bayes_R2(.x, summary = FALSE))),\n       elpd_loo = map_dbl(mods, ~ .x$criteria$loo$estimates[\"elpd_loo\", \"Estimate\"]),\n       p_loo    = map_dbl(mods, ~ .x$criteria$loo$estimates[\"p_loo\", \"Estimate\"])) %&gt;%\n  knitr::kable(digits = 2)\n\n\n\n\n\nmodel\nR2\nelpd_loo\np_loo\n\n\n\n\nmr.11: ~ tx\n0.01\n-245.04\n3.33\n\n\nmr.12: ~ tx + school\n0.27\n-228.12\n4.04\n\n\nmr.14b: ~ tx * school\n0.32\n-224.45\n5.02\n\n\n\n\n\nCode\nloo_compare(mr.11, mr.12, mr.14b)\n\n\n  model elpd_diff se_diff p_worse       diag_diff diag_elpd\n mr.14b       0.0     0.0      NA                          \n  mr.12      -3.7     3.4    0.86 |elpd_diff| &lt; 4          \n  mr.11     -20.6     7.3    1.00"
   },
   {
     "objectID": "info-6.html#reading-the-comparison",
@@ -1326,36 +1270,8 @@
     "objectID": "info-6.html#information-criteria",
     "href": "info-6.html#information-criteria",
     "title": "Information, NHST and model fit",
-    "section": "Information Criteria",
-    "text": "Information Criteria\n\nAIC, BIC, WAIC, DIC, etc.\nInformation criteria are theoretical approximations to out-of-sample (cross-validation) fit, like PSIS-LOO\nAIC = deviance(training) + 2p (p = number of parameters). Lower is better.\nDIC (Deviance information criteria) is more flexible for Bayesian models, but assumes a multivariate Gaussian posterior"
-  },
-  {
-    "objectID": "info-6.html#waic",
-    "href": "info-6.html#waic",
-    "title": "Information, NHST and model fit",
-    "section": "WAIC",
-    "text": "WAIC\n\\[\\text{WAIC}(y, \\theta) = -2 \\big (\\text{lppd} - \\underbrace{\\sum_i \\operatorname{var}_\\theta \\log p(y_i | \\theta)}_\\text{penalty term} \\big)\\]\nlppd = log pointwise predictive density, the log score averaged over the entire posterior (−2 × lppd is the Bayesian version of the deviance)\nSimilar in form to old friend: \\[\\text{AIC} = -2 \\log p(y | \\hat\\theta_{MLE}) + 2p\\]"
-  },
-  {
-    "objectID": "info-6.html#waic-example",
-    "href": "info-6.html#waic-example",
-    "title": "Information, NHST and model fit",
-    "section": "WAIC example",
-    "text": "WAIC example\n\nwaic(mr.12)\n\n\nComputed from 4000 by 118 log-likelihood matrix.\n\n          Estimate   SE\nelpd_waic   -228.1  6.9\np_waic         4.0  0.6\nwaic         456.2 13.7\n\n\np_waic = penalty term (similar to the 2p in AIC); elpd_waic = lppd − p_waic"
-  },
-  {
-    "objectID": "info-6.html#waic-for-mr.11",
-    "href": "info-6.html#waic-for-mr.11",
-    "title": "Information, NHST and model fit",
-    "section": "WAIC for mr.11",
-    "text": "WAIC for mr.11\n\nwaic(mr.11)\n\n\nComputed from 4000 by 118 log-likelihood matrix.\n\n          Estimate   SE\nelpd_waic   -245.1  8.3\np_waic         3.1  0.5\nwaic         490.1 16.7"
-  },
-  {
-    "objectID": "info-6.html#comparing-with-waic",
-    "href": "info-6.html#comparing-with-waic",
-    "title": "Information, NHST and model fit",
-    "section": "Comparing with WAIC",
-    "text": "Comparing with WAIC\n\n\nCode\nmr.11 &lt;- add_criterion(mr.11, \"waic\")\nmr.12 &lt;- add_criterion(mr.12, \"waic\")\nloo_compare(mr.11, mr.12, criterion = \"waic\")\n\n\n model elpd_diff se_diff p_worse diag_diff diag_elpd\n mr.12       0.0     0.0      NA                    \n mr.11     -17.0     6.3    1.00                    \n\n\nNote: this looks like the LOO results, even though this is with waic. Both are computed from the lppd, so it makes sense they can be similar. It will not always be this way, however."
+    "section": "Information criteria",
+    "text": "Information criteria\nAIC, BIC, DIC, WAIC: formulas that approximate out-of-sample deviance without refitting. Each is “in-sample fit + a penalty for flexibility”:\n\\[\\text{AIC} = -2 \\log p(y | \\hat\\theta_{MLE}) + 2p \\qquad \\text{WAIC} = -2 \\big(\\text{lppd} - \\underbrace{\\textstyle\\sum_i \\operatorname{var}_\\theta \\log p(y_i | \\theta)}_\\text{penalty}\\big)\\]\n\nAIC counts parameters (p) and uses a single best estimate\nWAIC is the Bayesian version: it uses the whole posterior, and its penalty (p_waic) measures how much each observation’s fit wobbles across the draws, so it works with priors and multilevel models where “number of parameters” is fuzzy\nCurrent advice (Vehtari, Gelman & Gabry, 2017): use PSIS-LOO. It estimates the same thing, is more robust, and comes with a diagnostic (Pareto k); WAIC doesn’t"
   },
   {
     "objectID": "info-6.html#using-information-criteria",
@@ -1467,28 +1383,14 @@
     "href": "info-6.html#one-rope-for-everything",
     "title": "Information, NHST and model fit",
     "section": "One ROPE for everything?",
-    "text": "One ROPE for everything?\n\nrope.1 &lt;- rope(mr.14b, range = c(-0.2, 0.2))\nrope.1\n\n# Proportion of samples inside the ROPE [-0.20, 0.20]:\n\nParameter   | Inside ROPE\n-------------------------\nIntercept   |      0.00 %\niv.dtx      |     28.29 %\nSS_c        |      0.00 %\niv.dtx:SS_c |     18.45 %\n\n\n\nNote how the ROPE is the same for all parameters (including the intercept!), even though they are on different scales"
-  },
-  {
-    "objectID": "info-6.html#plotting-the-rope",
-    "href": "info-6.html#plotting-the-rope",
-    "title": "Information, NHST and model fit",
-    "section": "Plotting the ROPE",
-    "text": "Plotting the ROPE\n\nplot(rope.1)"
+    "text": "One ROPE for everything?\n\n\nCode\nplot(rope(mr.14b, range = c(-0.2, 0.2)))\n\n\n\n\nWithout parameters =, the same range is applied to every parameter, including the intercept, even though they are on different scales. A ROPE belongs to one parameter"
   },
   {
     "objectID": "info-6.html#a-wider-rope-99-interval",
     "href": "info-6.html#a-wider-rope-99-interval",
     "title": "Information, NHST and model fit",
     "section": "A wider ROPE, 99% interval",
-    "text": "A wider ROPE, 99% interval\n\nrope(mr.14b, range = c(-0.3, 0.3), ci = c(0.99))\n\n# Proportion of samples inside the ROPE [-0.30, 0.30]:\n\nParameter   | Inside ROPE\n-------------------------\nIntercept   |      0.00 %\niv.dtx      |     41.14 %\nSS_c        |      3.41 %\niv.dtx:SS_c |     60.63 %"
-  },
-  {
-    "objectID": "info-6.html#plotting-the-wider-rope",
-    "href": "info-6.html#plotting-the-wider-rope",
-    "title": "Information, NHST and model fit",
-    "section": "Plotting the wider ROPE",
-    "text": "Plotting the wider ROPE\n\nrope.2 &lt;- rope(mr.14b, range = c(-0.3, 0.3), ci = c(0.99))\nplot(rope.2)"
+    "text": "A wider ROPE, 99% interval\n\n\nCode\nplot(rope(mr.14b, range = c(-0.3, 0.3), ci = 0.99))\n\n\n\nA wider ROPE or a wider interval changes the answer, which is why the ROPE (and interval) must be chosen before looking."
   },
   {
     "objectID": "info-6.html#equivalence-test",
@@ -1656,49 +1558,21 @@
     "href": "info-6.html#with-a-brms-model",
     "title": "Information, NHST and model fit",
     "section": "With a brms model",
-    "text": "With a brms model\nEasy to implement with brms models. You need sample_prior = \"yes\" so brms saves draws from the prior.\n\nmr.2 &lt;-\n  brm(family = gaussian,\n      happiness ~ 1 + SS_c + FQ_c,\n      prior = c(prior(normal(5, 2), class = Intercept),\n                prior(normal(0, .2), class = b, coef = SS_c),\n                prior(normal(0, .2), class = b, coef = FQ_c),\n                prior(exponential(.5), class = sigma)),\n      iter = 2000, warmup = 1000, chains = 2, cores = 2,\n      data = MR,\n      sample_prior = \"yes\",\n      file = \"mr.2\")"
-  },
-  {
-    "objectID": "info-6.html#mr.2-summary",
-    "href": "info-6.html#mr.2-summary",
-    "title": "Information, NHST and model fit",
-    "section": "mr.2 summary",
-    "text": "mr.2 summary\n\nsummary(mr.2)\n\n Family: gaussian \n  Links: mu = identity \nFormula: happiness ~ 1 + SS_c + FQ_c \n   Data: MR (Number of observations: 118) \n  Draws: 2 chains, each with iter = 2000; warmup = 1000; thin = 1;\n         total post-warmup draws = 2000\n\nRegression Coefficients:\n          Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nIntercept     5.21      0.15     4.92     5.51 1.00     1970     1272\nSS_c          0.35      0.05     0.24     0.45 1.00     1933     1127\nFQ_c          0.18      0.07     0.04     0.31 1.00     1861     1530\n\nFurther Distributional Parameters:\n      Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nsigma     1.60      0.11     1.40     1.81 1.00     2119     1474\n\nDraws were sampled using sample(hmc). For each parameter, Bulk_ESS\nand Tail_ESS are effective sample size measures, and Rhat is the potential\nscale reduction factor on split chains (at convergence, Rhat = 1)."
-  },
-  {
-    "objectID": "info-6.html#bfs-for-mr.2",
-    "href": "info-6.html#bfs-for-mr.2",
-    "title": "Information, NHST and model fit",
-    "section": "BFs for mr.2",
-    "text": "BFs for mr.2\n\nbf.result &lt;- bayestestR::bayesfactor_parameters(mr.2)\nbf.result\n\nBayes Factor (Savage-Dickey density ratio)\n\nParameter   |       BF\n----------------------\n(Intercept) | 1.59e+47\nSS_c        | 2.87e+04\nFQ_c        |     9.49\n\n* Evidence Against The Null: 0"
+    "text": "With a brms model\nEasy with brms. You need sample_prior = \"yes\" so brms saves draws from the prior (the BF compares the prior and posterior at 0).\n\n\nCode\ninfo.2 &lt;-\n  brm(family = gaussian,\n      happiness ~ 1 + SS_c + FQ_c,\n      prior = c(prior(normal(5, 2), class = Intercept),\n                prior(normal(0, .2), class = b, coef = SS_c),\n                prior(normal(0, .2), class = b, coef = FQ_c),\n                prior(exponential(.5), class = sigma)),\n      iter = 2000, warmup = 1000, chains = 2, cores = 2,\n      data = MR,\n      sample_prior = \"yes\",\n      save_pars = save_pars(all = TRUE),\n      backend = \"cmdstanr\",\n      file = \"info.2\")\n\n\nHappiness predicted by school success and friendship quality (both centered), with fairly narrow Normal(0, 0.2) priors on the slopes."
   },
   {
     "objectID": "info-6.html#plotting-the-bfs",
     "href": "info-6.html#plotting-the-bfs",
     "title": "Information, NHST and model fit",
     "section": "Plotting the BFs",
-    "text": "Plotting the BFs\n\nplot(bf.result)"
-  },
-  {
-    "objectID": "info-6.html#try-with-wider-priors",
-    "href": "info-6.html#try-with-wider-priors",
-    "title": "Information, NHST and model fit",
-    "section": "Try with wider priors",
-    "text": "Try with wider priors\n\n\nCode\nmr.2b &lt;-\n  brm(family = gaussian,\n      happiness ~ 1 + SS_c + FQ_c,\n      prior = c(prior(normal(5, 2), class = Intercept),\n                prior(normal(0, 10), class = b, coef = SS_c),\n                prior(normal(0, 10), class = b, coef = FQ_c),\n                prior(exponential(.5), class = sigma)),\n      iter = 2000, warmup = 1000, chains = 2, cores = 2,\n      data = MR,\n      backend = \"cmdstanr\",\n      file = \"mr.2b\")"
-  },
-  {
-    "objectID": "info-6.html#bfs-with-wider-priors",
-    "href": "info-6.html#bfs-with-wider-priors",
-    "title": "Information, NHST and model fit",
-    "section": "BFs with wider priors",
-    "text": "BFs with wider priors\n\n\nCode\nbf.resultb &lt;- bayestestR::bayesfactor_parameters(mr.2b)\nbf.resultb\n\n\nBayes Factor (Savage-Dickey density ratio)\n\nParameter   |       BF\n----------------------\n(Intercept) | 9.82e+45\nSS_c        | 4.30e+04\nFQ_c        |    0.549\n\n* Evidence Against The Null: 0"
+    "text": "Plotting the BFs\n\nplot(bf.info.2)"
   },
   {
     "objectID": "info-6.html#we-can-also-do-this-with-a-rope",
     "href": "info-6.html#we-can-also-do-this-with-a-rope",
     "title": "Information, NHST and model fit",
     "section": "We can also do this with a ROPE!",
-    "text": "We can also do this with a ROPE!\n\nbf.result2 &lt;- bayesfactor_parameters(mr.2, null = rope_range(mr.2))\nbf.result2\n\nBayes Factor (Null-Interval)\n\nParameter   |       BF\n----------------------\n(Intercept) | 3.29e+46\nSS_c        |   497.41\nFQ_c        |     1.38\n\n* Evidence Against The Null: [-0.189, 0.189]"
+    "text": "We can also do this with a ROPE!\n\nbf.result2 &lt;- bayesfactor_parameters(info.2, null = rope_range(info.2))\nbf.result2\n\nBayes Factor (Null-Interval)\n\nParameter   |       BF\n----------------------\n(Intercept) | 1.17e+34\nSS_c        |   718.44\nFQ_c        |     1.33\n\n* Evidence Against The Null: [-0.189, 0.189]"
   },
   {
     "objectID": "info-6.html#bf-against-an-interval-null",
@@ -1722,34 +1596,6 @@
     "text": "Shortcomings of Bayes Factors (cont.)\n\nPotentially reinforces dichotomous thinking (better than p values but not by much)\nMay be used as a measure of effect size (similar shortfalls to using p as such)\nCan be completely disconnected from our typical estimation stats"
   },
   {
-    "objectID": "info-6.html#same-model-two-priors",
-    "href": "info-6.html#same-model-two-priors",
-    "title": "Information, NHST and model fit",
-    "section": "Same model, two priors",
-    "text": "Same model, two priors\n\n\nCode\ninfo.1 &lt;-\n  brm(family = gaussian,\n      happiness ~ 1 + SS_c + FQ_c,\n      prior = c(prior(normal(5, 2), class = Intercept),\n                prior(normal(0, 2), class = b, coef = SS_c),\n                prior(normal(0, 2), class = b, coef = FQ_c),\n                prior(exponential(1), class = sigma)),\n      iter = 2000, warmup = 1000, chains = 2, cores = 2,\n      data = MR,\n      sample_prior = \"yes\",\n      save_pars = save_pars(all = TRUE),\n      backend = \"cmdstanr\",\n      file = \"info.1\")\n\n\n\n\nCode\ninfo.2 &lt;-\n  brm(family = gaussian,\n      happiness ~ 1 + SS_c + FQ_c,\n      prior = c(prior(normal(5, 2), class = Intercept),\n                prior(normal(0, .2), class = b, coef = SS_c),\n                prior(normal(0, .2), class = b, coef = FQ_c),\n                prior(exponential(.5), class = sigma)),\n      iter = 2000, warmup = 1000, chains = 2, cores = 2,\n      data = MR,\n      sample_prior = \"yes\",\n      save_pars = save_pars(all = TRUE),\n      backend = \"cmdstanr\",\n      file = \"info.2\")"
-  },
-  {
-    "objectID": "info-6.html#their-bayes-factors",
-    "href": "info-6.html#their-bayes-factors",
-    "title": "Information, NHST and model fit",
-    "section": "Their Bayes factors",
-    "text": "Their Bayes factors\n\n\nCode\nbf.info.1 &lt;- bayestestR::bayesfactor_parameters(info.1)\nbf.info.1\n\n\nBayes Factor (Savage-Dickey density ratio)\n\nParameter   |       BF\n----------------------\n(Intercept) | 1.39e+34\nSS_c        | 3.64e+04\nFQ_c        |     4.84\n\n* Evidence Against The Null: 0\n\n\n\n\nCode\nbf.info.2 &lt;- bayestestR::bayesfactor_parameters(info.2)\nbf.info.2\n\n\nBayes Factor (Savage-Dickey density ratio)\n\nParameter   |       BF\n----------------------\n(Intercept) | 3.80e+34\nSS_c        | 2.94e+04\nFQ_c        |     9.94\n\n* Evidence Against The Null: 0"
-  },
-  {
-    "objectID": "info-6.html#bf-plot-wide-prior-info.1",
-    "href": "info-6.html#bf-plot-wide-prior-info.1",
-    "title": "Information, NHST and model fit",
-    "section": "BF plot: wide prior (info.1)",
-    "text": "BF plot: wide prior (info.1)\n\nplot(bf.info.1)"
-  },
-  {
-    "objectID": "info-6.html#bf-plot-narrow-prior-info.2",
-    "href": "info-6.html#bf-plot-narrow-prior-info.2",
-    "title": "Information, NHST and model fit",
-    "section": "BF plot: narrow prior (info.2)",
-    "text": "BF plot: narrow prior (info.2)\n\nplot(bf.info.2)"
-  },
-  {
     "objectID": "info-6.html#same-effects-different-bfs",
     "href": "info-6.html#same-effects-different-bfs",
     "title": "Information, NHST and model fit",
@@ -1761,7 +1607,7 @@
     "href": "info-6.html#why",
     "title": "Information, NHST and model fit",
     "section": "Why?",
-    "text": "Why?\n\n\nCode\ntibble(parameter = c(\"School success\", \"Friendship quality\"),\n       `BF, wide prior`   = exp(bf.info.1$log_BF[bf.info.1$Parameter %in% c(\"b_SS_c\", \"b_FQ_c\")]),\n       `BF, narrow prior` = exp(bf.info.2$log_BF[bf.info.2$Parameter %in% c(\"b_SS_c\", \"b_FQ_c\")])) %&gt;%\n  knitr::kable(digits = 1)\n\n\n\n\n\nparameter\nBF, wide prior\nBF, narrow prior\n\n\n\n\nSchool success\n36414.3\n29393.0\n\n\nFriendship quality\n4.8\n9.9\n\n\n\n\n\n\nThe BF compares “the effect is 0” to “the effect is something like the prior says.” A wide prior spreads its bets over huge slopes the data rule out, so it makes the alternative look worse.\nFor friendship quality, just narrowing the prior about doubles the BF (4.8 → 9.9): from “moderate” to the edge of “strong” with the same data. (BFs estimated from draws wobble a bit from run to run.) School success is so far from 0 that any prior gives an enormous BF (the numbers move, the conclusion doesn’t).\nThe posterior (and so CIs, pd and ROPE) hardly cares about the prior here. The BF cares a lot. Always report the prior along with a BF."
+    "text": "Why?\n\n\nCode\ntibble(parameter = c(\"School success\", \"Friendship quality\"),\n       `BF, wide prior`   = exp(bf.info.1$log_BF[bf.info.1$Parameter %in% c(\"b_SS_c\", \"b_FQ_c\")]),\n       `BF, narrow prior` = exp(bf.info.2$log_BF[bf.info.2$Parameter %in% c(\"b_SS_c\", \"b_FQ_c\")])) %&gt;%\n  knitr::kable(digits = 1)\n\n\n\n\n\nparameter\nBF, wide prior\nBF, narrow prior\n\n\n\n\nSchool success\n34866.6\n24860.6\n\n\nFriendship quality\n4.9\n10.5\n\n\n\n\n\n\nThe BF compares “the effect is 0” to “the effect is something like the prior says.” A wide prior spreads its bets over huge slopes the data rule out, so it makes the alternative look worse.\nFor friendship quality, just narrowing the prior about doubles the BF (4.9 → 10.5): from “moderate” to the edge of “strong” with the same data. (BFs estimated from draws wobble a bit from run to run.) School success is so far from 0 that any prior gives an enormous BF (the numbers move, the conclusion doesn’t).\nThe posterior (and so CIs, pd and ROPE) hardly cares about the prior here. The BF cares a lot. Always report the prior along with a BF."
   },
   {
     "objectID": "info-6.html#which-tool-answers-which-question",
@@ -1789,7 +1635,7 @@
     "href": "info-6.html#multiple-comparisons",
     "title": "Information, NHST and model fit",
     "section": "Multiple comparisons",
-    "text": "Multiple comparisons\nKruschke:\nWhen comparing multiple conditions, a key goal in NHST is to keep the overall false alarm rate down to a desired maximum such as 5%. Abiding by this constraint depends on the number of comparisons that are to be made, which in turn depends on the intentions of the experimenter. In a Bayesian analysis, however, there is just one posterior distribution over the parameters that describe the conditions. That posterior distribution is unaffected by the intentions of the experimenter, and the posterior distribution can be examined from multiple perspectives however is suggested by insight and curiosity"
+    "text": "Multiple comparisons\n\nIn NHST, every extra test raises the chance of a false alarm, so we correct (Bonferroni, etc.), and the correction depends on how many tests you intended to run\nKruschke’s point: a Bayesian analysis has one posterior. Looking at it from many angles (every pairwise difference, every contrast) doesn’t change it, so there is nothing to correct\nThe real Bayesian protection against chasing noise is in the model: sensible priors, and partial pooling in multilevel models, which shrinks extreme group estimates toward each other (Gelman, Hill & Yajima, 2012). More on that in the multilevel weeks"
   },
   {
     "objectID": "glm-7.html#this-time",
@@ -8587,5 +8433,75 @@
     "title": "MCMC",
     "section": "Raising max_treedepth",
     "text": "Raising max_treedepth\nDivergent transitions are a validity concern; hitting the maximum treedepth is an efficiency concern: the glides were cut short, so the sampler explores more slowly. Fix the model first (often a long, narrow posterior); if the model is right, raise the cap.\n\n\nCode\nh.3 &lt;- \n  brm(family = gaussian,\n      health ~ 0 + mood.group.d,\n      prior = c(prior(normal(0, 10), class = b),\n                prior(cauchy(0, 10), class = sigma)),\n      data = week3,\n      iter = 1000, warmup = 500, chains = 2, cores = 2, \n      control = list(max_treedepth = 15), # default is 10\n      file = \"h.3_treedepth\")\nsummary(h.3)"
+  },
+  {
+    "objectID": "info-6.html#this-time-three-questions",
+    "href": "info-6.html#this-time-three-questions",
+    "title": "Information, NHST and model fit",
+    "section": "This time: three questions",
+    "text": "This time: three questions\n\n\n\n\n\n\n\n\nPart\nQuestion\nTools\n\n\n\n\n1\nHow do we score how well a model fits?\nlikelihood, deviance, information, lppd\n\n\n2\nWhich model will predict new data best?\nLOO (and WAIC), loo_compare()\n\n\n3\nIs this effect real, and is it big enough to matter?\npd, ROPE, Bayes factors"
+  },
+  {
+    "objectID": "info-6.html#lecture-1s-grid-as-log-likelihoods",
+    "href": "info-6.html#lecture-1s-grid-as-log-likelihoods",
+    "title": "Information, NHST and model fit",
+    "section": "Lecture 1’s grid, as log-likelihoods",
+    "text": "Lecture 1’s grid, as log-likelihoods\nRemember the grid: for every (μ, σ) pair, add up the log-likelihood of all 928 children’s heights. The brightest spot is the maximum likelihood estimate. Every model today gets scored the same basic way: how probable does it make the data?\n\n\nCode\nlibrary(psychTools)\ngalton.data &lt;- galton\np_grid &lt;- crossing(mu = seq(66, 69, length.out = 120), sigma = seq(2, 3, length.out = 120)) %&gt;%\n  mutate(log_likelihood = map2_dbl(mu, sigma, \\(m, s) sum(dnorm(galton.data$child, m, s, log = TRUE))))\nggplot(p_grid, aes(mu, sigma, fill = log_likelihood)) +\n  geom_raster(interpolate = TRUE) +\n  geom_point(data = slice_max(p_grid, log_likelihood), colour = \"white\", size = 3) +\n  scale_fill_viridis_c(option = \"C\") +\n  labs(x = expression(mu), y = expression(sigma), fill = \"log-\\nlikelihood\") +\n  theme_classic(base_size = 13)"
+  },
+  {
+    "objectID": "info-6.html#where-this-part-is-going",
+    "href": "info-6.html#where-this-part-is-going",
+    "title": "Information, NHST and model fit",
+    "section": "Where this part is going",
+    "text": "Where this part is going\nThe information theory slides build, step by step, a score for comparing models. Each step fixes a problem with the one before:\n\nInformation and entropy: how uncertain a prediction is\nKL divergence: how far our model’s predictions are from the truth. But we never know the truth\nDeviance (log score): when two models are scored on the same data, the unknown truth cancels. All we need is how probable each model makes the data\nlppd: the Bayesian log score, averaged over the whole posterior instead of one best estimate\nLOO: scored on the data it was fit to, a more complex model always looks better. So estimate how it would score on new data (Part 2)\n\nA bonus along the way: maximum entropy also tells us how to pick a likelihood."
+  },
+  {
+    "objectID": "info-6.html#a-second-model-treatment-only",
+    "href": "info-6.html#a-second-model-treatment-only",
+    "title": "Information, NHST and model fit",
+    "section": "A second model: treatment only",
+    "text": "A second model: treatment only\n\n\nCode\nmr.11 &lt;-\n  brm(family = gaussian,\n      happiness ~ 0 + iv.d,\n      prior = c(prior(normal(5, 3), class = b),\n                prior(exponential(1), class = sigma)),\n      iter = 2000, warmup = 1000, chains = 4, cores = 4,\n      data = MR,\n      backend = \"cmdstanr\",\n      file = \"mr.11b\")\nsummary(mr.11)\n\n\n Family: gaussian \n  Links: mu = identity \nFormula: happiness ~ 0 + iv.d \n   Data: MR (Number of observations: 118) \n  Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;\n         total post-warmup draws = 4000\n\nRegression Coefficients:\n            Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\niv.dcontrol     5.00      0.29     4.43     5.57 1.00     3941     3092\niv.dtx          5.34      0.22     4.89     5.77 1.00     3516     2376\n\nFurther Distributional Parameters:\n      Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nsigma     1.90      0.12     1.68     2.17 1.00     3524     2705\n\nDraws were sampled using sample(hmc). For each parameter, Bulk_ESS\nand Tail_ESS are effective sample size measures, and Rhat is the potential\nscale reduction factor on split chains (at convergence, Rhat = 1).\n\n\nSame as mr.12, minus school success: does knowing a student’s school success help predict happiness?"
+  },
+  {
+    "objectID": "info-6.html#waic-vs.-loo",
+    "href": "info-6.html#waic-vs.-loo",
+    "title": "Information, NHST and model fit",
+    "section": "WAIC vs. LOO",
+    "text": "WAIC vs. LOO\n\n\nCode\nmr.11 &lt;- add_criterion(mr.11, \"waic\")\nmr.12 &lt;- add_criterion(mr.12, \"waic\")\nloo_compare(mr.11, mr.12, criterion = \"waic\")\n\n\n model elpd_diff se_diff p_worse diag_diff diag_elpd\n mr.12       0.0     0.0      NA                    \n mr.11     -16.9     6.4    1.00                    \n\n\nNearly the same answer as LOO here. Both start from the lppd, so they usually agree; when they don’t, trust LOO and check its Pareto k."
+  },
+  {
+    "objectID": "info-6.html#info.2-summary",
+    "href": "info-6.html#info.2-summary",
+    "title": "Information, NHST and model fit",
+    "section": "info.2 summary",
+    "text": "info.2 summary\n\nsummary(info.2)\n\n Family: gaussian \n  Links: mu = identity \nFormula: happiness ~ 1 + SS_c + FQ_c \n   Data: MR (Number of observations: 118) \n  Draws: 2 chains, each with iter = 2000; warmup = 1000; thin = 1;\n         total post-warmup draws = 2000\n\nRegression Coefficients:\n          Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nIntercept     5.21      0.14     4.93     5.50 1.00     1546     1368\nSS_c          0.35      0.05     0.25     0.45 1.00     1719     1450\nFQ_c          0.17      0.07     0.04     0.31 1.00     1518     1462\n\nFurther Distributional Parameters:\n      Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nsigma     1.59      0.11     1.39     1.82 1.00     1827     1399\n\nDraws were sampled using sample(hmc). For each parameter, Bulk_ESS\nand Tail_ESS are effective sample size measures, and Rhat is the potential\nscale reduction factor on split chains (at convergence, Rhat = 1)."
+  },
+  {
+    "objectID": "info-6.html#bfs-for-info.2",
+    "href": "info-6.html#bfs-for-info.2",
+    "title": "Information, NHST and model fit",
+    "section": "BFs for info.2",
+    "text": "BFs for info.2\n\nbf.info.2 &lt;- bayestestR::bayesfactor_parameters(info.2)\nbf.info.2\n\nBayes Factor (Savage-Dickey density ratio)\n\nParameter   |       BF\n----------------------\n(Intercept) | 5.03e+34\nSS_c        | 2.49e+04\nFQ_c        |    10.53\n\n* Evidence Against The Null: 0"
+  },
+  {
+    "objectID": "info-6.html#try-a-wider-prior",
+    "href": "info-6.html#try-a-wider-prior",
+    "title": "Information, NHST and model fit",
+    "section": "Try a wider prior",
+    "text": "Try a wider prior\nSame model, same data; only the slope priors change, from Normal(0, 0.2) to Normal(0, 2).\n\n\nCode\ninfo.1 &lt;-\n  brm(family = gaussian,\n      happiness ~ 1 + SS_c + FQ_c,\n      prior = c(prior(normal(5, 2), class = Intercept),\n                prior(normal(0, 2), class = b, coef = SS_c),\n                prior(normal(0, 2), class = b, coef = FQ_c),\n                prior(exponential(1), class = sigma)),\n      iter = 2000, warmup = 1000, chains = 2, cores = 2,\n      data = MR,\n      sample_prior = \"yes\",\n      save_pars = save_pars(all = TRUE),\n      backend = \"cmdstanr\",\n      file = \"info.1\")"
+  },
+  {
+    "objectID": "info-6.html#bfs-with-the-wider-prior",
+    "href": "info-6.html#bfs-with-the-wider-prior",
+    "title": "Information, NHST and model fit",
+    "section": "BFs with the wider prior",
+    "text": "BFs with the wider prior\n\nbf.info.1 &lt;- bayestestR::bayesfactor_parameters(info.1)\nbf.info.1\n\nBayes Factor (Savage-Dickey density ratio)\n\nParameter   |       BF\n----------------------\n(Intercept) | 1.55e+34\nSS_c        | 3.49e+04\nFQ_c        |     4.93\n\n* Evidence Against The Null: 0"
+  },
+  {
+    "objectID": "info-6.html#fit-vs.-prediction",
+    "href": "info-6.html#fit-vs.-prediction",
+    "title": "Information, NHST and model fit",
+    "section": "Fit vs. prediction",
+    "text": "Fit vs. prediction\nWhy not just pick the best-fitting model? Simulate 20 points where the truth is a straight line, fit polynomials of degree 1–6, and score each (deviance, lower is better) on the same data and on a fresh sample. Repeat 500 times.\n\n\nCode\nset.seed(2027)\nsim_once &lt;- function(n = 20) {\n  x     &lt;- runif(n, -2, 2); y     &lt;- 1 + 0.5 * x     + rnorm(n)   # the data we fit\n  x_new &lt;- runif(n, -2, 2); y_new &lt;- 1 + 0.5 * x_new + rnorm(n)   # new data, same process\n  map_dfr(1:6, \\(d) {\n    fit &lt;- lm(y ~ poly(x, d)); s &lt;- sqrt(mean(resid(fit)^2))\n    tibble(degree = d,\n           `same data (in-sample)` = -2 * sum(dnorm(y, fitted(fit), s, log = TRUE)),\n           `new data (out-of-sample)` = -2 * sum(dnorm(y_new, predict(fit, tibble(x = x_new)), s, log = TRUE)))\n  })\n}\nmap_dfr(1:500, \\(i) sim_once()) %&gt;%\n  pivot_longer(-degree, names_to = \"scored on\", values_to = \"deviance\") %&gt;%\n  group_by(degree, `scored on`) %&gt;% summarise(deviance = median(deviance), .groups = \"drop\") %&gt;%\n  ggplot(aes(degree, deviance, colour = `scored on`)) +\n  geom_line(linewidth = 1) + geom_point(size = 2) +\n  scale_colour_manual(values = c(`same data (in-sample)` = \"#D55E00\", `new data (out-of-sample)` = \"#0072B2\")) +\n  scale_x_continuous(breaks = 1:6, labels = c(\"1 (truth)\", 2:6)) +\n  labs(x = \"polynomial degree\", y = \"deviance (median)\", colour = NULL) +\n  theme_classic(base_size = 13) + theme(legend.position = \"inside\", legend.position.inside = c(.3, .85))\n\n\n\n\n\n\n\n\n\nOn the same data, every extra term improves the score. On new data, the truth (degree 1) wins and extra terms make things worse: they fit this sample’s noise. That’s overfitting. LOO and WAIC estimate the blue (new data) line from the one dataset we have."
   }
 ]
