@@ -760,7 +760,7 @@
     "href": "mcmc-5.html#mcmc",
     "title": "MCMC",
     "section": "MCMC",
-    "text": "MCMC\n\nRefers to a series of different algorithms. Metropolis, Gibbs, Hamiltonian are the most popular and historically relevant.\nStan (and thus brms) uses Hamiltonian\n\nJAGS (in Kruschke’s DBDA) stands for Just Another Gibbs Sampler\nBUGS (Bayesian inference Using Gibbs Sampling) was recently popular"
+    "text": "MCMC\n\nRefers to a series of different algorithms. Metropolis, Gibbs, Hamiltonian are the most popular and historically relevant.\nStan (and thus brms) uses Hamiltonian\n\nJAGS (in Kruschke’s DBDA) stands for Just Another Gibbs Sampler\nBUGS (Bayesian inference Using Gibbs Sampling) was the standard tool in the 1990s and 2000s"
   },
   {
     "objectID": "mcmc-5.html#metropolis",
@@ -816,14 +816,14 @@
     "href": "mcmc-5.html#where-the-chain-spent-its-time",
     "title": "MCMC",
     "section": "Where the chain spent its time",
-    "text": "Where the chain spent its time\n\n\nCode\ntibble(week   = 1:1000,\n       iteration = positions) %&gt;%\n  ggplot(aes(x= iteration)) +\n  geom_density() +\n  scale_x_continuous(breaks = seq(from = -0, to = 10, by = 1)) +\n  xlab(\"island\")"
+    "text": "Where the chain spent its time\n\n\nCode\ntibble(island = positions) %&gt;%\n  count(island) %&gt;%\n  mutate(share = n / sum(n), target = island / sum(1:10)) %&gt;%\n  ggplot(aes(x = island)) +\n  geom_col(aes(y = share), fill = \"grey70\") +\n  geom_point(aes(y = target), colour = \"#D55E00\", size = 3) +\n  scale_x_continuous(breaks = 1:10) +\n  labs(y = \"share of weeks\", subtitle = \"bars: where the chain went · orange: the target (proportional to island number)\")\n\n\n\n\n\n\n\n\n\nThe king never computed the target distribution; he only compared neighbors. In the long run, the chain visits each island in proportion to its population."
   },
   {
     "objectID": "mcmc-5.html#multivariate-posterior-distributions",
     "href": "mcmc-5.html#multivariate-posterior-distributions",
     "title": "MCMC",
     "section": "Multivariate posterior distributions",
-    "text": "Multivariate posterior distributions\n\nPosteriors are not simple hill climbing exercises, instead they represent high dimensional spaces. These high dimensional spaces make it such that there is a lot of space to explore.\nTo visualize posteriors we usually “marginalize” them, that is, visualize them averaged across other posteriors."
+    "text": "Multivariate posterior distributions\n\nPosteriors are not simple hill climbing exercises, instead they represent high dimensional spaces. These high dimensional spaces make it such that there is a lot of space to explore.\nTo visualize posteriors we usually “marginalize” them: look at one parameter at a time, averaged over all the others."
   },
   {
     "objectID": "mcmc-5.html#two-variables-at-once",
@@ -837,7 +837,7 @@
     "href": "mcmc-5.html#a-correlated-posterior",
     "title": "MCMC",
     "section": "A correlated posterior",
-    "text": "A correlated posterior\n\n\nCode\nsamples = 200\nr = 0.93\n\nlibrary('MASS')\ncor.dat = mvrnorm(n=samples, mu=c(0, 0), Sigma=matrix(c(1, r, r, 1), nrow=2), empirical=TRUE)\nX = cor.dat[, 1]  # standard normal (mu=0, sd=1)\nY = cor.dat[, 2]  # standard normal (mu=0, sd=1)\n\ncor &lt;- tibble(X,Y)\n\ncor %&gt;% \n  ggplot(aes(x = X, y = Y, fill = after_stat(density))) +\n  stat_density_2d(geom = \"raster\", contour = F) +\n  scale_fill_viridis_c(option = \"D\") +\n  labs(x = expression(theta[1]),\n       y = expression(theta[2])) +\n  coord_equal() \n\n\n\nCode\ndetach(package:MASS, unload=TRUE)"
+    "text": "A correlated posterior\n\n\nCode\nsamples = 200\nr = 0.93\n\ncor.dat = MASS::mvrnorm(n=samples, mu=c(0, 0), Sigma=matrix(c(1, r, r, 1), nrow=2), empirical=TRUE)\nX = cor.dat[, 1]  # standard normal (mu=0, sd=1)\nY = cor.dat[, 2]  # standard normal (mu=0, sd=1)\n\ncor &lt;- tibble(X,Y)\n\ncor %&gt;% \n  ggplot(aes(x = X, y = Y, fill = after_stat(density))) +\n  stat_density_2d(geom = \"raster\", contour = F) +\n  scale_fill_viridis_c(option = \"D\") +\n  labs(x = expression(theta[1]),\n       y = expression(theta[2])) +\n  coord_equal()"
   },
   {
     "objectID": "mcmc-5.html#gibbs",
@@ -886,7 +886,7 @@
     "href": "mcmc-5.html#hamiltonian-mcmc",
     "title": "MCMC",
     "section": "Hamiltonian MCMC",
-    "text": "Hamiltonian MCMC\n\nA different approach to guess and check; a physics simulation!\nPretend you have a hockey puck and flick it on an air hockey table that represent the minus log of the posterior (for a gaussian this would be a valley or a bowl). After a flick, we will record the position after a certain time. No rejections (almost)! Depending the topography the puck will go slower or faster and change direction.\nProposals based on the gradient, which is just the slope via derivative."
+    "text": "Hamiltonian MCMC\n\nA different approach to guess and check; a physics simulation!\nPretend you have a hockey puck and flick it on an air hockey table that represent the minus log of the posterior (for a gaussian this would be a valley or a bowl). After a flick, we will record the position after a certain time. No rejections (almost)! Depending on the topography the puck will go slower or faster and change direction.\nProposals based on the gradient, which is just the slope via derivative."
   },
   {
     "objectID": "mcmc-5.html#gradient-descent",
@@ -907,7 +907,7 @@
     "href": "mcmc-5.html#visualize-h-mcmc",
     "title": "MCMC",
     "section": "Visualize H-MCMC",
-    "text": "Visualize H-MCMC\nhttps://chi-feng.github.io/mcmc-demo/app.html"
+    "text": "Visualize H-MCMC\nchi-feng.github.io/mcmc-demo: try Random Walk Metropolis vs. Hamiltonian Monte Carlo on the “banana” or “donut” target."
   },
   {
     "objectID": "mcmc-5.html#gradients-and-autodiff",
@@ -928,7 +928,7 @@
     "href": "mcmc-5.html#how-many-iterations-do-you-need",
     "title": "MCMC",
     "section": "How many iterations do you need?",
-    "text": "How many iterations do you need?\n\nMore iterations = more accurate posterior estimates. Total (usable) iterations = (Iterations - warm up samples)*chains\nEffective sample size: roughly the number of draws divided by (1 + 2 × the sum of the autocorrelations), i.e., how many independent draws your correlated draws are worth. Can have greater than the number iterations due to negative correlations (this is good!). Referred to as Bulk_ESS in brms\nTail_ESS is similar but it is used more for CIs. The convergence of Markov chains are not uniform across the parameter. Central tendency estimates should use Bulk_ESS, whereas for intervals (the tails) look at Tail_ESS.\nHow much is enough? Rule of thumb: Bulk_ESS and Tail_ESS above about 400 (≈100 per chain with 4 chains) for every parameter you report (Vehtari et al., 2021)."
+    "text": "How many iterations do you need?\n\nMore iterations = more precise Monte Carlo estimates of the same posterior (not a narrower posterior). Usable draws = (iterations − warmup) × chains\nEffective sample size: roughly the number of draws divided by (1 + 2 × the sum of the autocorrelations), i.e., how many independent draws your correlated draws are worth. It can even exceed the number of draws when successive draws are negatively correlated (this is good!). Referred to as Bulk_ESS in brms\nTail_ESS is similar but it is used more for CIs. The convergence of Markov chains are not uniform across the parameter. Central tendency estimates should use Bulk_ESS, whereas for intervals (the tails) look at Tail_ESS.\nHow much is enough? Rule of thumb: Bulk_ESS and Tail_ESS above about 400 (≈100 per chain with 4 chains) for every parameter you report (Vehtari et al., 2021)."
   },
   {
     "objectID": "mcmc-5.html#a-model-to-diagnose",
@@ -991,7 +991,7 @@
     "href": "mcmc-5.html#fixing-wild-chains",
     "title": "MCMC",
     "section": "Fixing wild chains",
-    "text": "Fixing wild chains\nSometimes problems occur\n\nIncrease warmup\nIncrease samples\nChange your model (priors or estimated parameters)\nModify H-MCMC sampler"
+    "text": "Fixing wild chains\nIn roughly this order:\n\nCheck the model: vague priors, redundant or poorly identified parameters, a likelihood that doesn’t fit the data\nRun longer: more warmup and iterations (helps R-hat and ESS when the model is fine but mixing is slow)\nAdjust the sampler: adapt_delta, max_treedepth (a last resort, after the model is right)"
   },
   {
     "objectID": "mcmc-5.html#which-warning-which-fix-1",
@@ -1012,7 +1012,7 @@
     "href": "mcmc-5.html#divergent-transitions",
     "title": "MCMC",
     "section": "Divergent transitions",
-    "text": "Divergent transitions\nBecause this is a physics simulation, we can examine the “energy” of the hockey puck to see if our simulation goes wrong. This is a good property of H-MCMC; similar properties do not exist for other algorithms.\n\n\nCode\ndiv.t &lt;-\n  brm(data = list(y = c(-1, 1)), \n      family = gaussian,\n      y ~ 1,\n      prior = c(prior(normal(0, 1000), class = Intercept),\n                prior(exponential(0.0001), class = sigma)),\n      iter = 2000, warmup = 1000, chains = 2,\n      backend = \"cmdstanr\",\n      file = \"div.t\")"
+    "text": "Divergent transitions\nBecause this is a physics simulation, we can examine the “energy” of the hockey puck to see if our simulation goes wrong. This is a good property of H-MCMC; similar properties do not exist for other algorithms.\nA deliberately bad model: two data points (−1 and 1) with absurdly vague priors (an SD of 1,000 on the mean, and a σ prior with a mean of 10,000).\n\n\nCode\ndiv.t &lt;-\n  brm(data = list(y = c(-1, 1)), \n      family = gaussian,\n      y ~ 1,\n      prior = c(prior(normal(0, 1000), class = Intercept),\n                prior(exponential(0.0001), class = sigma)),\n      iter = 2000, warmup = 1000, chains = 2,\n      backend = \"cmdstanr\",\n      file = \"div.t\")"
   },
   {
     "objectID": "mcmc-5.html#a-model-with-divergences",
@@ -1061,21 +1061,21 @@
     "href": "mcmc-5.html#leap-frog-steps-and-nuts",
     "title": "MCMC",
     "section": "Leap Frog steps and NUTS",
-    "text": "Leap Frog steps and NUTS\n\nNeed to figure out the correct 1) step size (time interval) and 2) number of leap frog steps (where the gradients are calculated).\nStep size is done through warm up samples.\nNumber of steps is done with NUTS, the No U-Turn Sampler. It makes sure that your puck does not end up in the same place it started. It does so by running the simulation in two directions. Provides optimal number of steps specific to the gradient you are currently in."
+    "text": "Leap Frog steps and NUTS\n\nNeed to figure out the correct 1) step size (time interval) and 2) number of leap frog steps (where the gradients are calculated).\nStep size is done through warm up samples.\nNumber of steps is done with NUTS, the No U-Turn Sampler. It extends the puck’s path (forward and backward in time) until the path starts to double back on itself, a “U-turn”, so each region gets as many steps as it needs and no more."
   },
   {
     "objectID": "mcmc-5.html#fixing-divergences-adapt_delta",
     "href": "mcmc-5.html#fixing-divergences-adapt_delta",
     "title": "MCMC",
     "section": "Fixing divergences: adapt_delta",
-    "text": "Fixing divergences: adapt_delta\nIf dealing with divergent transitions, increasing the acceptance probability during warm up will result in smaller steps (smaller time interval) and a longer sampling time (but more robust sampling).\n\n\nCode\nh.3 &lt;- \n  brm(family = gaussian,\n      health ~ 0 + mood.group.d,\n      prior = c(prior(normal(0, 10), class = b),\n                prior(cauchy(0, 10), class = sigma)),\n      data = week3,\n      iter = 1000, warmup = 500, chains = 2, cores = 2, \n      control = list(adapt_delta = .95), # default is .8 \n      file = \"h.3\")\nsummary(h.3)"
+    "text": "Fixing divergences: adapt_delta\nIf dealing with divergent transitions, increasing the acceptance probability during warm up will result in smaller steps (smaller time interval) and a longer sampling time (but more robust sampling).\n\n\nCode\nh.3 &lt;- \n  brm(family = gaussian,\n      health ~ 0 + mood.group.d,\n      prior = c(prior(normal(0, 10), class = b),\n                prior(cauchy(0, 10), class = sigma)),\n      data = week3,\n      iter = 1000, warmup = 500, chains = 2, cores = 2, \n      control = list(adapt_delta = .95), # default is .8 \n      file = \"h.3_adapt\")   # a new file name, or brms just loads the old fit\nsummary(h.3)"
   },
   {
     "objectID": "mcmc-5.html#tree-depth",
     "href": "mcmc-5.html#tree-depth",
     "title": "MCMC",
     "section": "tree depth",
-    "text": "tree depth\nDivergent transitions are a validity concern, hitting the maximum treedepth is an efficiency concern. When the maximum allowed tree depth is reached it means the H-MCMC sampler is terminating to avoid excessively long execution time. Treedepth is associated with steps via: 2^treedepth, with 2^10 = 1024 leapfrog steps the default.\n\n\nCode\nh.3 &lt;- \n  brm(family = gaussian,\n      health ~ 0 + mood.group.d,\n      prior = c(prior(normal(0, 10), class = b),\n                prior(cauchy(0, 10), class = sigma)),\n      data = week3,\n      iter = 1000, warmup = 500, chains = 2, cores = 2, \n      control = list(max_treedepth = 15), # default is 10\n      file = \"h.3\")\nsummary(h.3)"
+    "text": "tree depth\nDivergent transitions are a validity concern, hitting the maximum treedepth is an efficiency concern. When the maximum allowed tree depth is reached it means the H-MCMC sampler is terminating to avoid excessively long execution time. Treedepth is associated with steps via: 2^treedepth, with 2^10 = 1024 leapfrog steps the default.\n\n\nCode\nh.3 &lt;- \n  brm(family = gaussian,\n      health ~ 0 + mood.group.d,\n      prior = c(prior(normal(0, 10), class = b),\n                prior(cauchy(0, 10), class = sigma)),\n      data = week3,\n      iter = 1000, warmup = 500, chains = 2, cores = 2, \n      control = list(max_treedepth = 15), # default is 10\n      file = \"h.3_treedepth\")\nsummary(h.3)"
   },
   {
     "objectID": "mcmc-5.html#preview-divergences-in-multilevel-models",
@@ -8489,5 +8489,26 @@
     "title": "Multiple Regression",
     "section": "What “holding the other constant” means",
     "text": "What “holding the other constant” means\n\nA multiple-regression slope compares people who are the same on the other predictors: among students with the same friendship quality, one more point of school success goes with about 0.38 more happiness\nHere the predictors are negatively correlated (−0.55): students doing well in school tend to have weaker friendships. So a simple slope mixes two things: the happiness that goes with more school success, and the less happiness that goes with the worse friendships those students tend to have\nAlone, each slope is dragged toward zero (or past it) by the other variable. Adjusting separates them\nThis is why “controlling for” changes estimates, and why which variables you include is a scientific decision, not a technicality"
+  },
+  {
+    "objectID": "mcmc-5.html#metropolis-in-15-lines",
+    "href": "mcmc-5.html#metropolis-in-15-lines",
+    "title": "MCMC",
+    "section": "Metropolis in 15 lines",
+    "text": "Metropolis in 15 lines\nMcElreath’s King Markov (SR 9.1): 10 islands in a ring, island k has population proportional to k, and the king wants to visit each island in proportion to its population. Each week he flips a coin to propose a neighbor and moves with probability (proposal population / current population). Here the “posterior” is just the island number.\n\n\nCode\nnum &lt;- 1000\npositions &lt;- rep(0, num) \ncurrent   &lt;- 10\n\nfor (i in 1:num) {\n  \n  # record current position \n  positions[i] &lt;- current\n  # flip a coin to propose a neighboring island\n  proposal &lt;- current + sample(c(-1, 1), size = 1)\n  # the islands form a ring: 1 and 10 are neighbors\n  if (proposal &lt; 1) proposal &lt;- 10\n  if (proposal &gt; 10) proposal &lt;- 1\n  # move with probability proposal / current (always move \"uphill\")\n  prob_move &lt;- proposal/current\n  current &lt;- ifelse(runif(1) &lt; prob_move, proposal, current)\n  \n}  \n\nlibrary(tidyverse)\n\ntibble(week   = 1:1000,\n       iteration = positions) %&gt;%\n  ggplot(aes(x = week, y = iteration)) +\n  geom_point(shape = 1) +\n  scale_x_continuous(breaks = seq(from = 0, to = 1000, by = 100)) +\n  scale_y_continuous(limits = c(-2, 13), breaks = seq(from = -2, to = 15, by = 2)) +\n  coord_cartesian(xlim = c(0, 1000)) +\n  labs(title = \"The king's path: one island per week\") +\n  xlab(\"week (iteration)\") + ylab(\"island\")"
+  },
+  {
+    "objectID": "mcmc-5.html#joint-and-marginal-distributions",
+    "href": "mcmc-5.html#joint-and-marginal-distributions",
+    "title": "MCMC",
+    "section": "Joint and marginal distributions",
+    "text": "Joint and marginal distributions\nRaw data here (friends and health), but the idea is the same for a posterior: the scatter is the joint distribution; the curves on the edges are the marginals.\n\n\nCode\ndata &lt;- read.csv(\"week3.csv\") %&gt;%   # also at https://josh-jackson.github.io/bayes27/week3.csv\n  select(-ID, -SES)\n\nlibrary(ggExtra)\n\np &lt;- ggplot(data, aes(x=friends, y=health)) +\n      geom_point() +\n      theme(legend.position=\"none\")\n\np2 &lt;- ggMarginal(p, type=\"density\")\np2"
+  },
+  {
+    "objectID": "mcmc-5.html#autocorrelation-within-each-chain",
+    "href": "mcmc-5.html#autocorrelation-within-each-chain",
+    "title": "MCMC",
+    "section": "Autocorrelation within each chain",
+    "text": "Autocorrelation within each chain\n\n\nCode\nlibrary(bayesplot)\nmcmc_acf(h.3, pars = c(\"b_mood.group.dcontrol\", \"b_mood.group.dtx\", \"sigma\"))\n\n\n\nEach bar is the correlation between a draw and the draw lag steps later, within a chain. Here it drops to about 0 after a lag or two: the draws are nearly independent, so ESS is close to the number of draws."
   }
 ]

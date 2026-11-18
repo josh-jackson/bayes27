@@ -58,7 +58,7 @@ As long as we can calculate the right side of the equation we can then sample fr
 
 -   JAGS (in Kruschke's DBDA) stands for Just Another Gibbs Sampler
 
--   BUGS (Bayesian inference Using Gibbs Sampling) was recently popular
+-   BUGS (Bayesian inference Using Gibbs Sampling) was the standard tool in the 1990s and 2000s
 
 ## Metropolis {.smaller}
 
@@ -96,9 +96,9 @@ Steps of algorithm:
 
 ![](met5.png)
 
-## samples in the long run...
+## Metropolis in 15 lines {.smaller}
 
-...will approximate the posterior distribution. The resulting chain will have the correct density in proportion to the posterior distribution.
+McElreath's King Markov (SR 9.1): 10 islands in a ring, island *k* has population proportional to *k*, and the king wants to visit each island in proportion to its population. Each week he flips a coin to propose a neighbor and moves with probability (proposal population / current population). Here the "posterior" is just the island number.
 
 ```{r}
 #| code-fold: true
@@ -110,12 +110,12 @@ for (i in 1:num) {
   
   # record current position 
   positions[i] <- current
-  # flip coin to generate proposal
+  # flip a coin to propose a neighboring island
   proposal <- current + sample(c(-1, 1), size = 1)
-  # now make sure he loops around the archipelago 
+  # the islands form a ring: 1 and 10 are neighbors
   if (proposal < 1) proposal <- 10
   if (proposal > 10) proposal <- 1
-  # move?
+  # move with probability proposal / current (always move "uphill")
   prob_move <- proposal/current
   current <- ifelse(runif(1) < prob_move, proposal, current)
   
@@ -130,33 +130,40 @@ tibble(week   = 1:1000,
   scale_x_continuous(breaks = seq(from = 0, to = 1000, by = 100)) +
   scale_y_continuous(limits = c(-2, 13), breaks = seq(from = -2, to = 15, by = 2)) +
   coord_cartesian(xlim = c(0, 1000)) +
-  labs(title = "Metropolis algorithm")+
-  xlab("iteration") + ylab("value")
+  labs(title = "The king's path: one island per week") +
+  xlab("week (iteration)") + ylab("island")
 
 
 ```
 
-## Where the chain spent its time
+## Where the chain spent its time {.smaller .nostretch}
 
 ```{r}
 #| code-fold: true
-tibble(week   = 1:1000,
-       iteration = positions) %>%
-  ggplot(aes(x= iteration)) +
-  geom_density() +
-  scale_x_continuous(breaks = seq(from = -0, to = 10, by = 1)) +
-  xlab("island")
-
-
+#| fig-height: 3
+#| fig-width: 8
+#| out-width: "90%"
+tibble(island = positions) %>%
+  count(island) %>%
+  mutate(share = n / sum(n), target = island / sum(1:10)) %>%
+  ggplot(aes(x = island)) +
+  geom_col(aes(y = share), fill = "grey70") +
+  geom_point(aes(y = target), colour = "#D55E00", size = 3) +
+  scale_x_continuous(breaks = 1:10) +
+  labs(y = "share of weeks", subtitle = "bars: where the chain went · orange: the target (proportional to island number)")
 ```
+
+The king never computed the target distribution; he only compared neighbors. In the long run, the chain visits each island in proportion to its population.
 
 ## Multivariate posterior distributions
 
 -   Posteriors are not simple hill climbing exercises, instead they represent high dimensional spaces. These high dimensional spaces make it such that there is a lot of space to explore.
 
--   To visualize posteriors we usually "marginalize" them, that is, visualize them averaged across other posteriors.
+-   To visualize posteriors we usually "marginalize" them: look at one parameter at a time, averaged over all the others.
 
-## Two variables at once
+## Joint and marginal distributions
+
+Raw data here (friends and health), but the idea is the same for a posterior: the scatter is the *joint* distribution; the curves on the edges are the *marginals*.
 
 ```{r}
 #| code-fold: true
@@ -180,8 +187,7 @@ p2
 samples = 200
 r = 0.93
 
-library('MASS')
-cor.dat = mvrnorm(n=samples, mu=c(0, 0), Sigma=matrix(c(1, r, r, 1), nrow=2), empirical=TRUE)
+cor.dat = MASS::mvrnorm(n=samples, mu=c(0, 0), Sigma=matrix(c(1, r, r, 1), nrow=2), empirical=TRUE)
 X = cor.dat[, 1]  # standard normal (mu=0, sd=1)
 Y = cor.dat[, 2]  # standard normal (mu=0, sd=1)
 
@@ -195,7 +201,6 @@ cor %>%
        y = expression(theta[2])) +
   coord_equal() 
 
-detach(package:MASS, unload=TRUE)
 
 ```
 
@@ -215,8 +220,7 @@ detach(package:MASS, unload=TRUE)
 samples = 200
 r = 0.93
 
-library('MASS')
-cor.dat = mvrnorm(n=samples, mu=c(0, 0), Sigma=matrix(c(1, r, r, 1), nrow=2), empirical=TRUE)
+cor.dat = MASS::mvrnorm(n=samples, mu=c(0, 0), Sigma=matrix(c(1, r, r, 1), nrow=2), empirical=TRUE)
 X = cor.dat[, 1]  # standard normal (mu=0, sd=1)
 Y = cor.dat[, 2]  # standard normal (mu=0, sd=1)
 
@@ -231,7 +235,6 @@ cor %>%
   coord_equal() 
 
 
-detach(package:MASS, unload=TRUE)
 ```
 
 ## Concentration of measure
@@ -256,7 +259,7 @@ detach(package:MASS, unload=TRUE)
 
 -   A different approach to guess and check; a physics simulation!
 
--   Pretend you have a hockey puck and flick it on an air hockey table that represent the minus log of the posterior (for a gaussian this would be a valley or a bowl). After a flick, we will record the position after a certain time. No rejections (almost)! Depending the topography the puck will go slower or faster and change direction.
+-   Pretend you have a hockey puck and flick it on an air hockey table that represent the minus log of the posterior (for a gaussian this would be a valley or a bowl). After a flick, we will record the position after a certain time. No rejections (almost)! Depending on the topography the puck will go slower or faster and change direction.
 
 -   Proposals based on the `gradient`, which is just the slope via derivative.
 
@@ -274,7 +277,7 @@ detach(package:MASS, unload=TRUE)
 
 ## Visualize H-MCMC
 
-https://chi-feng.github.io/mcmc-demo/app.html
+[chi-feng.github.io/mcmc-demo](https://chi-feng.github.io/mcmc-demo/app.html): try Random Walk Metropolis vs. Hamiltonian Monte Carlo on the "banana" or "donut" target.
 
 ## Gradients and autodiff
 
@@ -298,9 +301,9 @@ So we need to make sure that the algorithm "works" in that there are enough samp
 
 ## How many iterations do you need? {.smaller}
 
--   More iterations = more accurate posterior estimates. Total (usable) iterations = (Iterations - warm up samples)\*chains
+-   More iterations = more precise Monte Carlo estimates of the *same* posterior (not a narrower posterior). Usable draws = (iterations − warmup) × chains
 
--   Effective sample size: roughly the number of draws divided by (1 + 2 × the sum of the autocorrelations), i.e., how many *independent* draws your correlated draws are worth. Can have greater than the number iterations due to `negative correlations` (this is good!). Referred to as Bulk_ESS in `brms`
+-   Effective sample size: roughly the number of draws divided by (1 + 2 × the sum of the autocorrelations), i.e., how many *independent* draws your correlated draws are worth. It can even exceed the number of draws when successive draws are negatively correlated (this is good!). Referred to as Bulk_ESS in `brms`
 
 -   Tail_ESS is similar but it is used more for CIs. The convergence of Markov chains are not uniform across the parameter. Central tendency estimates should use Bulk_ESS, whereas for intervals (the tails) look at Tail_ESS.
 
@@ -332,13 +335,15 @@ summary(h.3)
 
 ```
 
-## Auto regressive correlation across chains
+## Autocorrelation within each chain
 
 ```{r}
 #| code-fold: true
 library(bayesplot)
 mcmc_acf(h.3, pars = c("b_mood.group.dcontrol", "b_mood.group.dtx", "sigma"))
 ```
+
+Each bar is the correlation between a draw and the draw *lag* steps later, within a chain. Here it drops to about 0 after a lag or two: the draws are nearly independent, so ESS is close to the number of draws.
 
 ## How many chains do you need?
 
@@ -387,15 +392,13 @@ A chain whose histogram bulges at one end is stuck in part of the posterior, eve
 
 ## Fixing wild chains
 
-Sometimes problems occur
+In roughly this order:
 
-1.  Increase warmup
+1.  **Check the model:** vague priors, redundant or poorly identified parameters, a likelihood that doesn't fit the data
 
-2.  Increase samples
+2.  **Run longer:** more warmup and iterations (helps R-hat and ESS when the model is fine but mixing is slow)
 
-3.  Change your model (priors or estimated parameters)
-
-4.  Modify H-MCMC sampler
+3.  **Adjust the sampler:** `adapt_delta`, `max_treedepth` (a last resort, after the model is right)
 
 ## Which warning, which fix? (1) {.smaller}
 
@@ -416,6 +419,8 @@ Rule of thumb: **divergences and non-identified models need a model fix; sampler
 ## Divergent transitions
 
 Because this is a physics simulation, we can examine the "energy" of the hockey puck to see if our simulation goes wrong. This is a good property of H-MCMC; similar properties do not exist for other algorithms.
+
+A deliberately bad model: two data points (−1 and 1) with absurdly vague priors (an SD of 1,000 on the mean, and a σ prior with a mean of 10,000).
 
 ```{r}
 #| code-fold: true
@@ -497,7 +502,7 @@ The data only pin down the **sum** of the two slopes, so the posterior is a long
 
 -   Step size is done through warm up samples.
 
--   Number of steps is done with NUTS, the No U-Turn Sampler. It makes sure that your puck does not end up in the same place it started. It does so by running the simulation in two directions. Provides optimal number of steps specific to the gradient you are currently in.
+-   Number of steps is done with NUTS, the No U-Turn Sampler. It extends the puck's path (forward and backward in time) until the path starts to double back on itself, a "U-turn", so each region gets as many steps as it needs and no more.
 
 ## Fixing divergences: adapt_delta
 
@@ -513,7 +518,7 @@ h.3 <-
       data = week3,
       iter = 1000, warmup = 500, chains = 2, cores = 2, 
       control = list(adapt_delta = .95), # default is .8 
-      file = "h.3")
+      file = "h.3_adapt")   # a new file name, or brms just loads the old fit
 summary(h.3)
 ```
 
@@ -531,7 +536,7 @@ h.3 <-
       data = week3,
       iter = 1000, warmup = 500, chains = 2, cores = 2, 
       control = list(max_treedepth = 15), # default is 10
-      file = "h.3")
+      file = "h.3_treedepth")
 summary(h.3)
 ```
 
