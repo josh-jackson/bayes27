@@ -155,6 +155,50 @@ tibble(island = positions) %>%
 
 The king never computed the target distribution; he only compared neighbors. In the long run, the chain visits each island in proportion to its population.
 
+## Metropolis on a real posterior {.smaller}
+
+Galton's children's heights again, estimating the mean μ (σ fixed at 2.5 to keep it one-dimensional) with lecture 1's prior, μ ~ Normal(66, 5). Same recipe as the king, with a continuous "island":
+
+```{r}
+heights <- psychTools::galton$child
+log_post <- function(mu) sum(dnorm(heights, mu, 2.5, log = TRUE)) + dnorm(mu, 66, 5, log = TRUE)
+
+set.seed(27)
+chain <- numeric(5000)
+current <- 60                                   # a deliberately bad start
+for (i in 1:5000) {
+  proposal <- current + rnorm(1, 0, 0.2)        # a small random step
+  if (log(runif(1)) < log_post(proposal) - log_post(current)) current <- proposal   # ratio, on the log scale
+  chain[i] <- current
+}
+```
+
+Comparing on the log scale (a difference instead of a ratio) avoids the tiny-number problem from lecture 1.
+
+## Did it find the posterior? {.nostretch}
+
+```{r}
+#| code-fold: true
+#| fig-height: 2.8
+#| fig-width: 9
+#| out-width: "100%"
+library(patchwork)
+# exact posterior for a normal mean with known sigma (conjugate)
+post_prec <- length(heights) / 2.5^2 + 1 / 5^2
+post_mean <- (sum(heights) / 2.5^2 + 66 / 5^2) / post_prec
+p.trace <- tibble(iteration = 1:5000, mu = chain) %>%
+  ggplot(aes(iteration, mu)) + geom_line(linewidth = .3) +
+  annotate("rect", xmin = 0, xmax = 1000, ymin = -Inf, ymax = Inf, alpha = .15, fill = "#D55E00") +
+  labs(y = expression(mu), subtitle = "shaded: warmup, discarded") + theme_classic(base_size = 13)
+p.dens <- tibble(mu = chain[-(1:1000)]) %>%
+  ggplot(aes(mu)) + geom_histogram(aes(y = after_stat(density)), bins = 40, fill = "grey75", colour = "white") +
+  stat_function(fun = dnorm, args = list(post_mean, 1 / sqrt(post_prec)), colour = "#0072B2", linewidth = 1) +
+  labs(x = expression(mu), y = NULL, subtitle = "grey: 4,000 draws · blue: the exact posterior") + theme_classic(base_size = 13)
+p.trace | p.dens
+```
+
+The chain walks from its bad start to the posterior (that walk is what warmup throws away), then wanders around it. Its draws match the exact answer.
+
 ## Multivariate posterior distributions
 
 -   Posteriors are not simple hill climbing exercises, instead they represent high dimensional spaces. These high dimensional spaces make it such that there is a lot of space to explore.
@@ -263,15 +307,14 @@ cor %>%
 
 -   Proposals based on the `gradient`, which is just the slope via derivative.
 
-## gradient descent
+## What the gradient is for {.smaller}
 
--   Maximum likelihood is $L(\theta|X) = f(X|\theta)$ , the probability of obtaining data 𝑋 given some value of theta 𝜃, with some likelihood function that allows this calculation
+-   The **gradient** is the slope of the (log) posterior surface where you are now: which way is uphill, and how steep
+-   **Optimizers** (maximum likelihood: `lm()`, `glm()`, `lme4`) follow it uphill to the single peak and stop. One answer, no distribution
+-   **HMC** uses the same gradient differently: the puck feels the slope and glides across the surface, so it explores the *whole* posterior, spending time in proportion to its height instead of stopping at the top
+-   Same ingredient, two goals: find the top (optimization) vs. map the whole mountain (sampling)
 
--   Gradient descent is one such algorithm that could see what theta most likely.
-
--   The EM algorithm (Expectation–Maximization) is another common one. More of an iterative hike (E-step to M-step) rather than skateboarding
-
-## Gradient descent, pictured
+## Following the gradient, pictured
 
 ![](met9.png)
 
@@ -345,13 +388,11 @@ mcmc_acf(h.3, pars = c("b_mood.group.dcontrol", "b_mood.group.dtx", "sigma"))
 
 Each bar is the correlation between a draw and the draw *lag* steps later, within a chain. Here it drops to about 0 after a lag or two: the draws are nearly independent, so ESS is close to the number of draws.
 
-## How many chains do you need?
+## How many chains do you need? {.smaller}
 
--   You need enough chains to check convergence.
+-   Enough to check convergence: several chains from different starting points should end up describing the same distribution.
 
--   The number of chains depends on 1) how many cores your computer has and 2) how much time you have. Conceivably you could run 100 chains. The problem though is this is wasteful computationally, as you will discard more warmup iterations.
-
-## How many chains: the recommendation
+-   More chains cost more warmup (each chain throws its own away), and they only run in parallel if you have the cores.
 
 -   The Stan team suggests that 4 chains are adequate for checking convergence. `brms` defaults are iter = 2000 and warmup = 1000 which yields 4000 usable posterior samples ((iter - warmup) \* chains).
 
@@ -362,6 +403,25 @@ When setting up models: `one short chain to debug, four chains for verification 
 Convergence is to a target distribution (the required posterior), not to a single value as in ML methods.
 
 First step is to look for fuzzy caterpillars (mixing, stationarity, and convergence) in the trace plots. Note that our warm up samples are not visualized.
+
+## What warmup does {.smaller .nostretch}
+
+The same model, four chains started far apart, keeping the warmup draws this time:
+
+```{r}
+#| code-fold: true
+#| results: hide
+#| message: false
+#| fig-height: 3
+#| fig-width: 9
+#| out-width: "100%"
+h.3w <- update(h.3, save_warmup = TRUE, chains = 4, cores = 4, init = 10, seed = 27, file = "h.3w")
+mcmc_trace(as_draws_array(h.3w, inc_warmup = TRUE), pars = "b_mood.group.dcontrol",
+           n_warmup = 500, window = c(0, 150)) +
+  labs(subtitle = "the first 150 of 500 warmup iterations")
+```
+
+The chains start in different places and find the same region within a few dozen steps. Warmup also tunes the step size; its draws are thrown away. R-hat asks whether the chains, after warmup, agree.
 
 ## Trace plots
 
@@ -458,6 +518,22 @@ pairs(div.t,
 plot(div.t)
 ```
 
+## Fixing the divergences: better priors {.smaller}
+
+Same two data points, priors on a sensible scale:
+
+```{r}
+div.ok <- brm(data = list(y = c(-1, 1)), family = gaussian, y ~ 1,
+              prior = c(prior(normal(0, 10), class = Intercept),
+                        prior(exponential(1), class = sigma)),
+              iter = 2000, warmup = 1000, chains = 2, seed = 27,
+              backend = "cmdstanr", file = "div.ok")
+count_div <- function(m) sum(subset(nuts_params(m), Parameter == "divergent__")$Value)
+c(vague_priors = count_div(div.t), sensible_priors = count_div(div.ok))
+```
+
+No `adapt_delta` needed. With two data points, the priors do a lot of the work, so they have to be sensible.
+
 ## A model that can't be identified
 
 Two predictors that carry the same information: each person's leg length, measured on the left and the right leg (after SR 6.1).
@@ -495,6 +571,51 @@ mcmc_scatter(legs.1, pars = c("b_leg_left", "b_leg_right"), alpha = .3)
 ```
 
 The data only pin down the **sum** of the two slopes, so the posterior is a long, thin ridge. Running longer maps the ridge more thoroughly but can't make it narrower: **fix the model** (drop or combine the duplicate, or give the slopes real priors).
+
+## Autocorrelation and ESS, side by side {.smaller .nostretch}
+
+```{r}
+#| code-fold: true
+#| fig-height: 2.8
+#| fig-width: 9
+#| out-width: "100%"
+ess_of <- function(m, par) round(posterior::ess_bulk(posterior::extract_variable_matrix(as_draws_array(m), par)))
+(mcmc_acf(h.3, pars = "b_mood.group.dcontrol") +
+   labs(title = paste0("h.3: ESS ≈ ", ess_of(h.3, "b_mood.group.dcontrol"), " of ", ndraws(h.3), " draws"))) |
+(mcmc_acf(legs.1, pars = "b_leg_left") +
+   labs(title = paste0("legs.1: ESS ≈ ", ess_of(legs.1, "b_leg_left"), " of ", ndraws(legs.1), " draws")))
+```
+
+On a ridge, each draw is close to the last one: high autocorrelation, so 1,200 draws are worth far fewer independent ones.
+
+## Running longer doesn't fix it {.smaller}
+
+Ten times the iterations:
+
+```{r}
+legs.2 <- update(legs.1, iter = 4000, warmup = 1000, seed = 5, file = "legs.2")
+summary(legs.2)$fixed[, c("Estimate", "l-95% CI", "u-95% CI", "Rhat", "Bulk_ESS")] %>% round(2) %>% transform(Bulk_ESS = round(Bulk_ESS))
+```
+
+The diagnostics improve, but the slopes are just as uncertain: we've mapped the ridge in more detail, not made it narrower.
+
+## Fixing the model {.smaller}
+
+The data only know the **sum** of the slopes, and that sum was well estimated all along:
+
+```{r}
+library(tidybayes)
+legs.2 %>% spread_draws(b_leg_left, b_leg_right) %>% 
+  mutate(sum_of_slopes = b_leg_left + b_leg_right) %>% median_qi(sum_of_slopes)
+```
+
+Drop the redundant predictor and the model is identified:
+
+```{r}
+legs.3 <- brm(height ~ 1 + leg_left, data = legs, chains = 4, cores = 4, seed = 5,
+              backend = "cmdstanr", file = "legs.3")
+summary(legs.3)$fixed[, c("Estimate", "l-95% CI", "u-95% CI", "Rhat", "Bulk_ESS")] %>% round(2) %>% transform(Bulk_ESS = round(Bulk_ESS))
+```
 
 ## Leap Frog steps and NUTS
 
@@ -549,3 +670,14 @@ The standard fix is the **non-centered parameterization**: sample standardized e
 $$z_j \sim \text{Normal}(0, 1), \qquad u_j = \tau \, z_j$$
 
 Same model, different geometry: the $z_j$ don't get squeezed when $\tau$ is small. brms already does this for you (you'll see it in `stancode()` in the multilevel weeks), but knowing why helps when you write your own Stan code.
+
+## Every time you fit a model {.smaller}
+
+1.  **Read the warnings** brms prints. Don't ignore them
+2.  **R-hat < 1.01** for every parameter
+3.  **Bulk and Tail ESS > 400** for every parameter you report
+4.  **Trace and rank plots:** fuzzy caterpillars, flat rank histograms
+5.  **Zero divergences.** Any divergence means look at the model, not just `adapt_delta`
+6.  **`pp_check()`:** the model can sample well and still be the wrong model
+
+If something fails: check the model first (priors, redundant parameters), run longer second, tune the sampler last.

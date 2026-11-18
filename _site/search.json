@@ -949,7 +949,7 @@
     "href": "mcmc-5.html#how-many-chains-do-you-need",
     "title": "MCMC",
     "section": "How many chains do you need?",
-    "text": "How many chains do you need?\n\nYou need enough chains to check convergence.\nThe number of chains depends on 1) how many cores your computer has and 2) how much time you have. Conceivably you could run 100 chains. The problem though is this is wasteful computationally, as you will discard more warmup iterations."
+    "text": "How many chains do you need?\n\nEnough to check convergence: several chains from different starting points should end up describing the same distribution.\nMore chains cost more warmup (each chain throws its own away), and they only run in parallel if you have the cores.\nThe Stan team suggests that 4 chains are adequate for checking convergence. brms defaults are iter = 2000 and warmup = 1000 which yields 4000 usable posterior samples ((iter - warmup) * chains).\n\nWhen setting up models: one short chain to debug, four chains for verification and inference"
   },
   {
     "objectID": "mcmc-5.html#how-many-chains-the-recommendation",
@@ -8510,5 +8510,75 @@
     "title": "MCMC",
     "section": "Autocorrelation within each chain",
     "text": "Autocorrelation within each chain\n\n\nCode\nlibrary(bayesplot)\nmcmc_acf(h.3, pars = c(\"b_mood.group.dcontrol\", \"b_mood.group.dtx\", \"sigma\"))\n\n\n\nEach bar is the correlation between a draw and the draw lag steps later, within a chain. Here it drops to about 0 after a lag or two: the draws are nearly independent, so ESS is close to the number of draws."
+  },
+  {
+    "objectID": "mcmc-5.html#metropolis-on-a-real-posterior",
+    "href": "mcmc-5.html#metropolis-on-a-real-posterior",
+    "title": "MCMC",
+    "section": "Metropolis on a real posterior",
+    "text": "Metropolis on a real posterior\nGalton’s children’s heights again, estimating the mean μ (σ fixed at 2.5 to keep it one-dimensional) with lecture 1’s prior, μ ~ Normal(66, 5). Same recipe as the king, with a continuous “island”:\n\nheights &lt;- psychTools::galton$child\nlog_post &lt;- function(mu) sum(dnorm(heights, mu, 2.5, log = TRUE)) + dnorm(mu, 66, 5, log = TRUE)\n\nset.seed(27)\nchain &lt;- numeric(5000)\ncurrent &lt;- 60                                   # a deliberately bad start\nfor (i in 1:5000) {\n  proposal &lt;- current + rnorm(1, 0, 0.2)        # a small random step\n  if (log(runif(1)) &lt; log_post(proposal) - log_post(current)) current &lt;- proposal   # ratio, on the log scale\n  chain[i] &lt;- current\n}\n\nComparing on the log scale (a difference instead of a ratio) avoids the tiny-number problem from lecture 1."
+  },
+  {
+    "objectID": "mcmc-5.html#did-it-find-the-posterior",
+    "href": "mcmc-5.html#did-it-find-the-posterior",
+    "title": "MCMC",
+    "section": "Did it find the posterior?",
+    "text": "Did it find the posterior?\n\n\nCode\nlibrary(patchwork)\n# exact posterior for a normal mean with known sigma (conjugate)\npost_prec &lt;- length(heights) / 2.5^2 + 1 / 5^2\npost_mean &lt;- (sum(heights) / 2.5^2 + 66 / 5^2) / post_prec\np.trace &lt;- tibble(iteration = 1:5000, mu = chain) %&gt;%\n  ggplot(aes(iteration, mu)) + geom_line(linewidth = .3) +\n  annotate(\"rect\", xmin = 0, xmax = 1000, ymin = -Inf, ymax = Inf, alpha = .15, fill = \"#D55E00\") +\n  labs(y = expression(mu), subtitle = \"shaded: warmup, discarded\") + theme_classic(base_size = 13)\np.dens &lt;- tibble(mu = chain[-(1:1000)]) %&gt;%\n  ggplot(aes(mu)) + geom_histogram(aes(y = after_stat(density)), bins = 40, fill = \"grey75\", colour = \"white\") +\n  stat_function(fun = dnorm, args = list(post_mean, 1 / sqrt(post_prec)), colour = \"#0072B2\", linewidth = 1) +\n  labs(x = expression(mu), y = NULL, subtitle = \"grey: 4,000 draws · blue: the exact posterior\") + theme_classic(base_size = 13)\np.trace | p.dens\n\n\n\n\n\n\n\n\n\nThe chain walks from its bad start to the posterior (that walk is what warmup throws away), then wanders around it. Its draws match the exact answer."
+  },
+  {
+    "objectID": "mcmc-5.html#what-the-gradient-is-for",
+    "href": "mcmc-5.html#what-the-gradient-is-for",
+    "title": "MCMC",
+    "section": "What the gradient is for",
+    "text": "What the gradient is for\n\nThe gradient is the slope of the (log) posterior surface where you are now: which way is uphill, and how steep\nOptimizers (maximum likelihood: lm(), glm(), lme4) follow it uphill to the single peak and stop. One answer, no distribution\nHMC uses the same gradient differently: the puck feels the slope and glides across the surface, so it explores the whole posterior, spending time in proportion to its height instead of stopping at the top\nSame ingredient, two goals: find the top (optimization) vs. map the whole mountain (sampling)"
+  },
+  {
+    "objectID": "mcmc-5.html#following-the-gradient-pictured",
+    "href": "mcmc-5.html#following-the-gradient-pictured",
+    "title": "MCMC",
+    "section": "Following the gradient, pictured",
+    "text": "Following the gradient, pictured"
+  },
+  {
+    "objectID": "mcmc-5.html#what-warmup-does",
+    "href": "mcmc-5.html#what-warmup-does",
+    "title": "MCMC",
+    "section": "What warmup does",
+    "text": "What warmup does\nThe same model, four chains started far apart, keeping the warmup draws this time:\n\n\nCode\nh.3w &lt;- update(h.3, save_warmup = TRUE, chains = 4, cores = 4, init = 10, seed = 27, file = \"h.3w\")\nmcmc_trace(as_draws_array(h.3w, inc_warmup = TRUE), pars = \"b_mood.group.dcontrol\",\n           n_warmup = 500, window = c(0, 150)) +\n  labs(subtitle = \"the first 150 of 500 warmup iterations\")\n\n\n\n\n\n\n\n\n\nThe chains start in different places and find the same region within a few dozen steps. Warmup also tunes the step size; its draws are thrown away. R-hat asks whether the chains, after warmup, agree."
+  },
+  {
+    "objectID": "mcmc-5.html#fixing-the-divergences-better-priors",
+    "href": "mcmc-5.html#fixing-the-divergences-better-priors",
+    "title": "MCMC",
+    "section": "Fixing the divergences: better priors",
+    "text": "Fixing the divergences: better priors\nSame two data points, priors on a sensible scale:\n\ndiv.ok &lt;- brm(data = list(y = c(-1, 1)), family = gaussian, y ~ 1,\n              prior = c(prior(normal(0, 10), class = Intercept),\n                        prior(exponential(1), class = sigma)),\n              iter = 2000, warmup = 1000, chains = 2, seed = 27,\n              backend = \"cmdstanr\", file = \"div.ok\")\ncount_div &lt;- function(m) sum(subset(nuts_params(m), Parameter == \"divergent__\")$Value)\nc(vague_priors = count_div(div.t), sensible_priors = count_div(div.ok))\n\n   vague_priors sensible_priors \n            623               0 \n\n\nNo adapt_delta needed. With two data points, the priors do a lot of the work, so they have to be sensible."
+  },
+  {
+    "objectID": "mcmc-5.html#autocorrelation-and-ess-side-by-side",
+    "href": "mcmc-5.html#autocorrelation-and-ess-side-by-side",
+    "title": "MCMC",
+    "section": "Autocorrelation and ESS, side by side",
+    "text": "Autocorrelation and ESS, side by side\n\n\nCode\ness_of &lt;- function(m, par) round(posterior::ess_bulk(posterior::extract_variable_matrix(as_draws_array(m), par)))\n(mcmc_acf(h.3, pars = \"b_mood.group.dcontrol\") +\n   labs(title = paste0(\"h.3: ESS ≈ \", ess_of(h.3, \"b_mood.group.dcontrol\"), \" of \", ndraws(h.3), \" draws\"))) |\n(mcmc_acf(legs.1, pars = \"b_leg_left\") +\n   labs(title = paste0(\"legs.1: ESS ≈ \", ess_of(legs.1, \"b_leg_left\"), \" of \", ndraws(legs.1), \" draws\")))\n\n\n\n\n\n\n\n\n\nOn a ridge, each draw is close to the last one: high autocorrelation, so 1,200 draws are worth far fewer independent ones."
+  },
+  {
+    "objectID": "mcmc-5.html#running-longer-doesnt-fix-it",
+    "href": "mcmc-5.html#running-longer-doesnt-fix-it",
+    "title": "MCMC",
+    "section": "Running longer doesn’t fix it",
+    "text": "Running longer doesn’t fix it\nTen times the iterations:\n\nlegs.2 &lt;- update(legs.1, iter = 4000, warmup = 1000, seed = 5, file = \"legs.2\")\nsummary(legs.2)$fixed[, c(\"Estimate\", \"l-95% CI\", \"u-95% CI\", \"Rhat\", \"Bulk_ESS\")] %&gt;% round(2) %&gt;% transform(Bulk_ESS = round(Bulk_ESS))\n\n          Estimate l-95% CI u-95% CI Rhat Bulk_ESS\nIntercept     1.79     1.22     2.36    1    12279\nleg_left      0.65    -3.86     5.23    1     4940\nleg_right     1.19    -3.37     5.71    1     4946\n\n\nThe diagnostics improve, but the slopes are just as uncertain: we’ve mapped the ridge in more detail, not made it narrower."
+  },
+  {
+    "objectID": "mcmc-5.html#fixing-the-model",
+    "href": "mcmc-5.html#fixing-the-model",
+    "title": "MCMC",
+    "section": "Fixing the model",
+    "text": "Fixing the model\nThe data only know the sum of the slopes, and that sum was well estimated all along:\n\nlibrary(tidybayes)\nlegs.2 %&gt;% spread_draws(b_leg_left, b_leg_right) %&gt;% \n  mutate(sum_of_slopes = b_leg_left + b_leg_right) %&gt;% median_qi(sum_of_slopes)\n\n# A tibble: 1 × 6\n  sum_of_slopes .lower .upper .width .point .interval\n          &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;    \n1          1.84   1.72   1.96   0.95 median qi       \n\n\nDrop the redundant predictor and the model is identified:\n\nlegs.3 &lt;- brm(height ~ 1 + leg_left, data = legs, chains = 4, cores = 4, seed = 5,\n              backend = \"cmdstanr\", file = \"legs.3\")\nsummary(legs.3)$fixed[, c(\"Estimate\", \"l-95% CI\", \"u-95% CI\", \"Rhat\", \"Bulk_ESS\")] %&gt;% round(2) %&gt;% transform(Bulk_ESS = round(Bulk_ESS))\n\n          Estimate l-95% CI u-95% CI Rhat Bulk_ESS\nIntercept     1.80     1.22     2.35    1     4574\nleg_left      1.84     1.72     1.96    1     4527"
+  },
+  {
+    "objectID": "mcmc-5.html#every-time-you-fit-a-model",
+    "href": "mcmc-5.html#every-time-you-fit-a-model",
+    "title": "MCMC",
+    "section": "Every time you fit a model",
+    "text": "Every time you fit a model\n\nRead the warnings brms prints. Don’t ignore them\nR-hat &lt; 1.01 for every parameter\nBulk and Tail ESS &gt; 400 for every parameter you report\nTrace and rank plots: fuzzy caterpillars, flat rank histograms\nZero divergences. Any divergence means look at the model, not just adapt_delta\npp_check(): the model can sample well and still be the wrong model\n\nIf something fails: check the model first (priors, redundant parameters), run longer second, tune the sampler last."
   }
 ]
