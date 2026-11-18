@@ -261,41 +261,22 @@ Orange: the target. Island 10 has 10× the people of island 1, so it should get 
 
 ```{r}
 #| code-fold: true
-#| fig-height: 2.5
-#| fig-width: 10
-#| out-width: "92%"
-library(patchwork)
-# the same rule, run for 100,000 weeks
-run_king <- function(num, start = 10) {
-  positions <- rep(0, num); current <- start
-  for (i in 1:num) {
-    positions[i] <- current
-    proposal <- current + sample(c(-1, 1), size = 1)
-    if (proposal < 1) proposal <- 10
-    if (proposal > 10) proposal <- 1
-    current <- ifelse(runif(1) < proposal / current, proposal, current)
-  }
-  positions
-}
-positions_long <- run_king(1e5)
-
-visit_plot <- function(pos, title) {
-  tibble(island = pos) %>%
-    count(island) %>%
-    mutate(share = n / sum(n), target = island / sum(1:10)) %>%
-    ggplot(aes(x = island)) +
-    geom_col(aes(y = share), fill = "grey70") +
-    geom_point(aes(y = target), colour = "#D55E00", size = 3) +
-    scale_x_continuous(breaks = 1:10) +
-    coord_cartesian(ylim = c(0, .2)) +
-    labs(y = "share of weeks", title = title) +
-    theme_classic(base_size = 13)
-}
-visit_plot(positions, "after 1,000 weeks") | visit_plot(positions_long, "after 100,000 weeks")
+#| fig-height: 2.45
+#| fig-width: 8
+#| out-width: "75%"
+tibble(island = positions) %>%
+  count(island) %>%
+  mutate(share = n / sum(n), target = island / sum(1:10)) %>%
+  ggplot(aes(x = island)) +
+  geom_col(aes(y = share), fill = "grey70") +
+  geom_point(aes(y = target), colour = "#D55E00", size = 3) +
+  scale_x_continuous(breaks = 1:10) +
+  labs(y = "share of weeks", title = "after 1,000 weeks") +
+  theme_classic(base_size = 13)
 ```
 
--   **1,000 weeks:** rough. Moving one island at a time, he lingers in a neighborhood, so a short run over- or under-counts whole stretches of islands
--   **100,000 weeks:** right on target, though he never computed those percentages; he only compared neighbors
+-   1,000 weeks is about `r round(1000 / 52)` years of island hopping, and the king never computed those percentages; he only compared neighbors
+-   Close but not exact. As the number of weeks grows, the grey bars get closer and closer to the orange target
 
 ## Metropolis on a real posterior {.smaller}
 

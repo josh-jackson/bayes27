@@ -488,46 +488,27 @@
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a aria-label="1"></a><span class="fu">library</span>(patchwork)</span>
-<span id="cb4-2"><a aria-label="2"></a><span class="co"># the same rule, run for 100,000 weeks</span></span>
-<span id="cb4-3"><a aria-label="3"></a>run_king <span class="ot">&lt;-</span> <span class="cf">function</span>(num, <span class="at">start =</span> <span class="dv">10</span>) {</span>
-<span id="cb4-4"><a aria-label="4"></a>  positions <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">0</span>, num); current <span class="ot">&lt;-</span> start</span>
-<span id="cb4-5"><a aria-label="5"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>num) {</span>
-<span id="cb4-6"><a aria-label="6"></a>    positions[i] <span class="ot">&lt;-</span> current</span>
-<span id="cb4-7"><a aria-label="7"></a>    proposal <span class="ot">&lt;-</span> current <span class="sc">+</span> <span class="fu">sample</span>(<span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>), <span class="at">size =</span> <span class="dv">1</span>)</span>
-<span id="cb4-8"><a aria-label="8"></a>    <span class="cf">if</span> (proposal <span class="sc">&lt;</span> <span class="dv">1</span>) proposal <span class="ot">&lt;-</span> <span class="dv">10</span></span>
-<span id="cb4-9"><a aria-label="9"></a>    <span class="cf">if</span> (proposal <span class="sc">&gt;</span> <span class="dv">10</span>) proposal <span class="ot">&lt;-</span> <span class="dv">1</span></span>
-<span id="cb4-10"><a aria-label="10"></a>    current <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(<span class="fu">runif</span>(<span class="dv">1</span>) <span class="sc">&lt;</span> proposal <span class="sc">/</span> current, proposal, current)</span>
-<span id="cb4-11"><a aria-label="11"></a>  }</span>
-<span id="cb4-12"><a aria-label="12"></a>  positions</span>
-<span id="cb4-13"><a aria-label="13"></a>}</span>
-<span id="cb4-14"><a aria-label="14"></a>positions_long <span class="ot">&lt;-</span> <span class="fu">run_king</span>(<span class="fl">1e5</span>)</span>
-<span id="cb4-15"><a aria-label="15"></a></span>
-<span id="cb4-16"><a aria-label="16"></a>visit_plot <span class="ot">&lt;-</span> <span class="cf">function</span>(pos, title) {</span>
-<span id="cb4-17"><a aria-label="17"></a>  <span class="fu">tibble</span>(<span class="at">island =</span> pos) <span class="sc">%&gt;%</span></span>
-<span id="cb4-18"><a aria-label="18"></a>    <span class="fu">count</span>(island) <span class="sc">%&gt;%</span></span>
-<span id="cb4-19"><a aria-label="19"></a>    <span class="fu">mutate</span>(<span class="at">share =</span> n <span class="sc">/</span> <span class="fu">sum</span>(n), <span class="at">target =</span> island <span class="sc">/</span> <span class="fu">sum</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb4-20"><a aria-label="20"></a>    <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> island)) <span class="sc">+</span></span>
-<span id="cb4-21"><a aria-label="21"></a>    <span class="fu">geom_col</span>(<span class="fu">aes</span>(<span class="at">y =</span> share), <span class="at">fill =</span> <span class="st">"grey70"</span>) <span class="sc">+</span></span>
-<span id="cb4-22"><a aria-label="22"></a>    <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">y =</span> target), <span class="at">colour =</span> <span class="st">"#D55E00"</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
-<span id="cb4-23"><a aria-label="23"></a>    <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>) <span class="sc">+</span></span>
-<span id="cb4-24"><a aria-label="24"></a>    <span class="fu">coord_cartesian</span>(<span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, .<span class="dv">2</span>)) <span class="sc">+</span></span>
-<span id="cb4-25"><a aria-label="25"></a>    <span class="fu">labs</span>(<span class="at">y =</span> <span class="st">"share of weeks"</span>, <span class="at">title =</span> title) <span class="sc">+</span></span>
-<span id="cb4-26"><a aria-label="26"></a>    <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">13</span>)</span>
-<span id="cb4-27"><a aria-label="27"></a>}</span>
-<span id="cb4-28"><a aria-label="28"></a><span class="fu">visit_plot</span>(positions, <span class="st">"after 1,000 weeks"</span>) <span class="sc">|</span> <span class="fu">visit_plot</span>(positions_long, <span class="st">"after 100,000 weeks"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a aria-label="1"></a><span class="fu">tibble</span>(<span class="at">island =</span> positions) <span class="sc">%&gt;%</span></span>
+<span id="cb4-2"><a aria-label="2"></a>  <span class="fu">count</span>(island) <span class="sc">%&gt;%</span></span>
+<span id="cb4-3"><a aria-label="3"></a>  <span class="fu">mutate</span>(<span class="at">share =</span> n <span class="sc">/</span> <span class="fu">sum</span>(n), <span class="at">target =</span> island <span class="sc">/</span> <span class="fu">sum</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb4-4"><a aria-label="4"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> island)) <span class="sc">+</span></span>
+<span id="cb4-5"><a aria-label="5"></a>  <span class="fu">geom_col</span>(<span class="fu">aes</span>(<span class="at">y =</span> share), <span class="at">fill =</span> <span class="st">"grey70"</span>) <span class="sc">+</span></span>
+<span id="cb4-6"><a aria-label="6"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">y =</span> target), <span class="at">colour =</span> <span class="st">"#D55E00"</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb4-7"><a aria-label="7"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>) <span class="sc">+</span></span>
+<span id="cb4-8"><a aria-label="8"></a>  <span class="fu">labs</span>(<span class="at">y =</span> <span class="st">"share of weeks"</span>, <span class="at">title =</span> <span class="st">"after 1,000 weeks"</span>) <span class="sc">+</span></span>
+<span id="cb4-9"><a aria-label="9"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">13</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
 <figure>
-<p><img data-src="mcmc-5_files/figure-revealjs/unnamed-chunk-4-1.png" style="width:92.0%"></p>
+<p><img data-src="mcmc-5_files/figure-revealjs/unnamed-chunk-4-1.png" style="width:75.0%"></p>
 </figure>
 </div>
 </div>
 </div>
 <ul>
-<li><strong>1,000 weeks:</strong> rough. Moving one island at a time, he lingers in a neighborhood, so a short run over- or under-counts whole stretches of islands</li>
-<li><strong>100,000 weeks:</strong> right on target, though he never computed those percentages; he only compared neighbors</li>
+<li>1,000 weeks is about 19 years of island hopping, and the king never computed those percentages; he only compared neighbors</li>
+<li>Close but not exact. As the number of weeks grows, the grey bars get closer and closer to the orange target</li>
 </ul>
 </section>
 <section id="metropolis-on-a-real-posterior" class="slide level2 smaller">
