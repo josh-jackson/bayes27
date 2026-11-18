@@ -774,7 +774,7 @@
     "href": "mcmc-5.html#metropolis-step-by-step-1",
     "title": "MCMC",
     "section": "Metropolis, step by step (1)",
-    "text": "Metropolis, step by step (1)"
+    "text": "Metropolis, step by step (1)\nNow the side view: one parameter along the bottom, and height (likelihood × prior) on the y-axis. Same idea, same hiker."
   },
   {
     "objectID": "mcmc-5.html#metropolis-step-by-step-2",
@@ -8621,7 +8621,7 @@
     "href": "mcmc-5.html#the-posterior-is-a-landscape",
     "title": "MCMC",
     "section": "The posterior is a landscape",
-    "text": "The posterior is a landscape\nEvery spot on the map is one set of parameter values. Its height is prior × likelihood: how well those values explain the data, weighted by what we believed beforehand.\n\n\n\n\nCode\nlibrary(tidyverse)\n# a made-up two-parameter posterior with a curved ridge\nlog_target &lt;- function(x, y) dnorm(x, 0, 1.2, log = TRUE) + dnorm(y, 0.6 * x^2 - 1, 0.6, log = TRUE)\nlandscape &lt;- expand_grid(x = seq(-3.5, 3.5, length.out = 200), y = seq(-2.5, 6, length.out = 200)) %&gt;%\n  mutate(height = exp(log_target(x, y)))\nggplot(landscape, aes(x, y, fill = height)) +\n  geom_raster() +\n  scale_fill_viridis_c(option = \"magma\", guide = \"none\") +\n  labs(x = expression(theta[1]), y = expression(theta[2])) +\n  theme_classic(base_size = 14)\n\n\n\n\n\n\n\n\n\n\n\nMaximum likelihood finds the summit\nBayes wants the whole map: where the high ground is, and how much of it there is\nWith 2 parameters we can draw it. With 50 (a typical multilevel model) nobody can: we’re exploring in the dark"
+    "text": "The posterior is a landscape\nEvery spot on the map is one set of parameter values. Its height is prior × likelihood: how well those values explain the data, weighted by what we believed beforehand. We’re looking down from above, like a topographic map: both axes are parameters, and brightness is height. (With one parameter we can see the hill from the side instead; that’s coming up.)\n\n\n\n\nCode\nlibrary(tidyverse)\n# a made-up two-parameter posterior with a curved ridge\nlog_target &lt;- function(x, y) dnorm(x, 0, 1.2, log = TRUE) + dnorm(y, 0.6 * x^2 - 1, 0.6, log = TRUE)\nlandscape &lt;- expand_grid(x = seq(-3.5, 3.5, length.out = 200), y = seq(-2.5, 6, length.out = 200)) %&gt;%\n  mutate(height = exp(log_target(x, y)))\nggplot(landscape, aes(x, y, fill = height)) +\n  geom_raster() +\n  scale_fill_viridis_c(option = \"magma\", name = \"likelihood\\n× prior\",\n                       breaks = function(lims) lims, labels = c(\"low\", \"high\")) +\n  labs(x = expression(theta[1]), y = expression(theta[2])) +\n  theme_classic(base_size = 14)\n\n\n\n\n\n\n\n\n\n\n\nMaximum likelihood finds the summit\nBayes wants the whole map: where the high ground is, and how much of it there is\nWith 2 parameters we can draw it. With 50 (a typical multilevel model) nobody can: we’re exploring in the dark"
   },
   {
     "objectID": "mcmc-5.html#a-hiker-in-the-fog",

@@ -76,13 +76,13 @@ That's all MCMC needs: likelihood × prior, never the evidence.
 
 ## The posterior is a landscape {.smaller .nostretch}
 
-Every spot on the map is one set of parameter values. Its **height** is prior × likelihood: how well those values explain the data, weighted by what we believed beforehand.
+Every spot on the map is one set of parameter values. Its **height** is prior × likelihood: how well those values explain the data, weighted by what we believed beforehand. We're looking down from above, like a topographic map: both axes are parameters, and **brightness is height**. (With one parameter we can see the hill from the side instead; that's coming up.)
 
 :::: columns
 ::: {.column width="55%"}
 ```{r}
 #| code-fold: true
-#| fig-height: 3.6
+#| fig-height: 3.3
 #| fig-width: 5
 #| out-width: "100%"
 library(tidyverse)
@@ -92,7 +92,8 @@ landscape <- expand_grid(x = seq(-3.5, 3.5, length.out = 200), y = seq(-2.5, 6, 
   mutate(height = exp(log_target(x, y)))
 ggplot(landscape, aes(x, y, fill = height)) +
   geom_raster() +
-  scale_fill_viridis_c(option = "magma", guide = "none") +
+  scale_fill_viridis_c(option = "magma", name = "likelihood\n× prior",
+                       breaks = function(lims) lims, labels = c("low", "high")) +
   labs(x = expression(theta[1]), y = expression(theta[2])) +
   theme_classic(base_size = 14)
 ```
@@ -179,7 +180,9 @@ Steps of algorithm:
 
 ## Metropolis, step by step (1)
 
-![](met1.png)
+Now the side view: one parameter along the bottom, and height (likelihood × prior) on the y-axis. Same idea, same hiker.
+
+![](met1.png){.r-stretch}
 
 ## Metropolis, step by step (2)
 

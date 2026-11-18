@@ -295,7 +295,7 @@
 </section>
 <section id="the-posterior-is-a-landscape" class="slide level2 smaller nostretch">
 <h2>The posterior is a landscape</h2>
-<p>Every spot on the map is one set of parameter values. Its <strong>height</strong> is prior × likelihood: how well those values explain the data, weighted by what we believed beforehand.</p>
+<p>Every spot on the map is one set of parameter values. Its <strong>height</strong> is prior × likelihood: how well those values explain the data, weighted by what we believed beforehand. We’re looking down from above, like a topographic map: both axes are parameters, and <strong>brightness is height</strong>. (With one parameter we can see the hill from the side instead; that’s coming up.)</p>
 <div class="columns">
 <div class="column" style="width:55%;">
 <div class="cell">
@@ -308,9 +308,10 @@
 <span id="cb1-5"><a aria-label="5"></a>  <span class="fu">mutate</span>(<span class="at">height =</span> <span class="fu">exp</span>(<span class="fu">log_target</span>(x, y)))</span>
 <span id="cb1-6"><a aria-label="6"></a><span class="fu">ggplot</span>(landscape, <span class="fu">aes</span>(x, y, <span class="at">fill =</span> height)) <span class="sc">+</span></span>
 <span id="cb1-7"><a aria-label="7"></a>  <span class="fu">geom_raster</span>() <span class="sc">+</span></span>
-<span id="cb1-8"><a aria-label="8"></a>  <span class="fu">scale_fill_viridis_c</span>(<span class="at">option =</span> <span class="st">"magma"</span>, <span class="at">guide =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
-<span id="cb1-9"><a aria-label="9"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="fu">expression</span>(theta[<span class="dv">1</span>]), <span class="at">y =</span> <span class="fu">expression</span>(theta[<span class="dv">2</span>])) <span class="sc">+</span></span>
-<span id="cb1-10"><a aria-label="10"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">14</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-8"><a aria-label="8"></a>  <span class="fu">scale_fill_viridis_c</span>(<span class="at">option =</span> <span class="st">"magma"</span>, <span class="at">name =</span> <span class="st">"likelihood</span><span class="sc">\n</span><span class="st">× prior"</span>,</span>
+<span id="cb1-9"><a aria-label="9"></a>                       <span class="at">breaks =</span> <span class="cf">function</span>(lims) lims, <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"low"</span>, <span class="st">"high"</span>)) <span class="sc">+</span></span>
+<span id="cb1-10"><a aria-label="10"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="fu">expression</span>(theta[<span class="dv">1</span>]), <span class="at">y =</span> <span class="fu">expression</span>(theta[<span class="dv">2</span>])) <span class="sc">+</span></span>
+<span id="cb1-11"><a aria-label="11"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">14</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
@@ -405,8 +406,9 @@
 </section>
 <section id="metropolis-step-by-step-1" class="slide level2">
 <h2>Metropolis, step by step (1)</h2>
-
-<img data-src="met1.png" class="r-stretch"></section>
+<p>Now the side view: one parameter along the bottom, and height (likelihood × prior) on the y-axis. Same idea, same hiker.</p>
+<img data-src="met1.png" class="r-stretch">
+</section>
 <section id="metropolis-step-by-step-2" class="slide level2">
 <h2>Metropolis, step by step (2)</h2>
 
