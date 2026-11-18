@@ -1189,26 +1189,39 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </div>
 <img data-src="mcmc-5_files/figure-revealjs/unnamed-chunk-25-1.png" width="960" class="r-stretch"><p>The data only pin down the <strong>sum</strong> of the two slopes, so the posterior is a long, thin ridge. Running longer maps the ridge more thoroughly but can’t make it narrower: <strong>fix the model</strong> (drop or combine the duplicate, or give the slopes real priors).</p>
 </section>
-<section id="autocorrelation-and-ess-side-by-side" class="slide level2 smaller nostretch">
-<h2>Autocorrelation and ESS, side by side</h2>
+<section id="autocorrelation-sets-the-ess" class="slide level2 smaller nostretch">
+<h2>Autocorrelation sets the ESS</h2>
+<p>How correlated is each draw with the draw <em>lag</em> steps later? (Averaged over chains.)</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a aria-label="1"></a>ess_of <span class="ot">&lt;-</span> <span class="cf">function</span>(m, par) <span class="fu">round</span>(posterior<span class="sc">::</span><span class="fu">ess_bulk</span>(posterior<span class="sc">::</span><span class="fu">extract_variable_matrix</span>(<span class="fu">as_draws_array</span>(m), par)))</span>
-<span id="cb31-2"><a aria-label="2"></a>(<span class="fu">mcmc_acf</span>(h<span class="fl">.3</span>, <span class="at">pars =</span> <span class="st">"b_mood.group.dcontrol"</span>) <span class="sc">+</span></span>
-<span id="cb31-3"><a aria-label="3"></a>   <span class="fu">labs</span>(<span class="at">title =</span> <span class="fu">paste0</span>(<span class="st">"h.3: ESS ≈ "</span>, <span class="fu">ess_of</span>(h<span class="fl">.3</span>, <span class="st">"b_mood.group.dcontrol"</span>), <span class="st">" of "</span>, <span class="fu">ndraws</span>(h<span class="fl">.3</span>), <span class="st">" draws"</span>))) <span class="sc">|</span></span>
-<span id="cb31-4"><a aria-label="4"></a>(<span class="fu">mcmc_acf</span>(legs<span class="fl">.1</span>, <span class="at">pars =</span> <span class="st">"b_leg_left"</span>) <span class="sc">+</span></span>
-<span id="cb31-5"><a aria-label="5"></a>   <span class="fu">labs</span>(<span class="at">title =</span> <span class="fu">paste0</span>(<span class="st">"legs.1: ESS ≈ "</span>, <span class="fu">ess_of</span>(legs<span class="fl">.1</span>, <span class="st">"b_leg_left"</span>), <span class="st">" of "</span>, <span class="fu">ndraws</span>(legs<span class="fl">.1</span>), <span class="st">" draws"</span>)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a aria-label="1"></a>acf_by_lag <span class="ot">&lt;-</span> <span class="cf">function</span>(m, par, model_label) {</span>
+<span id="cb31-2"><a aria-label="2"></a>  draws_mat <span class="ot">&lt;-</span> posterior<span class="sc">::</span><span class="fu">extract_variable_matrix</span>(<span class="fu">as_draws_array</span>(m), par)   <span class="co"># iterations x chains</span></span>
+<span id="cb31-3"><a aria-label="3"></a>  ess <span class="ot">&lt;-</span> <span class="fu">round</span>(posterior<span class="sc">::</span><span class="fu">ess_bulk</span>(draws_mat))</span>
+<span id="cb31-4"><a aria-label="4"></a>  acf_mat <span class="ot">&lt;-</span> <span class="fu">apply</span>(draws_mat, <span class="dv">2</span>, <span class="cf">function</span>(chain) <span class="fu">acf</span>(chain, <span class="at">lag.max =</span> <span class="dv">20</span>, <span class="at">plot =</span> <span class="cn">FALSE</span>)<span class="sc">$</span>acf)</span>
+<span id="cb31-5"><a aria-label="5"></a>  <span class="fu">tibble</span>(<span class="at">lag =</span> <span class="dv">0</span><span class="sc">:</span><span class="dv">20</span>, <span class="at">autocorrelation =</span> <span class="fu">rowMeans</span>(acf_mat),</span>
+<span id="cb31-6"><a aria-label="6"></a>         <span class="at">model =</span> <span class="fu">paste0</span>(model_label, <span class="st">": ESS ≈ "</span>, ess, <span class="st">" of "</span>, <span class="fu">length</span>(draws_mat), <span class="st">" draws"</span>))</span>
+<span id="cb31-7"><a aria-label="7"></a>}</span>
+<span id="cb31-8"><a aria-label="8"></a><span class="fu">bind_rows</span>(<span class="fu">acf_by_lag</span>(h<span class="fl">.3</span>, <span class="st">"b_mood.group.dcontrol"</span>, <span class="st">"h.3 (mood groups)"</span>),</span>
+<span id="cb31-9"><a aria-label="9"></a>          <span class="fu">acf_by_lag</span>(legs<span class="fl">.1</span>, <span class="st">"b_leg_left"</span>, <span class="st">"legs.1 (two legs, the ridge)"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb31-10"><a aria-label="10"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(lag, autocorrelation, <span class="at">colour =</span> model)) <span class="sc">+</span></span>
+<span id="cb31-11"><a aria-label="11"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">colour =</span> <span class="st">"grey70"</span>) <span class="sc">+</span></span>
+<span id="cb31-12"><a aria-label="12"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span> <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb31-13"><a aria-label="13"></a>  <span class="fu">scale_colour_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"#0072B2"</span>, <span class="st">"#D55E00"</span>), <span class="at">name =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb31-14"><a aria-label="14"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">14</span>) <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"inside"</span>, <span class="at">legend.position.inside =</span> <span class="fu">c</span>(.<span class="dv">62</span>, .<span class="dv">8</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
 <figure>
-<p><img data-src="mcmc-5_files/figure-revealjs/unnamed-chunk-26-1.png" style="width:100.0%"></p>
+<p><img data-src="mcmc-5_files/figure-revealjs/unnamed-chunk-26-1.png" style="width:80.0%"></p>
 </figure>
 </div>
 </div>
 </div>
-<p>On a ridge, each draw is close to the last one: high autocorrelation, so 1,200 draws are worth far fewer independent ones.</p>
+<ul>
+<li><strong>h.3:</strong> the correlation drops to about 0 after one step, so its draws are nearly independent and the ESS is close to the number of draws</li>
+<li><strong>legs.1:</strong> on a ridge, each draw is close to the last, so the correlation fades slowly and the draws are worth far fewer independent ones</li>
+</ul>
 </section>
 <section id="running-longer-doesnt-fix-it" class="slide level2 smaller">
 <h2>Running longer doesn’t fix it</h2>

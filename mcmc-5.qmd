@@ -795,21 +795,33 @@ mcmc_scatter(legs.1, pars = c("b_leg_left", "b_leg_right"), alpha = .3)
 
 The data only pin down the **sum** of the two slopes, so the posterior is a long, thin ridge. Running longer maps the ridge more thoroughly but can't make it narrower: **fix the model** (drop or combine the duplicate, or give the slopes real priors).
 
-## Autocorrelation and ESS, side by side {.smaller .nostretch}
+## Autocorrelation sets the ESS {.smaller .nostretch}
+
+How correlated is each draw with the draw *lag* steps later? (Averaged over chains.)
 
 ```{r}
 #| code-fold: true
-#| fig-height: 2.8
-#| fig-width: 9
-#| out-width: "100%"
-ess_of <- function(m, par) round(posterior::ess_bulk(posterior::extract_variable_matrix(as_draws_array(m), par)))
-(mcmc_acf(h.3, pars = "b_mood.group.dcontrol") +
-   labs(title = paste0("h.3: ESS ≈ ", ess_of(h.3, "b_mood.group.dcontrol"), " of ", ndraws(h.3), " draws"))) |
-(mcmc_acf(legs.1, pars = "b_leg_left") +
-   labs(title = paste0("legs.1: ESS ≈ ", ess_of(legs.1, "b_leg_left"), " of ", ndraws(legs.1), " draws")))
+#| fig-height: 2.5
+#| fig-width: 8
+#| out-width: "80%"
+acf_by_lag <- function(m, par, model_label) {
+  draws_mat <- posterior::extract_variable_matrix(as_draws_array(m), par)   # iterations x chains
+  ess <- round(posterior::ess_bulk(draws_mat))
+  acf_mat <- apply(draws_mat, 2, function(chain) acf(chain, lag.max = 20, plot = FALSE)$acf)
+  tibble(lag = 0:20, autocorrelation = rowMeans(acf_mat),
+         model = paste0(model_label, ": ESS ≈ ", ess, " of ", length(draws_mat), " draws"))
+}
+bind_rows(acf_by_lag(h.3, "b_mood.group.dcontrol", "h.3 (mood groups)"),
+          acf_by_lag(legs.1, "b_leg_left", "legs.1 (two legs, the ridge)")) %>%
+  ggplot(aes(lag, autocorrelation, colour = model)) +
+  geom_hline(yintercept = 0, colour = "grey70") +
+  geom_line(linewidth = 1) + geom_point() +
+  scale_colour_manual(values = c("#0072B2", "#D55E00"), name = NULL) +
+  theme_classic(base_size = 14) + theme(legend.position = "inside", legend.position.inside = c(.62, .8))
 ```
 
-On a ridge, each draw is close to the last one: high autocorrelation, so 1,200 draws are worth far fewer independent ones.
+-   **h.3:** the correlation drops to about 0 after one step, so its draws are nearly independent and the ESS is close to the number of draws
+-   **legs.1:** on a ridge, each draw is close to the last, so the correlation fades slowly and the draws are worth far fewer independent ones
 
 ## Running longer doesn't fix it {.smaller}
 
