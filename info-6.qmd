@@ -171,11 +171,11 @@ anova(mod.b, mod.a, test = "LRT")
 
 -   **Why did `anova()` and `lrtest()` give slightly different p-values?** For a Gaussian `glm()`, the "Deviance" column in `anova()` is the drop in the residual sum of squares (`r sprintf("%.1f", deviance(mod.b) - deviance(mod.a))`). `anova()` divides it by the estimated residual variance (`r sprintf("%.2f", summary(mod.a)$dispersion)`) to get a χ² of `r sprintf("%.2f", (deviance(mod.b) - deviance(mod.a)) / summary(mod.a)$dispersion)`, while `lrtest()` uses the exact difference in −2LL (`r sprintf("%.2f", chisqu)`). Same idea, slightly different estimate of σ, so p = `r sprintf("%.4f", pchisq((deviance(mod.b) - deviance(mod.a)) / summary(mod.a)$dispersion, 1, lower.tail = FALSE))` vs. `r sprintf("%.4f", pchisq(chisqu, 1, lower.tail = FALSE))`.
 
-## AIC and BIC
+## AIC and BIC {.smaller}
 
 -   **AIC = −2LL + 2k.** Here −2LL = `r sprintf("%.2f", -2 * as.numeric(logLik(mod.a)))` and k = 3 (intercept, slope, σ), so AIC = `r sprintf("%.2f", -2 * as.numeric(logLik(mod.a)))` + 6 = `r sprintf("%.2f", AIC(mod.a))`, the AIC `summary()` printed.
 -   **BIC = −2LL + k·log(n)**, a bigger penalty per parameter once n > 7: `r sprintf("%.2f", -2 * as.numeric(logLik(mod.a)))` + 3 × log(`r nobs(mod.a)`) = `r sprintf("%.2f", BIC(mod.a))`.
--   Both are "fit + a penalty for complexity," using one best estimate. Lower is better, and only differences between models mean anything. We'll meet their Bayesian cousins (WAIC, LOO) in Part 2.
+-   Both are "fit + a penalty for complexity," using one best estimate, and lower is better. But they answer different questions: AIC estimates how well the model will predict new data (its Bayesian cousins, WAIC and LOO, come in Part 2); BIC approximates the marginal likelihood, so it's a rough Bayes factor (Part 3).
 
 ## Where this part is going {.smaller}
 
@@ -438,7 +438,7 @@ On the same data, every extra term improves the fit. On new data, the truth (deg
 
 -   Predictions to NEW DATA are key, as this separates the sample specific influence (irregular features) from population influence (regular features)
 
--   Identify the model with the lowest test set error (deviance). In frequentist we typically use MSE.
+-   Identify the model with the lowest test-set error. Machine learning often uses mean squared error; we use deviance (the log score), which works for any likelihood.
 
 -   But a single hold-out sample wastes data, so we split the data into *k* folds, fit *k* times, and let each fold be the test set once.
 
@@ -447,6 +447,17 @@ On the same data, every extra term improves the fit. On new data, the truth (deg
 -   Leaving out 1 observation per fold is called leave-one-out (LOO) cross validation. Great in theory, but computationally difficult.
 
 -   Pareto Smoothed Importance Sampling (PSIS) reuses the posterior draws we already have. For each observation, it reweights the draws to approximate the posterior we would have gotten without that observation (draws that fit that point especially well get less weight). No refitting: cross validation almost for free!
+
+## Information criteria {.smaller}
+
+AIC, WAIC (and the older DIC): formulas that approximate out-of-sample deviance without refitting. Each is "in-sample fit + a penalty for flexibility":
+
+$$\text{AIC} = -2 \log p(y | \hat\theta_{MLE}) + 2k \qquad \text{WAIC} = -2 \big(\text{lppd} - \underbrace{\textstyle\sum_i \operatorname{var}_\theta \log p(y_i | \theta)}_\text{penalty}\big)$$
+
+-   **AIC** counts parameters (k) and uses a single best estimate
+-   **WAIC** is the Bayesian version: it uses the whole posterior, and its penalty (p_waic) measures how much each observation's fit wobbles across the draws, so it works with priors and multilevel models where "number of parameters" is fuzzy
+-   **Current advice (Vehtari, Gelman & Gabry, 2017): use PSIS-LOO.** It estimates the same thing, is more robust, and comes with a diagnostic (Pareto *k*); WAIC doesn't
+-   BIC looks similar but approximates the marginal likelihood instead: it's closer to a Bayes factor (Part 3) than to LOO
 
 ## The model: `mr.12`
 
@@ -460,11 +471,10 @@ $$
 
 In brms: `happiness ~ 0 + iv.d + SS_c`. The `0 +` drops the intercept, so each group gets its own mean (at average school success).
 
-## PSIS-LOO example: `mr.12`
+## `mr.12` summary
 
 ```{r}
 #| code-fold: true
-mr.12 <- readRDS("mr.12.rds")
 summary(mr.12)
 ```
 
@@ -476,11 +486,13 @@ mr.12 <- add_criterion(mr.12, "loo")
 mr.12$criteria$loo
 ```
 
-## Reading the LOO output
+## Reading the LOO output {.smaller}
 
 -   elpd_loo: the expected log pointwise predictive density for new data (an out-of-sample lppd). Larger is better. For discrete outcomes these are probabilities (≤ 1), so the logs are 0 or negative; for continuous outcomes they are densities, which can exceed 1, so elpd can be positive. Only differences between models matter
 
--   p_loo is the effective number of parameters
+-   p_loo is the effective number of parameters: lppd − elpd_loo, the 4.0 gap we saw at the end of Part 1 (`mr.12` has 4 parameters)
+
+-   SE: elpd_loo is estimated from 118 students, so it has a standard error. When comparing models, use the SE of the *difference* (`se_diff`), not these
 
 -   looic is -2(elpd). Lower is better. Why −2? Chi-square history, and for a Gaussian model with known σ, −2 × log score is the squared error (scaled by σ², plus a constant).
 
@@ -554,30 +566,17 @@ mr.11 <- add_criterion(mr.11, "loo")
 loo(mr.11)
 ```
 
-## Comparing models with `loo_compare()`
-
--   loo_compare output rank orders models such that the best fitting model appears on top
+## Comparing models with `loo_compare()` {.smaller}
 
 ```{r}
 #| code-fold: true
 loo_compare(mr.11, mr.12, criterion = "loo")
 ```
 
-## How big a difference matters? {.smaller}
-
-```{r}
-#| echo: false
-loo_compare(mr.11, mr.12, criterion = "loo")
-```
-
--   The Stan team recommends that:
-
-1.  If |elpd_diff| \< 4, the models predict about equally well.
-2.  If it's larger, compare it to se_diff (a rough signal-to-noise ratio).
-
+-   Models are ranked by expected prediction for new data, best on top. The top model's `elpd_diff` is 0; the others are negative: how much worse each is expected to predict.
+-   How big a difference matters? |elpd_diff| \< 4: about equal. Larger: compare it to `se_diff`, a rough signal-to-noise ratio (Stan team advice).
 -   The other columns: `p_worse` is the probability (normal approximation) that the model predicts worse than the top one; `diag_diff` flags when that approximation is shaky (N < 100, or |elpd_diff| < 4); `diag_elpd` flags high Pareto *k*.
-
--   Here elpd_diff / se_diff = `r cmp_1112 <- loo_compare(mr.11, mr.12); round(abs(cmp_1112[2, "elpd_diff"]))` / `r round(cmp_1112[2, "se_diff"], 1)` ≈ `r round(abs(cmp_1112[2, "elpd_diff"]) / cmp_1112[2, "se_diff"], 1)`: `mr.12` is expected to predict new data clearly better.
+-   Here elpd_diff / se_diff = `r cmp_1112 <- loo_compare(mr.11, mr.12); sprintf("%.1f", abs(cmp_1112[2, "elpd_diff"]))` / `r sprintf("%.1f", cmp_1112[2, "se_diff"])` ≈ `r sprintf("%.1f", round(abs(cmp_1112[2, "elpd_diff"]), 1) / round(cmp_1112[2, "se_diff"], 1))`: `mr.12` is expected to predict new data clearly better.
 
 ## A third model: add the interaction {.smaller}
 
@@ -625,16 +624,6 @@ loo_compare(mr.11, mr.12, mr.14b)
 -   In-sample $R^2$ rewards every added parameter. LOO only rewards parameters that help predict *new* data.
 -   Here the interaction raises $R^2$ from `r sub("^0", "", sprintf("%.2f", median(bayes_R2(mr.12, summary = FALSE))))` to `r sub("^0", "", sprintf("%.2f", median(bayes_R2(mr.14b, summary = FALSE))))`, but its LOO advantage over `mr.12` (`r cmp_1214 <- loo_compare(mr.12, mr.14b); sprintf("%.1f", abs(cmp_1214[2, "elpd_diff"]))`, se `r sprintf("%.1f", cmp_1214[2, "se_diff"])`) is under 4 (that's what `diag_diff` flags): a modest gain in prediction, not a clear one. (Whether the interaction is *real* is a different question; see the next section.)
 
-## Information criteria {.smaller}
-
-AIC, BIC, DIC, WAIC: formulas that approximate out-of-sample deviance without refitting. Each is "in-sample fit + a penalty for flexibility":
-
-$$\text{AIC} = -2 \log p(y | \hat\theta_{MLE}) + 2p \qquad \text{WAIC} = -2 \big(\text{lppd} - \underbrace{\textstyle\sum_i \operatorname{var}_\theta \log p(y_i | \theta)}_\text{penalty}\big)$$
-
--   **AIC** counts parameters (p) and uses a single best estimate
--   **WAIC** is the Bayesian version: it uses the whole posterior, and its penalty (p_waic) measures how much each observation's fit wobbles across the draws, so it works with priors and multilevel models where "number of parameters" is fuzzy
--   **Current advice (Vehtari, Gelman & Gabry, 2017): use PSIS-LOO.** It estimates the same thing, is more robust, and comes with a diagnostic (Pareto *k*); WAIC doesn't
-
 ## WAIC vs. LOO
 
 ```{r}
@@ -644,17 +633,17 @@ mr.12 <- add_criterion(mr.12, "waic")
 loo_compare(mr.11, mr.12, criterion = "waic")
 ```
 
-Nearly the same answer as LOO here. Both start from the lppd, so they usually agree; when they don't, trust LOO and check its Pareto *k*.
+The same answer as LOO here, to one decimal. Both start from the lppd, so they usually agree; when they don't, trust LOO and check its Pareto *k*.
 
 ## Using information criteria {.smaller}
 
--   Each of these criteria do *not* have scales that are bounded by numbers (eg 0-1), *nor* can they be evaluated by some other number (eg SDs)
+-   They have no absolute scale (not bounded like 0–1, no benchmark like an SD): only differences between models mean anything
 
--   Provide relative fit, so you need to compare different models, choosing the model with best fit
+-   So compare models, and prefer the one with the best expected prediction
 
--   The criteria depend on the data, so you can only compare models fit to exactly the same observations (watch out for missing data dropping different rows)
+-   Models must be fit to exactly the same observations (watch out for missing data dropping different rows) and predict the same outcome on the same scale (you can't compare a model of log(y) with a model of y)
 
--   You can compare non-nested models e.g. ones with non-overlapping sets of predictors
+-   You can compare non-nested models, e.g. ones with non-overlapping sets of predictors
 
 # Part 3: Is a single effect real, and does it matter?
 

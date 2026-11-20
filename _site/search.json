@@ -1173,7 +1173,7 @@
     "href": "info-6.html#cross-validation",
     "title": "Information, NHST and model fit",
     "section": "Cross validation",
-    "text": "Cross validation\n\nCompare different models in their prediction in and out of sample (train and a test sample)\nPredictions to NEW DATA are key, as this separates the sample specific influence (irregular features) from population influence (regular features)\nIdentify the model with the lowest test set error (deviance). In frequentist we typically use MSE.\nBut a single hold-out sample wastes data, so we split the data into k folds, fit k times, and let each fold be the test set once."
+    "text": "Cross validation\n\nCompare different models in their prediction in and out of sample (train and a test sample)\nPredictions to NEW DATA are key, as this separates the sample specific influence (irregular features) from population influence (regular features)\nIdentify the model with the lowest test-set error. Machine learning often uses mean squared error; we use deviance (the log score), which works for any likelihood.\nBut a single hold-out sample wastes data, so we split the data into k folds, fit k times, and let each fold be the test set once."
   },
   {
     "objectID": "info-6.html#loo-psis-loo",
@@ -1201,7 +1201,7 @@
     "href": "info-6.html#reading-the-loo-output",
     "title": "Information, NHST and model fit",
     "section": "Reading the LOO output",
-    "text": "Reading the LOO output\n\nelpd_loo: the expected log pointwise predictive density for new data (an out-of-sample lppd). Larger is better. For discrete outcomes these are probabilities (≤ 1), so the logs are 0 or negative; for continuous outcomes they are densities, which can exceed 1, so elpd can be positive. Only differences between models matter\np_loo is the effective number of parameters\nlooic is -2(elpd). Lower is better. Why −2? Chi-square history, and for a Gaussian model with known σ, −2 × log score is the squared error (scaled by σ², plus a constant)."
+    "text": "Reading the LOO output\n\nelpd_loo: the expected log pointwise predictive density for new data (an out-of-sample lppd). Larger is better. For discrete outcomes these are probabilities (≤ 1), so the logs are 0 or negative; for continuous outcomes they are densities, which can exceed 1, so elpd can be positive. Only differences between models matter\np_loo is the effective number of parameters: lppd − elpd_loo, the 4.0 gap we saw at the end of Part 1 (mr.12 has 4 parameters)\nSE: elpd_loo is estimated from 118 students, so it has a standard error. When comparing models, use the SE of the difference (se_diff), not these\nlooic is -2(elpd). Lower is better. Why −2? Chi-square history, and for a Gaussian model with known σ, −2 × log score is the squared error (scaled by σ², plus a constant)."
   },
   {
     "objectID": "info-6.html#pareto-k-can-we-trust-psis-loo",
@@ -1236,7 +1236,7 @@
     "href": "info-6.html#comparing-models-with-loo_compare",
     "title": "Information, NHST and model fit",
     "section": "Comparing models with loo_compare()",
-    "text": "Comparing models with loo_compare()\n\nloo_compare output rank orders models such that the best fitting model appears on top\n\n\n\nCode\nloo_compare(mr.11, mr.12, criterion = \"loo\")\n\n\n model elpd_diff se_diff p_worse diag_diff diag_elpd\n mr.12       0.0     0.0      NA                    \n mr.11     -16.9     6.4    1.00"
+    "text": "Comparing models with loo_compare()\n\n\nCode\nloo_compare(mr.11, mr.12, criterion = \"loo\")\n\n\n model elpd_diff se_diff p_worse diag_diff diag_elpd\n mr.12       0.0     0.0      NA                    \n mr.11     -16.9     6.4    1.00                    \n\n\n\nModels are ranked by expected prediction for new data, best on top. The top model’s elpd_diff is 0; the others are negative: how much worse each is expected to predict.\nHow big a difference matters? |elpd_diff| &lt; 4: about equal. Larger: compare it to se_diff, a rough signal-to-noise ratio (Stan team advice).\nThe other columns: p_worse is the probability (normal approximation) that the model predicts worse than the top one; diag_diff flags when that approximation is shaky (N &lt; 100, or |elpd_diff| &lt; 4); diag_elpd flags high Pareto k.\nHere elpd_diff / se_diff = 16.9 / 6.4 ≈ 2.6: mr.12 is expected to predict new data clearly better."
   },
   {
     "objectID": "info-6.html#how-big-a-difference-matters",
@@ -1271,14 +1271,14 @@
     "href": "info-6.html#information-criteria",
     "title": "Information, NHST and model fit",
     "section": "Information criteria",
-    "text": "Information criteria\nAIC, BIC, DIC, WAIC: formulas that approximate out-of-sample deviance without refitting. Each is “in-sample fit + a penalty for flexibility”:\n\\[\\text{AIC} = -2 \\log p(y | \\hat\\theta_{MLE}) + 2p \\qquad \\text{WAIC} = -2 \\big(\\text{lppd} - \\underbrace{\\textstyle\\sum_i \\operatorname{var}_\\theta \\log p(y_i | \\theta)}_\\text{penalty}\\big)\\]\n\nAIC counts parameters (p) and uses a single best estimate\nWAIC is the Bayesian version: it uses the whole posterior, and its penalty (p_waic) measures how much each observation’s fit wobbles across the draws, so it works with priors and multilevel models where “number of parameters” is fuzzy\nCurrent advice (Vehtari, Gelman & Gabry, 2017): use PSIS-LOO. It estimates the same thing, is more robust, and comes with a diagnostic (Pareto k); WAIC doesn’t"
+    "text": "Information criteria\nAIC, WAIC (and the older DIC): formulas that approximate out-of-sample deviance without refitting. Each is “in-sample fit + a penalty for flexibility”:\n\\[\\text{AIC} = -2 \\log p(y | \\hat\\theta_{MLE}) + 2k \\qquad \\text{WAIC} = -2 \\big(\\text{lppd} - \\underbrace{\\textstyle\\sum_i \\operatorname{var}_\\theta \\log p(y_i | \\theta)}_\\text{penalty}\\big)\\]\n\nAIC counts parameters (k) and uses a single best estimate\nWAIC is the Bayesian version: it uses the whole posterior, and its penalty (p_waic) measures how much each observation’s fit wobbles across the draws, so it works with priors and multilevel models where “number of parameters” is fuzzy\nCurrent advice (Vehtari, Gelman & Gabry, 2017): use PSIS-LOO. It estimates the same thing, is more robust, and comes with a diagnostic (Pareto k); WAIC doesn’t\nBIC looks similar but approximates the marginal likelihood instead: it’s closer to a Bayes factor (Part 3) than to LOO"
   },
   {
     "objectID": "info-6.html#using-information-criteria",
     "href": "info-6.html#using-information-criteria",
     "title": "Information, NHST and model fit",
     "section": "Using information criteria",
-    "text": "Using information criteria\n\nEach of these criteria do not have scales that are bounded by numbers (eg 0-1), nor can they be evaluated by some other number (eg SDs)\nProvide relative fit, so you need to compare different models, choosing the model with best fit\nThe criteria depend on the data, so you can only compare models fit to exactly the same observations (watch out for missing data dropping different rows)\nYou can compare non-nested models e.g. ones with non-overlapping sets of predictors"
+    "text": "Using information criteria\n\nThey have no absolute scale (not bounded like 0–1, no benchmark like an SD): only differences between models mean anything\nSo compare models, and prefer the one with the best expected prediction\nModels must be fit to exactly the same observations (watch out for missing data dropping different rows) and predict the same outcome on the same scale (you can’t compare a model of log(y) with a model of y)\nYou can compare non-nested models, e.g. ones with non-overlapping sets of predictors"
   },
   {
     "objectID": "info-6.html#mimicking-nhst",
@@ -8467,7 +8467,7 @@
     "href": "info-6.html#waic-vs.-loo",
     "title": "Information, NHST and model fit",
     "section": "WAIC vs. LOO",
-    "text": "WAIC vs. LOO\n\n\nCode\nmr.11 &lt;- add_criterion(mr.11, \"waic\")\nmr.12 &lt;- add_criterion(mr.12, \"waic\")\nloo_compare(mr.11, mr.12, criterion = \"waic\")\n\n\n model elpd_diff se_diff p_worse diag_diff diag_elpd\n mr.12       0.0     0.0      NA                    \n mr.11     -16.9     6.4    1.00                    \n\n\nNearly the same answer as LOO here. Both start from the lppd, so they usually agree; when they don’t, trust LOO and check its Pareto k."
+    "text": "WAIC vs. LOO\n\n\nCode\nmr.11 &lt;- add_criterion(mr.11, \"waic\")\nmr.12 &lt;- add_criterion(mr.12, \"waic\")\nloo_compare(mr.11, mr.12, criterion = \"waic\")\n\n\n model elpd_diff se_diff p_worse diag_diff diag_elpd\n mr.12       0.0     0.0      NA                    \n mr.11     -16.9     6.4    1.00                    \n\n\nThe same answer as LOO here, to one decimal. Both start from the lppd, so they usually agree; when they don’t, trust LOO and check its Pareto k."
   },
   {
     "objectID": "info-6.html#info.2-summary",
@@ -8544,7 +8544,7 @@
     "href": "info-6.html#aic-and-bic",
     "title": "Information, NHST and model fit",
     "section": "AIC and BIC",
-    "text": "AIC and BIC\n\nAIC = −2LL + 2k. Here −2LL = 976.47 and k = 3 (intercept, slope, σ), so AIC = 976.47 + 6 = 982.47, the AIC summary() printed.\nBIC = −2LL + k·log(n), a bigger penalty per parameter once n &gt; 7: 976.47 + 3 × log(200) = 992.36.\nBoth are “fit + a penalty for complexity,” using one best estimate. Lower is better, and only differences between models mean anything. We’ll meet their Bayesian cousins (WAIC, LOO) in Part 2."
+    "text": "AIC and BIC\n\nAIC = −2LL + 2k. Here −2LL = 976.47 and k = 3 (intercept, slope, σ), so AIC = 976.47 + 6 = 982.47, the AIC summary() printed.\nBIC = −2LL + k·log(n), a bigger penalty per parameter once n &gt; 7: 976.47 + 3 × log(200) = 992.36.\nBoth are “fit + a penalty for complexity,” using one best estimate, and lower is better. But they answer different questions: AIC estimates how well the model will predict new data (its Bayesian cousins, WAIC and LOO, come in Part 2); BIC approximates the marginal likelihood, so it’s a rough Bayes factor (Part 3)."
   },
   {
     "objectID": "info-6.html#kl-divergence-in-r",
@@ -8559,5 +8559,12 @@
     "title": "Information, NHST and model fit",
     "section": "lppd for mr.12",
     "text": "lppd for mr.12\nlog_lik() gives the log-likelihood of every observation under every posterior draw:\n\nll_12 &lt;- log_lik(mr.12)   # 4000 draws x 118 students\ndim(ll_12)\n\n[1] 4000  118\n\nlppd_12 &lt;- sum(log(colMeans(exp(ll_12))))   # average over draws, log, sum\nlppd_12\n\n[1] -224.0721\n\n\n\nIn Part 2, LOO estimates how mr.12 would do on new data: elpd_loo = -228.1.\nThat’s lower than the lppd by 4.0, which is p_loo: roughly one per parameter (mr.12 has 4). Evaluated on the data it was fit to, a model looks better than it really is."
+  },
+  {
+    "objectID": "info-6.html#mr.12-summary",
+    "href": "info-6.html#mr.12-summary",
+    "title": "Information, NHST and model fit",
+    "section": "mr.12 summary",
+    "text": "mr.12 summary\n\n\nCode\nsummary(mr.12)\n\n\n Family: gaussian \n  Links: mu = identity \nFormula: happiness ~ 0 + iv.d + SS_c \n   Data: MR (Number of observations: 118) \n  Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;\n         total post-warmup draws = 4000\n\nRegression Coefficients:\n            Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\niv.dcontrol     4.96      0.25     4.46     5.46 1.00     4892     3081\niv.dtx          5.36      0.19     4.99     5.73 1.00     4328     2930\nSS_c            0.29      0.05     0.20     0.38 1.00     4780     2934\n\nFurther Distributional Parameters:\n      Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nsigma     1.64      0.11     1.44     1.87 1.00     4369     3196\n\nDraws were sampled using sample(hmc). For each parameter, Bulk_ESS\nand Tail_ESS are effective sample size measures, and Rhat is the potential\nscale reduction factor on split chains (at convergence, Rhat = 1)."
   }
 ]
