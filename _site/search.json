@@ -1740,7 +1740,7 @@
     "href": "glm-7.html#describing-the-data",
     "title": "GLMs: logistic and multinomial regression",
     "section": "Describing the data",
-    "text": "Describing the data\n\nlibrary(psych)\ndescribe(mortality)\n\n               vars   n  mean   sd median trimmed  mad    min   max range  skew\nRisky.behavior    1 300 18.68 3.47  19.00   18.85 2.97   5.00 25.00    20 -0.51\npremature.d*      2 300  1.17 0.38   1.00    1.09 0.00   1.00  2.00     1  1.75\nNOT.premature     3 300  0.83 0.38   1.00    0.91 0.00   0.00  1.00     1 -1.75\nIQ                4 300 16.57 3.73  16.00   16.59 4.45   2.00 25.00    23 -0.20\nIQ_c              5 300  0.00 3.73  -0.57    0.01 4.45 -14.57  8.43    23 -0.20\n               kurtosis   se\nRisky.behavior    -0.08 0.20\npremature.d*       1.06 0.02\nNOT.premature      1.06 0.02\nIQ                -0.05 0.22\nIQ_c              -0.05 0.22"
+    "text": "Describing the data\n\n300 people. NOT.premature = 1 if the person did not die prematurely (premature.d is the same thing as a label).\nIQ is an Otis IQ score minus 100: add 100 to get the familiar IQ scale (mean ≈ 117). IQ_c centers it, so one unit is still one IQ point.\n\n\nlibrary(psych)\ndescribe(mortality)\n\n               vars   n  mean   sd median trimmed  mad    min   max range  skew\nRisky.behavior    1 300 18.68 3.47  19.00   18.85 2.97   5.00 25.00    20 -0.51\npremature.d*      2 300  1.17 0.38   1.00    1.09 0.00   1.00  2.00     1  1.75\nNOT.premature     3 300  0.83 0.38   1.00    0.91 0.00   0.00  1.00     1 -1.75\nIQ                4 300 16.57 3.73  16.00   16.59 4.45   2.00 25.00    23 -0.20\nIQ_c              5 300  0.00 3.73  -0.57    0.01 4.45 -14.57  8.43    23 -0.20\n               kurtosis   se\nRisky.behavior    -0.08 0.20\npremature.d*       1.06 0.02\nNOT.premature      1.06 0.02\nIQ                -0.05 0.22\nIQ_c              -0.05 0.22"
   },
   {
     "objectID": "glm-7.html#the-model",
@@ -1859,7 +1859,7 @@
     "href": "glm-7.html#glm.4-summary",
     "title": "GLMs: logistic and multinomial regression",
     "section": "glm.4 summary",
-    "text": "glm.4 summary\n\nsummary(glm.4)\n\n Family: bernoulli \n  Links: mu = logit \nFormula: NOT.premature ~ 1 + IQ_c \n   Data: mortality (Number of observations: 300) \n  Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;\n         total post-warmup draws = 4000\n\nRegression Coefficients:\n          Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nIntercept     1.62      0.16     1.33     1.93 1.00     2672     2500\nIQ_c          0.08      0.04    -0.00     0.16 1.00     2871     2474\n\nDraws were sampled using sample(hmc). For each parameter, Bulk_ESS\nand Tail_ESS are effective sample size measures, and Rhat is the potential\nscale reduction factor on split chains (at convergence, Rhat = 1)."
+    "text": "glm.4 summary\n\nsummary(glm.4)\n\n Family: bernoulli \n  Links: mu = logit \nFormula: NOT.premature ~ 1 + IQ_c \n   Data: mortality (Number of observations: 300) \n  Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;\n         total post-warmup draws = 4000\n\nRegression Coefficients:\n          Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nIntercept     1.62      0.16     1.33     1.93 1.00     2672     2500\nIQ_c          0.08      0.04    -0.00     0.16 1.00     2871     2474\n\nDraws were sampled using sample(hmc). For each parameter, Bulk_ESS\nand Tail_ESS are effective sample size measures, and Rhat is the potential\nscale reduction factor on split chains (at convergence, Rhat = 1).\n\n\nThe looser Normal(0, 3) prior (glm.3) gives the same IQ slope, 0.08: with 300 people, the data dominate either prior. The tighter prior mainly rules out absurd prior predictions."
   },
   {
     "objectID": "glm-7.html#interpreting-logistic-coefficients",
@@ -1922,7 +1922,7 @@
     "href": "glm-7.html#fitted-probability-curves",
     "title": "GLMs: logistic and multinomial regression",
     "section": "Fitted probability curves",
-    "text": "Fitted probability curves\n\n\nCode\nlibrary(tidybayes)\nlibrary(modelr)\n\nmortality %&gt;%\n   data_grid(IQ_c = seq_range(IQ_c, n = 100)) %&gt;%\n  add_epred_draws(glm.4) %&gt;%\n  sample_draws(100) %&gt;%\n    ggplot(aes(x = IQ_c)) +\n  geom_line(aes(y = .epred, group = .draw),\n            color = \"grey50\", linewidth = 1/3, alpha = 2/3) +\n  ylim(0,1) + geom_point(data = mortality,\n               aes(y = NOT.premature),\n               alpha = .3)"
+    "text": "Fitted probability curves\n\n\nCode\nlibrary(tidybayes)\nlibrary(modelr)\n\nmortality %&gt;%\n   data_grid(IQ_c = seq_range(IQ_c, n = 100)) %&gt;%\n  add_epred_draws(glm.4) %&gt;%\n  sample_draws(100) %&gt;%\n    ggplot(aes(x = IQ_c)) +\n  geom_line(aes(y = .epred, group = .draw),\n            color = \"grey50\", linewidth = 1/3, alpha = 2/3) +\n  geom_jitter(data = mortality, aes(y = NOT.premature),\n              height = .03, width = 0, alpha = .3) +   # jitter so the 0s and 1s don't pile up\n  coord_cartesian(ylim = c(-.05, 1.05))"
   },
   {
     "objectID": "glm-7.html#distribution-of-predicted-probabilities",
@@ -1999,7 +1999,7 @@
     "href": "glm-7.html#k-1-linear-models",
     "title": "GLMs: logistic and multinomial regression",
     "section": "K − 1 linear models",
-    "text": "K − 1 linear models\nFor K categories, we estimate K -1 linear models. Think of a logistic regression where K = 2, we fit just a single regression model. Here we are doing multiple regression models simultaneously within the same model."
+    "text": "K − 1 linear models\nFor K categories, we estimate K -1 linear models. Think of a logistic regression where K = 2, we fit just a single regression model. Here we are doing multiple regression models simultaneously within the same model.\n\\[\n\\begin{aligned}\n\\text{career}_i &\\sim \\operatorname{Categorical}(\\mathbf{p}) \\qquad \\mathbf{p} = \\operatorname{softmax}(s_1, s_2, 0) \\\\\ns_1 &= a_1 \\qquad s_2 = a_2 \\qquad \\text{(career 3 is the reference, fixed at 0)} \\\\\na_1, a_2 &\\sim \\operatorname{Normal}(0, 1)\n\\end{aligned}\n\\]\nsoftmax turns scores into probabilities: \\(p_k = e^{s_k} / \\sum_j e^{s_j}\\)."
   },
   {
     "objectID": "glm-7.html#intercept-only-categorical-model",
@@ -2055,42 +2055,42 @@
     "href": "glm-7.html#predictions-by-family-income",
     "title": "GLMs: logistic and multinomial regression",
     "section": "Predictions by family income",
-    "text": "Predictions by family income\n\n\nCode\npredictions(glm.6, newdata = datagrid(family_income = c(0, .5, 1)))\n\n\n\n Group family_income Estimate  2.5 % 97.5 %\n     1           0.0   0.1207 0.0780 0.1773\n     1           0.5   0.0698 0.0503 0.0937\n     1           1.0   0.0388 0.0228 0.0641\n     2           0.0   0.2008 0.1441 0.2670\n     2           0.5   0.1622 0.1330 0.1967\n     2           1.0   0.1268 0.0864 0.1774\n     3           0.0   0.6763 0.6062 0.7423\n     3           0.5   0.7669 0.7287 0.8022\n     3           1.0   0.8333 0.7805 0.8766\n\nType: response\n\n\nOne row per career (group) at each family income: the three probabilities at each income sum to 1."
+    "text": "Predictions by family income\n\n\nCode\npredictions(glm.6b, newdata = datagrid(family_income = c(0, .5, 1)))\n\n\n\n Group family_income Estimate   2.5 % 97.5 %\n     1           0.0   0.0974 0.05192 0.1654\n     1           0.5   0.0507 0.03422 0.0726\n     1           1.0   0.0227 0.00922 0.0490\n     2           0.0   0.3411 0.25447 0.4335\n     2           0.5   0.1856 0.15195 0.2218\n     2           1.0   0.0864 0.05235 0.1338\n     3           0.0   0.5586 0.46564 0.6498\n     3           0.5   0.7627 0.72417 0.7994\n     3           1.0   0.8895 0.83519 0.9286\n\nType: response\n\n\nOne row per career (group) at each family income: the three probabilities at each income sum to 1."
   },
   {
     "objectID": "glm-7.html#predicted-probabilities-by-career",
     "href": "glm-7.html#predicted-probabilities-by-career",
     "title": "GLMs: logistic and multinomial regression",
     "section": "Predicted probabilities by career",
-    "text": "Predicted probabilities by career\n\n\nCode\nplot_predictions(glm.6, condition = \"family_income\", type = \"response\") + facet_wrap(~group)"
+    "text": "Predicted probabilities by career\n\n\nCode\nplot_predictions(glm.6b, condition = \"family_income\", type = \"response\") + facet_wrap(~group)"
   },
   {
     "objectID": "glm-7.html#all-careers-on-one-plot",
     "href": "glm-7.html#all-careers-on-one-plot",
     "title": "GLMs: logistic and multinomial regression",
     "section": "All careers on one plot",
-    "text": "All careers on one plot\n\n\nCode\nplot_predictions(glm.6, condition = c(\"family_income\", \"group\"), type = \"response\")"
+    "text": "All careers on one plot\n\n\nCode\nplot_predictions(glm.6b, condition = c(\"family_income\", \"group\"), type = \"response\")"
   },
   {
     "objectID": "glm-7.html#on-the-link-scale",
     "href": "glm-7.html#on-the-link-scale",
     "title": "GLMs: logistic and multinomial regression",
     "section": "On the link scale",
-    "text": "On the link scale\n\nplot_predictions(glm.6, condition = c(\"family_income\", \"group\"), type = \"link\")"
+    "text": "On the link scale\n\nplot_predictions(glm.6b, condition = c(\"family_income\", \"group\"), type = \"link\")"
   },
   {
     "objectID": "glm-7.html#predictions-with-uncertainty",
     "href": "glm-7.html#predictions-with-uncertainty",
     "title": "GLMs: logistic and multinomial regression",
     "section": "Predictions with uncertainty",
-    "text": "Predictions with uncertainty\n\n\nCode\npredictions(glm.6, newdata = datagrid(family_income = seq(0, 1, by = .05))) %&gt;%\n  get_draws() %&gt;%\n  ggplot(aes(x = family_income, y = draw, group = group)) +\n  stat_lineribbon(.width = .95, alpha = .4)"
+    "text": "Predictions with uncertainty\n\n\nCode\npredictions(glm.6b, newdata = datagrid(family_income = seq(0, 1, by = .05))) %&gt;%\n  get_draws() %&gt;%\n  ggplot(aes(x = family_income, y = draw, group = group)) +\n  stat_lineribbon(.width = .95, alpha = .4)"
   },
   {
     "objectID": "glm-7.html#average-predicted-probabilities",
     "href": "glm-7.html#average-predicted-probabilities",
     "title": "GLMs: logistic and multinomial regression",
     "section": "Average predicted probabilities",
-    "text": "Average predicted probabilities\n\navg_predictions(glm.6,type = \"response\")\n\n\n Group Estimate  2.5 % 97.5 %\n     1   0.0738 0.0534  0.098\n     2   0.1633 0.1339  0.198\n     3   0.7620 0.7246  0.798\n\nType: response"
+    "text": "Average predicted probabilities\n\navg_predictions(glm.6b,type = \"response\")\n\n\n Group Estimate  2.5 % 97.5 %\n     1   0.0546 0.0377 0.0767\n     2   0.1968 0.1640 0.2315\n     3   0.7477 0.7107 0.7832\n\nType: response"
   },
   {
     "objectID": "glm-7.html#predictions-for-every-row",
@@ -8608,5 +8608,26 @@
     "title": "Information, NHST and model fit",
     "section": "What the pebbles show",
     "text": "What the pebbles show\n\nFlatter patterns can happen in far more ways: 1 way for all 10 pebbles in one bucket, 113,400 for two in each.\nWays and entropy rise together. With many pebbles, log(ways) per pebble is the entropy, so “maximum entropy” means “can happen the most ways.”\nWith nothing pushing the pebbles anywhere, bet on flat: almost all the possible tosses land close to it.\nNext: add what we know (a range, a mean, a variance) as constraints and ask which distribution can happen the most ways. That gives us the Gaussian, binomial, and friends."
+  },
+  {
+    "objectID": "glm-7.html#a-looser-slope-prior",
+    "href": "glm-7.html#a-looser-slope-prior",
+    "title": "GLMs: logistic and multinomial regression",
+    "section": "A looser slope prior",
+    "text": "A looser slope prior\nThe simulation’s true slopes (relative to career 3) are −4 and −2, far out in the tails of a Normal(0, 0.5) prior. Try Normal(0, 1.5):\n\\[\n\\begin{aligned}\n\\text{career}_i &\\sim \\operatorname{Categorical}(\\mathbf{p}_i) \\qquad \\mathbf{p}_i = \\operatorname{softmax}(s_{1i}, s_{2i}, 0) \\\\\ns_{ki} &= a_k + b_k\\,\\text{income}_i \\qquad k = 1, 2 \\\\\na_k &\\sim \\operatorname{Normal}(0, 1) \\qquad b_k \\sim \\operatorname{Normal}(0, 1.5)\n\\end{aligned}\n\\]\n\n\nCode\nglm.6b &lt;-\n  brm(family = categorical(link = logit, refcat = 3),\n      career ~ 1 + family_income,\n      prior = c(prior(normal(0, 1), class = Intercept, dpar = mu1),\n                prior(normal(0, 1), class = Intercept, dpar = mu2),\n                prior(normal(0, 1.5), class = b, dpar = mu1),\n                prior(normal(0, 1.5), class = b, dpar = mu2)),\n      iter = 2000, warmup = 1000, cores = 4, chains = 4,\n      data = d,\n      backend = \"cmdstanr\",\n      file = \"glm.6b\")"
+  },
+  {
+    "objectID": "glm-7.html#did-we-recover-the-truth",
+    "href": "glm-7.html#did-we-recover-the-truth",
+    "title": "GLMs: logistic and multinomial regression",
+    "section": "Did we recover the truth?",
+    "text": "Did we recover the truth?\n\n\nCode\nmle &lt;- nnet::multinom(relevel(factor(career), ref = \"3\") ~ family_income, data = d, trace = FALSE)\ntibble(parameter = c(\"mu1_Intercept\", \"mu2_Intercept\", \"mu1_family_income\", \"mu2_family_income\"),\n       truth = c(-1, -0.5, -4, -2),\n       `data alone (ML)` = c(coef(mle)[1, 1], coef(mle)[2, 1], coef(mle)[1, 2], coef(mle)[2, 2]),\n       `glm.6: N(0, 0.5)` = fixef(glm.6)[parameter, \"Estimate\"],\n       `glm.6b: N(0, 1.5)` = fixef(glm.6b)[parameter, \"Estimate\"]) %&gt;%\n  knitr::kable(digits = 2)\n\n\n\n\n\n\n\n\n\n\n\n\nparameter\ntruth\ndata alone (ML)\nglm.6: N(0, 0.5)\nglm.6b: N(0, 1.5)\n\n\n\n\nmu1_Intercept\n-1.0\n-1.56\n-1.73\n-1.75\n\n\nmu2_Intercept\n-0.5\n-0.43\n-1.22\n-0.49\n\n\nmu1_family_income\n-4.0\n-2.68\n-1.34\n-1.93\n\n\nmu2_family_income\n-2.0\n-2.03\n-0.67\n-1.84\n\n\n\n\n\n\nThe tight prior pulled both slopes most of the way to 0, and the intercepts moved to compensate. The looser one gets career 2 right.\nCareer 1 is still off, and even the data alone can’t pin it down: only 25 of 500 people chose it. Rare categories carry little information, so their estimates lean on the prior.\nFrom here on we use glm.6b."
+  },
+  {
+    "objectID": "glm-7.html#reading-the-slopes",
+    "href": "glm-7.html#reading-the-slopes",
+    "title": "GLMs: logistic and multinomial regression",
+    "section": "Reading the slopes",
+    "text": "Reading the slopes\n\nEach slope is the change in the log odds of that career versus career 3 per unit of family income (0 to 1 here, so one unit is the whole range).\nmu2_family_income = -1.84: going from the lowest to the highest family income multiplies the odds of career 2 vs. career 3 by about 0.16.\nmu1_family_income = -1.93: likewise for career 1 vs. 3 (about 0.15), but with a wide interval.\nCareful: a slope says how a career does relative to the reference, not whether its own probability goes up or down. Probabilities must sum to 1, so a category with a negative slope can still gain probability if the others fall faster. Plot the predicted probabilities (next)."
   }
 ]

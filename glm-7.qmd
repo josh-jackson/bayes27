@@ -136,10 +136,6 @@ b1 <-tibble(x = 0:10) %>%
 
 gaussian, student, binomial, bernoulli, poisson, negbinomial, geometric, gamma, skew_normal, lognormal, shifted_lognormal, exgaussian, wiener, inverse.gaussian, exponential, weibull, frechet, Beta, dirichlet, von_mises, asym_laplace, gen_extreme_value, categorical, multinomial, cumulative, cratio, sratio, acat, hurdle_poisson, hurdle_negbinomial, hurdle_gamma, hurdle_lognormal, zero_inflated_binomial, zero_inflated_beta, zero_inflated_negbinomial, zero_inflated_poisson, and zero_one_inflated_beta
 
-## common RT distributions
-
-![](RT.png)
-
 ## Example
 
 ```{r}
@@ -154,7 +150,10 @@ mortality
 
 ```
 
-## Describing the data
+## Describing the data {.smaller}
+
+-   300 people. `NOT.premature` = 1 if the person did *not* die prematurely (`premature.d` is the same thing as a label).
+-   `IQ` is an Otis IQ score minus 100: add 100 to get the familiar IQ scale (mean ≈ `r round(mean(mortality$IQ) + 100)`). `IQ_c` centers it, so one unit is still one IQ point.
 
 ```{r}
 library(psych)
@@ -194,12 +193,6 @@ glm.1 <-
       data = mortality,
       backend = "cmdstanr",
       file = "glm.1b")
-```
-
-## Prior draws
-
-```{r}
-prior_draws(glm.1)
 ```
 
 ## A Normal(0, 10) prior on the probability scale
@@ -273,13 +266,6 @@ glm.3 <-
       file = "glm.3")
 ```
 
-## Prior draws for `glm.3`
-
-```{r}
-prior_draws(glm.3)
-
-```
-
 ## Prior predictive lines (logit scale)
 
 ```{r}
@@ -319,12 +305,6 @@ prior_draws(glm.3)%>%
   coord_cartesian(ylim = c(0, 1))
 ```
 
-## `glm.3` summary
-
-```{r}
-summary(glm.3)
-```
-
 ## A tighter slope prior
 
 Instead of normal(0, 3), let's try normal(0, .5) for our prior
@@ -362,11 +342,13 @@ prior_draws(glm.4)%>%
   coord_cartesian(ylim = c(0, 1))
 ```
 
-## `glm.4` summary
+## `glm.4` summary {.smaller}
 
 ```{r}
 summary(glm.4)
 ```
+
+The looser Normal(0, 3) prior (`glm.3`) gives the same IQ slope, `r sprintf("%.2f", fixef(glm.3)["IQ_c", "Estimate"])`: with 300 people, the data dominate either prior. The tighter prior mainly rules out absurd prior predictions.
 
 ## Interpreting logistic coefficients
 
@@ -471,9 +453,9 @@ mortality %>%
     ggplot(aes(x = IQ_c)) +
   geom_line(aes(y = .epred, group = .draw),
             color = "grey50", linewidth = 1/3, alpha = 2/3) +
-  ylim(0,1) + geom_point(data = mortality,
-               aes(y = NOT.premature),
-               alpha = .3)
+  geom_jitter(data = mortality, aes(y = NOT.premature),
+              height = .03, width = 0, alpha = .3) +   # jitter so the 0s and 1s don't pile up
+  coord_cartesian(ylim = c(-.05, 1.05))
 ```
 
 ## Distribution of predicted probabilities
@@ -509,12 +491,6 @@ predictions(glm.4, newdata = datagrid(IQ_c = seq(from = min(mortality$IQ_c), to 
 -   linpred: the linear predictor on the link scale (here, log odds)
 
 -   predict: a simulated new observation on the response scale (here, a 0 or 1)
-
-## The model, again
-
-$$y_i \sim \operatorname{Binomial} (n, p_i)$$
-
-$$logit(p_i) = \alpha + \beta (x_i - \bar x)$$
 
 ## epred vs linpred
 
@@ -607,6 +583,16 @@ d %>%
 ## K − 1 linear models
 
 For K categories, we estimate K -1 linear models. Think of a logistic regression where K = 2, we fit just a single regression model. Here we are doing multiple regression models simultaneously within the same model.
+
+$$
+\begin{aligned}
+\text{career}_i &\sim \operatorname{Categorical}(\mathbf{p}) \qquad \mathbf{p} = \operatorname{softmax}(s_1, s_2, 0) \\
+s_1 &= a_1 \qquad s_2 = a_2 \qquad \text{(career 3 is the reference, fixed at 0)} \\
+a_1, a_2 &\sim \operatorname{Normal}(0, 1)
+\end{aligned}
+$$
+
+softmax turns scores into probabilities: $p_k = e^{s_k} / \sum_j e^{s_j}$.
 
 ## Intercept-only categorical model
 
@@ -716,11 +702,67 @@ glm.6 <-
 summary(glm.6)
 ```
 
+## A looser slope prior {.smaller}
+
+The simulation's true slopes (relative to career 3) are −4 and −2, far out in the tails of a Normal(0, 0.5) prior. Try Normal(0, 1.5):
+
+$$
+\begin{aligned}
+\text{career}_i &\sim \operatorname{Categorical}(\mathbf{p}_i) \qquad \mathbf{p}_i = \operatorname{softmax}(s_{1i}, s_{2i}, 0) \\
+s_{ki} &= a_k + b_k\,\text{income}_i \qquad k = 1, 2 \\
+a_k &\sim \operatorname{Normal}(0, 1) \qquad b_k \sim \operatorname{Normal}(0, 1.5)
+\end{aligned}
+$$
+
+```{r}
+#| code-fold: true
+glm.6b <-
+  brm(family = categorical(link = logit, refcat = 3),
+      career ~ 1 + family_income,
+      prior = c(prior(normal(0, 1), class = Intercept, dpar = mu1),
+                prior(normal(0, 1), class = Intercept, dpar = mu2),
+                prior(normal(0, 1.5), class = b, dpar = mu1),
+                prior(normal(0, 1.5), class = b, dpar = mu2)),
+      iter = 2000, warmup = 1000, cores = 4, chains = 4,
+      data = d,
+      backend = "cmdstanr",
+      file = "glm.6b")
+```
+
+## Did we recover the truth? {.smaller}
+
+```{r}
+#| code-fold: true
+mle <- nnet::multinom(relevel(factor(career), ref = "3") ~ family_income, data = d, trace = FALSE)
+tibble(parameter = c("mu1_Intercept", "mu2_Intercept", "mu1_family_income", "mu2_family_income"),
+       truth = c(-1, -0.5, -4, -2),
+       `data alone (ML)` = c(coef(mle)[1, 1], coef(mle)[2, 1], coef(mle)[1, 2], coef(mle)[2, 2]),
+       `glm.6: N(0, 0.5)` = fixef(glm.6)[parameter, "Estimate"],
+       `glm.6b: N(0, 1.5)` = fixef(glm.6b)[parameter, "Estimate"]) %>%
+  knitr::kable(digits = 2)
+```
+
+-   The tight prior pulled both slopes most of the way to 0, and the intercepts moved to compensate. The looser one gets career 2 right.
+-   Career 1 is still off, and even the data alone can't pin it down: only `r sum(d$career == 1)` of 500 people chose it. Rare categories carry little information, so their estimates lean on the prior.
+-   From here on we use `glm.6b`.
+
+## Reading the slopes {.smaller}
+
+```{r}
+#| echo: false
+b6 <- fixef(glm.6b)[, "Estimate"]
+```
+
+-   Each slope is the change in the log odds of that career *versus career 3* per unit of family income (0 to 1 here, so one unit is the whole range).
+-   mu2_family_income = `r sprintf("%.2f", b6["mu2_family_income"])`: going from the lowest to the highest family income multiplies the odds of career 2 vs. career 3 by about `r sprintf("%.2f", exp(b6["mu2_family_income"]))`.
+-   mu1_family_income = `r sprintf("%.2f", b6["mu1_family_income"])`: likewise for career 1 vs. 3 (about `r sprintf("%.2f", exp(b6["mu1_family_income"]))`), but with a wide interval.
+-   Careful: a slope says how a career does *relative to the reference*, not whether its own probability goes up or down. Probabilities must sum to 1, so a category with a negative slope can still gain probability if the others fall faster. Plot the predicted probabilities (next).
+
 ## Predictions by family income
 
 ```{r}
 #| code-fold: true
-predictions(glm.6, newdata = datagrid(family_income = c(0, .5, 1)))
+predictions(glm.6b, newdata = datagrid(family_income = c(0, .5, 1)))
 ```
 
 One row per career (`group`) at each family income: the three probabilities at each income sum to 1.
@@ -729,27 +771,27 @@ One row per career (`group`) at each family income: the three probabilities at e
 
 ```{r}
 #| code-fold: true
-plot_predictions(glm.6, condition = "family_income", type = "response") + facet_wrap(~group)
+plot_predictions(glm.6b, condition = "family_income", type = "response") + facet_wrap(~group)
 ```
 
 ## All careers on one plot
 
 ```{r}
 #| code-fold: true
-plot_predictions(glm.6, condition = c("family_income", "group"), type = "response")
+plot_predictions(glm.6b, condition = c("family_income", "group"), type = "response")
 ```
 
 ## On the link scale
 
 ```{r}
-plot_predictions(glm.6, condition = c("family_income", "group"), type = "link")
+plot_predictions(glm.6b, condition = c("family_income", "group"), type = "link")
 ```
 
 ## Predictions with uncertainty
 
 ```{r}
 #| code-fold: true
-predictions(glm.6, newdata = datagrid(family_income = seq(0, 1, by = .05))) %>%
+predictions(glm.6b, newdata = datagrid(family_income = seq(0, 1, by = .05))) %>%
   get_draws() %>%
   ggplot(aes(x = family_income, y = draw, group = group)) +
   stat_lineribbon(.width = .95, alpha = .4)
@@ -758,12 +800,5 @@ predictions(glm.6, newdata = datagrid(family_income = seq(0, 1, by = .05))) %>%
 ## Average predicted probabilities
 
 ```{r}
-avg_predictions(glm.6,type = "response")
-```
-
-## Predictions for every row
-
-```{r}
-glm6_pred <- predictions(glm.6)
-glm6_pred
+avg_predictions(glm.6b,type = "response")
 ```
