@@ -1117,14 +1117,14 @@
     "href": "info-6.html#entropy-formally",
     "title": "Information, NHST and model fit",
     "section": "Entropy, formally",
-    "text": "Entropy, formally\n\nEntropy, H(p), tells us how hard it is to make an accurate prediction. For non-uniform distributions we take a probability-weighted sum of the log probabilities\nH(p) = \\(-\\sum_i p_i \\log(p_i)\\)\nThink of tossing 10 pebbles into 5 buckets. Each bucket can have a probability associated with getting a rock. H(p) is maximized when the ps are equal. That is the distribution that can arise the most ways\n\n\nH &lt;- function(p) -sum(p * log2(p))   # entropy in bits\nH(c(.5, .5))      # fair coin\n\n[1] 1\n\nH(c(.9, .1))      # loaded coin: easy to predict, low entropy\n\n[1] 0.4689956\n\nH(rep(1/6, 6))    # fair die\n\n[1] 2.584963\n\n\nThe fair die’s entropy equals the information in any one roll (2.585 bits): entropy is the average information per outcome."
+    "text": "Entropy, formally\n\nEntropy, H(p), tells us how hard it is to make an accurate prediction. For non-uniform distributions we take a probability-weighted sum of the log probabilities\nH(p) = \\(-\\sum_i p_i \\log(p_i)\\)\nH(p) is largest when all the \\(p_i\\) are equal: the flattest distribution\n\n\nH &lt;- function(p) -sum(p * log2(p))   # entropy in bits\nH(c(.5, .5))      # fair coin\n\n[1] 1\n\nH(c(.9, .1))      # loaded coin: easy to predict, low entropy\n\n[1] 0.4689956\n\nH(rep(1/6, 6))    # fair die\n\n[1] 2.584963\n\n\nThe fair die’s entropy equals the information in any one roll (2.585 bits): entropy is the average information per outcome."
   },
   {
     "objectID": "info-6.html#pebbles-in-buckets",
     "href": "info-6.html#pebbles-in-buckets",
     "title": "Information, NHST and model fit",
     "section": "Pebbles in buckets",
-    "text": "Pebbles in buckets\n\n\nCode\nd &lt;-\n  tibble(a = c(0, 0, 10, 0, 0),\n         b = c(0, 1, 8, 1, 0),\n         c = c(0, 2, 6, 2, 0),\n         d = c(1, 2, 4, 2, 1),\n         e = 2)\n\nd %&gt;%\n  mutate(bucket = 1:5) %&gt;%\n  pivot_longer(-bucket, names_to = \"letter\", values_to = \"pebbles\") %&gt;%\n\n  ggplot(aes(x = bucket, y = pebbles)) +\n  geom_col(width = 1/5) +\n  geom_text(aes(y = pebbles + 1, label = pebbles)) +\n  geom_text(data = tibble(\n    letter  = letters[1:5],\n    bucket  = 5.5,\n    pebbles = 10,\n    label   = str_c(c(1, 90, 1260, 37800, 113400),\n                    rep(c(\" way\", \" ways\"), times = c(1, 4)))),\n    aes(label = label), hjust = 1) +\n  scale_y_continuous(breaks = c(0, 5, 10))  +\n  facet_wrap(~letter, ncol = 2)"
+    "text": "Pebbles in buckets\nToss 10 pebbles into 5 buckets. Each panel is one pattern (how many pebbles land in each bucket).\n\nWays: how many different pebble-by-pebble tosses produce that pattern, \\(\\frac{10!}{n_1!\\,n_2!\\cdots n_5!}\\)\nH: the entropy of the pattern’s proportions (e.g., pattern b is 10%, 80%, 10%)\n\n\n\nCode\npebbles &lt;- tibble(a = c(0, 0, 10, 0, 0),\n                  b = c(0, 1, 8, 1, 0),\n                  c = c(0, 2, 6, 2, 0),\n                  d = c(1, 2, 4, 2, 1),\n                  e = 2) %&gt;%\n  mutate(bucket = 1:5) %&gt;%\n  pivot_longer(-bucket, names_to = \"pattern\", values_to = \"pebbles\")\n\npebble_labels &lt;- pebbles %&gt;%\n  group_by(pattern) %&gt;%\n  summarise(ways = factorial(10) / prod(factorial(pebbles)),\n            H    = abs(H(pebbles[pebbles &gt; 0] / 10))) %&gt;%      # H() from the last slide (bits); abs() avoids \"-0.00\"\n  mutate(label = sprintf(\"%s %s\\nH = %.2f bits\", formatC(ways, big.mark = \",\", format = \"d\"),\n                         if_else(ways == 1, \"way\", \"ways\"), H))\n\nggplot(pebbles, aes(x = bucket, y = pebbles)) +\n  geom_col(width = .6) +\n  geom_text(aes(y = pebbles + 0.9, label = pebbles)) +\n  geom_text(data = pebble_labels, aes(x = 3, y = 14, label = label), size = 4.2) +\n  scale_y_continuous(breaks = c(0, 5, 10), limits = c(0, 15.5)) +\n  facet_wrap(~ pattern, nrow = 1) +\n  labs(y = \"pebbles\") +\n  theme_classic(base_size = 14)"
   },
   {
     "objectID": "info-6.html#maximum-entropy-and-likelihoods",
@@ -8601,5 +8601,12 @@
     "title": "Information, NHST and model fit",
     "section": "BF vs. LOO for the same two models",
     "text": "BF vs. LOO for the same two models\n\n\nCode\ninfo.2 &lt;- add_criterion(info.2, \"loo\")\ninfo.3 &lt;- add_criterion(info.3, \"loo\")\nloo_compare(info.2, info.3)\n\n\n  model elpd_diff se_diff p_worse       diag_diff diag_elpd\n info.2       0.0     0.0      NA                          \n info.3      -3.3     3.2    0.85 |elpd_diff| &lt; 4          \n\n\n\nBF ≈ 11: “strong evidence the friendship-quality slope isn’t 0” (given its prior).\nLOO: elpd_diff = -3.3 (se 3.2), under 4: adding it barely helps predict new students.\nNot a contradiction: the BF asks which model better predicted these data, averaging over the prior; LOO asks which will predict new data, using the posterior. Same lesson as the interaction: say which question you’re answering."
+  },
+  {
+    "objectID": "info-6.html#what-the-pebbles-show",
+    "href": "info-6.html#what-the-pebbles-show",
+    "title": "Information, NHST and model fit",
+    "section": "What the pebbles show",
+    "text": "What the pebbles show\n\nFlatter patterns can happen in far more ways: 1 way for all 10 pebbles in one bucket, 113,400 for two in each.\nWays and entropy rise together. With many pebbles, log(ways) per pebble is the entropy, so “maximum entropy” means “can happen the most ways.”\nWith nothing pushing the pebbles anywhere, bet on flat: almost all the possible tosses land close to it.\nNext: add what we know (a range, a mean, a variance) as constraints and ask which distribution can happen the most ways. That gives us the Gaussian, binomial, and friends."
   }
 ]

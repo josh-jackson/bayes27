@@ -234,7 +234,7 @@ We use bits rather than direct probabilities because it is easier to add bits th
 
 -   H(p) = $-\sum_i p_i \log(p_i)$
 
--   Think of tossing 10 pebbles into 5 buckets. Each bucket can have a probability associated with getting a rock. H(p) is maximized when the ps are equal. That is the distribution that can arise the most ways
+-   H(p) is largest when all the $p_i$ are equal: the flattest distribution
 
 ```{r}
 H <- function(p) -sum(p * log2(p))   # entropy in bits
@@ -245,35 +245,49 @@ H(rep(1/6, 6))    # fair die
 
 The fair die's entropy equals the information in any one roll (2.585 bits): entropy is the *average* information per outcome.
 
-## Pebbles in buckets
+## Pebbles in buckets {.smaller .nostretch}
+
+Toss 10 pebbles into 5 buckets. Each panel is one **pattern** (how many pebbles land in each bucket).
+
+-   **Ways:** how many different pebble-by-pebble tosses produce that pattern, $\frac{10!}{n_1!\,n_2!\cdots n_5!}$
+-   **H:** the entropy of the pattern's proportions (e.g., pattern b is 10%, 80%, 10%)
 
 ```{r}
 #| code-fold: true
-d <-
-  tibble(a = c(0, 0, 10, 0, 0),
-         b = c(0, 1, 8, 1, 0),
-         c = c(0, 2, 6, 2, 0),
-         d = c(1, 2, 4, 2, 1),
-         e = 2)
-
-d %>%
+#| fig-width: 10
+#| fig-height: 3
+#| out-width: "100%"
+pebbles <- tibble(a = c(0, 0, 10, 0, 0),
+                  b = c(0, 1, 8, 1, 0),
+                  c = c(0, 2, 6, 2, 0),
+                  d = c(1, 2, 4, 2, 1),
+                  e = 2) %>%
   mutate(bucket = 1:5) %>%
-  pivot_longer(-bucket, names_to = "letter", values_to = "pebbles") %>%
+  pivot_longer(-bucket, names_to = "pattern", values_to = "pebbles")
 
-  ggplot(aes(x = bucket, y = pebbles)) +
-  geom_col(width = 1/5) +
-  geom_text(aes(y = pebbles + 1, label = pebbles)) +
-  geom_text(data = tibble(
-    letter  = letters[1:5],
-    bucket  = 5.5,
-    pebbles = 10,
-    label   = str_c(c(1, 90, 1260, 37800, 113400),
-                    rep(c(" way", " ways"), times = c(1, 4)))),
-    aes(label = label), hjust = 1) +
-  scale_y_continuous(breaks = c(0, 5, 10))  +
-  facet_wrap(~letter, ncol = 2)
+pebble_labels <- pebbles %>%
+  group_by(pattern) %>%
+  summarise(ways = factorial(10) / prod(factorial(pebbles)),
+            H    = abs(H(pebbles[pebbles > 0] / 10))) %>%      # H() from the last slide (bits); abs() avoids "-0.00"
+  mutate(label = sprintf("%s %s\nH = %.2f bits", formatC(ways, big.mark = ",", format = "d"),
+                         if_else(ways == 1, "way", "ways"), H))
 
+ggplot(pebbles, aes(x = bucket, y = pebbles)) +
+  geom_col(width = .6) +
+  geom_text(aes(y = pebbles + 0.9, label = pebbles)) +
+  geom_text(data = pebble_labels, aes(x = 3, y = 14, label = label), size = 4.2) +
+  scale_y_continuous(breaks = c(0, 5, 10), limits = c(0, 15.5)) +
+  facet_wrap(~ pattern, nrow = 1) +
+  labs(y = "pebbles") +
+  theme_classic(base_size = 14)
 ```
+
+## What the pebbles show {.smaller}
+
+-   **Flatter patterns can happen in far more ways:** 1 way for all 10 pebbles in one bucket, 113,400 for two in each.
+-   **Ways and entropy rise together.** With many pebbles, log(ways) per pebble *is* the entropy, so "maximum entropy" means "can happen the most ways."
+-   **With nothing pushing the pebbles anywhere, bet on flat:** almost all the possible tosses land close to it.
+-   **Next:** add what we know (a range, a mean, a variance) as constraints and ask which distribution can happen the most ways. That gives us the Gaussian, binomial, and friends.
 
 ## Maximum information entropy {.smaller}
 

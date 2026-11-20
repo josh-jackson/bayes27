@@ -475,7 +475,7 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <ul>
 <li><p>Entropy, H(p), tells us how hard it is to make an accurate prediction. For non-uniform distributions we take a probability-weighted sum of the log probabilities</p></li>
 <li><p>H(p) = <span class="math inline">\(-\sum_i p_i \log(p_i)\)</span></p></li>
-<li><p>Think of tossing 10 pebbles into 5 buckets. Each bucket can have a probability associated with getting a rock. H(p) is maximized when the ps are equal. That is the distribution that can arise the most ways</p></li>
+<li><p>H(p) is largest when all the <span class="math inline">\(p_i\)</span> are equal: the flattest distribution</p></li>
 </ul>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a aria-label="1"></a>H <span class="ot">&lt;-</span> <span class="cf">function</span>(p) <span class="sc">-</span><span class="fu">sum</span>(p <span class="sc">*</span> <span class="fu">log2</span>(p))   <span class="co"># entropy in bits</span></span>
@@ -494,38 +494,58 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 </div>
 <p>The fair die’s entropy equals the information in any one roll (2.585 bits): entropy is the <em>average</em> information per outcome.</p>
 </section>
-<section id="pebbles-in-buckets" class="slide level2">
+<section id="pebbles-in-buckets" class="slide level2 smaller nostretch">
 <h2>Pebbles in buckets</h2>
+<p>Toss 10 pebbles into 5 buckets. Each panel is one <strong>pattern</strong> (how many pebbles land in each bucket).</p>
+<ul>
+<li><strong>Ways:</strong> how many different pebble-by-pebble tosses produce that pattern, <span class="math inline">\(\frac{10!}{n_1!\,n_2!\cdots n_5!}\)</span></li>
+<li><strong>H:</strong> the entropy of the pattern’s proportions (e.g., pattern b is 10%, 80%, 10%)</li>
+</ul>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a aria-label="1"></a>d <span class="ot">&lt;-</span></span>
-<span id="cb24-2"><a aria-label="2"></a>  <span class="fu">tibble</span>(<span class="at">a =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">10</span>, <span class="dv">0</span>, <span class="dv">0</span>),</span>
-<span id="cb24-3"><a aria-label="3"></a>         <span class="at">b =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">8</span>, <span class="dv">1</span>, <span class="dv">0</span>),</span>
-<span id="cb24-4"><a aria-label="4"></a>         <span class="at">c =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">2</span>, <span class="dv">6</span>, <span class="dv">2</span>, <span class="dv">0</span>),</span>
-<span id="cb24-5"><a aria-label="5"></a>         <span class="at">d =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">1</span>),</span>
-<span id="cb24-6"><a aria-label="6"></a>         <span class="at">e =</span> <span class="dv">2</span>)</span>
-<span id="cb24-7"><a aria-label="7"></a></span>
-<span id="cb24-8"><a aria-label="8"></a>d <span class="sc">%&gt;%</span></span>
-<span id="cb24-9"><a aria-label="9"></a>  <span class="fu">mutate</span>(<span class="at">bucket =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb24-10"><a aria-label="10"></a>  <span class="fu">pivot_longer</span>(<span class="sc">-</span>bucket, <span class="at">names_to =</span> <span class="st">"letter"</span>, <span class="at">values_to =</span> <span class="st">"pebbles"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb24-11"><a aria-label="11"></a></span>
-<span id="cb24-12"><a aria-label="12"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> bucket, <span class="at">y =</span> pebbles)) <span class="sc">+</span></span>
-<span id="cb24-13"><a aria-label="13"></a>  <span class="fu">geom_col</span>(<span class="at">width =</span> <span class="dv">1</span><span class="sc">/</span><span class="dv">5</span>) <span class="sc">+</span></span>
-<span id="cb24-14"><a aria-label="14"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">y =</span> pebbles <span class="sc">+</span> <span class="dv">1</span>, <span class="at">label =</span> pebbles)) <span class="sc">+</span></span>
-<span id="cb24-15"><a aria-label="15"></a>  <span class="fu">geom_text</span>(<span class="at">data =</span> <span class="fu">tibble</span>(</span>
-<span id="cb24-16"><a aria-label="16"></a>    <span class="at">letter  =</span> letters[<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>],</span>
-<span id="cb24-17"><a aria-label="17"></a>    <span class="at">bucket  =</span> <span class="fl">5.5</span>,</span>
-<span id="cb24-18"><a aria-label="18"></a>    <span class="at">pebbles =</span> <span class="dv">10</span>,</span>
-<span id="cb24-19"><a aria-label="19"></a>    <span class="at">label   =</span> <span class="fu">str_c</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">90</span>, <span class="dv">1260</span>, <span class="dv">37800</span>, <span class="dv">113400</span>),</span>
-<span id="cb24-20"><a aria-label="20"></a>                    <span class="fu">rep</span>(<span class="fu">c</span>(<span class="st">" way"</span>, <span class="st">" ways"</span>), <span class="at">times =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">4</span>)))),</span>
-<span id="cb24-21"><a aria-label="21"></a>    <span class="fu">aes</span>(<span class="at">label =</span> label), <span class="at">hjust =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb24-22"><a aria-label="22"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">5</span>, <span class="dv">10</span>))  <span class="sc">+</span></span>
-<span id="cb24-23"><a aria-label="23"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>letter, <span class="at">ncol =</span> <span class="dv">2</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a aria-label="1"></a>pebbles <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">a =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">10</span>, <span class="dv">0</span>, <span class="dv">0</span>),</span>
+<span id="cb24-2"><a aria-label="2"></a>                  <span class="at">b =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">8</span>, <span class="dv">1</span>, <span class="dv">0</span>),</span>
+<span id="cb24-3"><a aria-label="3"></a>                  <span class="at">c =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">2</span>, <span class="dv">6</span>, <span class="dv">2</span>, <span class="dv">0</span>),</span>
+<span id="cb24-4"><a aria-label="4"></a>                  <span class="at">d =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">1</span>),</span>
+<span id="cb24-5"><a aria-label="5"></a>                  <span class="at">e =</span> <span class="dv">2</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb24-6"><a aria-label="6"></a>  <span class="fu">mutate</span>(<span class="at">bucket =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb24-7"><a aria-label="7"></a>  <span class="fu">pivot_longer</span>(<span class="sc">-</span>bucket, <span class="at">names_to =</span> <span class="st">"pattern"</span>, <span class="at">values_to =</span> <span class="st">"pebbles"</span>)</span>
+<span id="cb24-8"><a aria-label="8"></a></span>
+<span id="cb24-9"><a aria-label="9"></a>pebble_labels <span class="ot">&lt;-</span> pebbles <span class="sc">%&gt;%</span></span>
+<span id="cb24-10"><a aria-label="10"></a>  <span class="fu">group_by</span>(pattern) <span class="sc">%&gt;%</span></span>
+<span id="cb24-11"><a aria-label="11"></a>  <span class="fu">summarise</span>(<span class="at">ways =</span> <span class="fu">factorial</span>(<span class="dv">10</span>) <span class="sc">/</span> <span class="fu">prod</span>(<span class="fu">factorial</span>(pebbles)),</span>
+<span id="cb24-12"><a aria-label="12"></a>            <span class="at">H    =</span> <span class="fu">abs</span>(<span class="fu">H</span>(pebbles[pebbles <span class="sc">&gt;</span> <span class="dv">0</span>] <span class="sc">/</span> <span class="dv">10</span>))) <span class="sc">%&gt;%</span>      <span class="co"># H() from the last slide (bits); abs() avoids "-0.00"</span></span>
+<span id="cb24-13"><a aria-label="13"></a>  <span class="fu">mutate</span>(<span class="at">label =</span> <span class="fu">sprintf</span>(<span class="st">"%s %s</span><span class="sc">\n</span><span class="st">H = %.2f bits"</span>, <span class="fu">formatC</span>(ways, <span class="at">big.mark =</span> <span class="st">","</span>, <span class="at">format =</span> <span class="st">"d"</span>),</span>
+<span id="cb24-14"><a aria-label="14"></a>                         <span class="fu">if_else</span>(ways <span class="sc">==</span> <span class="dv">1</span>, <span class="st">"way"</span>, <span class="st">"ways"</span>), H))</span>
+<span id="cb24-15"><a aria-label="15"></a></span>
+<span id="cb24-16"><a aria-label="16"></a><span class="fu">ggplot</span>(pebbles, <span class="fu">aes</span>(<span class="at">x =</span> bucket, <span class="at">y =</span> pebbles)) <span class="sc">+</span></span>
+<span id="cb24-17"><a aria-label="17"></a>  <span class="fu">geom_col</span>(<span class="at">width =</span> .<span class="dv">6</span>) <span class="sc">+</span></span>
+<span id="cb24-18"><a aria-label="18"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">y =</span> pebbles <span class="sc">+</span> <span class="fl">0.9</span>, <span class="at">label =</span> pebbles)) <span class="sc">+</span></span>
+<span id="cb24-19"><a aria-label="19"></a>  <span class="fu">geom_text</span>(<span class="at">data =</span> pebble_labels, <span class="fu">aes</span>(<span class="at">x =</span> <span class="dv">3</span>, <span class="at">y =</span> <span class="dv">14</span>, <span class="at">label =</span> label), <span class="at">size =</span> <span class="fl">4.2</span>) <span class="sc">+</span></span>
+<span id="cb24-20"><a aria-label="20"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">5</span>, <span class="dv">10</span>), <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">15.5</span>)) <span class="sc">+</span></span>
+<span id="cb24-21"><a aria-label="21"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> pattern, <span class="at">nrow =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb24-22"><a aria-label="22"></a>  <span class="fu">labs</span>(<span class="at">y =</span> <span class="st">"pebbles"</span>) <span class="sc">+</span></span>
+<span id="cb24-23"><a aria-label="23"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">14</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-
+<div class="cell-output-display">
+<div>
+<figure>
+<p><img data-src="info-6_files/figure-revealjs/unnamed-chunk-14-1.png" style="width:100.0%"></p>
+</figure>
 </div>
-<img data-src="info-6_files/figure-revealjs/unnamed-chunk-14-1.png" width="960" class="r-stretch"></section>
+</div>
+</div>
+</section>
+<section id="what-the-pebbles-show" class="slide level2 smaller">
+<h2>What the pebbles show</h2>
+<ul>
+<li><strong>Flatter patterns can happen in far more ways:</strong> 1 way for all 10 pebbles in one bucket, 113,400 for two in each.</li>
+<li><strong>Ways and entropy rise together.</strong> With many pebbles, log(ways) per pebble <em>is</em> the entropy, so “maximum entropy” means “can happen the most ways.”</li>
+<li><strong>With nothing pushing the pebbles anywhere, bet on flat:</strong> almost all the possible tosses land close to it.</li>
+<li><strong>Next:</strong> add what we know (a range, a mean, a variance) as constraints and ask which distribution can happen the most ways. That gives us the Gaussian, binomial, and friends.</li>
+</ul>
+</section>
 <section id="maximum-information-entropy" class="slide level2 smaller">
 <h2>Maximum information entropy</h2>
 <ul>
