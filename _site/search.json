@@ -1530,7 +1530,7 @@
     "href": "info-6.html#same-data-different-bf",
     "title": "Information, NHST and model fit",
     "section": "Same data, different BF",
-    "text": "Same data, different BF\n\n\nCode\nlibrary(patchwork)\n(plot(bf_plot) + ggtitle(sprintf(\"Prior Normal(0, 1): BF = %.2f\", exp(bf_plot$log_BF)))) +\n  (plot(bf_2) + ggtitle(sprintf(\"Prior Normal(0, 5): BF = %.2f\", exp(bf_2$log_BF)))) +\n  plot_layout(guides = \"collect\") &\n  theme(text = element_text(size = 14), legend.position = \"bottom\")\n\n\n\n\n\n\n\n\n\nAnecdotal evidence for H1 becomes anecdotal evidence for H0. We held the posterior fixed to isolate the prior’s role (in a real analysis it would shift a little too); only the prior changed."
+    "text": "Same data, different BF\n\n\nCode\nlibrary(patchwork)\n(plot(bf_plot) + ggtitle(sprintf(\"Prior Normal(0, 1): BF = %.2f\", exp(bf_plot$log_BF)))) +\n  (plot(bf_2) + ggtitle(sprintf(\"Prior Normal(0, 5): BF = %.2f\", exp(bf_2$log_BF)))) +\n  plot_layout(guides = \"collect\") &\n  theme(text = element_text(size = 14), legend.position = \"bottom\")\n\n\n\n\n\n\n\n\n\nAnecdotal evidence for H1 becomes anecdotal evidence for H0. Only the prior changed: we held the posterior fixed to isolate its role (in a real analysis it would shift a little too)."
   },
   {
     "objectID": "info-6.html#a-best-guess-prior",

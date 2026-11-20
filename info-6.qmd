@@ -976,11 +976,11 @@ bf_2<- bayesfactor_parameters(posterior2, prior2, direction = "two-sided", null 
 bf_2
 ```
 
-## Same data, different BF {.nostretch}
+## Same data, different BF {.nostretch .smaller}
 
 ```{r}
 #| code-fold: true
-#| fig-height: 4
+#| fig-height: 3.2
 #| fig-width: 10
 #| out-width: "100%"
 library(patchwork)
@@ -990,7 +990,7 @@ library(patchwork)
   theme(text = element_text(size = 14), legend.position = "bottom")
 ```
 
-Anecdotal evidence for H1 becomes anecdotal evidence for H0. We held the posterior fixed to isolate the prior's role (in a real analysis it would shift a little too); only the prior changed.
+Anecdotal evidence for H1 becomes anecdotal evidence for H0. Only the prior changed: we held the posterior fixed to isolate its role (in a real analysis it would shift a little too).
 
 ## A best-guess prior
 
