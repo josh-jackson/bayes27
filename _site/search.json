@@ -1012,14 +1012,14 @@
     "href": "info-6.html#log-likelihood",
     "title": "Information, NHST and model fit",
     "section": "Log likelihood",
-    "text": "Log likelihood\n\nThe log of the likelihood is easier to work with (adding rather than multiplying small values). It will typically be negative, with higher values (closer to zero) indicating a better fitting model.\nIn frequentist estimation, the log likelihood is a single number, one that indicates the maximum, thus maximum likelihood estimation.\n\n\n\nCode\ndata &lt;- read_csv(\"week3.csv\", show_col_types = FALSE)\n\nlogLik(lm(health ~ 1 + happy, data = data))\n\n\n'log Lik.' -488.2327 (df=3)"
+    "text": "Log likelihood\n\nThe log of the likelihood is easier to work with (adding rather than multiplying small values). It will typically be negative, with higher values (closer to zero) indicating a better fitting model.\nIn frequentist estimation, the log likelihood is a single number: the height of that peak (the white dot on the grid), thus maximum likelihood estimation.\nBack to the happiness and health data from Lecture 3 (200 people): does happiness predict health?\n\n\n\nCode\ndata &lt;- read_csv(\"week3.csv\", show_col_types = FALSE)\n\nlogLik(lm(health ~ 1 + happy, data = data))\n\n\n'log Lik.' -488.2327 (df=3)"
   },
   {
     "objectID": "info-6.html#log-likelihood-intercept-only-model",
     "href": "info-6.html#log-likelihood-intercept-only-model",
     "title": "Information, NHST and model fit",
     "section": "Log likelihood: intercept-only model",
-    "text": "Log likelihood: intercept-only model\n\n\nCode\nlogLik(lm(health ~ 1, data = data))\n\n\n'log Lik.' -491.4805 (df=2)\n\n\n\n\nCode\nmod.a&lt;- glm(health ~ 1 + happy, data = data)\nmod.b &lt;- glm(health ~ 1, data = data)\nanova(mod.b,mod.a, test = \"LRT\")\n\n\nAnalysis of Deviance Table\n\nModel 1: health ~ 1\nModel 2: health ~ 1 + happy\n  Resid. Df Resid. Dev Df Deviance Pr(&gt;Chi)  \n1       199       1596                       \n2       198       1545  1   51.001  0.01057 *\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\n\nCode\n# what is deviance?!"
+    "text": "Log likelihood: intercept-only model\n\n\nCode\nlogLik(lm(health ~ 1, data = data))\n\n\n'log Lik.' -491.4805 (df=2)\n\n\n\n\nCode\n# glm() versions of the same two models, for the tests that follow\nmod.a &lt;- glm(health ~ 1 + happy, data = data)\nmod.b &lt;- glm(health ~ 1, data = data)"
   },
   {
     "objectID": "info-6.html#likelihood-ratio-test",
@@ -1068,7 +1068,7 @@
     "href": "info-6.html#what-is-information",
     "title": "Information, NHST and model fit",
     "section": "What is information?",
-    "text": "What is information?\nThe basic intuition behind information theory is that learning that an unlikely event has occurred is more informative than learning that a likely event has occurred. Unlikely = informative.\ninformation(x) = −log2(p(x)), where log2() is the base-2 logarithm and p(x) is the probability of the event x. Units are bits, where 1 bit halves the possibilities.\n\n## coin flip\n -log2(.5)\n\n[1] 1\n\n\n\n# dice roll\n -log2(1/6)\n\n[1] 2.584963"
+    "text": "What is information?\nThe basic intuition behind information theory is that learning that an unlikely event has occurred is more informative than learning that a likely event has occurred. Unlikely = informative.\ninformation(x) = −log2(p(x)), where log2() is the base-2 logarithm and p(x) is the probability of the event x. Units are bits, where 1 bit halves the possibilities.\n\n# coin flip\n -log2(.5)\n\n[1] 1\n\n\n\n# dice roll\n -log2(1/6)\n\n[1] 2.584963"
   },
   {
     "objectID": "info-6.html#bits",
@@ -1117,7 +1117,7 @@
     "href": "info-6.html#entropy-formally",
     "title": "Information, NHST and model fit",
     "section": "Entropy, formally",
-    "text": "Entropy, formally\n\nEntropy, H(p), tells us how hard it is to make an accurate prediction. For non-uniform distributions we take a probability-weighted sum of the log probabilities\nH(p) = \\(-\\sum_i p_i \\log(p_i)\\)\nThink of tossing 10 pebbles into 5 buckets. Each bucket can have a probability associated with getting a rock. H(p) is maximized when the ps are equal. That is the distribution that can arise the most ways"
+    "text": "Entropy, formally\n\nEntropy, H(p), tells us how hard it is to make an accurate prediction. For non-uniform distributions we take a probability-weighted sum of the log probabilities\nH(p) = \\(-\\sum_i p_i \\log(p_i)\\)\nThink of tossing 10 pebbles into 5 buckets. Each bucket can have a probability associated with getting a rock. H(p) is maximized when the ps are equal. That is the distribution that can arise the most ways\n\n\nH &lt;- function(p) -sum(p * log2(p))   # entropy in bits\nH(c(.5, .5))      # fair coin\n\n[1] 1\n\nH(c(.9, .1))      # loaded coin: easy to predict, low entropy\n\n[1] 0.4689956\n\nH(rep(1/6, 6))    # fair die\n\n[1] 2.584963\n\n\nThe fair die’s entropy equals the information in any one roll (2.585 bits): entropy is the average information per outcome."
   },
   {
     "objectID": "info-6.html#pebbles-in-buckets",
@@ -1131,7 +1131,7 @@
     "href": "info-6.html#maximum-entropy-and-likelihoods",
     "title": "Information, NHST and model fit",
     "section": "Maximum entropy and likelihoods",
-    "text": "Maximum entropy and likelihoods\n\nIf all we are willing to assume about a collection of measurements is that they have a finite variance, then the Gaussian distribution represents the most conservative probability distribution to assign to those measurements.\nWith different assumptions, provided our assumptions are good ones, the principle of maximum entropy leads to distributions other than the Gaussian\nAssumptions about your DGP should specify your likelihood function. NOT YOUR OBSERVED DISTRIBUTION OF DATA."
+    "text": "Maximum entropy and likelihoods\n\nIf all we are willing to assume about a collection of measurements is that they have a finite variance, then the Gaussian distribution represents the most conservative probability distribution to assign to those measurements.\nWith different assumptions, provided our assumptions are good ones, the principle of maximum entropy leads to distributions other than the Gaussian\nAssumptions about your DGP should specify your likelihood function. NOT YOUR OBSERVED DISTRIBUTION OF DATA.\nWhy the least informative? It builds in no information beyond what we actually know. And many physical systems drift toward maximum-entropy configurations anyway. Don’t fight nature!"
   },
   {
     "objectID": "info-6.html#kl-divergence",
@@ -1145,21 +1145,21 @@
     "href": "info-6.html#deviance",
     "title": "Information, NHST and model fit",
     "section": "Deviance",
-    "text": "Deviance\n\nOften we do not know the target, so we cannot compute the divergence itself. But the truth’s part of it, \\(\\sum_i p_i \\log(p_i)\\), is the same for every model, so to compare models we only need each model’s log score, \\(\\sum_i \\log(q_i)\\): the log probability it gives the observed data. Multiply that by −2 and call it a deviance (remember this?).\n\n\\(D(q) = -2 \\sum_i \\log(q_i)\\)"
+    "text": "Deviance\n\nOften we do not know the target, so we cannot compute the divergence itself. But the truth’s part of it, \\(\\sum_i p_i \\log(p_i)\\), is the same for every model, so to compare models we only need each model’s log score, \\(\\sum_i \\log(q_i)\\): the log probability it gives the observed data. Multiply that by −2 and call it a deviance (remember this?).\n\n\\(D(q) = -2 \\sum_i \\log(q_i)\\)\n\nCareful: this is not the residual deviance glm() printed (1545, measured against a saturated model). Here “deviance” just means −2 × the log score, the −2LL we computed for mod.a (976). This is the version Bayesian model comparison uses."
   },
   {
     "objectID": "info-6.html#how-is-this-different-from-lrt",
     "href": "info-6.html#how-is-this-different-from-lrt",
     "title": "Information, NHST and model fit",
     "section": "How is this different from LRT?",
-    "text": "How is this different from LRT?\n\nDeviance is a measure of relative fit: the unknown truth’s term is the same constant for every model fit to the same data, so it cancels when we compare models.\nIt isn’t, really: the LRT statistic is the difference between two models’ deviances.\n\nBut Bayesians don’t like NHST, so they sometimes leave off the −2, which only serves to make differences chi-square distributed."
+    "text": "How is this different from LRT?\n\nIt isn’t, really: the LRT statistic is the difference between two models’ deviances.\nDeviance is a measure of relative fit: the unknown truth’s term is the same constant for every model fit to the same data, so it cancels when we compare models.\n\nBut Bayesians don’t like NHST, so they sometimes leave off the −2, which only serves to make differences chi-square distributed."
   },
   {
     "objectID": "info-6.html#log-pointwise-predictive-density",
     "href": "info-6.html#log-pointwise-predictive-density",
     "title": "Information, NHST and model fit",
     "section": "Log Pointwise Predictive Density",
-    "text": "Log Pointwise Predictive Density\n\\[\\text{lppd} = \\sum_{i=1}^n \\log \\int p(y_i | \\theta)\\, p(\\theta | y)\\, d\\theta \\approx \\sum_{i=1}^n \\log \\left(\\frac{1}{S}\\sum_{s=1}^S p(y_i | \\theta_s)\\right)\\]\nIn words: for each observation, average its likelihood over the \\(S\\) posterior draws, take the log, then sum over observations.\n\nFurther, with Bayes we need to use the entire posterior to define deviance! If not, we are throwing away information.\nOften called the log pointwise predictive density (lpd or lppd)\nWe just went full circle to get a bayesian equivalent to log likelihood. And will thus use lppd for our model fit questions."
+    "text": "Log Pointwise Predictive Density\n\\[\\text{lppd} = \\sum_{i=1}^n \\log \\int p(y_i | \\theta)\\, p(\\theta | y)\\, d\\theta \\approx \\sum_{i=1}^n \\log \\left(\\frac{1}{S}\\sum_{s=1}^S p(y_i | \\theta_s)\\right)\\]\nIn words: for each observation, average its likelihood over the \\(S\\) posterior draws, take the log, then sum over observations.\n\nWith Bayes we use the entire posterior to define deviance! If not, we are throwing away information.\nOften called the log pointwise predictive density (lpd or lppd)\nWe just went full circle to get a bayesian equivalent to log likelihood. And will thus use lppd for our model fit questions."
   },
   {
     "objectID": "info-6.html#two-options-for-model-comparison",
@@ -8531,5 +8531,33 @@
     "title": "Information, NHST and model fit",
     "section": "describe_posterior() with our ROPE",
     "text": "describe_posterior() with our ROPE\nThe defended ROPE, for the one parameter it was built for, over the full posterior:\n\ndescribe_posterior(mr.14b, test = c(\"p_direction\", \"rope\"),\n                   rope_range = c(-0.2, 0.2), rope_ci = 1,\n                   parameters = \"^b_iv.dtx$\")\n\nSummary of Posterior Distribution\n\nParameter | Median |        95% CI |     pd |          ROPE | % in ROPE |  Rhat | ESS (tail)\n--------------------------------------------------------------------------------------------\niv.dtx    |   0.36 | [-0.21, 0.92] | 89.33% | [-0.20, 0.20] |    26.88% | 1.001 |       2700"
+  },
+  {
+    "objectID": "info-6.html#the-lrt-with-anova",
+    "href": "info-6.html#the-lrt-with-anova",
+    "title": "Information, NHST and model fit",
+    "section": "The LRT with anova()",
+    "text": "The LRT with anova()\n\n\nCode\nanova(mod.b, mod.a, test = \"LRT\")\n\n\nAnalysis of Deviance Table\n\nModel 1: health ~ 1\nModel 2: health ~ 1 + happy\n  Resid. Df Resid. Dev Df Deviance Pr(&gt;Chi)  \n1       199       1596                       \n2       198       1545  1   51.001  0.01057 *\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\n\n\nWhy did anova() and lrtest() give slightly different p-values? For a Gaussian glm(), the “Deviance” column in anova() is the drop in the residual sum of squares (51.0). anova() divides it by the estimated residual variance (7.80) to get a χ² of 6.54, while lrtest() uses the exact difference in −2LL (6.50). Same idea, slightly different estimate of σ, so p = 0.0106 vs. 0.0108."
+  },
+  {
+    "objectID": "info-6.html#aic-and-bic",
+    "href": "info-6.html#aic-and-bic",
+    "title": "Information, NHST and model fit",
+    "section": "AIC and BIC",
+    "text": "AIC and BIC\n\nAIC = −2LL + 2k. Here −2LL = 976.47 and k = 3 (intercept, slope, σ), so AIC = 976.47 + 6 = 982.47, the AIC summary() printed.\nBIC = −2LL + k·log(n), a bigger penalty per parameter once n &gt; 7: 976.47 + 3 × log(200) = 992.36.\nBoth are “fit + a penalty for complexity,” using one best estimate. Lower is better, and only differences between models mean anything. We’ll meet their Bayesian cousins (WAIC, LOO) in Part 2."
+  },
+  {
+    "objectID": "info-6.html#kl-divergence-in-r",
+    "href": "info-6.html#kl-divergence-in-r",
+    "title": "Information, NHST and model fit",
+    "section": "KL divergence in R",
+    "text": "KL divergence in R\n\nKL &lt;- function(p, q) sum(p * (log(p) - log(q)))\np &lt;- c(.3, .7)          # the truth: 30% rain, 70% sun\nKL(p, c(.25, .75))      # a close model\n\n[1] 0.006401457\n\nKL(p, c(.5, .5))        # a flat model\n\n[1] 0.08228288\n\nKL(p, c(.9, .1))        # a confidently wrong model\n\n[1] 1.032553\n\n\nThe closer the model’s probabilities are to the truth, the smaller the divergence, and being confidently wrong costs the most. (Natural logs here, so the units are “nats” rather than bits.)"
+  },
+  {
+    "objectID": "info-6.html#lppd-for-mr.12",
+    "href": "info-6.html#lppd-for-mr.12",
+    "title": "Information, NHST and model fit",
+    "section": "lppd for mr.12",
+    "text": "lppd for mr.12\nlog_lik() gives the log-likelihood of every observation under every posterior draw:\n\nll_12 &lt;- log_lik(mr.12)   # 4000 draws x 118 students\ndim(ll_12)\n\n[1] 4000  118\n\nlppd_12 &lt;- sum(log(colMeans(exp(ll_12))))   # average over draws, log, sum\nlppd_12\n\n[1] -224.0721\n\n\n\nIn Part 2, LOO estimates how mr.12 would do on new data: elpd_loo = -228.1.\nThat’s lower than the lppd by 4.0, which is p_loo: roughly one per parameter (mr.12 has 4). Evaluated on the data it was fit to, a model looks better than it really is."
   }
 ]
