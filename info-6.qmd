@@ -11,11 +11,13 @@ execute:
 
 | Part | Question | Tools |
 |------|----------|-------|
-| 1 | How do we score how well a model fits? | likelihood, deviance, information, lppd |
+| 1 | How do we evaluate how well a model fits? | likelihood, deviance, information, lppd |
 | 2 | Which model will predict new data best? | LOO (and WAIC), `loo_compare()` |
-| 3 | Is this effect real, and is it big enough to matter? | pd, ROPE, Bayes factors |
+| 3 | Is a single effect (one coefficient) real, and is it big enough to matter? | pd, ROPE, Bayes factors |
 
 : {tbl-colwidths="[10,50,40]"}
+
+Parts 1 and 2 are about **whole models**. Part 3 zooms in on **one parameter** within a model.
 
 ```{r, echo = FALSE, message=FALSE}
 library(tidybayes)
@@ -29,19 +31,7 @@ MR <- read.csv("hw3.csv") %>%   # also at https://josh-jackson.github.io/bayes27
          iv.d = factor(if_else(intervention.group == 1, "control", "tx")))
 ```
 
-# Part 1: Scoring a model
-
-## NHST
-
-Bayesians typically do not use "standard" NHST. Why?
-
-1.  There is no sampling distribution and thus no p-values
-
-2.  NHST is associated with tons of problems eg dichotomous thinking
-
-3.  Because we are interested in the posterior distribution, not a single point estimate
-
-4.  Model comparison is more elegant
+# Part 1: Evaluating a model
 
 ## Standard fit indices and tests
 
@@ -157,7 +147,7 @@ summary(mod.a)
 
 ## Lecture 1's grid, as log-likelihoods {.smaller .nostretch}
 
-Remember the grid: for every (μ, σ) pair, add up the log-likelihood of all 928 children's heights. The brightest spot is the maximum likelihood estimate. Every model today gets scored the same basic way: **how probable does it make the data?**
+Remember the grid: for every (μ, σ) pair, add up the log-likelihood of all 928 children's heights. The brightest spot is the maximum likelihood estimate. Every model today gets evaluated the same basic way: **how probable does it make the data?**
 
 ```{r}
 #| code-fold: true
@@ -178,13 +168,13 @@ ggplot(p_grid, aes(mu, sigma, fill = log_likelihood)) +
 
 ## Where this part is going {.smaller}
 
-The information theory slides build, step by step, a score for comparing models. Each step fixes a problem with the one before:
+The information theory slides build, step by step, a measure for comparing models. Each step fixes a problem with the one before:
 
 1.  **Information and entropy:** how uncertain a prediction is
 2.  **KL divergence:** how far our model's predictions are from the *truth*. But we never know the truth
-3.  **Deviance (log score):** when two models are scored on the same data, the unknown truth cancels. All we need is how probable each model makes the data
+3.  **Deviance (log score):** when two models are evaluated on the same data, the unknown truth cancels. All we need is how probable each model makes the data
 4.  **lppd:** the Bayesian log score, averaged over the whole posterior instead of one best estimate
-5.  **LOO:** scored on the data it was fit to, a more complex model always looks better. So estimate how it would score on *new* data (Part 2)
+5.  **LOO:** evaluated on the data it was fit to, a more complex model always looks better. So estimate how it would do on *new* data (Part 2)
 
 A bonus along the way: maximum entropy also tells us how to pick a likelihood.
 
@@ -354,7 +344,7 @@ In words: for each observation, average its likelihood over the $S$ posterior dr
 
 ## Fit vs. prediction {.smaller .nostretch}
 
-Why not just pick the best-fitting model? Simulate 20 points where the truth is a straight line, fit polynomials of degree 1–6, and score each (deviance, lower is better) on the same data **and** on a fresh sample. Repeat 500 times.
+Why not just pick the best-fitting model? Simulate 20 points where the truth is a straight line, fit polynomials of degree 1–6, and evaluate each (deviance, lower is better) on the same data **and** on a fresh sample. Repeat 500 times.
 
 ```{r}
 #| code-fold: true
@@ -373,9 +363,9 @@ sim_once <- function(n = 20) {
   })
 }
 map_dfr(1:500, \(i) sim_once()) %>%
-  pivot_longer(-degree, names_to = "scored on", values_to = "deviance") %>%
-  group_by(degree, `scored on`) %>% summarise(deviance = median(deviance), .groups = "drop") %>%
-  ggplot(aes(degree, deviance, colour = `scored on`)) +
+  pivot_longer(-degree, names_to = "evaluated on", values_to = "deviance") %>%
+  group_by(degree, `evaluated on`) %>% summarise(deviance = median(deviance), .groups = "drop") %>%
+  ggplot(aes(degree, deviance, colour = `evaluated on`)) +
   geom_line(linewidth = 1) + geom_point(size = 2) +
   scale_colour_manual(values = c(`same data (in-sample)` = "#D55E00", `new data (out-of-sample)` = "#0072B2")) +
   scale_x_continuous(breaks = 1:6, labels = c("1 (truth)", 2:6)) +
@@ -383,7 +373,7 @@ map_dfr(1:500, \(i) sim_once()) %>%
   theme_classic(base_size = 13) + theme(legend.position = "inside", legend.position.inside = c(.3, .85))
 ```
 
-On the same data, every extra term improves the score. On new data, the truth (degree 1) wins and extra terms make things worse: they fit *this sample's noise*. That's **overfitting**. LOO and WAIC estimate the blue (new data) line from the one dataset we have.
+On the same data, every extra term improves the fit. On new data, the truth (degree 1) wins and extra terms make things worse: they fit *this sample's noise*. That's **overfitting**. LOO and WAIC estimate the blue (new data) line from the one dataset we have.
 
 ## Two options for model comparison
 
@@ -442,7 +432,7 @@ mr.12$criteria$loo
 
 -   p_loo is the effective number of parameters
 
--   looic is -2(elpd). Low scores better. Why −2? Chi-square history, and for a Gaussian model with known σ, −2 × log score is the squared error (scaled by σ², plus a constant).
+-   looic is -2(elpd). Lower is better. Why −2? Chi-square history, and for a Gaussian model with known σ, −2 × log score is the squared error (scaled by σ², plus a constant).
 
 ## Pareto *k*: can we trust PSIS-LOO? {.smaller}
 
@@ -616,7 +606,19 @@ Nearly the same answer as LOO here. Both start from the lppd, so they usually ag
 
 -   You can compare non-nested models e.g. ones with non-overlapping sets of predictors
 
-# Part 3: Is the effect real, and does it matter?
+# Part 3: Is a single effect real, and does it matter?
+
+## NHST
+
+Bayesians typically do not use "standard" NHST. Why?
+
+1.  There is no sampling distribution and thus no p-values
+
+2.  NHST is associated with tons of problems eg dichotomous thinking
+
+3.  Because we are interested in the posterior distribution, not a single point estimate
+
+4.  Model comparison is more elegant
 
 ## Mimicking NHST
 

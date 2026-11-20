@@ -222,7 +222,7 @@
 <tbody>
 <tr class="odd">
 <td>1</td>
-<td>How do we score how well a model fits?</td>
+<td>How do we evaluate how well a model fits?</td>
 <td>likelihood, deviance, information, lppd</td>
 </tr>
 <tr class="even">
@@ -232,26 +232,17 @@
 </tr>
 <tr class="odd">
 <td>3</td>
-<td>Is this effect real, and is it big enough to matter?</td>
+<td>Is a single effect (one coefficient) real, and is it big enough to matter?</td>
 <td>pd, ROPE, Bayes factors</td>
 </tr>
 </tbody>
 </table>
+<p>Parts 1 and 2 are about <strong>whole models</strong>. Part 3 zooms in on <strong>one parameter</strong> within a model.</p>
 </section>
 <section>
-<section id="part-1-scoring-a-model" class="title-slide slide level1 center">
-<h1>Part 1: Scoring a model</h1>
+<section id="part-1-evaluating-a-model" class="title-slide slide level1 center">
+<h1>Part 1: Evaluating a model</h1>
 
-</section>
-<section id="nhst" class="slide level2">
-<h2>NHST</h2>
-<p>Bayesians typically do not use “standard” NHST. Why?</p>
-<ol type="1">
-<li><p>There is no sampling distribution and thus no p-values</p></li>
-<li><p>NHST is associated with tons of problems eg dichotomous thinking</p></li>
-<li><p>Because we are interested in the posterior distribution, not a single point estimate</p></li>
-<li><p>Model comparison is more elegant</p></li>
-</ol>
 </section>
 <section id="standard-fit-indices-and-tests" class="slide level2">
 <h2>Standard fit indices and tests</h2>
@@ -431,7 +422,7 @@ Number of Fisher Scoring iterations: 2</code></pre>
 </section>
 <section id="lecture-1s-grid-as-log-likelihoods" class="slide level2 smaller nostretch">
 <h2>Lecture 1’s grid, as log-likelihoods</h2>
-<p>Remember the grid: for every (μ, σ) pair, add up the log-likelihood of all 928 children’s heights. The brightest spot is the maximum likelihood estimate. Every model today gets scored the same basic way: <strong>how probable does it make the data?</strong></p>
+<p>Remember the grid: for every (μ, σ) pair, add up the log-likelihood of all 928 children’s heights. The brightest spot is the maximum likelihood estimate. Every model today gets evaluated the same basic way: <strong>how probable does it make the data?</strong></p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -457,13 +448,13 @@ Number of Fisher Scoring iterations: 2</code></pre>
 </section>
 <section id="where-this-part-is-going" class="slide level2 smaller">
 <h2>Where this part is going</h2>
-<p>The information theory slides build, step by step, a score for comparing models. Each step fixes a problem with the one before:</p>
+<p>The information theory slides build, step by step, a measure for comparing models. Each step fixes a problem with the one before:</p>
 <ol type="1">
 <li><strong>Information and entropy:</strong> how uncertain a prediction is</li>
 <li><strong>KL divergence:</strong> how far our model’s predictions are from the <em>truth</em>. But we never know the truth</li>
-<li><strong>Deviance (log score):</strong> when two models are scored on the same data, the unknown truth cancels. All we need is how probable each model makes the data</li>
+<li><strong>Deviance (log score):</strong> when two models are evaluated on the same data, the unknown truth cancels. All we need is how probable each model makes the data</li>
 <li><strong>lppd:</strong> the Bayesian log score, averaged over the whole posterior instead of one best estimate</li>
-<li><strong>LOO:</strong> scored on the data it was fit to, a more complex model always looks better. So estimate how it would score on <em>new</em> data (Part 2)</li>
+<li><strong>LOO:</strong> evaluated on the data it was fit to, a more complex model always looks better. So estimate how it would do on <em>new</em> data (Part 2)</li>
 </ol>
 <p>A bonus along the way: maximum entropy also tells us how to pick a likelihood.</p>
 </section>
@@ -639,7 +630,7 @@ Number of Fisher Scoring iterations: 2</code></pre>
 </section>
 <section id="fit-vs.-prediction" class="slide level2 smaller nostretch">
 <h2>Fit vs.&nbsp;prediction</h2>
-<p>Why not just pick the best-fitting model? Simulate 20 points where the truth is a straight line, fit polynomials of degree 1–6, and score each (deviance, lower is better) on the same data <strong>and</strong> on a fresh sample. Repeat 500 times.</p>
+<p>Why not just pick the best-fitting model? Simulate 20 points where the truth is a straight line, fit polynomials of degree 1–6, and evaluate each (deviance, lower is better) on the same data <strong>and</strong> on a fresh sample. Repeat 500 times.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -655,9 +646,9 @@ Number of Fisher Scoring iterations: 2</code></pre>
 <span id="cb25-10"><a aria-label="10"></a>  })</span>
 <span id="cb25-11"><a aria-label="11"></a>}</span>
 <span id="cb25-12"><a aria-label="12"></a><span class="fu">map_dfr</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">500</span>, \(i) <span class="fu">sim_once</span>()) <span class="sc">%&gt;%</span></span>
-<span id="cb25-13"><a aria-label="13"></a>  <span class="fu">pivot_longer</span>(<span class="sc">-</span>degree, <span class="at">names_to =</span> <span class="st">"scored on"</span>, <span class="at">values_to =</span> <span class="st">"deviance"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb25-14"><a aria-label="14"></a>  <span class="fu">group_by</span>(degree, <span class="st">`</span><span class="at">scored on</span><span class="st">`</span>) <span class="sc">%&gt;%</span> <span class="fu">summarise</span>(<span class="at">deviance =</span> <span class="fu">median</span>(deviance), <span class="at">.groups =</span> <span class="st">"drop"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb25-15"><a aria-label="15"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(degree, deviance, <span class="at">colour =</span> <span class="st">`</span><span class="at">scored on</span><span class="st">`</span>)) <span class="sc">+</span></span>
+<span id="cb25-13"><a aria-label="13"></a>  <span class="fu">pivot_longer</span>(<span class="sc">-</span>degree, <span class="at">names_to =</span> <span class="st">"evaluated on"</span>, <span class="at">values_to =</span> <span class="st">"deviance"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb25-14"><a aria-label="14"></a>  <span class="fu">group_by</span>(degree, <span class="st">`</span><span class="at">evaluated on</span><span class="st">`</span>) <span class="sc">%&gt;%</span> <span class="fu">summarise</span>(<span class="at">deviance =</span> <span class="fu">median</span>(deviance), <span class="at">.groups =</span> <span class="st">"drop"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb25-15"><a aria-label="15"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(degree, deviance, <span class="at">colour =</span> <span class="st">`</span><span class="at">evaluated on</span><span class="st">`</span>)) <span class="sc">+</span></span>
 <span id="cb25-16"><a aria-label="16"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span> <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
 <span id="cb25-17"><a aria-label="17"></a>  <span class="fu">scale_colour_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">`</span><span class="at">same data (in-sample)</span><span class="st">`</span> <span class="ot">=</span> <span class="st">"#D55E00"</span>, <span class="st">`</span><span class="at">new data (out-of-sample)</span><span class="st">`</span> <span class="ot">=</span> <span class="st">"#0072B2"</span>)) <span class="sc">+</span></span>
 <span id="cb25-18"><a aria-label="18"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>, <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"1 (truth)"</span>, <span class="dv">2</span><span class="sc">:</span><span class="dv">6</span>)) <span class="sc">+</span></span>
@@ -672,7 +663,7 @@ Number of Fisher Scoring iterations: 2</code></pre>
 </div>
 </div>
 </div>
-<p>On the same data, every extra term improves the score. On new data, the truth (degree 1) wins and extra terms make things worse: they fit <em>this sample’s noise</em>. That’s <strong>overfitting</strong>. LOO and WAIC estimate the blue (new data) line from the one dataset we have.</p>
+<p>On the same data, every extra term improves the fit. On new data, the truth (degree 1) wins and extra terms make things worse: they fit <em>this sample’s noise</em>. That’s <strong>overfitting</strong>. LOO and WAIC estimate the blue (new data) line from the one dataset we have.</p>
 </section>
 <section id="two-options-for-model-comparison" class="slide level2">
 <h2>Two options for model comparison</h2>
@@ -773,7 +764,7 @@ See help('pareto-k-diagnostic') for details.</code></pre>
 <ul>
 <li><p>elpd_loo: the expected log pointwise predictive density for new data (an out-of-sample lppd). Larger is better. For discrete outcomes these are probabilities (≤ 1), so the logs are 0 or negative; for continuous outcomes they are densities, which can exceed 1, so elpd can be positive. Only differences between models matter</p></li>
 <li><p>p_loo is the effective number of parameters</p></li>
-<li><p>looic is -2(elpd). Low scores better. Why −2? Chi-square history, and for a Gaussian model with known σ, −2 × log score is the squared error (scaled by σ², plus a constant).</p></li>
+<li><p>looic is -2(elpd). Lower is better. Why −2? Chi-square history, and for a Gaussian model with known σ, −2 × log score is the squared error (scaled by σ², plus a constant).</p></li>
 </ul>
 </section>
 <section id="pareto-k-can-we-trust-psis-loo" class="slide level2 smaller">
@@ -1054,9 +1045,19 @@ b_0 &amp;\sim \text{Normal}(5, 2) \qquad b_1, b_2, b_3 \sim \text{Normal}(0, 1) 
 </ul>
 </section></section>
 <section>
-<section id="part-3-is-the-effect-real-and-does-it-matter" class="title-slide slide level1 center">
-<h1>Part 3: Is the effect real, and does it matter?</h1>
+<section id="part-3-is-a-single-effect-real-and-does-it-matter" class="title-slide slide level1 center">
+<h1>Part 3: Is a single effect real, and does it matter?</h1>
 
+</section>
+<section id="nhst" class="slide level2">
+<h2>NHST</h2>
+<p>Bayesians typically do not use “standard” NHST. Why?</p>
+<ol type="1">
+<li><p>There is no sampling distribution and thus no p-values</p></li>
+<li><p>NHST is associated with tons of problems eg dichotomous thinking</p></li>
+<li><p>Because we are interested in the posterior distribution, not a single point estimate</p></li>
+<li><p>Model comparison is more elegant</p></li>
+</ol>
 </section>
 <section id="mimicking-nhst" class="slide level2">
 <h2>Mimicking NHST</h2>
