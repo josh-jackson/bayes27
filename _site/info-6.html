@@ -362,11 +362,11 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a aria-label="1"></a>chisqu <span class="ot">&lt;-</span> (<span class="sc">-</span><span class="dv">2</span><span class="sc">*</span><span class="fu">logLik</span>(mod.b))<span class="sc">-</span>(<span class="sc">-</span><span class="dv">2</span><span class="sc">*</span><span class="fu">logLik</span>(mod.a))</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a aria-label="1"></a>chisqu <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>((<span class="sc">-</span><span class="dv">2</span><span class="sc">*</span><span class="fu">logLik</span>(mod.b))<span class="sc">-</span>(<span class="sc">-</span><span class="dv">2</span><span class="sc">*</span><span class="fu">logLik</span>(mod.a)))</span>
 <span id="cb11-2"><a aria-label="2"></a>chisqu</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>'log Lik.' 6.49553 (df=2)</code></pre>
+<pre><code>[1] 6.49553</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -375,7 +375,7 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a aria-label="1"></a><span class="fu">pchisq</span>(chisqu, <span class="at">df =</span> <span class="dv">1</span>, <span class="at">lower.tail=</span><span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>'log Lik.' 0.01081461 (df=2)</code></pre>
+<pre><code>[1] 0.01081461</code></pre>
 </div>
 </div>
 </section>
@@ -539,7 +539,6 @@ Number of Fisher Scoring iterations: 2</code></pre>
 <section id="why-the-least-informative" class="slide level2">
 <h2>Why the least informative?</h2>
 <ul>
-<li><p>Why the least informative?</p></li>
 <li><p>First, maximizing entropy minimizes the amount of prior information built into the distribution.</p></li>
 <li><p>Second, many physical systems tend to move towards maximal entropy configurations over time. Don’t fight nature!</p></li>
 </ul>
@@ -548,7 +547,7 @@ Number of Fisher Scoring iterations: 2</code></pre>
 <h2>Entropy, formally</h2>
 <ul>
 <li><p>Entropy, H(p), tells us how hard it is to make an accurate prediction. For non-uniform distributions we take a probability-weighted sum of the log probabilities</p></li>
-<li><p>H(p) = <span class="math inline">\(-\sum p_ilog(p_i)\)</span></p></li>
+<li><p>H(p) = <span class="math inline">\(-\sum_i p_i \log(p_i)\)</span></p></li>
 <li><p>Think of tossing 10 pebbles into 5 buckets. Each bucket can have a probability associated with getting a rock. H(p) is maximized when the ps are equal. That is the distribution that can arise the most ways</p></li>
 </ul>
 </section>
@@ -604,7 +603,7 @@ Number of Fisher Scoring iterations: 2</code></pre>
 <section id="deviance" class="slide level2">
 <h2>Deviance</h2>
 <ul>
-<li>Often we do not know the target. This means we cannot look at a divergence and know if it is good or bad, but we can use them to compare different models. Throw a -2 infront of it and call it a deviance (remember this?).</li>
+<li>Often we do not know the target, so we cannot compute the divergence itself. But the truth’s part of it, <span class="math inline">\(\sum_i p_i \log(p_i)\)</span>, is the same for every model, so to <em>compare</em> models we only need each model’s log score, <span class="math inline">\(\sum_i \log(q_i)\)</span>: the log probability it gives the observed data. Multiply that by −2 and call it a deviance (remember this?).</li>
 </ul>
 <p><span class="math inline">\(D(q) = -2 \sum_i \log(q_i)\)</span></p>
 </section>
@@ -612,7 +611,7 @@ Number of Fisher Scoring iterations: 2</code></pre>
 <h2>How is this different from LRT?</h2>
 <ul>
 <li><p>Deviance is a measure of relative fit: the unknown truth’s term is the same constant for every model fit to the same data, so it cancels when we compare models.</p></li>
-<li><p>Comparing two models with LRT should yield similar scores as comparing two deviances.</p></li>
+<li><p>It isn’t, really: the LRT statistic <em>is</em> the difference between two models’ deviances.</p></li>
 </ul>
 <p>But Bayesians don’t like NHST, so they sometimes leave off the −2, which only serves to make differences chi-square distributed.</p>
 </section>
@@ -675,7 +674,7 @@ Number of Fisher Scoring iterations: 2</code></pre>
 <li>Information model fit indexes</li>
 </ol>
 <ul>
-<li>These are often treated as very different, but they estimate the same thing: how well the model will predict new data. AIC, WAIC and LOO are approximations to (leave-one-out) cross validation.</li>
+<li>These are often treated as very different, but they estimate the same thing: how well the model will predict new data. AIC and WAIC approximate (leave-one-out) cross validation, and PSIS-LOO is a fast approximation of LOO itself.</li>
 </ul>
 </section>
 <section id="cross-validation" class="slide level2 smaller">
@@ -754,7 +753,7 @@ See help('pareto-k-diagnostic') for details.</code></pre>
 <section id="reading-the-loo-output" class="slide level2">
 <h2>Reading the LOO output</h2>
 <ul>
-<li><p>elpd_loo: the expected log pointwise predictive density for new data (an out-of-sample lppd). Larger is better. Probabilities are always equal or less than 1, and thus log predictive probabilities are 0 or negative</p></li>
+<li><p>elpd_loo: the expected log pointwise predictive density for new data (an out-of-sample lppd). Larger is better. For discrete outcomes these are probabilities (≤ 1), so the logs are 0 or negative; for continuous outcomes they are densities, which can exceed 1, so elpd can be positive. Only differences between models matter</p></li>
 <li><p>p_loo is the effective number of parameters</p></li>
 <li><p>looic is -2(elpd). Low scores better. Why −2? Chi-square history, and for a Gaussian model with known σ, −2 × log score is the squared error (scaled by σ², plus a constant).</p></li>
 </ul>
@@ -1487,7 +1486,7 @@ BF
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb76"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb76-1"><a aria-label="1"></a><span class="fu">library</span>(effectsize)</span>
-<span id="cb76-2"><a aria-label="2"></a><span class="fu">interpret_bf</span>(<span class="fl">1.95</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb76-2"><a aria-label="2"></a><span class="fu">interpret_bf</span>(<span class="fu">exp</span>(bf_plot<span class="sc">$</span>log_BF))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] "anecdotal evidence in favour of"
@@ -1568,7 +1567,7 @@ BF
 * Evidence Against The Null: 0</code></pre>
 </div>
 </div>
-<p>This now suggests anecdotal evidence for H0, whereas before it was anecdotal evidence for H1 (BF ≈ 1.9). The posterior didn’t change at all; only the prior did.</p>
+<p>This now suggests anecdotal evidence for H0, whereas before it was anecdotal evidence for H1 (BF ≈ 1.9). We held the posterior fixed to isolate the prior’s role (in a real analysis it would shift a little too); only the prior changed.</p>
 </section>
 <section id="a-best-guess-prior" class="slide level2">
 <h2>A best-guess prior</h2>
@@ -1688,7 +1687,7 @@ FQ_c        |    10.53
 <img data-src="info-6_files/figure-revealjs/unnamed-chunk-56-1.png" width="960" class="r-stretch"></section>
 <section id="try-a-wider-prior" class="slide level2 smaller">
 <h2>Try a wider prior</h2>
-<p>Same model, same data; only the slope priors change, from Normal(0, 0.2) to Normal(0, 2).</p>
+<p>Same model, same data; the slope priors change from Normal(0, 0.2) to Normal(0, 2). (The sigma prior also differs, Exponential(1) vs.&nbsp;Exponential(0.5), which barely matters for the slopes’ BFs.)</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -1834,7 +1833,7 @@ FQ_c        |     1.33
 <h1>Wrapping up</h1>
 
 </section>
-<section id="multiple-comparisons" class="slide level2">
+<section id="multiple-comparisons" class="slide level2 smaller">
 <h2>Multiple comparisons</h2>
 <ul>
 <li>In NHST, every extra test raises the chance of a false alarm, so we correct (Bonferroni, etc.), and the correction depends on how many tests you <em>intended</em> to run</li>

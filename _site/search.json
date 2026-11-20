@@ -1033,7 +1033,7 @@
     "href": "info-6.html#lrt-in-r",
     "title": "Information, NHST and model fit",
     "section": "LRT in R",
-    "text": "LRT in R\n\n\nCode\nlibrary(lmtest)\nlrtest(mod.b,mod.a)\n\n\nLikelihood ratio test\n\nModel 1: health ~ 1\nModel 2: health ~ 1 + happy\n  #Df  LogLik Df  Chisq Pr(&gt;Chisq)  \n1   2 -491.48                       \n2   3 -488.23  1 6.4955    0.01081 *\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\n\n\n\nCode\nchisqu &lt;- (-2*logLik(mod.b))-(-2*logLik(mod.a))\nchisqu\n\n\n'log Lik.' 6.49553 (df=2)\n\n\n\n\nCode\npchisq(chisqu, df = 1, lower.tail=FALSE)\n\n\n'log Lik.' 0.01081461 (df=2)"
+    "text": "LRT in R\n\n\nCode\nlibrary(lmtest)\nlrtest(mod.b,mod.a)\n\n\nLikelihood ratio test\n\nModel 1: health ~ 1\nModel 2: health ~ 1 + happy\n  #Df  LogLik Df  Chisq Pr(&gt;Chisq)  \n1   2 -491.48                       \n2   3 -488.23  1 6.4955    0.01081 *\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\n\n\n\nCode\nchisqu &lt;- as.numeric((-2*logLik(mod.b))-(-2*logLik(mod.a)))\nchisqu\n\n\n[1] 6.49553\n\n\n\n\nCode\npchisq(chisqu, df = 1, lower.tail=FALSE)\n\n\n[1] 0.01081461"
   },
   {
     "objectID": "info-6.html#where-is-deviance-coming-in",
@@ -1110,14 +1110,14 @@
     "href": "info-6.html#why-the-least-informative",
     "title": "Information, NHST and model fit",
     "section": "Why the least informative?",
-    "text": "Why the least informative?\n\nWhy the least informative?\nFirst, maximizing entropy minimizes the amount of prior information built into the distribution.\nSecond, many physical systems tend to move towards maximal entropy configurations over time. Don’t fight nature!"
+    "text": "Why the least informative?\n\nFirst, maximizing entropy minimizes the amount of prior information built into the distribution.\nSecond, many physical systems tend to move towards maximal entropy configurations over time. Don’t fight nature!"
   },
   {
     "objectID": "info-6.html#entropy-formally",
     "href": "info-6.html#entropy-formally",
     "title": "Information, NHST and model fit",
     "section": "Entropy, formally",
-    "text": "Entropy, formally\n\nEntropy, H(p), tells us how hard it is to make an accurate prediction. For non-uniform distributions we take a probability-weighted sum of the log probabilities\nH(p) = \\(-\\sum p_ilog(p_i)\\)\nThink of tossing 10 pebbles into 5 buckets. Each bucket can have a probability associated with getting a rock. H(p) is maximized when the ps are equal. That is the distribution that can arise the most ways"
+    "text": "Entropy, formally\n\nEntropy, H(p), tells us how hard it is to make an accurate prediction. For non-uniform distributions we take a probability-weighted sum of the log probabilities\nH(p) = \\(-\\sum_i p_i \\log(p_i)\\)\nThink of tossing 10 pebbles into 5 buckets. Each bucket can have a probability associated with getting a rock. H(p) is maximized when the ps are equal. That is the distribution that can arise the most ways"
   },
   {
     "objectID": "info-6.html#pebbles-in-buckets",
@@ -1145,14 +1145,14 @@
     "href": "info-6.html#deviance",
     "title": "Information, NHST and model fit",
     "section": "Deviance",
-    "text": "Deviance\n\nOften we do not know the target. This means we cannot look at a divergence and know if it is good or bad, but we can use them to compare different models. Throw a -2 infront of it and call it a deviance (remember this?).\n\n\\(D(q) = -2 \\sum_i \\log(q_i)\\)"
+    "text": "Deviance\n\nOften we do not know the target, so we cannot compute the divergence itself. But the truth’s part of it, \\(\\sum_i p_i \\log(p_i)\\), is the same for every model, so to compare models we only need each model’s log score, \\(\\sum_i \\log(q_i)\\): the log probability it gives the observed data. Multiply that by −2 and call it a deviance (remember this?).\n\n\\(D(q) = -2 \\sum_i \\log(q_i)\\)"
   },
   {
     "objectID": "info-6.html#how-is-this-different-from-lrt",
     "href": "info-6.html#how-is-this-different-from-lrt",
     "title": "Information, NHST and model fit",
     "section": "How is this different from LRT?",
-    "text": "How is this different from LRT?\n\nDeviance is a measure of relative fit: the unknown truth’s term is the same constant for every model fit to the same data, so it cancels when we compare models.\nComparing two models with LRT should yield similar scores as comparing two deviances.\n\nBut Bayesians don’t like NHST, so they sometimes leave off the −2, which only serves to make differences chi-square distributed."
+    "text": "How is this different from LRT?\n\nDeviance is a measure of relative fit: the unknown truth’s term is the same constant for every model fit to the same data, so it cancels when we compare models.\nIt isn’t, really: the LRT statistic is the difference between two models’ deviances.\n\nBut Bayesians don’t like NHST, so they sometimes leave off the −2, which only serves to make differences chi-square distributed."
   },
   {
     "objectID": "info-6.html#log-pointwise-predictive-density",
@@ -1166,7 +1166,7 @@
     "href": "info-6.html#two-options-for-model-comparison",
     "title": "Information, NHST and model fit",
     "section": "Two options for model comparison",
-    "text": "Two options for model comparison\n\nCross validation\nInformation model fit indexes\n\n\nThese are often treated as very different, but they estimate the same thing: how well the model will predict new data. AIC, WAIC and LOO are approximations to (leave-one-out) cross validation."
+    "text": "Two options for model comparison\n\nCross validation\nInformation model fit indexes\n\n\nThese are often treated as very different, but they estimate the same thing: how well the model will predict new data. AIC and WAIC approximate (leave-one-out) cross validation, and PSIS-LOO is a fast approximation of LOO itself."
   },
   {
     "objectID": "info-6.html#cross-validation",
@@ -1201,7 +1201,7 @@
     "href": "info-6.html#reading-the-loo-output",
     "title": "Information, NHST and model fit",
     "section": "Reading the LOO output",
-    "text": "Reading the LOO output\n\nelpd_loo: the expected log pointwise predictive density for new data (an out-of-sample lppd). Larger is better. Probabilities are always equal or less than 1, and thus log predictive probabilities are 0 or negative\np_loo is the effective number of parameters\nlooic is -2(elpd). Low scores better. Why −2? Chi-square history, and for a Gaussian model with known σ, −2 × log score is the squared error (scaled by σ², plus a constant)."
+    "text": "Reading the LOO output\n\nelpd_loo: the expected log pointwise predictive density for new data (an out-of-sample lppd). Larger is better. For discrete outcomes these are probabilities (≤ 1), so the logs are 0 or negative; for continuous outcomes they are densities, which can exceed 1, so elpd can be positive. Only differences between models matter\np_loo is the effective number of parameters\nlooic is -2(elpd). Low scores better. Why −2? Chi-square history, and for a Gaussian model with known σ, −2 × log score is the squared error (scaled by σ², plus a constant)."
   },
   {
     "objectID": "info-6.html#pareto-k-can-we-trust-psis-loo",
@@ -1481,7 +1481,7 @@
     "href": "info-6.html#interpreting-a-bf",
     "title": "Information, NHST and model fit",
     "section": "Interpreting a BF",
-    "text": "Interpreting a BF\n\n\nCode\nlibrary(effectsize)\ninterpret_bf(1.95)\n\n\n[1] \"anecdotal evidence in favour of\"\n(Rules: jeffreys1961)"
+    "text": "Interpreting a BF\n\n\nCode\nlibrary(effectsize)\ninterpret_bf(exp(bf_plot$log_BF))\n\n\n[1] \"anecdotal evidence in favour of\"\n(Rules: jeffreys1961)"
   },
   {
     "objectID": "info-6.html#association-with-p-values",
@@ -1530,7 +1530,7 @@
     "href": "info-6.html#same-data-different-bf",
     "title": "Information, NHST and model fit",
     "section": "Same data, different BF",
-    "text": "Same data, different BF\n\nbayesfactor_parameters(posterior2, prior2, direction = \"two-sided\", null = 0)\n\nBayes Factor (Savage-Dickey density ratio)\n\nBF   \n-----\n0.389\n\n* Evidence Against The Null: 0\n\n\nThis now suggests anecdotal evidence for H0, whereas before it was anecdotal evidence for H1 (BF ≈ 1.9). The posterior didn’t change at all; only the prior did."
+    "text": "Same data, different BF\n\nbayesfactor_parameters(posterior2, prior2, direction = \"two-sided\", null = 0)\n\nBayes Factor (Savage-Dickey density ratio)\n\nBF   \n-----\n0.389\n\n* Evidence Against The Null: 0\n\n\nThis now suggests anecdotal evidence for H0, whereas before it was anecdotal evidence for H1 (BF ≈ 1.9). We held the posterior fixed to isolate the prior’s role (in a real analysis it would shift a little too); only the prior changed."
   },
   {
     "objectID": "info-6.html#a-best-guess-prior",
@@ -8488,7 +8488,7 @@
     "href": "info-6.html#try-a-wider-prior",
     "title": "Information, NHST and model fit",
     "section": "Try a wider prior",
-    "text": "Try a wider prior\nSame model, same data; only the slope priors change, from Normal(0, 0.2) to Normal(0, 2).\n\n\nCode\ninfo.1 &lt;-\n  brm(family = gaussian,\n      happiness ~ 1 + SS_c + FQ_c,\n      prior = c(prior(normal(5, 2), class = Intercept),\n                prior(normal(0, 2), class = b, coef = SS_c),\n                prior(normal(0, 2), class = b, coef = FQ_c),\n                prior(exponential(1), class = sigma)),\n      iter = 2000, warmup = 1000, chains = 2, cores = 2,\n      data = MR,\n      sample_prior = \"yes\",\n      save_pars = save_pars(all = TRUE),\n      backend = \"cmdstanr\",\n      file = \"info.1\")"
+    "text": "Try a wider prior\nSame model, same data; the slope priors change from Normal(0, 0.2) to Normal(0, 2). (The sigma prior also differs, Exponential(1) vs. Exponential(0.5), which barely matters for the slopes’ BFs.)\n\n\nCode\ninfo.1 &lt;-\n  brm(family = gaussian,\n      happiness ~ 1 + SS_c + FQ_c,\n      prior = c(prior(normal(5, 2), class = Intercept),\n                prior(normal(0, 2), class = b, coef = SS_c),\n                prior(normal(0, 2), class = b, coef = FQ_c),\n                prior(exponential(1), class = sigma)),\n      iter = 2000, warmup = 1000, chains = 2, cores = 2,\n      data = MR,\n      sample_prior = \"yes\",\n      save_pars = save_pars(all = TRUE),\n      backend = \"cmdstanr\",\n      file = \"info.1\")"
   },
   {
     "objectID": "info-6.html#bfs-with-the-wider-prior",

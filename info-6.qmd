@@ -26,7 +26,6 @@ library(bayestestR)
 MR <- read.csv("hw3.csv") %>%   # also at https://josh-jackson.github.io/bayes27/hw3.csv
   mutate(SS_c = schoool.success - mean(schoool.success),
          FQ_c = friendship.quality - mean(friendship.quality),
-         iv = factor(intervention.group),
          iv.d = factor(if_else(intervention.group == 1, "control", "tx")))
 ```
 
@@ -71,7 +70,6 @@ The likelihood is p(data \| $\theta$), read the other way around: the data are t
 Binomial likelihood L($\theta$ \| S = 3, N = 10)
 
 ```{r, echo = FALSE, message = FALSE}
-library(tidyverse)
 ggplot(tibble(x = c(0, 1)),
        aes(x = x)) +
   stat_function(fun = dbinom, args = list(x = 3, size = 10)) +
@@ -125,7 +123,7 @@ lrtest(mod.b,mod.a)
 
 ```{r}
 #| code-fold: true
-chisqu <- (-2*logLik(mod.b))-(-2*logLik(mod.a))
+chisqu <- as.numeric((-2*logLik(mod.b))-(-2*logLik(mod.a)))
 chisqu
 ```
 
@@ -261,8 +259,6 @@ We use bits rather than direct probabilities because it is easier to add bits th
 
 ## Why the least informative?
 
--   Why the least informative?
-
 -   First, maximizing entropy minimizes the amount of prior information built into the distribution.
 
 -   Second, many physical systems tend to move towards maximal entropy configurations over time. Don't fight nature!
@@ -271,7 +267,7 @@ We use bits rather than direct probabilities because it is easier to add bits th
 
 -   Entropy, H(p), tells us how hard it is to make an accurate prediction. For non-uniform distributions we take a probability-weighted sum of the log probabilities
 
--   H(p) = $-\sum p_ilog(p_i)$
+-   H(p) = $-\sum_i p_i \log(p_i)$
 
 -   Think of tossing 10 pebbles into 5 buckets. Each bucket can have a probability associated with getting a rock. H(p) is maximized when the ps are equal. That is the distribution that can arise the most ways
 
@@ -325,7 +321,7 @@ KL divergence is foundational in many statistical and computational areas. If yo
 
 ## Deviance
 
--  Often we do not know the target. This means we cannot look at a divergence and know if it is good or bad, but we can use them to compare different models. Throw a -2 infront of it and call it a deviance (remember this?).
+-   Often we do not know the target, so we cannot compute the divergence itself. But the truth's part of it, $\sum_i p_i \log(p_i)$, is the same for every model, so to *compare* models we only need each model's log score, $\sum_i \log(q_i)$: the log probability it gives the observed data. Multiply that by −2 and call it a deviance (remember this?).
 
 $D(q) = -2 \sum_i \log(q_i)$
 
@@ -333,7 +329,7 @@ $D(q) = -2 \sum_i \log(q_i)$
 
 -   Deviance is a measure of relative fit: the unknown truth's term is the same constant for every model fit to the same data, so it cancels when we compare models.
 
--   Comparing two models with LRT should yield similar scores as comparing two deviances.
+-   It isn't, really: the LRT statistic *is* the difference between two models' deviances.
 
 But Bayesians don't like NHST, so they sometimes leave off the −2, which only serves to make differences chi-square distributed.
 
@@ -389,7 +385,7 @@ On the same data, every extra term improves the score. On new data, the truth (d
 1.  Cross validation
 2.  Information model fit indexes
 
--   These are often treated as very different, but they estimate the same thing: how well the model will predict new data. AIC, WAIC and LOO are approximations to (leave-one-out) cross validation.
+-   These are often treated as very different, but they estimate the same thing: how well the model will predict new data. AIC and WAIC approximate (leave-one-out) cross validation, and PSIS-LOO is a fast approximation of LOO itself.
 
 ## Cross validation {.smaller}
 
@@ -425,7 +421,7 @@ mr.12$criteria$loo
 
 ## Reading the LOO output
 
--   elpd_loo: the expected log pointwise predictive density for new data (an out-of-sample lppd). Larger is better. Probabilities are always equal or less than 1, and thus log predictive probabilities are 0 or negative
+-   elpd_loo: the expected log pointwise predictive density for new data (an out-of-sample lppd). Larger is better. For discrete outcomes these are probabilities (≤ 1), so the logs are 0 or negative; for continuous outcomes they are densities, which can exceed 1, so elpd can be positive. Only differences between models matter
 
 -   p_loo is the effective number of parameters
 
@@ -877,7 +873,7 @@ The prior density at 0 is about .40 and the posterior density at 0 is about .21,
 ```{r}
 #| code-fold: true
 library(effectsize)
-interpret_bf(1.95)
+interpret_bf(exp(bf_plot$log_BF))
 ```
 
 ## Association with p values
@@ -936,7 +932,7 @@ plot(bf_plot)
 bayesfactor_parameters(posterior2, prior2, direction = "two-sided", null = 0)
 ```
 
-This now suggests anecdotal evidence for H0, whereas before it was anecdotal evidence for H1 (BF ≈ 1.9). The posterior didn't change at all; only the prior did.
+This now suggests anecdotal evidence for H0, whereas before it was anecdotal evidence for H1 (BF ≈ 1.9). We held the posterior fixed to isolate the prior's role (in a real analysis it would shift a little too); only the prior changed.
 
 ## A best-guess prior
 
@@ -1009,7 +1005,7 @@ plot(bf.info.2)
 
 ## Try a wider prior {.smaller}
 
-Same model, same data; only the slope priors change, from Normal(0, 0.2) to Normal(0, 2).
+Same model, same data; the slope priors change from Normal(0, 0.2) to Normal(0, 2). (The sigma prior also differs, Exponential(1) vs. Exponential(0.5), which barely matters for the slopes' BFs.)
 
 ```{r}
 #| code-fold: true
@@ -1102,7 +1098,7 @@ plot(bf.result2)
 
 # Wrapping up
 
-## Multiple comparisons
+## Multiple comparisons {.smaller}
 
 -   In NHST, every extra test raises the chance of a false alarm, so we correct (Bonferroni, etc.), and the correction depends on how many tests you *intended* to run
 -   Kruschke's point: a Bayesian analysis has **one posterior**. Looking at it from many angles (every pairwise difference, every contrast) doesn't change it, so there is nothing to correct
