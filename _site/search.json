@@ -1145,7 +1145,7 @@
     "href": "info-6.html#deviance",
     "title": "Information, NHST and model fit",
     "section": "Deviance",
-    "text": "Deviance\n\nOften we do not know the target, so we cannot compute the divergence itself. But the truth’s part of it, \\(\\sum_i p_i \\log(p_i)\\), is the same for every model, so to compare models we only need each model’s log score, \\(\\sum_i \\log(q_i)\\): the log probability it gives the observed data. Multiply that by −2 and call it a deviance (remember this?).\n\n\\(D(q) = -2 \\sum_i \\log(q_i)\\)\n\nCareful: this is not the residual deviance glm() printed (1545, measured against a saturated model). Here “deviance” just means −2 × the log score, the −2LL we computed for mod.a (976). This is the version Bayesian model comparison uses."
+    "text": "Deviance\n\nOften we do not know the target, so we cannot compute the divergence itself. But the truth’s part of it, \\(\\sum_i p_i \\log(p_i)\\), is the same for every model, so to compare models we only need each model’s log score, \\(\\sum_i \\log(q_i)\\): the log probability it gives the observed data. Multiply that by −2 and call it a deviance. With a single best estimate, that’s just the −2LL from the LRT slides.\n\n\\(D(q) = -2 \\sum_i \\log(q_i)\\)\n\nDeviance is a measure of relative fit: the truth’s term cancels when we compare models fit to the same data. In fact, the LRT statistic is just the difference between two models’ deviances.\nBayesians often drop the −2 (it’s only there to make differences chi-square distributed) and work with the log score directly, as elpd does (Part 2)."
   },
   {
     "objectID": "info-6.html#how-is-this-different-from-lrt",
@@ -8544,7 +8544,7 @@
     "href": "info-6.html#aic-and-bic",
     "title": "Information, NHST and model fit",
     "section": "AIC and BIC",
-    "text": "AIC and BIC\n\nAIC = −2LL + 2k. Here −2LL = 976.47 and k = 3 (intercept, slope, σ), so AIC = 976.47 + 6 = 982.47, the AIC summary() printed.\nBIC = −2LL + k·log(n), a bigger penalty per parameter once n &gt; 7: 976.47 + 3 × log(200) = 992.36.\nBoth are “fit + a penalty for complexity,” using one best estimate, and lower is better. But they answer different questions: AIC estimates how well the model will predict new data (its Bayesian cousins, WAIC and LOO, come in Part 2); BIC approximates the marginal likelihood, so it’s a rough Bayes factor (Part 3)."
+    "text": "AIC and BIC\n\nAIC = −2LL + 2k. Here −2LL = 976.47 and k = 3 (intercept, slope, σ), so AIC = 976.47 + 6 = 982.47, what AIC(mod.a) returns.\nBIC = −2LL + k·log(n), a bigger penalty per parameter once n &gt; 7: 976.47 + 3 × log(200) = 992.36.\nBoth are “fit + a penalty for complexity,” using one best estimate, and lower is better. But they answer different questions: AIC estimates how well the model will predict new data (its Bayesian cousins, WAIC and LOO, come in Part 2); BIC approximates the marginal likelihood, so it’s a rough Bayes factor (Part 3)."
   },
   {
     "objectID": "info-6.html#kl-divergence-in-r",

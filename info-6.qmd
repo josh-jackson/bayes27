@@ -144,36 +144,9 @@ chisqu
 pchisq(chisqu, df = 1, lower.tail=FALSE)
 ```
 
-## Where is deviance coming in?
-
-Residual deviance $= 2\times(LL(\text{saturated model}) - LL(\text{proposed model}))$, where the saturated model has one parameter per data point.
-
-For binary logistic regression the saturated model predicts every 0/1 perfectly, so its LL = 0 and deviance = −2LL. For a Gaussian model it isn't 0, so −2LL and the deviance `glm()` prints differ (for Gaussian `glm()`, the residual deviance is just the residual sum of squares).
-
-## −2LL vs deviance {.smaller}
-
-```{r}
-#| code-fold: true
--2*logLik(mod.a)
-```
-
-```{r}
-#| code-fold: true
-summary(mod.a)
-```
-
-## The LRT with `anova()` {.smaller}
-
-```{r}
-#| code-fold: true
-anova(mod.b, mod.a, test = "LRT")
-```
-
--   **Why did `anova()` and `lrtest()` give slightly different p-values?** For a Gaussian `glm()`, the "Deviance" column in `anova()` is the drop in the residual sum of squares (`r sprintf("%.1f", deviance(mod.b) - deviance(mod.a))`). `anova()` divides it by the estimated residual variance (`r sprintf("%.2f", summary(mod.a)$dispersion)`) to get a χ² of `r sprintf("%.2f", (deviance(mod.b) - deviance(mod.a)) / summary(mod.a)$dispersion)`, while `lrtest()` uses the exact difference in −2LL (`r sprintf("%.2f", chisqu)`). Same idea, slightly different estimate of σ, so p = `r sprintf("%.4f", pchisq((deviance(mod.b) - deviance(mod.a)) / summary(mod.a)$dispersion, 1, lower.tail = FALSE))` vs. `r sprintf("%.4f", pchisq(chisqu, 1, lower.tail = FALSE))`.
-
 ## AIC and BIC {.smaller}
 
--   **AIC = −2LL + 2k.** Here −2LL = `r sprintf("%.2f", -2 * as.numeric(logLik(mod.a)))` and k = 3 (intercept, slope, σ), so AIC = `r sprintf("%.2f", -2 * as.numeric(logLik(mod.a)))` + 6 = `r sprintf("%.2f", AIC(mod.a))`, the AIC `summary()` printed.
+-   **AIC = −2LL + 2k.** Here −2LL = `r sprintf("%.2f", -2 * as.numeric(logLik(mod.a)))` and k = 3 (intercept, slope, σ), so AIC = `r sprintf("%.2f", -2 * as.numeric(logLik(mod.a)))` + 6 = `r sprintf("%.2f", AIC(mod.a))`, what `AIC(mod.a)` returns.
 -   **BIC = −2LL + k·log(n)**, a bigger penalty per parameter once n > 7: `r sprintf("%.2f", -2 * as.numeric(logLik(mod.a)))` + 3 × log(`r nobs(mod.a)`) = `r sprintf("%.2f", BIC(mod.a))`.
 -   Both are "fit + a penalty for complexity," using one best estimate, and lower is better. But they answer different questions: AIC estimates how well the model will predict new data (its Bayesian cousins, WAIC and LOO, come in Part 2); BIC approximates the marginal likelihood, so it's a rough Bayes factor (Part 3).
 
@@ -344,19 +317,13 @@ The closer the model's probabilities are to the truth, the smaller the divergenc
 
 ## Deviance {.smaller}
 
--   Often we do not know the target, so we cannot compute the divergence itself. But the truth's part of it, $\sum_i p_i \log(p_i)$, is the same for every model, so to *compare* models we only need each model's log score, $\sum_i \log(q_i)$: the log probability it gives the observed data. Multiply that by −2 and call it a deviance (remember this?).
+-   Often we do not know the target, so we cannot compute the divergence itself. But the truth's part of it, $\sum_i p_i \log(p_i)$, is the same for every model, so to *compare* models we only need each model's log score, $\sum_i \log(q_i)$: the log probability it gives the observed data. Multiply that by −2 and call it a **deviance**. With a single best estimate, that's just the −2LL from the LRT slides.
 
 $D(q) = -2 \sum_i \log(q_i)$
 
--   Careful: this is *not* the residual deviance `glm()` printed (`r sprintf("%.0f", deviance(mod.a))`, measured against a saturated model). Here "deviance" just means −2 × the log score, the −2LL we computed for `mod.a` (`r sprintf("%.0f", -2 * as.numeric(logLik(mod.a)))`). This is the version Bayesian model comparison uses.
+-   Deviance is a measure of *relative* fit: the truth's term cancels when we compare models fit to the same data. In fact, the LRT statistic is just the difference between two models' deviances.
 
-## How is this different from LRT?
-
--   It isn't, really: the LRT statistic *is* the difference between two models' deviances.
-
--   Deviance is a measure of relative fit: the unknown truth's term is the same constant for every model fit to the same data, so it cancels when we compare models.
-
-But Bayesians don't like NHST, so they sometimes leave off the −2, which only serves to make differences chi-square distributed.
+-   Bayesians often drop the −2 (it's only there to make differences chi-square distributed) and work with the log score directly, as elpd does (Part 2).
 
 ## Log Pointwise Predictive Density {.smaller}
 
