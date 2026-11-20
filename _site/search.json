@@ -1285,7 +1285,7 @@
     "href": "info-6.html#mimicking-nhst",
     "title": "Information, NHST and model fit",
     "section": "Mimicking NHST",
-    "text": "Mimicking NHST\nIf you wanted to appease an editor/reviewer/adviser what do you do (other than teach them Bayes)?\nCIs! Predictions! Model comparisons with waic or loo! ROPE! Probability of direction! Bayes Factors!"
+    "text": "Mimicking NHST\nIf you wanted to appease an editor/reviewer/adviser what do you do (other than teach them Bayes)?\n\nYou already have: CIs (posterior intervals), predictions, and model comparison with LOO\nThis part adds three tools, in this order: probability of direction (pd) → ROPE → Bayes factors"
   },
   {
     "objectID": "info-6.html#running-example-mr.14b",
@@ -1355,14 +1355,14 @@
     "href": "info-6.html#using-a-rope",
     "title": "Information, NHST and model fit",
     "section": "Using a ROPE",
-    "text": "Using a ROPE\n\nCompare our 95% (or whatever value you want) CI/HDPI to see if it overlaps with the ROPE. Some suggest using full posterior rather than a CI.\nThen look at the percentage of that interval (or posterior) inside the ROPE. If it’s very low, the null is rejected; if it’s very high, the null is accepted (the effect is practically zero).\nNote: rejecting the ROPE means rejecting all practically-null values, not just exactly 0."
+    "text": "Using a ROPE\nTwo ways to use it:\n\n% of the posterior inside the ROPE. How much of the posterior is practically zero? Very low: reject the null. Very high: accept it (the effect is practically zero).\nInterval + ROPE decision rule (Kruschke). Compare the 95% interval to the ROPE: entirely outside, reject; entirely inside, accept; overlapping, undecided. equivalence_test() does this.\n\n\nEither way, rejecting the ROPE means rejecting all practically-null values, not just exactly 0."
   },
   {
     "objectID": "info-6.html#a-rope-you-can-defend",
     "href": "info-6.html#a-rope-you-can-defend",
     "title": "Information, NHST and model fit",
     "section": "A ROPE you can defend",
-    "text": "A ROPE you can defend\n\nHappiness is on a 1–10 scale with SD ≈ 1.9.\nSay we decide that a treatment effect smaller than 0.2 points (about 0.1 SD, a fifth of one scale point) is too small to matter to anyone deciding whether to run the program. That’s our ROPE: [−0.2, 0.2].\nWrite the reason down before you look at the posterior, in the units of the outcome. “The default” is not a reason.\n\n\ntx_draws %&gt;%\n  summarise(in_rope  = mean(abs(b_iv.dtx) &lt; 0.2),\n            above    = mean(b_iv.dtx &gt;= 0.2),\n            below    = mean(b_iv.dtx &lt;= -0.2))\n\n# A tibble: 1 × 3\n  in_rope above below\n    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;\n1   0.269 0.703 0.028"
+    "text": "A ROPE you can defend\n\nHappiness is on a 1–10 scale with SD ≈ 1.9.\nSay we decide that a treatment effect smaller than 0.2 points (about 0.1 SD, a fifth of one scale point) is too small to matter to anyone deciding whether to run the program. That’s our ROPE: [−0.2, 0.2].\nWrite the reason down before you look at the posterior, in the units of the outcome. “The default” is not a reason.\nMethod 1, by hand: the share of draws inside, above and below the ROPE.\n\n\ntx_draws %&gt;%\n  summarise(in_rope  = mean(abs(b_iv.dtx) &lt; 0.2),\n            above    = mean(b_iv.dtx &gt;= 0.2),\n            below    = mean(b_iv.dtx &lt;= -0.2))\n\n# A tibble: 1 × 3\n  in_rope above below\n    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;\n1   0.269 0.703 0.028"
   },
   {
     "objectID": "info-6.html#the-same-with-rope",
@@ -1530,7 +1530,7 @@
     "href": "info-6.html#same-data-different-bf",
     "title": "Information, NHST and model fit",
     "section": "Same data, different BF",
-    "text": "Same data, different BF\n\nbayesfactor_parameters(posterior2, prior2, direction = \"two-sided\", null = 0)\n\nBayes Factor (Savage-Dickey density ratio)\n\nBF   \n-----\n0.389\n\n* Evidence Against The Null: 0\n\n\nThis now suggests anecdotal evidence for H0, whereas before it was anecdotal evidence for H1 (BF ≈ 1.9). We held the posterior fixed to isolate the prior’s role (in a real analysis it would shift a little too); only the prior changed."
+    "text": "Same data, different BF\n\n\nCode\nlibrary(patchwork)\n(plot(bf_plot) + ggtitle(sprintf(\"Prior Normal(0, 1): BF = %.2f\", exp(bf_plot$log_BF)))) +\n  (plot(bf_2) + ggtitle(sprintf(\"Prior Normal(0, 5): BF = %.2f\", exp(bf_2$log_BF)))) +\n  plot_layout(guides = \"collect\") &\n  theme(text = element_text(size = 14), legend.position = \"bottom\")\n\n\n\n\n\n\n\n\n\nAnecdotal evidence for H1 becomes anecdotal evidence for H0. We held the posterior fixed to isolate the prior’s role (in a real analysis it would shift a little too); only the prior changed."
   },
   {
     "objectID": "info-6.html#a-best-guess-prior",
@@ -1558,7 +1558,7 @@
     "href": "info-6.html#with-a-brms-model",
     "title": "Information, NHST and model fit",
     "section": "With a brms model",
-    "text": "With a brms model\nEasy with brms. You need sample_prior = \"yes\" so brms saves draws from the prior (the BF compares the prior and posterior at 0).\n\n\nCode\ninfo.2 &lt;-\n  brm(family = gaussian,\n      happiness ~ 1 + SS_c + FQ_c,\n      prior = c(prior(normal(5, 2), class = Intercept),\n                prior(normal(0, .2), class = b, coef = SS_c),\n                prior(normal(0, .2), class = b, coef = FQ_c),\n                prior(exponential(.5), class = sigma)),\n      iter = 11000, warmup = 1000, chains = 4, cores = 4,\n      data = MR,\n      sample_prior = \"yes\",\n      save_pars = save_pars(all = TRUE),\n      backend = \"cmdstanr\",\n      file = \"info.2b\")\n\n\nHappiness predicted by school success and friendship quality (both centered), with fairly narrow Normal(0, 0.2) priors on the slopes. BFs computed from draws are noisy, so we take 40,000 (4 chains × 10,000), the minimum bayestestR recommends."
+    "text": "With a brms model\nEasy with brms. You need sample_prior = \"yes\" so brms saves draws from the prior (the BF compares the prior and posterior at 0). mr.14b wasn’t fit that way, so we switch to a new model.\n\n\nCode\ninfo.2 &lt;-\n  brm(family = gaussian,\n      happiness ~ 1 + SS_c + FQ_c,\n      prior = c(prior(normal(5, 2), class = Intercept),\n                prior(normal(0, .2), class = b, coef = SS_c),\n                prior(normal(0, .2), class = b, coef = FQ_c),\n                prior(exponential(.5), class = sigma)),\n      iter = 11000, warmup = 1000, chains = 4, cores = 4,\n      data = MR,\n      sample_prior = \"yes\",\n      save_pars = save_pars(all = TRUE),\n      backend = \"cmdstanr\",\n      file = \"info.2b\")\n\n\nHappiness predicted by school success and friendship quality (both centered), with fairly narrow Normal(0, 0.2) priors on the slopes. BFs computed from draws are noisy, so we take 40,000 (4 chains × 10,000), the minimum bayestestR recommends."
   },
   {
     "objectID": "info-6.html#plotting-the-bfs",
@@ -1614,7 +1614,7 @@
     "href": "info-6.html#which-tool-answers-which-question",
     "title": "Information, NHST and model fit",
     "section": "Which tool answers which question?",
-    "text": "Which tool answers which question?\n\n\n\n\n\n\n\n\nQuestion\nTool\nPrior matters?\n\n\n\n\nWhat is the effect, and how uncertain?\nMedian + 95% interval, plotted\nA little\n\n\nWhich model predicts new data best?\nloo_compare() + Pareto k\nA little\n\n\nVariance explained in this sample?\nBayesian \\(R^2\\)\nA little\n\n\nHow sure of the direction?\npd, p_direction()\nA little\n\n\nBig enough to matter?\nROPE, rope()\nA little\n\n\n“Exactly 0” vs. “like my prior”?\nBF, bayesfactor_parameters()\nA lot"
+    "text": "Which tool answers which question?\n\n\n\n\n\n\n\n\nQuestion\nTool\nPrior matters?\n\n\n\n\nWhat is the effect, and how uncertain?\nMedian + 95% interval, plotted\nA little\n\n\nWhich model predicts new data best?\nloo_compare() + Pareto k\nA little\n\n\nVariance explained in this sample?\nBayesian \\(R^2\\)\nA little\n\n\nHow sure of the direction?\npd, p_direction()\nA little\n\n\nBig enough to matter?\nROPE, rope()\nA little\n\n\n“Exactly 0” vs. “like my prior”?\nBF, bayesfactor_parameters()\nA lot\n\n\nWhich model better predicted these data?\nBF, bayes_factor()\nA lot"
   },
   {
     "objectID": "info-6.html#what-to-report",
@@ -8566,5 +8566,40 @@
     "title": "Information, NHST and model fit",
     "section": "mr.12 summary",
     "text": "mr.12 summary\n\n\nCode\nsummary(mr.12)\n\n\n Family: gaussian \n  Links: mu = identity \nFormula: happiness ~ 0 + iv.d + SS_c \n   Data: MR (Number of observations: 118) \n  Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;\n         total post-warmup draws = 4000\n\nRegression Coefficients:\n            Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\niv.dcontrol     4.96      0.25     4.46     5.46 1.00     4892     3081\niv.dtx          5.36      0.19     4.99     5.73 1.00     4328     2930\nSS_c            0.29      0.05     0.20     0.38 1.00     4780     2934\n\nFurther Distributional Parameters:\n      Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nsigma     1.64      0.11     1.44     1.87 1.00     4369     3196\n\nDraws were sampled using sample(hmc). For each parameter, Bulk_ESS\nand Tail_ESS are effective sample size measures, and Rhat is the potential\nscale reduction factor on split chains (at convergence, Rhat = 1)."
+  },
+  {
+    "objectID": "info-6.html#method-1-with-rope",
+    "href": "info-6.html#method-1-with-rope",
+    "title": "Information, NHST and model fit",
+    "section": "Method 1 with rope()",
+    "text": "Method 1 with rope()\nparameters picks out the one parameter the ROPE was built for; ci = 1 uses the full posterior.\n\nrope(mr.14b, range = c(-0.2, 0.2), parameters = \"^b_iv.dtx$\", ci = 1)\n\n# Proportion of samples inside the ROPE [-0.20, 0.20]:\n\nParameter | Inside ROPE\n-----------------------\niv.dtx    |     26.88 %\n\n\nAbout 27% of the posterior is practically zero and about 70% is a meaningful benefit. We can’t call it either “no effect” or “an effect” with confidence; we need more data."
+  },
+  {
+    "objectID": "info-6.html#method-2-equivalence-test",
+    "href": "info-6.html#method-2-equivalence-test",
+    "title": "Information, NHST and model fit",
+    "section": "Method 2: equivalence test",
+    "text": "Method 2: equivalence test\n\nequivalence_test(mr.14b, range = c(-0.2, 0.2), ci = 0.95, parameters = \"^b_iv.dtx$\")\n\n# Test for Practical Equivalence\n\n  ROPE: [-0.20 0.20]\n\nParameter |        H0 | inside ROPE |       95% ETI\n---------------------------------------------------\niv.dtx    | Undecided |     28.29 % | [-0.21, 0.92]\n\n\n\nThe rule (Kruschke): H0 Rejected if the 95% interval is entirely outside the ROPE, Accepted if entirely inside, otherwise Undecided.\n“inside ROPE” here is the share of the 95% interval inside the ROPE, not of the whole posterior.\nSame verdict as Method 1: we can’t yet tell a small benefit from none."
+  },
+  {
+    "objectID": "info-6.html#sensitivity-a-wider-rope-a-99-interval",
+    "href": "info-6.html#sensitivity-a-wider-rope-a-99-interval",
+    "title": "Information, NHST and model fit",
+    "section": "Sensitivity: a wider ROPE, a 99% interval",
+    "text": "Sensitivity: a wider ROPE, a 99% interval\n\n\nCode\nplot(rope(mr.14b, range = c(-0.3, 0.3), ci = 0.99, parameters = \"^b_iv.dtx$\"))\n\n\n\nWiden the ROPE to ±0.3 and 41% of the posterior is “practically zero” (vs. 27% with ±0.2). The ROPE and the interval change the answer, which is why both must be chosen before looking."
+  },
+  {
+    "objectID": "info-6.html#comparing-whole-models-with-a-bf",
+    "href": "info-6.html#comparing-whole-models-with-a-bf",
+    "title": "Information, NHST and model fit",
+    "section": "Comparing whole models with a BF",
+    "text": "Comparing whole models with a BF\nThe BF’s definition is about two models. With save_pars(all = TRUE), brms can estimate each model’s marginal likelihood by bridge sampling. Compare info.2 with the same model minus friendship quality:\n\n\nCode\ninfo.3 &lt;-\n  brm(family = gaussian,\n      happiness ~ 1 + SS_c,\n      prior = c(prior(normal(5, 2), class = Intercept),\n                prior(normal(0, .2), class = b, coef = SS_c),\n                prior(exponential(.5), class = sigma)),\n      iter = 11000, warmup = 1000, chains = 4, cores = 4,\n      data = MR,\n      save_pars = save_pars(all = TRUE),\n      backend = \"cmdstanr\",\n      file = \"info.3\")\n\n\n\nset.seed(2027)\nbf_23 &lt;- bayes_factor(info.2, info.3, silent = TRUE)\n\n\nbf_23$bf   # in favor of info.2 (with friendship quality)\n\n[1] 10.77197\n\n\n\nAbout the same as the Savage–Dickey BF for the friendship-quality slope (10.3): the same question (“is the slope 0, or like its prior?”) asked two ways. Bridge sampling also wobbles a little from run to run."
+  },
+  {
+    "objectID": "info-6.html#bf-vs.-loo-for-the-same-two-models",
+    "href": "info-6.html#bf-vs.-loo-for-the-same-two-models",
+    "title": "Information, NHST and model fit",
+    "section": "BF vs. LOO for the same two models",
+    "text": "BF vs. LOO for the same two models\n\n\nCode\ninfo.2 &lt;- add_criterion(info.2, \"loo\")\ninfo.3 &lt;- add_criterion(info.3, \"loo\")\nloo_compare(info.2, info.3)\n\n\n  model elpd_diff se_diff p_worse       diag_diff diag_elpd\n info.2       0.0     0.0      NA                          \n info.3      -3.3     3.2    0.85 |elpd_diff| &lt; 4          \n\n\n\nBF ≈ 11: “strong evidence the friendship-quality slope isn’t 0” (given its prior).\nLOO: elpd_diff = -3.3 (se 3.2), under 4: adding it barely helps predict new students.\nNot a contradiction: the BF asks which model better predicted these data, averaging over the prior; LOO asks which will predict new data, using the posterior. Same lesson as the interaction: say which question you’re answering."
   }
 ]

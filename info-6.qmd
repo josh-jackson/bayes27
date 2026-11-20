@@ -663,7 +663,8 @@ Bayesians typically do not use "standard" NHST. Why?
 
 If you wanted to appease an editor/reviewer/adviser what do you do (other than teach them Bayes)?
 
-CIs! Predictions! Model comparisons with waic or loo! ROPE! Probability of direction! Bayes Factors!
+-   You already have: CIs (posterior intervals), predictions, and model comparison with LOO
+-   This part adds three tools, in this order: **probability of direction** (pd) → **ROPE** → **Bayes factors**
 
 ## Running example: `mr.14b` {.smaller}
 
@@ -716,11 +717,13 @@ tx_draws %>%
 
 About `r round(100 * mean(tx_draws$b_iv.dtx > 0))`% of the posterior says the treatment helps (at average school success). Suggestive, not conclusive: roughly a two-sided p ≈ `r sub("^0", "", sprintf("%.2f", 2 * (1 - mean(tx_draws$b_iv.dtx > 0))))`.
 
-## `describe_posterior()`
+## Downsides of PD
 
-```{r}
-describe_posterior(mr.14b)
-```
+-   You can find a high PD for an effect that is quite small. Similar to a p \< .05 with a large sample size. Is it still meaningful?
+
+-   Leads to other NHST foibles like dichotomous thinking
+
+-   pd = 95% matches a *one*-tailed p of .05. To match the usual two-tailed .05, you'd need pd = 97.5%
 
 ## Real, but not much help predicting? {.smaller}
 
@@ -733,14 +736,6 @@ int_draws <- spread_draws(mr.14b, `b_iv.dtx:SS_c`)$`b_iv.dtx:SS_c`
 -   Yet adding it improved LOO by only `r sprintf("%.1f", abs(cmp_1214[2, "elpd_diff"]))` (se `r sprintf("%.1f", cmp_1214[2, "se_diff"])`).
 -   No contradiction: they answer different questions. pd asks *how sure are we about the direction of this parameter?* LOO asks *how much better are predictions for new students?* With σ ≈ `r sprintf("%.1f", median(as_draws_df(mr.14b)$sigma))`, most of each student's happiness is noise the interaction can't touch, so even a clearly nonzero slope difference moves predictions only a little.
 -   A parameter can be clearly nonzero and still add little predictive value (and, with lots of data, vice versa). Pick the tool that matches your question.
-
-## Downsides of PD
-
--   You can find a high PD for an effect that is quite small. Similar to a p \< .05 with a large sample size. Is it still meaningful?
-
--   Leads to other NHST foibles like dichotomous thinking
-
--   pd = 95% matches a *one*-tailed p of .05. To match the usual two-tailed .05, you'd need pd = 97.5%
 
 ## The nil hypothesis
 
@@ -768,13 +763,14 @@ int_draws <- spread_draws(mr.14b, `b_iv.dtx:SS_c`)$`b_iv.dtx:SS_c`
 
 2.  Accept the null (practically), which standard NHST can't do: it can only fail to reject (frequentists need a separate equivalence test, e.g., TOST). That is, rather than "fail to reject the null," we can say that, given the data, the effect has an XX% probability of being practically zero.
 
-## Using a ROPE
+## Using a ROPE {.smaller}
 
--   Compare our 95% (or whatever value you want) CI/HDPI to see if it overlaps with the ROPE. Some suggest using full posterior rather than a CI.
+Two ways to use it:
 
--   Then look at the percentage of that interval (or posterior) inside the ROPE. If it's very low, the null is rejected; if it's very high, the null is accepted (the effect is practically zero).
+1.  **% of the posterior inside the ROPE.** How much of the posterior is practically zero? Very low: reject the null. Very high: accept it (the effect is practically zero).
+2.  **Interval + ROPE decision rule (Kruschke).** Compare the 95% interval to the ROPE: entirely outside, reject; entirely inside, accept; overlapping, undecided. `equivalence_test()` does this.
 
--   Note: rejecting the ROPE means rejecting *all* practically-null values, not just exactly 0.
+-   Either way, rejecting the ROPE means rejecting *all* practically-null values, not just exactly 0.
 
 ## Choosing ROPE values
 
@@ -810,6 +806,7 @@ plot(rope(mr.14b, range = c(-0.2, 0.2)))
 -   Happiness is on a 1–10 scale with SD ≈ `r round(sd(MR$happiness), 1)`.
 -   Say we decide that a treatment effect smaller than **0.2 points** (about 0.1 SD, a fifth of one scale point) is too small to matter to anyone deciding whether to run the program. That's our ROPE: [−0.2, 0.2].
 -   Write the reason down *before* you look at the posterior, in the units of the outcome. "The default" is not a reason.
+-   Method 1, by hand: the share of draws inside, above and below the ROPE.
 
 ```{r}
 tx_draws %>%
@@ -818,7 +815,7 @@ tx_draws %>%
             below    = mean(b_iv.dtx <= -0.2))
 ```
 
-## The same with `rope()`
+## Method 1 with `rope()`
 
 `parameters` picks out the one parameter the ROPE was built for; `ci = 1` uses the full posterior.
 
@@ -827,6 +824,36 @@ rope(mr.14b, range = c(-0.2, 0.2), parameters = "^b_iv.dtx$", ci = 1)
 ```
 
 About `r round(100 * mean(abs(tx_draws$b_iv.dtx) < 0.2))`% of the posterior is practically zero and about `r round(100 * mean(tx_draws$b_iv.dtx >= 0.2))`% is a meaningful benefit. We can't call it either "no effect" or "an effect" with confidence; we need more data.
+
+## Method 2: equivalence test {.smaller}
+
+```{r}
+equivalence_test(mr.14b, range = c(-0.2, 0.2), ci = 0.95, parameters = "^b_iv.dtx$")
+```
+
+-   The rule (Kruschke): H0 **Rejected** if the 95% interval is entirely outside the ROPE, **Accepted** if entirely inside, otherwise **Undecided**.
+-   "inside ROPE" here is the share of the *95% interval* inside the ROPE, not of the whole posterior.
+-   Same verdict as Method 1: we can't yet tell a small benefit from none.
+
+## Sensitivity: a wider ROPE, a 99% interval
+
+```{r}
+#| code-fold: true
+#| fig-height: 3.5
+plot(rope(mr.14b, range = c(-0.3, 0.3), ci = 0.99, parameters = "^b_iv.dtx$"))
+```
+
+Widen the ROPE to ±0.3 and `r round(100 * mean(abs(tx_draws$b_iv.dtx) < 0.3))`% of the posterior is "practically zero" (vs. `r round(100 * mean(abs(tx_draws$b_iv.dtx) < 0.2))`% with ±0.2). The ROPE and the interval change the answer, which is why both must be chosen before looking.
+
+## `describe_posterior()` with our ROPE
+
+The defended ROPE, for the one parameter it was built for, over the full posterior:
+
+```{r}
+describe_posterior(mr.14b, test = c("p_direction", "rope"),
+                   rope_range = c(-0.2, 0.2), rope_ci = 1,
+                   parameters = "^b_iv.dtx$")
+```
 
 ## A publication-ready posterior {.smaller}
 
@@ -850,36 +877,6 @@ ggplot(tx_draws, aes(x = b_iv.dtx)) +
                          tx_sum$med, tx_sum$lo, tx_sum$hi, 100 * tx_sum$pd, 100 * tx_sum$rope)) +
   theme_classic(base_size = 13) +
   theme(plot.caption = element_text(hjust = 0))
-```
-
-## A wider ROPE, 99% interval
-
-```{r}
-#| code-fold: true
-#| fig-height: 4
-plot(rope(mr.14b, range = c(-0.3, 0.3), ci = 0.99))
-```
-
-A wider ROPE or a wider interval changes the answer, which is why the ROPE (and interval) must be chosen before looking.
-
-## Equivalence test {.smaller}
-
-```{r}
-result <- equivalence_test(mr.14b, range = c(-0.3, 0.3), ci = c(0.95))
-result
-```
-
--   The rule (Kruschke): H0 **Rejected** if the 95% interval is entirely outside the ROPE, **Accepted** if entirely inside, otherwise **Undecided**.
--   "inside ROPE" here is the share of the *95% interval* inside the ROPE, not of the whole posterior.
-
-## `describe_posterior()` with our ROPE
-
-The defended ROPE, for the one parameter it was built for, over the full posterior:
-
-```{r}
-describe_posterior(mr.14b, test = c("p_direction", "rope"),
-                   rope_range = c(-0.2, 0.2), rope_ci = 1,
-                   parameters = "^b_iv.dtx$")
 ```
 
 ## Bayes Factors
@@ -921,6 +918,22 @@ bayesfactor_parameters(posterior, prior, direction = "two-sided", null = 0)
 
 The prior density at 0 is about .40 and the posterior density at 0 is about .21, so BF ≈ .40 / .21 ≈ 1.9: the data are about twice as likely under "there is an effect" (with this prior) as under "the effect is exactly 0".
 
+## Savage–Dickey
+
+-   This method is called the Savage–Dickey density ratio: the posterior density at the null value divided by the prior density there (or its inverse for BF10). It looks only at the height of the two curves at one point.
+
+-   That's good in that it parallels NHST's point null. It's bad in that it says little about the rest of the posterior: where most of it sits, or how wide it is.
+
+## BF interpretation
+
+-   Extent to which the data sway our relative belief from one hypothesis to the other
+
+-   Strength of evidence from data about the hypotheses
+
+-   Relative predictive accuracy of one hypothesis over another
+
+-   Has the null hypothesis of an absence of an effect become more or less credible?
+
 ## Proposed cutoffs {.smaller}
 
 | BF10         | Interpretation (Jeffreys, 1961; Lee & Wagenmakers, 2013) |
@@ -937,16 +950,6 @@ The prior density at 0 is about .40 and the posterior density at 0 is about .21,
 | 1/100 - 1/30 | Very strong evidence for H0  |
 | \< 1/100     | Extreme evidence for H0      |
 
-## BF interpretation
-
--   Extent to which the data sway our relative belief from one hypothesis to the other
-
--   Strength of evidence from data about the hypotheses
-
--   Relative predictive accuracy of one hypothesis over another
-
--   Has the null hypothesis of an absence of an effect become more or less credible?
-
 ## Interpreting a BF
 
 ```{r}
@@ -954,24 +957,6 @@ The prior density at 0 is about .40 and the posterior density at 0 is about .21,
 library(effectsize)
 interpret_bf(exp(bf_plot$log_BF))
 ```
-
-## Association with p values
-
--   Similar in that they both provide a continuous metric to compare two hypotheses
-
--   For a given test, sample size and prior, a p-value can be converted into a Bayes factor and vice versa
-
--   Remember that p values are a composite of an effect size and sample size. Same is true with BF.
-
-## Alternative to p-values
-
--   Easier interpretation (a ratio of two marginal likelihoods: how well each hypothesis predicted the data). P values are misunderstood.
-
--   Doesn't involve imaginary sampling distributions
-
--   Can provide evidence in favor of a null
-
--   Less dichotomous thinking as there isn't a BF one *needs* to surpass
 
 ## One major downside
 
@@ -991,27 +976,21 @@ bf_2<- bayesfactor_parameters(posterior2, prior2, direction = "two-sided", null 
 bf_2
 ```
 
-## The wider prior, plotted
+## Same data, different BF {.nostretch}
 
 ```{r}
-plot(bf_2)
+#| code-fold: true
+#| fig-height: 4
+#| fig-width: 10
+#| out-width: "100%"
+library(patchwork)
+(plot(bf_plot) + ggtitle(sprintf("Prior Normal(0, 1): BF = %.2f", exp(bf_plot$log_BF)))) +
+  (plot(bf_2) + ggtitle(sprintf("Prior Normal(0, 5): BF = %.2f", exp(bf_2$log_BF)))) +
+  plot_layout(guides = "collect") &
+  theme(text = element_text(size = 14), legend.position = "bottom")
 ```
 
-## The original, for comparison
-
-Here was the original BF
-
-```{r}
-plot(bf_plot)
-```
-
-## Same data, different BF
-
-```{r}
-bayesfactor_parameters(posterior2, prior2, direction = "two-sided", null = 0)
-```
-
-This now suggests anecdotal evidence for H0, whereas before it was anecdotal evidence for H1 (BF ≈ 1.9). We held the posterior fixed to isolate the prior's role (in a real analysis it would shift a little too); only the prior changed.
+Anecdotal evidence for H1 becomes anecdotal evidence for H0. We held the posterior fixed to isolate the prior's role (in a real analysis it would shift a little too); only the prior changed.
 
 ## A best-guess prior
 
@@ -1034,15 +1013,9 @@ BF ≈ 1: "equal evidence for H1 and H0"
 plot(bf_3)
 ```
 
-## Savage–Dickey
-
--   This method is called the Savage–Dickey density ratio: the posterior density at the null value divided by the prior density there (or its inverse for BF10). It looks only at the height of the two curves at one point.
-
--   That's good in that it parallels NHST's point null. It's bad in that it says little about the rest of the posterior: where most of it sits, or how wide it is.
-
 ## With a brms model {.smaller}
 
-Easy with brms. You need `sample_prior = "yes"` so brms saves draws from the prior (the BF compares the prior and posterior at 0).
+Easy with brms. You need `sample_prior = "yes"` so brms saves draws from the prior (the BF compares the prior and posterior at 0). `mr.14b` wasn't fit that way, so we switch to a new model.
 
 ```{r}
 #| code-fold: true
@@ -1165,6 +1138,73 @@ The Bayes factor represents the degree by which the distribution mass of the pos
 plot(bf.result2)
 ```
 
+## Comparing whole models with a BF {.smaller}
+
+The BF's definition is about two *models*. With `save_pars(all = TRUE)`, brms can estimate each model's marginal likelihood by bridge sampling. Compare `info.2` with the same model minus friendship quality:
+
+```{r}
+#| code-fold: true
+info.3 <-
+  brm(family = gaussian,
+      happiness ~ 1 + SS_c,
+      prior = c(prior(normal(5, 2), class = Intercept),
+                prior(normal(0, .2), class = b, coef = SS_c),
+                prior(exponential(.5), class = sigma)),
+      iter = 11000, warmup = 1000, chains = 4, cores = 4,
+      data = MR,
+      save_pars = save_pars(all = TRUE),
+      backend = "cmdstanr",
+      file = "info.3")
+```
+
+```{r}
+#| results: hide
+set.seed(2027)
+bf_23 <- bayes_factor(info.2, info.3, silent = TRUE)
+```
+
+```{r}
+bf_23$bf   # in favor of info.2 (with friendship quality)
+```
+
+-   About the same as the Savage–Dickey BF for the friendship-quality slope (`r sprintf("%.1f", exp(bf.info.2$log_BF[bf.info.2$Parameter == "b_FQ_c"]))`): the same question ("is the slope 0, or like its prior?") asked two ways. Bridge sampling also wobbles a little from run to run.
+
+## BF vs. LOO for the same two models {.smaller}
+
+```{r}
+#| code-fold: true
+info.2 <- add_criterion(info.2, "loo")
+info.3 <- add_criterion(info.3, "loo")
+loo_compare(info.2, info.3)
+```
+
+```{r}
+#| echo: false
+cmp_23 <- loo_compare(info.2, info.3)
+```
+
+-   BF ≈ `r sprintf("%.0f", bf_23$bf)`: "strong evidence the friendship-quality slope isn't 0" (given its prior).
+-   LOO: elpd_diff = `r sprintf("%.1f", cmp_23[2, "elpd_diff"])` (se `r sprintf("%.1f", cmp_23[2, "se_diff"])`), under 4: adding it barely helps predict new students.
+-   Not a contradiction: the BF asks which model better predicted *these* data, averaging over the prior; LOO asks which will predict *new* data, using the posterior. Same lesson as the interaction: say which question you're answering.
+
+## Association with p values
+
+-   Similar in that they both provide a continuous metric to compare two hypotheses
+
+-   For a given test, sample size and prior, a p-value can be converted into a Bayes factor and vice versa
+
+-   Remember that p values are a composite of an effect size and sample size. Same is true with BF.
+
+## Alternative to p-values
+
+-   Easier interpretation (a ratio of two marginal likelihoods: how well each hypothesis predicted the data). P values are misunderstood.
+
+-   Doesn't involve imaginary sampling distributions
+
+-   Can provide evidence in favor of a null
+
+-   Less dichotomous thinking as there isn't a BF one *needs* to surpass
+
 ## Shortcomings of Bayes Factors
 
 1.  Heavy reliance on priors. The marginal likelihood is an average taken over the prior, so Bayes factors can be seen as relatively subjective
@@ -1199,6 +1239,7 @@ plot(bf.result2)
 | How sure of the *direction*? | pd, `p_direction()` | A little |
 | Big enough to *matter*? | ROPE, `rope()` | A little |
 | "Exactly 0" vs. "like my prior"? | BF, `bayesfactor_parameters()` | **A lot** |
+| Which model better predicted *these* data? | BF, `bayes_factor()` | **A lot** |
 
 : {tbl-colwidths="[42,40,18]"}
 
