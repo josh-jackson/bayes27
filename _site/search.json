@@ -1873,7 +1873,7 @@
     "href": "glm-7.html#from-logits-to-probabilities-by-hand",
     "title": "GLMs: logistic and multinomial regression",
     "section": "From logits to probabilities by hand",
-    "text": "From logits to probabilities by hand\n\n# posterior means from glm.4; ±3.73 = ±1 SD of IQ\ntibble(b0   = fixef(glm.4)[\"Intercept\", \"Estimate\"],\n       b1   = fixef(glm.4)[\"IQ_c\", \"Estimate\"],\n       IQ_c = c(-3.73, -2, 0, 2, 3.73)) %&gt;%\n  mutate(logit_mu = b0 + b1 * IQ_c ) %&gt;%\n  mutate(Not_premature   = 1 / (1 + exp(-logit_mu))) %&gt;%\n  mutate(Not_premature2   = inv_logit_scaled(logit_mu))\n\n# A tibble: 5 × 6\n     b0     b1  IQ_c logit_mu Not_premature Not_premature2\n  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;         &lt;dbl&gt;          &lt;dbl&gt;\n1  1.62 0.0794 -3.73     1.32         0.790          0.790\n2  1.62 0.0794 -2        1.46         0.812          0.812\n3  1.62 0.0794  0        1.62         0.835          0.835\n4  1.62 0.0794  2        1.78         0.856          0.856\n5  1.62 0.0794  3.73     1.92         0.872          0.872"
+    "text": "From logits to probabilities by hand\n\n# posterior means from glm.4; ±3.73 = ±1 SD of IQ\ntibble(b0   = fixef(glm.4)[\"Intercept\", \"Estimate\"],\n       b1   = fixef(glm.4)[\"IQ_c\", \"Estimate\"],\n       IQ_c = c(-3.73, -2, 0, 2, 3.73)) %&gt;%\n  mutate(logit_mu = b0 + b1 * IQ_c ) %&gt;%\n  mutate(Not_premature   = 1 / (1 + exp(-logit_mu))) %&gt;%\n  mutate(Not_premature2   = inv_logit_scaled(logit_mu))\n\n# A tibble: 5 × 6\n     b0     b1  IQ_c logit_mu Not_premature Not_premature2\n  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;         &lt;dbl&gt;          &lt;dbl&gt;\n1  1.62 0.0794 -3.73     1.32         0.790          0.790\n2  1.62 0.0794 -2        1.46         0.812          0.812\n3  1.62 0.0794  0        1.62         0.835          0.835\n4  1.62 0.0794  2        1.78         0.856          0.856\n5  1.62 0.0794  3.73     1.92         0.872          0.872\n\n\nBecause IQ is centered, the intercept is the log odds at average IQ: plogis(1.62) = 0.835, the IQ_c = 0 row."
   },
   {
     "objectID": "glm-7.html#predictions-with-marginaleffects",
@@ -1894,7 +1894,7 @@
     "href": "glm-7.html#on-the-probability-scale",
     "title": "GLMs: logistic and multinomial regression",
     "section": "On the probability scale",
-    "text": "On the probability scale\n\navg_slopes(glm.4)\n\n\n Estimate     2.5 % 97.5 %\n   0.0109 -0.000478 0.0224\n\nTerm: IQ_c\nType: response\nComparison: dY/dX\n\n\n\nOn the probability scale: averaged over the sample, one more IQ point raises Pr(not premature) by about 1 percentage point."
+    "text": "On the probability scale\n\navg_slopes(glm.4)\n\n\n Estimate     2.5 % 97.5 %\n   0.0109 -0.000478 0.0224\n\nTerm: IQ_c\nType: response\nComparison: dY/dX\n\n\n\nOn the probability scale: averaged over the sample, one more IQ point raises Pr(not premature) by about 1 percentage point.\nQuick check, divide by 4: the logistic curve is steepest at p = .5, where the probability slope is b/4. Here 0.079 / 4 ≈ 2.0 points, the most one IQ point can ever move the probability. We’re up near p = .83, so the real slope is smaller."
   },
   {
     "objectID": "glm-7.html#the-probability-slope-isnt-constant",
@@ -8629,5 +8629,89 @@
     "title": "GLMs: logistic and multinomial regression",
     "section": "Reading the slopes",
     "text": "Reading the slopes\n\nEach slope is the change in the log odds of that career versus career 3 per unit of family income (0 to 1 here, so one unit is the whole range).\nmu2_family_income = -1.84: going from the lowest to the highest family income multiplies the odds of career 2 vs. career 3 by about 0.16.\nmu1_family_income = -1.93: likewise for career 1 vs. 3 (about 0.15), but with a wide interval.\nCareful: a slope says how a career does relative to the reference, not whether its own probability goes up or down. Probabilities must sum to 1, so a category with a negative slope can still gain probability if the others fall faster. Plot the predicted probabilities (next)."
+  },
+  {
+    "objectID": "glm-7.html#why-not-just-use-lm",
+    "href": "glm-7.html#why-not-just-use-lm",
+    "title": "GLMs: logistic and multinomial regression",
+    "section": "Why not just use lm()?",
+    "text": "Why not just use lm()?\nOur example: does IQ predict not dying prematurely (1 = no, 0 = yes)?\n\n\nCode\nlibrary(tidyverse)\nmort0 &lt;- read.csv(\"mortality.csv\") %&gt;% mutate(IQ_c = IQ - mean(IQ))\nols       &lt;- lm(NOT.premature ~ IQ_c, data = mort0)\nlogit_fit &lt;- glm(NOT.premature ~ IQ_c, family = binomial, data = mort0)\ntibble(IQ_c = seq(-35, 35, length.out = 200)) %&gt;%\n  mutate(`lm(): straight line` = predict(ols, newdata = .),\n         `logistic: S-curve`   = predict(logit_fit, newdata = ., type = \"response\")) %&gt;%\n  pivot_longer(-IQ_c, names_to = \"model\", values_to = \"pred\") %&gt;%\n  ggplot(aes(IQ_c, pred)) +\n  annotate(\"rect\", xmin = min(mort0$IQ_c), xmax = max(mort0$IQ_c), ymin = -Inf, ymax = Inf, fill = \"grey92\") +\n  geom_hline(yintercept = c(0, 1), linetype = \"dashed\") +\n  geom_line(aes(colour = model), linewidth = 1) +\n  labs(x = \"IQ (centered; shaded = range of our data)\", y = \"Predicted Pr(not premature)\", colour = NULL) +\n  theme_classic(base_size = 14) + theme(legend.position = \"top\")\n\n\n\n\n\n\n\n\n\n\nlm() fits a straight line. Inside our data it looks fine, but push IQ higher and it predicts more than 100% survival.\nAt any IQ, a 0/1 outcome has variance p(1 − p), which changes with p, so lm()’s constant-variance assumption can’t hold.\nA GLM keeps the linear model but runs it through a link, so predictions stay in (0, 1)."
+  },
+  {
+    "objectID": "glm-7.html#odds-briefly",
+    "href": "glm-7.html#odds-briefly",
+    "title": "GLMs: logistic and multinomial regression",
+    "section": "Odds, briefly",
+    "text": "Odds, briefly\nOdds = p / (1 − p): how many times more likely the event is to happen than not.\n\n\n\np\nodds\nlog odds\n\n\n\n\n.50\n1 (1 to 1)\n0\n\n\n.80\n4 (4 to 1)\n1.39\n\n\n.20\n0.25 (1 to 4)\n−1.39\n\n\n.95\n19 (19 to 1)\n2.94\n\n\n\n\nOdds run from 0 to ∞; log odds from −∞ to ∞, symmetric around p = .5.\nIn our data 83% did not die prematurely: odds ≈ .83 / .17 ≈ 4.9."
+  },
+  {
+    "objectID": "glm-7.html#wheres-σ",
+    "href": "glm-7.html#wheres-σ",
+    "title": "GLMs: logistic and multinomial regression",
+    "section": "Where’s σ?",
+    "text": "Where’s σ?\n\nEvery Gaussian model so far had a sigma. The logistic summary doesn’t. Why?\nA Bernoulli outcome has one parameter, p. Once you know p, the variance is fixed: var(y) = p(1 − p).\nSo the spread isn’t estimated separately; it comes along with the mean. That’s what “the variance of Y depends on the mean” meant at the start. (Next week: for a Poisson count, the variance equals the mean.)"
+  },
+  {
+    "objectID": "glm-7.html#separation-a-bayesian-bonus",
+    "href": "glm-7.html#separation-a-bayesian-bonus",
+    "title": "GLMs: logistic and multinomial regression",
+    "section": "Separation: a Bayesian bonus",
+    "text": "Separation: a Bayesian bonus\nWhen a predictor perfectly splits the 0s from the 1s, maximum likelihood breaks: the “best” slope is infinite.\n\nset.seed(7)\nsep &lt;- tibble(x = round(rnorm(20), 2)) %&gt;% mutate(y = as.integer(x &gt; 0))   # every x &gt; 0 is a 1\ncoef(summary(glm(y ~ x, family = binomial, data = sep)))\n\n             Estimate Std. Error      z value  Pr(&gt;|z|)\n(Intercept) -20.10374    14071.4 -0.001428695 0.9988601\nx           267.96119   132223.2  0.002026583 0.9983830\n\n\n\n\nCode\nglm.sep &lt;-\n  brm(family = bernoulli, y ~ 1 + x,\n      prior = c(prior(normal(0, 2), class = Intercept),\n                prior(normal(0, 2.5), class = b)),\n      data = sep, backend = \"cmdstanr\", file = \"glm.sep\")\nfixef(glm.sep)\n\n\n           Estimate Est.Error      Q2.5     Q97.5\nIntercept -0.552336 0.7629615 -2.155908 0.8623934\nx          4.193094 1.4425528  1.687314 7.2693178\n\n\n\nglm() warns and returns a slope in the hundreds with an enormous SE. A weakly informative prior keeps it finite and says something honest: large, positive, uncertain.\nSeparation is common with small samples, rare outcomes, or many predictors."
+  },
+  {
+    "objectID": "glm-7.html#odds-ratios-arent-risk-ratios",
+    "href": "glm-7.html#odds-ratios-arent-risk-ratios",
+    "title": "GLMs: logistic and multinomial regression",
+    "section": "Odds ratios aren’t risk ratios",
+    "text": "Odds ratios aren’t risk ratios\nCompare people 1 SD above and below average IQ, for every posterior draw:\n\n\nCode\nlibrary(tidybayes)\np_iq &lt;- posterior_epred(glm.4, newdata = tibble(IQ_c = c(-3.73, 3.73)))   # draws x 2\niq_contrast &lt;- tibble(p_lo = p_iq[, 1], p_hi = p_iq[, 2]) %&gt;%\n  mutate(`odds ratio`                    = (p_hi / (1 - p_hi)) / (p_lo / (1 - p_lo)),\n         `risk ratio (p_hi / p_lo)`      = p_hi / p_lo,\n         `risk difference (p_hi − p_lo)` = p_hi - p_lo)\niq_contrast %&gt;%\n  select(-p_lo, -p_hi) %&gt;%\n  pivot_longer(everything()) %&gt;%\n  group_by(name) %&gt;%\n  median_qi(value) %&gt;%\n  select(name, median = value, lower = .lower, upper = .upper) %&gt;%\n  knitr::kable(digits = 2)\n\n\n\n\n\nname\nmedian\nlower\nupper\n\n\n\n\nodds ratio\n1.80\n0.97\n3.39\n\n\nrisk difference (p_hi − p_lo)\n0.08\n0.00\n0.17\n\n\nrisk ratio (p_hi / p_lo)\n1.10\n1.00\n1.23\n\n\n\n\n\n\nAn odds ratio of 1.80 sounds like “80% more likely to survive.” But the probability only rises by about 10% (risk ratio), or 8 percentage points.\nOR ≈ RR only when the outcome is rare. Here 83% survive, so they’re far apart. Report probabilities (or their difference) alongside any odds ratio."
+  },
+  {
+    "objectID": "glm-7.html#a-second-predictor",
+    "href": "glm-7.html#a-second-predictor",
+    "title": "GLMs: logistic and multinomial regression",
+    "section": "A second predictor",
+    "text": "A second predictor\nAdd risky behavior (centered):\n\\[\\operatorname{logit}(p_i) = \\beta_0 + \\beta_1 \\text{IQ}_{c,i} + \\beta_2 \\text{Risky}_{c,i} \\qquad \\beta_0 \\sim \\operatorname{Normal}(0, 2) \\qquad \\beta_1, \\beta_2 \\sim \\operatorname{Normal}(0, 0.5)\\]\n\n\nCode\nmortality &lt;- mortality %&gt;% mutate(risky_c = Risky.behavior - mean(Risky.behavior))\nglm.4r &lt;-\n  brm(family = bernoulli(link = \"logit\"),\n      NOT.premature ~ 1 + IQ_c + risky_c,\n      prior = c(prior(normal(0, 2), class = Intercept),\n                prior(normal(0, .5), class = b)),\n      data = mortality, backend = \"cmdstanr\", file = \"glm.4r\")\n\n\n\nfixef(glm.4r)\n\n            Estimate  Est.Error        Q2.5      Q97.5\nIntercept  1.7429344 0.16786232  1.42428375  2.0818900\nIQ_c       0.1323647 0.04534516  0.04631463  0.2249018\nrisky_c   -0.1948748 0.05313292 -0.30328845 -0.0937438\n\n\n\nMore risky behavior, lower odds of survival. And IQ’s slope grows from 0.08 to 0.13: IQ and risky behavior are positively correlated (r = 0.32), so leaving risky behavior out masked part of IQ’s association, just as in lm().\nLogistic coefficients can also shift when you add a predictor unrelated to the others (non-collapsibility). Compare models on predicted probabilities, not raw coefficients."
+  },
+  {
+    "objectID": "glm-7.html#iqs-effect-depends-on-risky-behavior",
+    "href": "glm-7.html#iqs-effect-depends-on-risky-behavior",
+    "title": "GLMs: logistic and multinomial regression",
+    "section": "IQ’s effect depends on risky behavior",
+    "text": "IQ’s effect depends on risky behavior\nThere’s no interaction in glm.4r, but on the probability scale:\n\ncmp_r &lt;- comparisons(glm.4r, variables = \"IQ_c\",\n                     newdata = datagrid(risky_c = c(-6.94, 0, 6.94)))   # −2 SD, mean, +2 SD\ncmp_r\n\n\n risky_c Estimate   2.5 % 97.5 %\n   -6.94  0.00494 0.00164 0.0110\n    0.00  0.01581 0.00589 0.0260\n    6.94  0.03044 0.01024 0.0536\n\nTerm: IQ_c\nType: response\nComparison: +1\n\n\n\nOne more IQ point is worth about 0.5 percentage points for low-risk people (already near the ceiling) and 3.0 for high-risk people, whose survival is lower and where the curve is steeper.\nThe logit slope is the same for everyone; the probability effect isn’t. So with several predictors, “the effect of IQ” depends on where the others are set. avg_comparisons(glm.4r, variables = \"IQ_c\") averages over everyone in the sample."
+  },
+  {
+    "objectID": "glm-7.html#a-better-check-calibration",
+    "href": "glm-7.html#a-better-check-calibration",
+    "title": "GLMs: logistic and multinomial regression",
+    "section": "A better check: calibration",
+    "text": "A better check: calibration\nThe bars only check that the model gets the overall share of 1s right, which almost any model with an intercept does. Calibration asks: when the model says 80%, do about 80% survive? Here for glm.4r (IQ + risky behavior):\n\n\nCode\ntibble(predicted = colMeans(posterior_epred(glm.4r)),\n       observed  = mortality$NOT.premature) %&gt;%\n  mutate(bin = ntile(predicted, 6)) %&gt;%\n  group_by(bin) %&gt;%\n  summarise(n = n(), predicted = mean(predicted), observed = mean(observed),\n            se = sqrt(observed * (1 - observed) / n)) %&gt;%\n  ggplot(aes(predicted, observed)) +\n  geom_abline(linetype = \"dashed\") +\n  geom_pointrange(aes(ymin = observed - 2 * se, ymax = observed + 2 * se)) +\n  coord_equal(xlim = c(.4, 1), ylim = c(.4, 1)) +\n  labs(x = \"Predicted Pr(not premature), binned\", y = \"Observed proportion\") +\n  theme_classic(base_size = 14)\n\n\n\n\n\n\n\n\n\nSort people by predicted probability into 6 bins of 50. Points near the dashed line mean the predicted probabilities can be taken at face value."
+  },
+  {
+    "objectID": "glm-7.html#does-risky-behavior-help-predict",
+    "href": "glm-7.html#does-risky-behavior-help-predict",
+    "title": "GLMs: logistic and multinomial regression",
+    "section": "Does risky behavior help predict?",
+    "text": "Does risky behavior help predict?\nSame tools as last week, now for a binary outcome:\n\nglm.4  &lt;- add_criterion(glm.4, \"loo\")\nglm.4r &lt;- add_criterion(glm.4r, \"loo\")\nloo_compare(glm.4, glm.4r)\n\n  model elpd_diff se_diff p_worse diag_diff diag_elpd\n glm.4r       0.0     0.0      NA                    \n  glm.4      -6.4     3.9    0.95                    \n\n\n\nelpd_loo here is the summed log of the probability each model gave each person’s actual outcome, for people it hadn’t seen.\nAdding risky behavior improves expected prediction by 6.4 (se 3.9)."
+  },
+  {
+    "objectID": "glm-7.html#same-model-aggregated-data",
+    "href": "glm-7.html#same-model-aggregated-data",
+    "title": "GLMs: logistic and multinomial regression",
+    "section": "Same model, aggregated data",
+    "text": "Same model, aggregated data\nData often come as counts: k successes out of n per group. Use binomial with trials(n):\n\nmort_agg &lt;- mortality %&gt;% group_by(IQ_c) %&gt;% summarise(k = sum(NOT.premature), n = n())\nhead(mort_agg, 3)\n\n# A tibble: 3 × 3\n    IQ_c     k     n\n   &lt;dbl&gt; &lt;dbl&gt; &lt;int&gt;\n1 -14.6      1     1\n2 -10.6      0     1\n3  -9.57     1     1\n\n\n\n\nCode\nglm.4agg &lt;-\n  brm(family = binomial, k | trials(n) ~ 1 + IQ_c,\n      prior = c(prior(normal(0, 2), class = Intercept),\n                prior(normal(0, .5), class = b)),\n      data = mort_agg, backend = \"cmdstanr\", file = \"glm.4agg\")\nrbind(`one row per person (glm.4)` = fixef(glm.4)[, \"Estimate\"],\n      `one row per IQ value (glm.4agg)` = fixef(glm.4agg)[, \"Estimate\"])\n\n\n                                Intercept       IQ_c\none row per person (glm.4)       1.620546 0.07943066\none row per IQ value (glm.4agg)  1.619088 0.08148717\n\n\nSame likelihood, same estimates (up to MCMC noise), 21 rows instead of 300. (LOO differs, though: it leaves out a whole group, not a person.)"
+  },
+  {
+    "objectID": "glm-7.html#writing-it-up",
+    "href": "glm-7.html#writing-it-up",
+    "title": "GLMs: logistic and multinomial regression",
+    "section": "Writing it up",
+    "text": "Writing it up\nReport the coefficient on an interpretable scale and the probabilities. For example:\n\nHigher IQ was associated with higher odds of not dying prematurely (OR = 1.08 per IQ point, 95% CI [1.00, 1.18]). People 1 SD above average IQ had a predicted probability of 0.87 of not dying prematurely, versus 0.79 for people 1 SD below (difference = 8 percentage points, 95% CI [0, 17]).\n\n\nIn the methods: the likelihood (Bernoulli), the link (logit), and the priors.\nShow the fitted probability curve; it carries more than any single number."
+  },
+  {
+    "objectID": "glm-7.html#two-multinomial-notes",
+    "href": "glm-7.html#two-multinomial-notes",
+    "title": "GLMs: logistic and multinomial regression",
+    "section": "Two multinomial notes",
+    "text": "Two multinomial notes\n\nThe reference category is bookkeeping. Changing refcat changes every coefficient (they’re all “vs. the reference”) but not the predicted probabilities. Pick the reference that makes the comparisons you care about easy to read.\nOrdered categories? If the categories have a natural order (never / sometimes / often), a multinomial model throws that order away. Use an ordinal (cumulative) model instead: next deck."
   }
 ]

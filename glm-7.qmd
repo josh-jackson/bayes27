@@ -25,6 +25,36 @@ execute:
 
 -   Often there is a maximum entropy distribution that serves as the default likelihood, helping us guide our choice
 
+## Why not just use `lm()`? {.smaller .nostretch}
+
+Our example: does IQ predict *not* dying prematurely (1 = no, 0 = yes)?
+
+```{r}
+#| code-fold: true
+#| fig-height: 2.8
+#| fig-width: 9
+#| out-width: "70%"
+#| message: false
+library(tidyverse)
+mort0 <- read.csv("mortality.csv") %>% mutate(IQ_c = IQ - mean(IQ))
+ols       <- lm(NOT.premature ~ IQ_c, data = mort0)
+logit_fit <- glm(NOT.premature ~ IQ_c, family = binomial, data = mort0)
+tibble(IQ_c = seq(-35, 35, length.out = 200)) %>%
+  mutate(`lm(): straight line` = predict(ols, newdata = .),
+         `logistic: S-curve`   = predict(logit_fit, newdata = ., type = "response")) %>%
+  pivot_longer(-IQ_c, names_to = "model", values_to = "pred") %>%
+  ggplot(aes(IQ_c, pred)) +
+  annotate("rect", xmin = min(mort0$IQ_c), xmax = max(mort0$IQ_c), ymin = -Inf, ymax = Inf, fill = "grey92") +
+  geom_hline(yintercept = c(0, 1), linetype = "dashed") +
+  geom_line(aes(colour = model), linewidth = 1) +
+  labs(x = "IQ (centered; shaded = range of our data)", y = "Predicted Pr(not premature)", colour = NULL) +
+  theme_classic(base_size = 14) + theme(legend.position = "top")
+```
+
+-   `lm()` fits a straight line. Inside our data it looks fine, but push IQ higher and it predicts more than 100% survival.
+-   At any IQ, a 0/1 outcome has variance p(1 − p), which changes with p, so `lm()`'s constant-variance assumption can't hold.
+-   A GLM keeps the linear model but runs it through a link, so predictions stay in (0, 1).
+
 ## Two ingredients
 
 Need to:
@@ -77,6 +107,20 @@ $$f(p_i) = \alpha + \beta (x_i - \bar x)$$
 -   Think of it as a transformation of Y-hats $$f(p) = logit(p) = log (\frac {p_{i}}{1-p_{i}})$$
 
 -   Logits are now in a shape similar to a normal regression (ie a line/plane that goes to infinity)
+
+## Odds, briefly {.smaller}
+
+Odds = p / (1 − p): how many times more likely the event is to happen than not.
+
+| p   | odds          | log odds |
+|-----|---------------|----------|
+| .50 | 1 (1 to 1)    | 0        |
+| .80 | 4 (4 to 1)    | 1.39     |
+| .20 | 0.25 (1 to 4) | −1.39    |
+| .95 | 19 (19 to 1)  | 2.94     |
+
+-   Odds run from 0 to ∞; log odds from −∞ to ∞, symmetric around p = .5.
+-   In our data 83% did not die prematurely: odds ≈ .83 / .17 ≈ 4.9.
 
 ## Inverse link {.smaller}
 
@@ -350,6 +394,35 @@ summary(glm.4)
 
 The looser Normal(0, 3) prior (`glm.3`) gives the same IQ slope, `r sprintf("%.2f", fixef(glm.3)["IQ_c", "Estimate"])`: with 300 people, the data dominate either prior. The tighter prior mainly rules out absurd prior predictions.
 
+## Where's σ?
+
+-   Every Gaussian model so far had a `sigma`. The logistic summary doesn't. Why?
+-   A Bernoulli outcome has one parameter, p. Once you know p, the variance is fixed: var(y) = p(1 − p).
+-   So the spread isn't estimated separately; it comes along with the mean. That's what "the variance of Y depends on the mean" meant at the start. (Next week: for a Poisson count, the variance *equals* the mean.)
+
+## Separation: a Bayesian bonus {.smaller}
+
+When a predictor perfectly splits the 0s from the 1s, maximum likelihood breaks: the "best" slope is infinite.
+
+```{r}
+set.seed(7)
+sep <- tibble(x = round(rnorm(20), 2)) %>% mutate(y = as.integer(x > 0))   # every x > 0 is a 1
+coef(summary(glm(y ~ x, family = binomial, data = sep)))
+```
+
+```{r}
+#| code-fold: true
+glm.sep <-
+  brm(family = bernoulli, y ~ 1 + x,
+      prior = c(prior(normal(0, 2), class = Intercept),
+                prior(normal(0, 2.5), class = b)),
+      data = sep, backend = "cmdstanr", file = "glm.sep")
+fixef(glm.sep)
+```
+
+-   `glm()` warns and returns a slope in the hundreds with an enormous SE. A weakly informative prior keeps it finite and says something honest: large, positive, uncertain.
+-   Separation is common with small samples, rare outcomes, or many predictors.
+
 ## Interpreting logistic coefficients
 
 Interpretation of coefficients is not straight forward. Easier to plot predictions.
@@ -371,6 +444,8 @@ tibble(b0   = fixef(glm.4)["Intercept", "Estimate"],
   mutate(Not_premature   = 1 / (1 + exp(-logit_mu))) %>%
   mutate(Not_premature2   = inv_logit_scaled(logit_mu))
 ```
+
+Because IQ is centered, the intercept is the log odds at *average* IQ: plogis(`r sprintf("%.2f", fixef(glm.4)["Intercept", "Estimate"])`) = `r sprintf("%.3f", plogis(fixef(glm.4)["Intercept", "Estimate"]))`, the `IQ_c = 0` row.
 
 ## Predictions with marginaleffects
 
@@ -398,13 +473,14 @@ tibble(scale = c("logit (log odds per IQ point)", "odds ratio, exp(b)"),
 -   Exponentiate the **draws**, then summarize. Don't exponentiate the summary (the median survives, the mean and intervals don't always).
 -   Each IQ point multiplies the odds of *not* dying prematurely by about `r sprintf("%.2f", median(exp(draws_4$b_IQ_c)))` (95% CI `r sprintf("%.2f", quantile(exp(draws_4$b_IQ_c), .025))` to `r sprintf("%.2f", quantile(exp(draws_4$b_IQ_c), .975))`, so 1, no change, is just inside).
 
-## On the probability scale
+## On the probability scale {.smaller}
 
 ```{r}
 avg_slopes(glm.4)
 ```
 
 -   On the probability scale: averaged over the sample, one more IQ point raises Pr(not premature) by about 1 percentage point.
+-   Quick check, *divide by 4*: the logistic curve is steepest at p = .5, where the probability slope is b/4. Here `r sprintf("%.3f", fixef(glm.4)["IQ_c", "Estimate"])` / 4 ≈ `r sprintf("%.1f", 100 * fixef(glm.4)["IQ_c", "Estimate"] / 4)` points, the most one IQ point can ever move the probability. We're up near p = .83, so the real slope is smaller.
 
 ## The probability slope isn't constant {.smaller}
 
@@ -424,6 +500,72 @@ pr_4 <- predictions(glm.4, newdata = datagrid(IQ_c = c(-7.46, 7.46)))
 -   At high IQ (+2 SD) it's closer to the ceiling (about `r sprintf("%.2f", pr_4$estimate[2])`), so each extra IQ point buys less (about `r sprintf("%.1f", 100 * sl_4$estimate[3])` points).
 -   This is why "the effect" in a logistic regression needs a scale *and* a location.
 
+## Odds ratios aren't risk ratios {.smaller}
+
+Compare people 1 SD above and below average IQ, for every posterior draw:
+
+```{r}
+#| code-fold: true
+library(tidybayes)
+p_iq <- posterior_epred(glm.4, newdata = tibble(IQ_c = c(-3.73, 3.73)))   # draws x 2
+iq_contrast <- tibble(p_lo = p_iq[, 1], p_hi = p_iq[, 2]) %>%
+  mutate(`odds ratio`                    = (p_hi / (1 - p_hi)) / (p_lo / (1 - p_lo)),
+         `risk ratio (p_hi / p_lo)`      = p_hi / p_lo,
+         `risk difference (p_hi − p_lo)` = p_hi - p_lo)
+iq_contrast %>%
+  select(-p_lo, -p_hi) %>%
+  pivot_longer(everything()) %>%
+  group_by(name) %>%
+  median_qi(value) %>%
+  select(name, median = value, lower = .lower, upper = .upper) %>%
+  knitr::kable(digits = 2)
+```
+
+```{r}
+#| echo: false
+iqc <- iq_contrast %>% summarise(across(everything(), median))
+```
+
+-   An odds ratio of `r sprintf("%.2f", iqc$"odds ratio")` sounds like "`r round(100 * (iqc$"odds ratio" - 1))`% more likely to survive." But the probability only rises by about `r round(100 * (iqc$"risk ratio (p_hi / p_lo)" - 1))`% (risk ratio), or `r round(100 * iqc$"risk difference (p_hi − p_lo)")` percentage points.
+-   OR ≈ RR only when the outcome is rare. Here 83% survive, so they're far apart. Report probabilities (or their difference) alongside any odds ratio.
+
+## A second predictor {.smaller}
+
+Add risky behavior (centered):
+
+$$\operatorname{logit}(p_i) = \beta_0 + \beta_1 \text{IQ}_{c,i} + \beta_2 \text{Risky}_{c,i} \qquad \beta_0 \sim \operatorname{Normal}(0, 2) \qquad \beta_1, \beta_2 \sim \operatorname{Normal}(0, 0.5)$$
+
+```{r}
+#| code-fold: true
+mortality <- mortality %>% mutate(risky_c = Risky.behavior - mean(Risky.behavior))
+glm.4r <-
+  brm(family = bernoulli(link = "logit"),
+      NOT.premature ~ 1 + IQ_c + risky_c,
+      prior = c(prior(normal(0, 2), class = Intercept),
+                prior(normal(0, .5), class = b)),
+      data = mortality, backend = "cmdstanr", file = "glm.4r")
+```
+
+```{r}
+fixef(glm.4r)
+```
+
+-   More risky behavior, lower odds of survival. And IQ's slope grows from `r sprintf("%.2f", fixef(glm.4)["IQ_c", "Estimate"])` to `r sprintf("%.2f", fixef(glm.4r)["IQ_c", "Estimate"])`: IQ and risky behavior are positively correlated (r = `r sprintf("%.2f", cor(mortality$IQ, mortality$Risky.behavior))`), so leaving risky behavior out masked part of IQ's association, just as in `lm()`.
+-   Logistic coefficients can also shift when you add a predictor unrelated to the others (*non-collapsibility*). Compare models on predicted probabilities, not raw coefficients.
+
+## IQ's effect depends on risky behavior {.smaller}
+
+There's no interaction in `glm.4r`, but on the probability scale:
+
+```{r}
+cmp_r <- comparisons(glm.4r, variables = "IQ_c",
+                     newdata = datagrid(risky_c = c(-6.94, 0, 6.94)))   # −2 SD, mean, +2 SD
+cmp_r
+```
+
+-   One more IQ point is worth about `r sprintf("%.1f", 100 * cmp_r$estimate[1])` percentage points for low-risk people (already near the ceiling) and `r sprintf("%.1f", 100 * cmp_r$estimate[3])` for high-risk people, whose survival is lower and where the curve is steeper.
+-   The logit slope is the same for everyone; the probability effect isn't. So with several predictors, "the effect of IQ" depends on where the others are set. `avg_comparisons(glm.4r, variables = "IQ_c")` averages over everyone in the sample.
+
 ## Trace plots
 
 ```{r}
@@ -437,6 +579,49 @@ pp_check(glm.4, type = "bars")
 ```
 
 For a 0/1 outcome, compare the observed counts of 0s and 1s (bars) with the model's replications (points and intervals). The default density overlay isn't meaningful for binary data.
+
+## A better check: calibration {.smaller .nostretch}
+
+The bars only check that the model gets the overall share of 1s right, which almost any model with an intercept does. Calibration asks: when the model says 80%, do about 80% survive? Here for `glm.4r` (IQ + risky behavior):
+
+```{r}
+#| code-fold: true
+#| fig-height: 3.4
+#| fig-width: 5
+#| out-width: "38%"
+tibble(predicted = colMeans(posterior_epred(glm.4r)),
+       observed  = mortality$NOT.premature) %>%
+  mutate(bin = ntile(predicted, 6)) %>%
+  group_by(bin) %>%
+  summarise(n = n(), predicted = mean(predicted), observed = mean(observed),
+            se = sqrt(observed * (1 - observed) / n)) %>%
+  ggplot(aes(predicted, observed)) +
+  geom_abline(linetype = "dashed") +
+  geom_pointrange(aes(ymin = observed - 2 * se, ymax = observed + 2 * se)) +
+  coord_equal(xlim = c(.4, 1), ylim = c(.4, 1)) +
+  labs(x = "Predicted Pr(not premature), binned", y = "Observed proportion") +
+  theme_classic(base_size = 14)
+```
+
+Sort people by predicted probability into 6 bins of 50. Points near the dashed line mean the predicted probabilities can be taken at face value.
+
+## Does risky behavior help predict?
+
+Same tools as last week, now for a binary outcome:
+
+```{r}
+glm.4  <- add_criterion(glm.4, "loo")
+glm.4r <- add_criterion(glm.4r, "loo")
+loo_compare(glm.4, glm.4r)
+```
+
+```{r}
+#| echo: false
+cmp_4r <- loo_compare(glm.4, glm.4r)
+```
+
+-   elpd_loo here is the summed log of the probability each model gave each person's *actual* outcome, for people it hadn't seen.
+-   Adding risky behavior improves expected prediction by `r sprintf("%.1f", abs(cmp_4r[2, "elpd_diff"]))` (se `r sprintf("%.1f", cmp_4r[2, "se_diff"])`).
 
 ## Fitted probability curves
 
@@ -530,6 +715,37 @@ predictions(glm.4, newdata = datagrid(IQ_c = c(-3.73, 0, 3.73)), type = "link")
 ```{r}
 predictions(glm.4, newdata = datagrid(IQ_c = c(-3.73, 0, 3.73)))
 ```
+
+## Same model, aggregated data {.smaller}
+
+Data often come as counts: *k* successes out of *n* per group. Use `binomial` with `trials(n)`:
+
+```{r}
+mort_agg <- mortality %>% group_by(IQ_c) %>% summarise(k = sum(NOT.premature), n = n())
+head(mort_agg, 3)
+```
+
+```{r}
+#| code-fold: true
+glm.4agg <-
+  brm(family = binomial, k | trials(n) ~ 1 + IQ_c,
+      prior = c(prior(normal(0, 2), class = Intercept),
+                prior(normal(0, .5), class = b)),
+      data = mort_agg, backend = "cmdstanr", file = "glm.4agg")
+rbind(`one row per person (glm.4)` = fixef(glm.4)[, "Estimate"],
+      `one row per IQ value (glm.4agg)` = fixef(glm.4agg)[, "Estimate"])
+```
+
+Same likelihood, same estimates (up to MCMC noise), `r nrow(mort_agg)` rows instead of 300. (LOO differs, though: it leaves out a whole group, not a person.)
+
+## Writing it up {.smaller}
+
+Report the coefficient on an interpretable scale *and* the probabilities. For example:
+
+> Higher IQ was associated with higher odds of not dying prematurely (OR = `r sprintf("%.2f", median(exp(draws_4$b_IQ_c)))` per IQ point, 95% CI [`r sprintf("%.2f", quantile(exp(draws_4$b_IQ_c), .025))`, `r sprintf("%.2f", quantile(exp(draws_4$b_IQ_c), .975))`]). People 1 SD above average IQ had a predicted probability of `r sprintf("%.2f", median(iq_contrast$p_hi))` of not dying prematurely, versus `r sprintf("%.2f", median(iq_contrast$p_lo))` for people 1 SD below (difference = `r round(100 * median(iq_contrast$"risk difference (p_hi − p_lo)"))` percentage points, 95% CI [`r round(100 * quantile(iq_contrast$"risk difference (p_hi − p_lo)", .025))`, `r round(100 * quantile(iq_contrast$"risk difference (p_hi − p_lo)", .975))`]).
+
+-   In the methods: the likelihood (Bernoulli), the link (logit), and the priors.
+-   Show the fitted probability curve; it carries more than any single number.
 
 ## Multinomial logistic regression
 
@@ -802,3 +1018,8 @@ predictions(glm.6b, newdata = datagrid(family_income = seq(0, 1, by = .05))) %>%
 ```{r}
 avg_predictions(glm.6b,type = "response")
 ```
+## Two multinomial notes
+
+-   **The reference category is bookkeeping.** Changing `refcat` changes every coefficient (they're all "vs. the reference") but not the predicted probabilities. Pick the reference that makes the comparisons you care about easy to read.
+-   **Ordered categories?** If the categories have a natural order (never / sometimes / often), a multinomial model throws that order away. Use an ordinal (cumulative) model instead: next deck.
+
