@@ -31,7 +31,7 @@ Need to:
 
 1.  Specify your DGP distribution (likelihood)
 
-2.  Specify a link function. We do this so we can continue to use a typical linear regression model. Our parameters are now often non-linear, so we need to map a non-linear relationship to a linear one.
+2.  Specify a link function. We do this so we can continue to use a typical linear regression model. The relationship between the predictors and the outcome's mean is now non-linear, so we need to map it onto a linear one.
 
 ## Which likelihood? {.smaller}
 
@@ -58,9 +58,7 @@ $$f(p_i) = \alpha + \beta (x_i - \bar x)$$
 
 -   The f of the $f(p_i)$ is a link function, typically logistic
 
--   Link function is needed because the shape of the Binomial distribution is determined by two parameters, neither equivalent to the Gaussian mean (which the right side of the equation is based on).
-
--   The link function also ensures the model doesn’t make improper probability predictions (ie outside of 0-1)
+-   A link function is needed because the linear model on the right can produce any number, but $p_i$ must stay between 0 and 1. The link maps one onto the other, so the model never makes improper probability predictions (ie outside of 0-1)
 
 ## Link function for binomial
 
@@ -124,7 +122,7 @@ b1 <-tibble(x = 0:10) %>%
 
 ## Exponential family members {.smaller}
 
--   Exponential is constrained to be above zero. If probability of some event is constant, it tends to follow an exponential. Used a lot in survival models.
+-   Exponential is constrained to be above zero. The waiting time until an event that happens at a constant rate follows an exponential. Used a lot in survival models.
 
 -   Gamma is positive but its peak needn't be at zero. It arises as the sum of several exponential waiting times (e.g., time until the *k*th event). Common for skewed positive outcomes like reaction times or costs.
 
@@ -163,12 +161,16 @@ library(psych)
 describe(mortality)
 ```
 
-## The model
+## The model {.smaller}
 
-$$P.Death_i  \sim \operatorname{Binomial} (1, p_i)$$\
-or $$P.Death_i  \sim \operatorname{Bernoulli} (p_i)$$
+$$\text{NOT.premature}_i  \sim \operatorname{Binomial} (1, p_i)$$\
+or $$\text{NOT.premature}_i  \sim \operatorname{Bernoulli} (p_i)$$
 
-$$\operatorname{logit} (p_i)= \beta_0 + \beta_1*IQ_c $$ $$\beta_0\sim \operatorname{Normal} (0, ?)$$ $$\beta_1\sim \operatorname{Normal} (0, ?)$$
+where $\text{NOT.premature}_i = 1$ if person *i* did *not* die prematurely.
+
+$$\operatorname{logit} (p_i)= \beta_0 + \beta_1 \text{IQ}_{c,i}$$
+
+$$\beta_0\sim \operatorname{Normal} (0, ?) \qquad \beta_1\sim \operatorname{Normal} (0, ?)$$
 
 ## Intercept-only logistic model
 
@@ -290,7 +292,7 @@ prior_draws(glm.3)%>%
   mutate(d = Intercept + b * a) %>%
   ggplot(aes(x = a, y = d)) +
   geom_line(aes(group = draw), alpha = .4) +
-  labs(x = "IQ",
+  labs(x = "IQ (centered)",
        y = "logit(Not-premature death)") +
   coord_cartesian(ylim = c(-10, 10)) +
   theme_bw() +
@@ -312,7 +314,7 @@ prior_draws(glm.3)%>%
   mutate(d = inv_logit_scaled(Intercept + b * a)) %>%
   ggplot(aes(x = a, y = d)) +
   geom_line(aes(group = draw), alpha = .4) +
-  labs(x = "IQ",
+  labs(x = "IQ (centered)",
        y = "prob(Not-premature death)") +
   coord_cartesian(ylim = c(0, 1))
 ```
@@ -355,7 +357,7 @@ prior_draws(glm.4)%>%
   mutate(d = inv_logit_scaled(Intercept + b * a)) %>%
   ggplot(aes(x = a, y = d)) +
   geom_line(aes(group = draw), alpha = .4) +
-  labs(x = "IQ",
+  labs(x = "IQ (centered)",
        y = "prob(Not-premature death)") +
   coord_cartesian(ylim = c(0, 1))
 ```
@@ -379,10 +381,10 @@ Why are they hard?
 ## From logits to probabilities by hand
 
 ```{r}
-# posterior means from summary(glm.4); ±3.73 = ±1 SD of IQ
-tibble(b0     = 1.62,
-       b1     = .08,
-       IQ_c = c(-6,-2,0,2,6)) %>%
+# posterior means from glm.4; ±3.73 = ±1 SD of IQ
+tibble(b0   = fixef(glm.4)["Intercept", "Estimate"],
+       b1   = fixef(glm.4)["IQ_c", "Estimate"],
+       IQ_c = c(-3.73, -2, 0, 2, 3.73)) %>%
   mutate(logit_mu = b0 + b1 * IQ_c ) %>%
   mutate(Not_premature   = 1 / (1 + exp(-logit_mu))) %>%
   mutate(Not_premature2   = inv_logit_scaled(logit_mu))
@@ -395,9 +397,11 @@ library(marginaleffects)
 predictions(glm.4, newdata = datagrid(IQ_c = c(-3.73, -2, 0, 2, 3.73)))
 ```
 
+Same numbers as by hand (up to rounding), plus uncertainty: marginaleffects does the inverse link for every posterior draw.
+
 ## One slope, three scales {.smaller}
 
-The IQ slope from `glm.4`, three ways:
+The IQ slope from `glm.4` on the logit and odds scales (the third scale, probability, is next):
 
 ```{r}
 #| code-fold: true
@@ -410,7 +414,7 @@ tibble(scale = c("logit (log odds per IQ point)", "odds ratio, exp(b)"),
 ```
 
 -   Exponentiate the **draws**, then summarize. Don't exponentiate the summary (the median survives, the mean and intervals don't always).
--   Each IQ point multiplies the odds of *not* dying prematurely by about 1.08.
+-   Each IQ point multiplies the odds of *not* dying prematurely by about `r sprintf("%.2f", median(exp(draws_4$b_IQ_c)))` (95% CI `r sprintf("%.2f", quantile(exp(draws_4$b_IQ_c), .025))` to `r sprintf("%.2f", quantile(exp(draws_4$b_IQ_c), .975))`, so 1, no change, is just inside).
 
 ## On the probability scale
 
@@ -428,8 +432,14 @@ The logit slope is one number, but the probability slope depends on where you ar
 slopes(glm.4, newdata = datagrid(IQ_c = c(-7.46, 0, 7.46)))  # −2 SD, mean, +2 SD
 ```
 
--   At low IQ, predicted survival is lower (around .7), where the logistic curve is steeper: about 1.5 points per IQ point.
--   At high IQ it's already near the ceiling, so each extra IQ point buys less (about 0.7 points).
+```{r}
+#| echo: false
+sl_4 <- slopes(glm.4, newdata = datagrid(IQ_c = c(-7.46, 0, 7.46)))
+pr_4 <- predictions(glm.4, newdata = datagrid(IQ_c = c(-7.46, 7.46)))
+```
+
+-   At low IQ (−2 SD), predicted survival is lower (about `r sprintf("%.2f", pr_4$estimate[1])`), where the logistic curve is steeper: about `r sprintf("%.1f", 100 * sl_4$estimate[1])` percentage points per IQ point.
+-   At high IQ (+2 SD) it's closer to the ceiling (about `r sprintf("%.2f", pr_4$estimate[2])`), so each extra IQ point buys less (about `r sprintf("%.1f", 100 * sl_4$estimate[3])` points).
 -   This is why "the effect" in a logistic regression needs a scale *and* a location.
 
 ## Trace plots
@@ -441,8 +451,10 @@ plot(glm.4)
 ## Posterior predictive check
 
 ```{r}
-pp_check(glm.4)
+pp_check(glm.4, type = "bars")
 ```
+
+For a 0/1 outcome, compare the observed counts of 0s and 1s (bars) with the model's replications (points and intervals). The default density overlay isn't meaningful for binary data.
 
 ## Fitted probability curves
 
@@ -490,7 +502,7 @@ predictions(glm.4, newdata = datagrid(IQ_c = seq(from = min(mortality$IQ_c), to 
 
 ## epred vs prediction vs linear prediction {.smaller}
 
--   When we want to create fitted values we run into an extra complication. Do we want to plot probabilities (original metric) or logits (our transformed metric)? We haven't had to deal with this prior because we didn't do any transformations with a Gaussian normal.
+-   When we want to create fitted values we run into an extra complication. Do we want to plot probabilities (original metric) or logits (our transformed metric)? We haven't had to deal with this before because we didn't do any transformations with a Gaussian normal.
 
 -   epred: the expected value on the response scale (here, a probability)
 
@@ -508,19 +520,14 @@ $$logit(p_i) = \alpha + \beta (x_i - \bar x)$$
 
 ```{r}
 #| code-fold: true
-epred <- mortality %>%
-  data_grid(IQ_c, .model = mortality) %>%
-  add_epred_draws(glm.4) %>%
-  ungroup() %>%
-  select(.epred)
+# posterior medians at -1 SD, the mean, and +1 SD of IQ
+grid <- tibble(IQ_c = c(-3.73, 0, 3.73))
 
-linpred <-mortality %>%
-  data_grid(IQ_c, .model = mortality) %>%
-  add_linpred_draws(glm.4) %>%
-  ungroup() %>%
-  select(.linpred)
+epred   <- grid %>% add_epred_draws(glm.4)   %>% median_qi(.epred)
+linpred <- grid %>% add_linpred_draws(glm.4) %>% median_qi(.linpred)
 
-cbind(epred,linpred )
+tibble(IQ_c = grid$IQ_c, epred = epred$.epred, linpred = linpred$.linpred,
+       `plogis(linpred)` = plogis(linpred))
 ```
 
 ## Linear predictor (logit scale)
@@ -589,8 +596,7 @@ set.seed(123)
 for(i in 1:n) career[i] <- sample(1:3, size = 1, prob = p)
 
 d <-
-  tibble(career = career) %>%
-  mutate(career_income = ifelse(career == 3, 5, career))
+  tibble(career = career)
 
 d %>%
   ggplot(aes(x = career)) +
@@ -643,24 +649,25 @@ glm.5 %>%
 
 The same probabilities that we simulated with!
 
-## Interpreting the intercepts
-
-mu1_Intercept coefficient is -2.01. What does that mean? Remember refcat = 3
+## Interpreting the intercepts {.smaller}
 
 ```{r}
-
-exp(-2.01)
+#| echo: false
+b5 <- fixef(glm.5)[, "Estimate"]
 ```
+
+Each intercept is the log odds of that career *versus career 3* (`refcat = 3`).
+
+-   mu1_Intercept = `r sprintf("%.2f", b5["mu1_Intercept"])`, so the odds of career 1 vs. 3 are
 
 ```{r}
-1/exp(-2.01)
+exp(fixef(glm.5)["mu1_Intercept", "Estimate"])
+1 / exp(fixef(glm.5)["mu1_Intercept", "Estimate"])
 ```
 
-mu2_Intercept coefficient is -1.57. What does that mean?
+Career 3 is about `r sprintf("%.1f", 1 / exp(b5["mu1_Intercept"]))` times as likely as career 1 (check: .74 / .10 from the last slide).
 
-```{r}
-1/exp(-1.57)
-```
+-   mu2_Intercept = `r sprintf("%.2f", b5["mu2_Intercept"])`: career 3 is about `r sprintf("%.1f", 1 / exp(b5["mu2_Intercept"]))` times as likely as career 2.
 
 ## Adding a predictor
 
@@ -713,10 +720,10 @@ summary(glm.6)
 
 ```{r}
 #| code-fold: true
-library(marginaleffects)
-predictions(glm.6,by = "family_income")
-
+predictions(glm.6, newdata = datagrid(family_income = c(0, .5, 1)))
 ```
+
+One row per career (`group`) at each family income: the three probabilities at each income sum to 1.
 
 ## Predicted probabilities by career
 
@@ -742,7 +749,7 @@ plot_predictions(glm.6, condition = c("family_income", "group"), type = "link")
 
 ```{r}
 #| code-fold: true
-predictions(glm.6,by = "family_income") %>%
+predictions(glm.6, newdata = datagrid(family_income = seq(0, 1, by = .05))) %>%
   get_draws() %>%
   ggplot(aes(x = family_income, y = draw, group = group)) +
   stat_lineribbon(.width = .95, alpha = .4)
