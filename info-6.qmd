@@ -363,13 +363,8 @@ lppd_12 <- sum(log(colMeans(exp(ll_12))))   # average over draws, log, sum
 lppd_12
 ```
 
-```{r}
-#| echo: false
-loo_12 <- loo(mr.12)
-```
-
--   In Part 2, LOO estimates how `mr.12` would do on *new* data: elpd_loo = `r sprintf("%.1f", loo_12$estimates["elpd_loo", "Estimate"])`.
--   That's lower than the lppd by `r sprintf("%.1f", lppd_12 - loo_12$estimates["elpd_loo", "Estimate"])`, which is p_loo: roughly one per parameter (`mr.12` has 4). Evaluated on the data it was fit to, a model looks better than it really is.
+-   That's how well `mr.12` predicts the data it was fit to: the Bayesian version of the log likelihood.
+-   But a model always looks better on the data it was fit to. Part 2 shows why that's a problem, and how to estimate how `mr.12` would do on *new* data.
 
 # Part 2: Which model predicts best?
 
@@ -471,7 +466,7 @@ mr.12$criteria$loo
 
 -   elpd_loo: the expected log pointwise predictive density for new data (an out-of-sample lppd). Larger is better. For discrete outcomes these are probabilities (≤ 1), so the logs are 0 or negative; for continuous outcomes they are densities, which can exceed 1, so elpd can be positive. Only differences between models matter
 
--   p_loo is the effective number of parameters: lppd − elpd_loo, the 4.0 gap we saw at the end of Part 1 (`mr.12` has 4 parameters)
+-   p_loo is the effective number of parameters: lppd − elpd_loo. For `mr.12`, `r sprintf("%.1f", lppd_12)` (the lppd from Part 1) − (`r sprintf("%.1f", mr.12$criteria$loo$estimates["elpd_loo", "Estimate"])`) = `r sprintf("%.1f", lppd_12 - mr.12$criteria$loo$estimates["elpd_loo", "Estimate"])`, about one per parameter (`mr.12` has 4). That gap is how much better the model looks on its own data than on new data
 
 -   SE: elpd_loo is estimated from 118 students, so it has a standard error. When comparing models, use the SE of the *difference* (`se_diff`), not these
 

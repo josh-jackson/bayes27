@@ -629,8 +629,8 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 </div>
 </div>
 <ul>
-<li>In Part 2, LOO estimates how <code>mr.12</code> would do on <em>new</em> data: elpd_loo = -228.1.</li>
-<li>That’s lower than the lppd by 4.0, which is p_loo: roughly one per parameter (<code>mr.12</code> has 4). Evaluated on the data it was fit to, a model looks better than it really is.</li>
+<li>That’s how well <code>mr.12</code> predicts the data it was fit to: the Bayesian version of the log likelihood.</li>
+<li>But a model always looks better on the data it was fit to. Part 2 shows why that’s a problem, and how to estimate how <code>mr.12</code> would do on <em>new</em> data.</li>
 </ul>
 </section></section>
 <section>
@@ -668,7 +668,7 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <div class="cell-output-display">
 <div>
 <figure>
-<p><img data-src="info-6_files/figure-revealjs/unnamed-chunk-18-1.png" style="width:75.0%"></p>
+<p><img data-src="info-6_files/figure-revealjs/unnamed-chunk-17-1.png" style="width:75.0%"></p>
 </figure>
 </div>
 </div>
@@ -783,7 +783,7 @@ See help('pareto-k-diagnostic') for details.</code></pre>
 <h2>Reading the LOO output</h2>
 <ul>
 <li><p>elpd_loo: the expected log pointwise predictive density for new data (an out-of-sample lppd). Larger is better. For discrete outcomes these are probabilities (≤ 1), so the logs are 0 or negative; for continuous outcomes they are densities, which can exceed 1, so elpd can be positive. Only differences between models matter</p></li>
-<li><p>p_loo is the effective number of parameters: lppd − elpd_loo, the 4.0 gap we saw at the end of Part 1 (<code>mr.12</code> has 4 parameters)</p></li>
+<li><p>p_loo is the effective number of parameters: lppd − elpd_loo. For <code>mr.12</code>, -224.1 (the lppd from Part 1) − (-228.1) = 4.0, about one per parameter (<code>mr.12</code> has 4). That gap is how much better the model looks on its own data than on new data</p></li>
 <li><p>SE: elpd_loo is estimated from 118 students, so it has a standard error. When comparing models, use the SE of the <em>difference</em> (<code>se_diff</code>), not these</p></li>
 <li><p>looic is -2(elpd). Lower is better. Why −2? Chi-square history, and for a Gaussian model with known σ, −2 × log score is the squared error (scaled by σ², plus a constant).</p></li>
 </ul>
@@ -819,7 +819,7 @@ All Pareto k estimates are good (k &lt; 0.7).</code></pre>
 </details>
 
 </div>
-<img data-src="info-6_files/figure-revealjs/unnamed-chunk-22-1.png" width="960" class="r-stretch"></section>
+<img data-src="info-6_files/figure-revealjs/unnamed-chunk-21-1.png" width="960" class="r-stretch"></section>
 <section id="what-if-some-k-are-too-high" class="slide level2">
 <h2>What if some <em>k</em> are too high?</h2>
 <p>High <em>k</em> usually means an outlier or a model that is too flexible for its data (e.g., one parameter per person). Options, from cheapest to most expensive:</p>
@@ -1114,7 +1114,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </details>
 
 </div>
-<img data-src="info-6_files/figure-revealjs/unnamed-chunk-31-1.png" width="960" class="r-stretch"></section>
+<img data-src="info-6_files/figure-revealjs/unnamed-chunk-30-1.png" width="960" class="r-stretch"></section>
 <section id="how-to-calculate" class="slide level2">
 <h2>How to calculate?</h2>
 <p>pd is the share of the posterior on the same side of 0 as the median (so it runs from 50% to 100%). The rest is the area on the other side of 0.</p>
@@ -1251,7 +1251,7 @@ iv.dtx:SS_c |     15.00 %</code></pre>
 </details>
 
 </div>
-<img data-src="info-6_files/figure-revealjs/unnamed-chunk-37-1.png" width="960" class="r-stretch"><ul>
+<img data-src="info-6_files/figure-revealjs/unnamed-chunk-36-1.png" width="960" class="r-stretch"><ul>
 <li>Without <code>parameters =</code>, the same range is applied to every parameter, including the intercept, even though they are on different scales. A ROPE belongs to one parameter</li>
 </ul>
 </section>
@@ -1320,7 +1320,7 @@ iv.dtx    | Undecided |     28.29 % | [-0.21, 0.92]</code></pre>
 </details>
 
 </div>
-<img data-src="info-6_files/figure-revealjs/unnamed-chunk-41-1.png" width="960" class="r-stretch"><p>Widen the ROPE to ±0.3 and 41% of the posterior is “practically zero” (vs.&nbsp;27% with ±0.2). The ROPE and the interval change the answer, which is why both must be chosen before looking.</p>
+<img data-src="info-6_files/figure-revealjs/unnamed-chunk-40-1.png" width="960" class="r-stretch"><p>Widen the ROPE to ±0.3 and 41% of the posterior is “practically zero” (vs.&nbsp;27% with ±0.2). The ROPE and the interval change the answer, which is why both must be chosen before looking.</p>
 </section>
 <section id="describe_posterior-with-our-rope" class="slide level2">
 <h2><code>describe_posterior()</code> with our ROPE</h2>
@@ -1362,7 +1362,7 @@ iv.dtx    |   0.36 | [-0.21, 0.92] | 89.33% | [-0.20, 0.20] |    26.88% | 1.001 
 </details>
 
 </div>
-<img data-src="info-6_files/figure-revealjs/unnamed-chunk-43-1.png" width="768" class="r-stretch"></section>
+<img data-src="info-6_files/figure-revealjs/unnamed-chunk-42-1.png" width="768" class="r-stretch"></section>
 <section id="bayes-factors" class="slide level2">
 <h2>Bayes Factors</h2>
 <p>Quantifies the support in the data for two competing models: the ratio of the marginal likelihoods of the observed data under each. E.g., how much more likely are our data if b ≠ 0 (with some prior) than if b = 0? It gives the relative evidence for two positions.</p>
@@ -1404,7 +1404,7 @@ BF
 </details>
 
 </div>
-<img data-src="info-6_files/figure-revealjs/unnamed-chunk-45-1.png" width="960" class="r-stretch"></section>
+<img data-src="info-6_files/figure-revealjs/unnamed-chunk-44-1.png" width="960" class="r-stretch"></section>
 <section id="reading-the-bf" class="slide level2">
 <h2>Reading the BF</h2>
 <div class="cell">
@@ -1553,7 +1553,7 @@ BF
 <div class="cell-output-display">
 <div>
 <figure>
-<p><img data-src="info-6_files/figure-revealjs/unnamed-chunk-49-1.png" style="width:100.0%"></p>
+<p><img data-src="info-6_files/figure-revealjs/unnamed-chunk-48-1.png" style="width:100.0%"></p>
 </figure>
 </div>
 </div>
@@ -1592,7 +1592,7 @@ BF
 </details>
 
 </div>
-<img data-src="info-6_files/figure-revealjs/unnamed-chunk-51-1.png" width="960" class="r-stretch"></section>
+<img data-src="info-6_files/figure-revealjs/unnamed-chunk-50-1.png" width="960" class="r-stretch"></section>
 <section id="with-a-brms-model" class="slide level2 smaller">
 <h2>With a brms model</h2>
 <p>Easy with brms. You need <code>sample_prior = "yes"</code> so brms saves draws from the prior (the BF compares the prior and posterior at 0). <code>mr.14b</code> wasn’t fit that way, so we switch to a new model.</p>
@@ -1669,7 +1669,7 @@ FQ_c        |    10.27
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb96"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb96-1"><a aria-label="1"></a><span class="fu">plot</span>(bf.info<span class="fl">.2</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 </div>
-<img data-src="info-6_files/figure-revealjs/unnamed-chunk-55-1.png" width="960" class="r-stretch"></section>
+<img data-src="info-6_files/figure-revealjs/unnamed-chunk-54-1.png" width="960" class="r-stretch"></section>
 <section id="try-a-wider-prior" class="slide level2 smaller">
 <h2>Try a wider prior</h2>
 <p>Same model, same data; only the slope priors change, from Normal(0, 0.2) to Normal(0, 2).</p>
@@ -1730,7 +1730,7 @@ FQ_c        |     3.74
 </details>
 
 </div>
-<img data-src="info-6_files/figure-revealjs/unnamed-chunk-58-1.png" width="960" class="r-stretch"></section>
+<img data-src="info-6_files/figure-revealjs/unnamed-chunk-57-1.png" width="960" class="r-stretch"></section>
 <section id="why" class="slide level2 smaller">
 <h2>Why?</h2>
 <div class="cell">
@@ -1800,7 +1800,7 @@ FQ_c      |     1.43
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb104"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb104-1"><a aria-label="1"></a><span class="fu">plot</span>(bf.result2)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 </div>
-<img data-src="info-6_files/figure-revealjs/unnamed-chunk-61-1.png" width="960" class="r-stretch"></section>
+<img data-src="info-6_files/figure-revealjs/unnamed-chunk-60-1.png" width="960" class="r-stretch"></section>
 <section id="comparing-whole-models-with-a-bf" class="slide level2 smaller">
 <h2>Comparing whole models with a BF</h2>
 <p>The BF’s definition is about two <em>models</em>. With <code>save_pars(all = TRUE)</code>, brms can estimate each model’s marginal likelihood by bridge sampling. Compare <code>info.2</code> with the same model minus friendship quality:</p>

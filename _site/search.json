@@ -1201,7 +1201,7 @@
     "href": "info-6.html#reading-the-loo-output",
     "title": "Information, NHST and model fit",
     "section": "Reading the LOO output",
-    "text": "Reading the LOO output\n\nelpd_loo: the expected log pointwise predictive density for new data (an out-of-sample lppd). Larger is better. For discrete outcomes these are probabilities (≤ 1), so the logs are 0 or negative; for continuous outcomes they are densities, which can exceed 1, so elpd can be positive. Only differences between models matter\np_loo is the effective number of parameters: lppd − elpd_loo, the 4.0 gap we saw at the end of Part 1 (mr.12 has 4 parameters)\nSE: elpd_loo is estimated from 118 students, so it has a standard error. When comparing models, use the SE of the difference (se_diff), not these\nlooic is -2(elpd). Lower is better. Why −2? Chi-square history, and for a Gaussian model with known σ, −2 × log score is the squared error (scaled by σ², plus a constant)."
+    "text": "Reading the LOO output\n\nelpd_loo: the expected log pointwise predictive density for new data (an out-of-sample lppd). Larger is better. For discrete outcomes these are probabilities (≤ 1), so the logs are 0 or negative; for continuous outcomes they are densities, which can exceed 1, so elpd can be positive. Only differences between models matter\np_loo is the effective number of parameters: lppd − elpd_loo. For mr.12, -224.1 (the lppd from Part 1) − (-228.1) = 4.0, about one per parameter (mr.12 has 4). That gap is how much better the model looks on its own data than on new data\nSE: elpd_loo is estimated from 118 students, so it has a standard error. When comparing models, use the SE of the difference (se_diff), not these\nlooic is -2(elpd). Lower is better. Why −2? Chi-square history, and for a Gaussian model with known σ, −2 × log score is the squared error (scaled by σ², plus a constant)."
   },
   {
     "objectID": "info-6.html#pareto-k-can-we-trust-psis-loo",
@@ -8558,7 +8558,7 @@
     "href": "info-6.html#lppd-for-mr.12",
     "title": "Information, NHST and model fit",
     "section": "lppd for mr.12",
-    "text": "lppd for mr.12\nlog_lik() gives the log-likelihood of every observation under every posterior draw:\n\nll_12 &lt;- log_lik(mr.12)   # 4000 draws x 118 students\ndim(ll_12)\n\n[1] 4000  118\n\nlppd_12 &lt;- sum(log(colMeans(exp(ll_12))))   # average over draws, log, sum\nlppd_12\n\n[1] -224.0721\n\n\n\nIn Part 2, LOO estimates how mr.12 would do on new data: elpd_loo = -228.1.\nThat’s lower than the lppd by 4.0, which is p_loo: roughly one per parameter (mr.12 has 4). Evaluated on the data it was fit to, a model looks better than it really is."
+    "text": "lppd for mr.12\nlog_lik() gives the log-likelihood of every observation under every posterior draw:\n\nll_12 &lt;- log_lik(mr.12)   # 4000 draws x 118 students\ndim(ll_12)\n\n[1] 4000  118\n\nlppd_12 &lt;- sum(log(colMeans(exp(ll_12))))   # average over draws, log, sum\nlppd_12\n\n[1] -224.0721\n\n\n\nThat’s how well mr.12 predicts the data it was fit to: the Bayesian version of the log likelihood.\nBut a model always looks better on the data it was fit to. Part 2 shows why that’s a problem, and how to estimate how mr.12 would do on new data."
   },
   {
     "objectID": "info-6.html#mr.12-summary",
