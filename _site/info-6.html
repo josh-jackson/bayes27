@@ -422,6 +422,13 @@ Number of Fisher Scoring iterations: 2</code></pre>
 </div>
 </div>
 </section>
+<section id="ll-aic-and-the-two-lrt-p-values" class="slide level2 smaller">
+<h2>−2LL, AIC and the two LRT p-values</h2>
+<ul>
+<li><strong>AIC = −2LL + 2k.</strong> Here −2LL = 976.47 and k = 3 (intercept, slope, σ), so AIC = 976.47 + 6 = 982.47, the AIC <code>summary()</code> printed.</li>
+<li><strong>Why did <code>anova()</code> and <code>lrtest()</code> give slightly different p-values?</strong> For a Gaussian <code>glm()</code>, the “Deviance” column in <code>anova()</code> is the drop in the residual sum of squares (51.0). <code>anova()</code> divides it by the estimated residual variance (7.80) to get a χ² of 6.54, while <code>lrtest()</code> uses the exact difference in −2LL (6.50). Same idea, slightly different estimate of σ, so p = 0.0106 vs.&nbsp;0.0108.</li>
+</ul>
+</section>
 <section id="lecture-1s-grid-as-log-likelihoods" class="slide level2 smaller nostretch">
 <h2>Lecture 1’s grid, as log-likelihoods</h2>
 <p>Remember the grid: for every (μ, σ) pair, add up the log-likelihood of all 928 children’s heights. The brightest spot is the maximum likelihood estimate. Every model today gets scored the same basic way: <strong>how probable does it make the data?</strong></p>
@@ -524,7 +531,7 @@ Number of Fisher Scoring iterations: 2</code></pre>
 <h2>Entropy (cont.)</h2>
 <ul>
 <li><p>Distributions with more possibilities will be higher in entropy than those with fewer possibilities.</p></li>
-<li><p>Similarly, flat distributions have high entropy as they provide little information</p></li>
+<li><p>Similarly, flat distributions have high entropy: the distribution itself <em>contains</em> little information, so each outcome <em>tells</em> you a lot. A peaked distribution already contains a lot, so its outcomes rarely surprise you</p></li>
 <li><p>This is similar to how we set up priors where if we had more background “information” we would create a more narrow distribution.</p></li>
 </ul>
 </section>
@@ -693,6 +700,17 @@ Number of Fisher Scoring iterations: 2</code></pre>
 <li><p>Pareto Smoothed Importance Sampling (PSIS) reuses the posterior draws we already have. For each observation, it reweights the draws to approximate the posterior we would have gotten without that observation (draws that fit that point especially well get less weight). No refitting: cross validation almost for free!</p></li>
 </ul>
 </section>
+<section id="the-model-mr.12" class="slide level2">
+<h2>The model: <code>mr.12</code></h2>
+<p><span class="math display">\[
+\begin{aligned}
+\text{happiness}_i &amp;\sim \text{Normal}(\mu_i, \sigma) \\
+\mu_i &amp;= b_{\text{group}[i]} + b_{\text{SS}}\,\text{SS}_i \\
+b_\text{control}, b_\text{tx} &amp;\sim \text{Normal}(5, 3) \qquad b_\text{SS} \sim \text{Normal}(0, 0.5) \qquad \sigma \sim \text{Exponential}(1)
+\end{aligned}
+\]</span></p>
+<p>In brms: <code>happiness ~ 0 + iv.d + SS_c</code>. The <code>0 +</code> drops the intercept, so each group gets its own mean (at average school success).</p>
+</section>
 <section id="psis-loo-example-mr.12" class="slide level2">
 <h2>PSIS-LOO example: <code>mr.12</code></h2>
 <div class="cell">
@@ -843,7 +861,7 @@ and Tail_ESS are effective sample size measures, and Rhat is the potential
 scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </div>
 </div>
-<p>Same as <code>mr.12</code>, minus school success: does knowing a student’s school success help predict happiness?</p>
+<p>Same as <code>mr.12</code>, minus school success: <span class="math inline">\(\mu_i = b_{\text{group}[i]}\)</span>. Does knowing a student’s school success help predict happiness?</p>
 </section>
 <section id="loo-for-mr.11" class="slide level2">
 <h2>LOO for <code>mr.11</code></h2>
@@ -904,7 +922,8 @@ See help('pareto-k-diagnostic') for details.</code></pre>
 <li>If it’s larger, compare it to se_diff (a rough signal-to-noise ratio).</li>
 </ol>
 <ul>
-<li>Here elpd_diff / se_diff = 17 / 6.4 ≈ 2.7: <code>mr.12</code> is expected to predict new data clearly better.</li>
+<li><p>The other columns: <code>p_worse</code> is the probability (normal approximation) that the model predicts worse than the top one; <code>diag_diff</code> flags when that approximation is shaky (N &lt; 100, or |elpd_diff| &lt; 4); <code>diag_elpd</code> flags high Pareto <em>k</em>.</p></li>
+<li><p>Here elpd_diff / se_diff = 17 / 6.4 ≈ 2.7: <code>mr.12</code> is expected to predict new data clearly better.</p></li>
 </ul>
 </section>
 <section id="a-third-model-add-the-interaction" class="slide level2 smaller">
@@ -995,7 +1014,7 @@ b_0 &amp;\sim \text{Normal}(5, 2) \qquad b_1, b_2, b_3 \sim \text{Normal}(0, 1) 
 <h2>Reading the comparison</h2>
 <ul>
 <li>In-sample <span class="math inline">\(R^2\)</span> rewards every added parameter. LOO only rewards parameters that help predict <em>new</em> data.</li>
-<li>Here the interaction raises <span class="math inline">\(R^2\)</span> from .27 to .32, but its LOO advantage over <code>mr.12</code> (3.7, se 3.4) is under 4: a modest gain in prediction, not a clear one. (Whether the interaction is <em>real</em> is a different question; see the next section.)</li>
+<li>Here the interaction raises <span class="math inline">\(R^2\)</span> from .27 to .32, but its LOO advantage over <code>mr.12</code> (3.7, se 3.4) is under 4 (that’s what <code>diag_diff</code> flags): a modest gain in prediction, not a clear one. (Whether the interaction is <em>real</em> is a different question; see the next section.)</li>
 </ul>
 </section>
 <section id="information-criteria" class="slide level2 smaller">
@@ -1161,6 +1180,15 @@ iv.dtx:SS_c | 1.000 |       3007</code></pre>
 </div>
 </div>
 </section>
+<section id="real-but-not-much-help-predicting" class="slide level2 smaller">
+<h2>Real, but not much help predicting?</h2>
+<ul>
+<li>The interaction: pd = 99.7%, 95% CI [-0.46, -0.09]. We’re quite sure the treatment effect shrinks as school success goes up.</li>
+<li>Yet adding it improved LOO by only 3.7 (se 3.4).</li>
+<li>No contradiction: they answer different questions. pd asks <em>how sure are we about the direction of this parameter?</em> LOO asks <em>how much better are predictions for new students?</em> With σ ≈ 1.6, most of each student’s happiness is noise the interaction can’t touch, so even a clearly nonzero slope difference moves predictions only a little.</li>
+<li>A parameter can be clearly nonzero and still add little predictive value (and, with lots of data, vice versa). Pick the tool that matches your question.</li>
+</ul>
+</section>
 <section id="downsides-of-pd" class="slide level2">
 <h2>Downsides of PD</h2>
 <ul>
@@ -1185,15 +1213,15 @@ iv.dtx:SS_c | 1.000 |       3007</code></pre>
 <li><p>Let the user define an area around the null value enclosing values that are equivalent to the null</p></li>
 </ul>
 </section>
-<section id="why-a-rope" class="slide level2">
+<section id="why-a-rope" class="slide level2 smaller">
 <h2>Why a ROPE?</h2>
 <ul>
-<li><p>Why not just use the CI like you normally would? Because what if CI and ROPE overlap?</p></li>
+<li><p>Why not just check whether the CI excludes 0? Because that only rules out <em>exactly</em> 0, not effects too small to matter, and it can never support the null.</p></li>
 <li><p>This allows you to</p></li>
 </ul>
 <ol type="1">
 <li><p>have a middle ground between accept vs reject. A range of equivalence.</p></li>
-<li><p>Affirm a predicted value, which is logically impossible in standard NHST. That is, rather than “fail to reject the null,” we can say that, given the data, the effect has an XX% probability of being practically zero.</p></li>
+<li><p>Accept the null (practically), which standard NHST can’t do: it can only fail to reject (frequentists need a separate equivalence test, e.g., TOST). That is, rather than “fail to reject the null,” we can say that, given the data, the effect has an XX% probability of being practically zero.</p></li>
 </ol>
 </section>
 <section id="using-a-rope" class="slide level2">
@@ -1246,7 +1274,7 @@ iv.dtx:SS_c |     15.00 %</code></pre>
 </details>
 
 </div>
-<img data-src="info-6_files/figure-revealjs/unnamed-chunk-36-1.png" width="960" class="r-stretch"><ul>
+<img data-src="info-6_files/figure-revealjs/unnamed-chunk-37-1.png" width="960" class="r-stretch"><ul>
 <li>Without <code>parameters =</code>, the same range is applied to every parameter, including the intercept, even though they are on different scales. A ROPE belongs to one parameter</li>
 </ul>
 </section>
@@ -1309,7 +1337,7 @@ iv.dtx    |     26.88 %</code></pre>
 </details>
 
 </div>
-<img data-src="info-6_files/figure-revealjs/unnamed-chunk-39-1.png" width="768" class="r-stretch"></section>
+<img data-src="info-6_files/figure-revealjs/unnamed-chunk-40-1.png" width="768" class="r-stretch"></section>
 <section id="a-wider-rope-99-interval" class="slide level2">
 <h2>A wider ROPE, 99% interval</h2>
 <div class="cell">
@@ -1319,9 +1347,9 @@ iv.dtx    |     26.88 %</code></pre>
 </details>
 
 </div>
-<img data-src="info-6_files/figure-revealjs/unnamed-chunk-40-1.png" width="960" class="r-stretch"><p>A wider ROPE or a wider interval changes the answer, which is why the ROPE (and interval) must be chosen before looking.</p>
+<img data-src="info-6_files/figure-revealjs/unnamed-chunk-41-1.png" width="960" class="r-stretch"><p>A wider ROPE or a wider interval changes the answer, which is why the ROPE (and interval) must be chosen before looking.</p>
 </section>
-<section id="equivalence-test" class="slide level2">
+<section id="equivalence-test" class="slide level2 smaller">
 <h2>Equivalence test</h2>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb67"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb67-1"><a aria-label="1"></a>result <span class="ot">&lt;-</span> <span class="fu">equivalence_test</span>(mr<span class="fl">.14</span>b, <span class="at">range =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.3</span>, <span class="fl">0.3</span>), <span class="at">ci =</span> <span class="fu">c</span>(<span class="fl">0.95</span>))</span>
@@ -1339,20 +1367,24 @@ SS_c        | Undecided |      1.45 % |   [0.29, 0.52]
 iv.dtx:SS_c | Undecided |     61.08 % | [-0.46, -0.09]</code></pre>
 </div>
 </div>
+<ul>
+<li>The rule (Kruschke): H0 <strong>Rejected</strong> if the 95% interval is entirely outside the ROPE, <strong>Accepted</strong> if entirely inside, otherwise <strong>Undecided</strong>.</li>
+<li>“inside ROPE” here is the share of the <em>95% interval</em> inside the ROPE, not of the whole posterior.</li>
+</ul>
 </section>
-<section id="describe_posterior-with-a-rope" class="slide level2">
-<h2><code>describe_posterior()</code> with a ROPE</h2>
+<section id="describe_posterior-with-our-rope" class="slide level2">
+<h2><code>describe_posterior()</code> with our ROPE</h2>
+<p>The defended ROPE, for the one parameter it was built for, over the full posterior:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb69"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb69-1"><a aria-label="1"></a><span class="fu">describe_posterior</span>(mr<span class="fl">.14</span>b, <span class="at">test =</span> <span class="st">"ROPE"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb69"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb69-1"><a aria-label="1"></a><span class="fu">describe_posterior</span>(mr<span class="fl">.14</span>b, <span class="at">test =</span> <span class="fu">c</span>(<span class="st">"p_direction"</span>, <span class="st">"rope"</span>),</span>
+<span id="cb69-2"><a aria-label="2"></a>                   <span class="at">rope_range =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.2</span>, <span class="fl">0.2</span>), <span class="at">rope_ci =</span> <span class="dv">1</span>,</span>
+<span id="cb69-3"><a aria-label="3"></a>                   <span class="at">parameters =</span> <span class="st">"^b_iv.dtx$"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Summary of Posterior Distribution
 
-Parameter   | Median |         95% CI |          ROPE | % in ROPE |  Rhat | ESS (tail)
---------------------------------------------------------------------------------------
-(Intercept) |   4.98 | [ 4.52,  5.43] | [-0.19, 0.19] |        0% | 1.000 |       2903
-iv.dtx      |   0.36 | [-0.21,  0.92] | [-0.19, 0.19] |    26.68% | 1.001 |       2700
-SS_c        |   0.41 | [ 0.29,  0.52] | [-0.19, 0.19] |        0% | 1.000 |       2873
-iv.dtx:SS_c |  -0.28 | [-0.46, -0.09] | [-0.19, 0.19] |    15.00% | 1.000 |       3007</code></pre>
+Parameter | Median |        95% CI |     pd |          ROPE | % in ROPE |  Rhat | ESS (tail)
+--------------------------------------------------------------------------------------------
+iv.dtx    |   0.36 | [-0.21, 0.92] | 89.33% | [-0.20, 0.20] |    26.88% | 1.001 |       2700</code></pre>
 </div>
 </div>
 </section>
@@ -1397,7 +1429,7 @@ BF
 </details>
 
 </div>
-<img data-src="info-6_files/figure-revealjs/unnamed-chunk-44-1.png" width="960" class="r-stretch"></section>
+<img data-src="info-6_files/figure-revealjs/unnamed-chunk-45-1.png" width="960" class="r-stretch"></section>
 <section id="reading-the-bf" class="slide level2">
 <h2>Reading the BF</h2>
 <div class="cell">
@@ -1417,10 +1449,14 @@ BF
 <section id="proposed-cutoffs" class="slide level2 smaller">
 <h2>Proposed cutoffs</h2>
 <table class="caption-top">
+<colgroup>
+<col style="width: 31%">
+<col style="width: 68%">
+</colgroup>
 <thead>
 <tr class="header">
 <th>BF10</th>
-<th>Interpretation</th>
+<th>Interpretation (Jeffreys, 1961; Lee &amp; Wagenmakers, 2013)</th>
 </tr>
 </thead>
 <tbody>
@@ -1544,7 +1580,7 @@ BF
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb80"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb80-1"><a aria-label="1"></a><span class="fu">plot</span>(bf_2)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 </div>
-<img data-src="info-6_files/figure-revealjs/unnamed-chunk-48-1.png" width="960" class="r-stretch"></section>
+<img data-src="info-6_files/figure-revealjs/unnamed-chunk-49-1.png" width="960" class="r-stretch"></section>
 <section id="the-original-for-comparison" class="slide level2">
 <h2>The original, for comparison</h2>
 <p>Here was the original BF</p>
@@ -1552,7 +1588,7 @@ BF
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb81"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb81-1"><a aria-label="1"></a><span class="fu">plot</span>(bf_plot)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 </div>
-<img data-src="info-6_files/figure-revealjs/unnamed-chunk-49-1.png" width="960" class="r-stretch"></section>
+<img data-src="info-6_files/figure-revealjs/unnamed-chunk-50-1.png" width="960" class="r-stretch"></section>
 <section id="same-data-different-bf" class="slide level2">
 <h2>Same data, different BF</h2>
 <div class="cell">
@@ -1601,7 +1637,7 @@ BF
 </details>
 
 </div>
-<img data-src="info-6_files/figure-revealjs/unnamed-chunk-52-1.png" width="960" class="r-stretch"></section>
+<img data-src="info-6_files/figure-revealjs/unnamed-chunk-53-1.png" width="960" class="r-stretch"></section>
 <section id="savagedickey" class="slide level2">
 <h2>Savage–Dickey</h2>
 <ul>
@@ -1622,15 +1658,15 @@ BF
 <span id="cb87-5"><a aria-label="5"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, .<span class="dv">2</span>), <span class="at">class =</span> b, <span class="at">coef =</span> SS_c),</span>
 <span id="cb87-6"><a aria-label="6"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, .<span class="dv">2</span>), <span class="at">class =</span> b, <span class="at">coef =</span> FQ_c),</span>
 <span id="cb87-7"><a aria-label="7"></a>                <span class="fu">prior</span>(<span class="fu">exponential</span>(.<span class="dv">5</span>), <span class="at">class =</span> sigma)),</span>
-<span id="cb87-8"><a aria-label="8"></a>      <span class="at">iter =</span> <span class="dv">2000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">chains =</span> <span class="dv">2</span>, <span class="at">cores =</span> <span class="dv">2</span>,</span>
+<span id="cb87-8"><a aria-label="8"></a>      <span class="at">iter =</span> <span class="dv">11000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">chains =</span> <span class="dv">4</span>, <span class="at">cores =</span> <span class="dv">4</span>,</span>
 <span id="cb87-9"><a aria-label="9"></a>      <span class="at">data =</span> MR,</span>
 <span id="cb87-10"><a aria-label="10"></a>      <span class="at">sample_prior =</span> <span class="st">"yes"</span>,</span>
 <span id="cb87-11"><a aria-label="11"></a>      <span class="at">save_pars =</span> <span class="fu">save_pars</span>(<span class="at">all =</span> <span class="cn">TRUE</span>),</span>
 <span id="cb87-12"><a aria-label="12"></a>      <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
-<span id="cb87-13"><a aria-label="13"></a>      <span class="at">file =</span> <span class="st">"info.2"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb87-13"><a aria-label="13"></a>      <span class="at">file =</span> <span class="st">"info.2b"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<p>Happiness predicted by school success and friendship quality (both centered), with fairly narrow Normal(0, 0.2) priors on the slopes.</p>
+<p>Happiness predicted by school success and friendship quality (both centered), with fairly narrow Normal(0, 0.2) priors on the slopes. BFs computed from draws are noisy, so we take 40,000 (4 chains × 10,000), the minimum bayestestR recommends.</p>
 </section>
 <section id="info.2-summary" class="slide level2">
 <h2><code>info.2</code> summary</h2>
@@ -1641,18 +1677,18 @@ BF
   Links: mu = identity 
 Formula: happiness ~ 1 + SS_c + FQ_c 
    Data: MR (Number of observations: 118) 
-  Draws: 2 chains, each with iter = 2000; warmup = 1000; thin = 1;
-         total post-warmup draws = 2000
+  Draws: 4 chains, each with iter = 11000; warmup = 1000; thin = 1;
+         total post-warmup draws = 40000
 
 Regression Coefficients:
           Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-Intercept     5.21      0.14     4.93     5.50 1.00     1546     1368
-SS_c          0.35      0.05     0.25     0.45 1.00     1719     1450
-FQ_c          0.17      0.07     0.04     0.31 1.00     1518     1462
+Intercept     5.21      0.15     4.92     5.50 1.00    37661    27891
+SS_c          0.35      0.05     0.25     0.45 1.00    34381    29431
+FQ_c          0.18      0.07     0.04     0.31 1.00    34538    29134
 
 Further Distributional Parameters:
       Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-sigma     1.59      0.11     1.39     1.82 1.00     1827     1399
+sigma     1.60      0.11     1.40     1.82 1.00    35505    28115
 
 Draws were sampled using sample(hmc). For each parameter, Bulk_ESS
 and Tail_ESS are effective sample size measures, and Rhat is the potential
@@ -1670,13 +1706,14 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 
 Parameter   |       BF
 ----------------------
-(Intercept) | 5.03e+34
-SS_c        | 2.49e+04
-FQ_c        |    10.53
+(Intercept) | 1.46e+42
+SS_c        | 2.05e+06
+FQ_c        |    10.27
 
 * Evidence Against The Null: 0</code></pre>
 </div>
 </div>
+<p>Ignore the Intercept row: it tests whether mean happiness is 0 on a 1–10 scale. Nobody thinks that.</p>
 </section>
 <section id="plotting-the-bfs" class="slide level2">
 <h2>Plotting the BFs</h2>
@@ -1684,10 +1721,10 @@ FQ_c        |    10.53
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb92"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb92-1"><a aria-label="1"></a><span class="fu">plot</span>(bf.info<span class="fl">.2</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 </div>
-<img data-src="info-6_files/figure-revealjs/unnamed-chunk-56-1.png" width="960" class="r-stretch"></section>
+<img data-src="info-6_files/figure-revealjs/unnamed-chunk-57-1.png" width="960" class="r-stretch"></section>
 <section id="try-a-wider-prior" class="slide level2 smaller">
 <h2>Try a wider prior</h2>
-<p>Same model, same data; the slope priors change from Normal(0, 0.2) to Normal(0, 2). (The sigma prior also differs, Exponential(1) vs.&nbsp;Exponential(0.5), which barely matters for the slopes’ BFs.)</p>
+<p>Same model, same data; only the slope priors change, from Normal(0, 0.2) to Normal(0, 2).</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -1697,13 +1734,13 @@ FQ_c        |    10.53
 <span id="cb93-4"><a aria-label="4"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">5</span>, <span class="dv">2</span>), <span class="at">class =</span> Intercept),</span>
 <span id="cb93-5"><a aria-label="5"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">2</span>), <span class="at">class =</span> b, <span class="at">coef =</span> SS_c),</span>
 <span id="cb93-6"><a aria-label="6"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">2</span>), <span class="at">class =</span> b, <span class="at">coef =</span> FQ_c),</span>
-<span id="cb93-7"><a aria-label="7"></a>                <span class="fu">prior</span>(<span class="fu">exponential</span>(<span class="dv">1</span>), <span class="at">class =</span> sigma)),</span>
-<span id="cb93-8"><a aria-label="8"></a>      <span class="at">iter =</span> <span class="dv">2000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">chains =</span> <span class="dv">2</span>, <span class="at">cores =</span> <span class="dv">2</span>,</span>
+<span id="cb93-7"><a aria-label="7"></a>                <span class="fu">prior</span>(<span class="fu">exponential</span>(.<span class="dv">5</span>), <span class="at">class =</span> sigma)),</span>
+<span id="cb93-8"><a aria-label="8"></a>      <span class="at">iter =</span> <span class="dv">11000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">chains =</span> <span class="dv">4</span>, <span class="at">cores =</span> <span class="dv">4</span>,</span>
 <span id="cb93-9"><a aria-label="9"></a>      <span class="at">data =</span> MR,</span>
 <span id="cb93-10"><a aria-label="10"></a>      <span class="at">sample_prior =</span> <span class="st">"yes"</span>,</span>
 <span id="cb93-11"><a aria-label="11"></a>      <span class="at">save_pars =</span> <span class="fu">save_pars</span>(<span class="at">all =</span> <span class="cn">TRUE</span>),</span>
 <span id="cb93-12"><a aria-label="12"></a>      <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
-<span id="cb93-13"><a aria-label="13"></a>      <span class="at">file =</span> <span class="st">"info.1"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb93-13"><a aria-label="13"></a>      <span class="at">file =</span> <span class="st">"info.1b"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 </section>
@@ -1717,9 +1754,9 @@ FQ_c        |    10.53
 
 Parameter   |       BF
 ----------------------
-(Intercept) | 1.55e+34
-SS_c        | 3.49e+04
-FQ_c        |     4.93
+(Intercept) | 1.65e+47
+SS_c        | 2.66e+05
+FQ_c        |     3.74
 
 * Evidence Against The Null: 0</code></pre>
 </div>
@@ -1745,7 +1782,7 @@ FQ_c        |     4.93
 </details>
 
 </div>
-<img data-src="info-6_files/figure-revealjs/unnamed-chunk-59-1.png" width="960" class="r-stretch"></section>
+<img data-src="info-6_files/figure-revealjs/unnamed-chunk-60-1.png" width="960" class="r-stretch"></section>
 <section id="why" class="slide level2 smaller">
 <h2>Why?</h2>
 <div class="cell">
@@ -1768,13 +1805,13 @@ FQ_c        |     4.93
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">School success</td>
-<td style="text-align: right;">34866.6</td>
-<td style="text-align: right;">24860.6</td>
+<td style="text-align: right;">266130.5</td>
+<td style="text-align: right;">2046799.6</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">Friendship quality</td>
-<td style="text-align: right;">4.9</td>
-<td style="text-align: right;">10.5</td>
+<td style="text-align: right;">3.7</td>
+<td style="text-align: right;">10.3</td>
 </tr>
 </tbody>
 </table>
@@ -1782,27 +1819,31 @@ FQ_c        |     4.93
 </div>
 <ul>
 <li>The BF compares “the effect is 0” to “the effect is something like <em>the prior</em> says.” A wide prior spreads its bets over huge slopes the data rule out, so it makes the alternative look worse.</li>
-<li>For friendship quality, just narrowing the prior about doubles the BF (4.9 → 10.5): from “moderate” to the edge of “strong” with the same data. (BFs estimated from draws wobble a bit from run to run.) School success is so far from 0 that any prior gives an enormous BF (the numbers move, the conclusion doesn’t).</li>
+<li>For friendship quality, just narrowing the prior moves the BF from 3.7 to 10.3: from “moderate” to “strong” with the same data. (BFs estimated from draws wobble a bit from run to run.) School success is so far from 0 that any prior gives an enormous BF (the numbers move, the conclusion doesn’t).</li>
 <li>The posterior (and so CIs, pd and ROPE) hardly cares about the prior here. <strong>The BF cares a lot.</strong> Always report the prior along with a BF.</li>
 </ul>
 </section>
-<section id="we-can-also-do-this-with-a-rope" class="slide level2">
+<section id="we-can-also-do-this-with-a-rope" class="slide level2 smaller">
 <h2>We can also do this with a ROPE!</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb98"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb98-1"><a aria-label="1"></a>bf.result2 <span class="ot">&lt;-</span> <span class="fu">bayesfactor_parameters</span>(info<span class="fl">.2</span>, <span class="at">null =</span> <span class="fu">rope_range</span>(info<span class="fl">.2</span>))</span>
-<span id="cb98-2"><a aria-label="2"></a>bf.result2</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb98"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb98-1"><a aria-label="1"></a>bf.result2 <span class="ot">&lt;-</span> <span class="fu">bayesfactor_parameters</span>(info<span class="fl">.2</span>, <span class="at">null =</span> <span class="fu">rope_range</span>(info<span class="fl">.2</span>),</span>
+<span id="cb98-2"><a aria-label="2"></a>                                     <span class="at">parameters =</span> <span class="st">"SS_c|FQ_c"</span>)</span>
+<span id="cb98-3"><a aria-label="3"></a>bf.result2</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Bayes Factor (Null-Interval)
 
-Parameter   |       BF
-----------------------
-(Intercept) | 1.17e+34
-SS_c        |   718.44
-FQ_c        |     1.33
+Parameter |       BF
+--------------------
+SS_c      | 1.49e+03
+FQ_c      |     1.43
 
 * Evidence Against The Null: [-0.189, 0.189]</code></pre>
 </div>
 </div>
+<ul>
+<li>Same caveat as before: <code>rope_range()</code> is ±0.1 SD(y), here applied to slopes measured per unit of each predictor. In a real analysis, pick each slope’s range for a reason.</li>
+<li>Friendship quality: strong evidence it isn’t <em>exactly</em> 0, but only BF ≈ 1.4 against “practically 0”. Different nulls, different answers.</li>
+</ul>
 </section>
 <section id="bf-against-an-interval-null" class="slide level2">
 <h2>BF against an interval null</h2>
@@ -1811,7 +1852,7 @@ FQ_c        |     1.33
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb100"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb100-1"><a aria-label="1"></a><span class="fu">plot</span>(bf.result2)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 </div>
-<img data-src="info-6_files/figure-revealjs/unnamed-chunk-62-1.png" width="960" class="r-stretch"></section>
+<img data-src="info-6_files/figure-revealjs/unnamed-chunk-63-1.png" width="960" class="r-stretch"></section>
 <section id="shortcomings-of-bayes-factors" class="slide level2">
 <h2>Shortcomings of Bayes Factors</h2>
 <ol type="1">

@@ -150,6 +150,11 @@ For binary logistic regression the saturated model predicts every 0/1 perfectly,
 summary(mod.a)
 ```
 
+## −2LL, AIC and the two LRT p-values {.smaller}
+
+-   **AIC = −2LL + 2k.** Here −2LL = `r sprintf("%.2f", -2 * as.numeric(logLik(mod.a)))` and k = 3 (intercept, slope, σ), so AIC = `r sprintf("%.2f", -2 * as.numeric(logLik(mod.a)))` + 6 = `r sprintf("%.2f", AIC(mod.a))`, the AIC `summary()` printed.
+-   **Why did `anova()` and `lrtest()` give slightly different p-values?** For a Gaussian `glm()`, the "Deviance" column in `anova()` is the drop in the residual sum of squares (`r sprintf("%.1f", deviance(mod.b) - deviance(mod.a))`). `anova()` divides it by the estimated residual variance (`r sprintf("%.2f", summary(mod.a)$dispersion)`) to get a χ² of `r sprintf("%.2f", (deviance(mod.b) - deviance(mod.a)) / summary(mod.a)$dispersion)`, while `lrtest()` uses the exact difference in −2LL (`r sprintf("%.2f", chisqu)`). Same idea, slightly different estimate of σ, so p = `r sprintf("%.4f", pchisq((deviance(mod.b) - deviance(mod.a)) / summary(mod.a)$dispersion, 1, lower.tail = FALSE))` vs. `r sprintf("%.4f", pchisq(chisqu, 1, lower.tail = FALSE))`.
+
 ## Lecture 1's grid, as log-likelihoods {.smaller .nostretch}
 
 Remember the grid: for every (μ, σ) pair, add up the log-likelihood of all 928 children's heights. The brightest spot is the maximum likelihood estimate. Every model today gets scored the same basic way: **how probable does it make the data?**
@@ -245,7 +250,7 @@ We use bits rather than direct probabilities because it is easier to add bits th
 
 -   Distributions with more possibilities will be higher in entropy than those with fewer possibilities.
 
--   Similarly, flat distributions have high entropy as they provide little information
+-   Similarly, flat distributions have high entropy: the distribution itself *contains* little information, so each outcome *tells* you a lot. A peaked distribution already contains a lot, so its outcomes rarely surprise you
 
 -   This is similar to how we set up priors where if we had more background "information" we would create a more narrow distribution.
 
@@ -403,6 +408,18 @@ On the same data, every extra term improves the score. On new data, the truth (d
 
 -   Pareto Smoothed Importance Sampling (PSIS) reuses the posterior draws we already have. For each observation, it reweights the draws to approximate the posterior we would have gotten without that observation (draws that fit that point especially well get less weight). No refitting: cross validation almost for free!
 
+## The model: `mr.12`
+
+$$
+\begin{aligned}
+\text{happiness}_i &\sim \text{Normal}(\mu_i, \sigma) \\
+\mu_i &= b_{\text{group}[i]} + b_{\text{SS}}\,\text{SS}_i \\
+b_\text{control}, b_\text{tx} &\sim \text{Normal}(5, 3) \qquad b_\text{SS} \sim \text{Normal}(0, 0.5) \qquad \sigma \sim \text{Exponential}(1)
+\end{aligned}
+$$
+
+In brms: `happiness ~ 0 + iv.d + SS_c`. The `0 +` drops the intercept, so each group gets its own mean (at average school success).
+
 ## PSIS-LOO example: `mr.12`
 
 ```{r}
@@ -487,7 +504,7 @@ mr.11 <-
 summary(mr.11)
 ```
 
-Same as `mr.12`, minus school success: does knowing a student's school success help predict happiness?
+Same as `mr.12`, minus school success: $\mu_i = b_{\text{group}[i]}$. Does knowing a student's school success help predict happiness?
 
 ## LOO for `mr.11`
 
@@ -517,6 +534,8 @@ loo_compare(mr.11, mr.12, criterion = "loo")
 
 1.  If |elpd_diff| \< 4, the models predict about equally well.
 2.  If it's larger, compare it to se_diff (a rough signal-to-noise ratio).
+
+-   The other columns: `p_worse` is the probability (normal approximation) that the model predicts worse than the top one; `diag_diff` flags when that approximation is shaky (N < 100, or |elpd_diff| < 4); `diag_elpd` flags high Pareto *k*.
 
 -   Here elpd_diff / se_diff = `r cmp_1112 <- loo_compare(mr.11, mr.12); round(abs(cmp_1112[2, "elpd_diff"]))` / `r round(cmp_1112[2, "se_diff"], 1)` ≈ `r round(abs(cmp_1112[2, "elpd_diff"]) / cmp_1112[2, "se_diff"], 1)`: `mr.12` is expected to predict new data clearly better.
 
@@ -564,7 +583,7 @@ loo_compare(mr.11, mr.12, mr.14b)
 ## Reading the comparison
 
 -   In-sample $R^2$ rewards every added parameter. LOO only rewards parameters that help predict *new* data.
--   Here the interaction raises $R^2$ from `r sub("^0", "", sprintf("%.2f", median(bayes_R2(mr.12, summary = FALSE))))` to `r sub("^0", "", sprintf("%.2f", median(bayes_R2(mr.14b, summary = FALSE))))`, but its LOO advantage over `mr.12` (`r cmp_1214 <- loo_compare(mr.12, mr.14b); sprintf("%.1f", abs(cmp_1214[2, "elpd_diff"]))`, se `r sprintf("%.1f", cmp_1214[2, "se_diff"])`) is under 4: a modest gain in prediction, not a clear one. (Whether the interaction is *real* is a different question; see the next section.)
+-   Here the interaction raises $R^2$ from `r sub("^0", "", sprintf("%.2f", median(bayes_R2(mr.12, summary = FALSE))))` to `r sub("^0", "", sprintf("%.2f", median(bayes_R2(mr.14b, summary = FALSE))))`, but its LOO advantage over `mr.12` (`r cmp_1214 <- loo_compare(mr.12, mr.14b); sprintf("%.1f", abs(cmp_1214[2, "elpd_diff"]))`, se `r sprintf("%.1f", cmp_1214[2, "se_diff"])`) is under 4 (that's what `diag_diff` flags): a modest gain in prediction, not a clear one. (Whether the interaction is *real* is a different question; see the next section.)
 
 ## Information criteria {.smaller}
 
@@ -662,6 +681,18 @@ About `r round(100 * mean(tx_draws$b_iv.dtx > 0))`% of the posterior says the tr
 describe_posterior(mr.14b)
 ```
 
+## Real, but not much help predicting? {.smaller}
+
+```{r}
+#| echo: false
+int_draws <- spread_draws(mr.14b, `b_iv.dtx:SS_c`)$`b_iv.dtx:SS_c`
+```
+
+-   The interaction: pd = `r sprintf("%.1f", 100 * mean(int_draws < 0))`%, 95% CI [`r sprintf("%.2f", quantile(int_draws, .025))`, `r sprintf("%.2f", quantile(int_draws, .975))`]. We're quite sure the treatment effect shrinks as school success goes up.
+-   Yet adding it improved LOO by only `r sprintf("%.1f", abs(cmp_1214[2, "elpd_diff"]))` (se `r sprintf("%.1f", cmp_1214[2, "se_diff"])`).
+-   No contradiction: they answer different questions. pd asks *how sure are we about the direction of this parameter?* LOO asks *how much better are predictions for new students?* With σ ≈ `r sprintf("%.1f", median(as_draws_df(mr.14b)$sigma))`, most of each student's happiness is noise the interaction can't touch, so even a clearly nonzero slope difference moves predictions only a little.
+-   A parameter can be clearly nonzero and still add little predictive value (and, with lots of data, vice versa). Pick the tool that matches your question.
+
 ## Downsides of PD
 
 -   You can find a high PD for an effect that is quite small. Similar to a p \< .05 with a large sample size. Is it still meaningful?
@@ -686,15 +717,15 @@ describe_posterior(mr.14b)
 
 -   Let the user define an area around the null value enclosing values that are equivalent to the null
 
-## Why a ROPE?
+## Why a ROPE? {.smaller}
 
--   Why not just use the CI like you normally would? Because what if CI and ROPE overlap?
+-   Why not just check whether the CI excludes 0? Because that only rules out *exactly* 0, not effects too small to matter, and it can never support the null.
 
 -   This allows you to
 
 1.  have a middle ground between accept vs reject. A range of equivalence.
 
-2.  Affirm a predicted value, which is logically impossible in standard NHST. That is, rather than "fail to reject the null," we can say that, given the data, the effect has an XX% probability of being practically zero.
+2.  Accept the null (practically), which standard NHST can't do: it can only fail to reject (frequentists need a separate equivalence test, e.g., TOST). That is, rather than "fail to reject the null," we can say that, given the data, the effect has an XX% probability of being practically zero.
 
 ## Using a ROPE
 
@@ -790,17 +821,24 @@ plot(rope(mr.14b, range = c(-0.3, 0.3), ci = 0.99))
 
 A wider ROPE or a wider interval changes the answer, which is why the ROPE (and interval) must be chosen before looking.
 
-## Equivalence test
+## Equivalence test {.smaller}
 
 ```{r}
 result <- equivalence_test(mr.14b, range = c(-0.3, 0.3), ci = c(0.95))
 result
 ```
 
-## `describe_posterior()` with a ROPE
+-   The rule (Kruschke): H0 **Rejected** if the 95% interval is entirely outside the ROPE, **Accepted** if entirely inside, otherwise **Undecided**.
+-   "inside ROPE" here is the share of the *95% interval* inside the ROPE, not of the whole posterior.
+
+## `describe_posterior()` with our ROPE
+
+The defended ROPE, for the one parameter it was built for, over the full posterior:
 
 ```{r}
-describe_posterior(mr.14b, test = "ROPE")
+describe_posterior(mr.14b, test = c("p_direction", "rope"),
+                   rope_range = c(-0.2, 0.2), rope_ci = 1,
+                   parameters = "^b_iv.dtx$")
 ```
 
 ## Bayes Factors
@@ -844,7 +882,7 @@ The prior density at 0 is about .40 and the posterior density at 0 is about .21,
 
 ## Proposed cutoffs {.smaller}
 
-| BF10         | Interpretation               |
+| BF10         | Interpretation (Jeffreys, 1961; Lee & Wagenmakers, 2013) |
 |--------------|------------------------------|
 | \> 100       | Extreme evidence for H1      |
 | 30 - 100     | Very strong evidence for H1  |
@@ -974,15 +1012,15 @@ info.2 <-
                 prior(normal(0, .2), class = b, coef = SS_c),
                 prior(normal(0, .2), class = b, coef = FQ_c),
                 prior(exponential(.5), class = sigma)),
-      iter = 2000, warmup = 1000, chains = 2, cores = 2,
+      iter = 11000, warmup = 1000, chains = 4, cores = 4,
       data = MR,
       sample_prior = "yes",
       save_pars = save_pars(all = TRUE),
       backend = "cmdstanr",
-      file = "info.2")
+      file = "info.2b")
 ```
 
-Happiness predicted by school success and friendship quality (both centered), with fairly narrow Normal(0, 0.2) priors on the slopes.
+Happiness predicted by school success and friendship quality (both centered), with fairly narrow Normal(0, 0.2) priors on the slopes. BFs computed from draws are noisy, so we take 40,000 (4 chains × 10,000), the minimum bayestestR recommends.
 
 ## `info.2` summary
 
@@ -997,6 +1035,8 @@ bf.info.2 <- bayestestR::bayesfactor_parameters(info.2)
 bf.info.2
 ```
 
+Ignore the Intercept row: it tests whether mean happiness is 0 on a 1–10 scale. Nobody thinks that.
+
 ## Plotting the BFs
 
 ```{r}
@@ -1005,7 +1045,7 @@ plot(bf.info.2)
 
 ## Try a wider prior {.smaller}
 
-Same model, same data; the slope priors change from Normal(0, 0.2) to Normal(0, 2). (The sigma prior also differs, Exponential(1) vs. Exponential(0.5), which barely matters for the slopes' BFs.)
+Same model, same data; only the slope priors change, from Normal(0, 0.2) to Normal(0, 2).
 
 ```{r}
 #| code-fold: true
@@ -1015,13 +1055,13 @@ info.1 <-
       prior = c(prior(normal(5, 2), class = Intercept),
                 prior(normal(0, 2), class = b, coef = SS_c),
                 prior(normal(0, 2), class = b, coef = FQ_c),
-                prior(exponential(1), class = sigma)),
-      iter = 2000, warmup = 1000, chains = 2, cores = 2,
+                prior(exponential(.5), class = sigma)),
+      iter = 11000, warmup = 1000, chains = 4, cores = 4,
       data = MR,
       sample_prior = "yes",
       save_pars = save_pars(all = TRUE),
       backend = "cmdstanr",
-      file = "info.1")
+      file = "info.1b")
 ```
 
 ## BFs with the wider prior
@@ -1062,15 +1102,19 @@ tibble(parameter = c("School success", "Friendship quality"),
 ```
 
 -   The BF compares "the effect is 0" to "the effect is something like *the prior* says." A wide prior spreads its bets over huge slopes the data rule out, so it makes the alternative look worse.
--   For friendship quality, just narrowing the prior about doubles the BF (`r sprintf("%.1f", exp(bf.info.1$log_BF[bf.info.1$Parameter == "b_FQ_c"]))` → `r sprintf("%.1f", exp(bf.info.2$log_BF[bf.info.2$Parameter == "b_FQ_c"]))`): from "moderate" to the edge of "strong" with the same data. (BFs estimated from draws wobble a bit from run to run.) School success is so far from 0 that any prior gives an enormous BF (the numbers move, the conclusion doesn't).
+-   For friendship quality, just narrowing the prior moves the BF from `r sprintf("%.1f", exp(bf.info.1$log_BF[bf.info.1$Parameter == "b_FQ_c"]))` to `r sprintf("%.1f", exp(bf.info.2$log_BF[bf.info.2$Parameter == "b_FQ_c"]))`: from "moderate" to "strong" with the same data. (BFs estimated from draws wobble a bit from run to run.) School success is so far from 0 that any prior gives an enormous BF (the numbers move, the conclusion doesn't).
 -   The posterior (and so CIs, pd and ROPE) hardly cares about the prior here. **The BF cares a lot.** Always report the prior along with a BF.
 
-## We can also do this with a ROPE!
+## We can also do this with a ROPE! {.smaller}
 
 ```{r}
-bf.result2 <- bayesfactor_parameters(info.2, null = rope_range(info.2))
+bf.result2 <- bayesfactor_parameters(info.2, null = rope_range(info.2),
+                                     parameters = "SS_c|FQ_c")
 bf.result2
 ```
+
+-   Same caveat as before: `rope_range()` is ±0.1 SD(y), here applied to slopes measured per unit of each predictor. In a real analysis, pick each slope's range for a reason.
+-   Friendship quality: strong evidence it isn't *exactly* 0, but only BF ≈ `r sprintf("%.1f", exp(bf.result2$log_BF[bf.result2$Parameter == "b_FQ_c"]))` against "practically 0". Different nulls, different answers.
 
 ## BF against an interval null
 
