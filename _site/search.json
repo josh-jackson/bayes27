@@ -8635,7 +8635,7 @@
     "href": "glm-7.html#why-not-just-use-lm",
     "title": "GLMs: logistic and multinomial regression",
     "section": "Why not just use lm()?",
-    "text": "Why not just use lm()?\nOur example: does IQ predict not dying prematurely (1 = no, 0 = yes)?\n\n\nCode\nlibrary(tidyverse)\nmort0 &lt;- read.csv(\"mortality.csv\") %&gt;% mutate(IQ_c = IQ - mean(IQ))\nols       &lt;- lm(NOT.premature ~ IQ_c, data = mort0)\nlogit_fit &lt;- glm(NOT.premature ~ IQ_c, family = binomial, data = mort0)\ntibble(IQ_c = seq(-35, 35, length.out = 200)) %&gt;%\n  mutate(`lm(): straight line` = predict(ols, newdata = .),\n         `logistic: S-curve`   = predict(logit_fit, newdata = ., type = \"response\")) %&gt;%\n  pivot_longer(-IQ_c, names_to = \"model\", values_to = \"pred\") %&gt;%\n  ggplot(aes(IQ_c, pred)) +\n  annotate(\"rect\", xmin = min(mort0$IQ_c), xmax = max(mort0$IQ_c), ymin = -Inf, ymax = Inf, fill = \"grey92\") +\n  geom_hline(yintercept = c(0, 1), linetype = \"dashed\") +\n  geom_line(aes(colour = model), linewidth = 1) +\n  labs(x = \"IQ (centered; shaded = range of our data)\", y = \"Predicted Pr(not premature)\", colour = NULL) +\n  theme_classic(base_size = 14) + theme(legend.position = \"top\")\n\n\n\n\n\n\n\n\n\n\nlm() fits a straight line. Inside our data it looks fine, but push IQ higher and it predicts more than 100% survival.\nAt any IQ, a 0/1 outcome has variance p(1 − p), which changes with p, so lm()’s constant-variance assumption can’t hold.\nA GLM keeps the linear model but runs it through a link, so predictions stay in (0, 1)."
+    "text": "Why not just use lm()?\nOur example: does IQ, along with risky behavior, predict not dying prematurely (1 = no, 0 = yes)? Fit it both ways and compare each person’s predicted probability:\n\n\nCode\nlibrary(tidyverse)\nmort0 &lt;- read.csv(\"mortality.csv\") %&gt;%\n  mutate(IQ_c = IQ - mean(IQ), risky_c = Risky.behavior - mean(Risky.behavior))\nols       &lt;- lm(NOT.premature ~ IQ_c + risky_c, data = mort0)\nlogit_fit &lt;- glm(NOT.premature ~ IQ_c + risky_c, family = binomial, data = mort0)\nlpm &lt;- tibble(logistic = fitted(logit_fit), lm = fitted(ols), impossible = fitted(ols) &gt; 1)\nggplot(lpm, aes(logistic, lm, colour = impossible)) +\n  geom_abline(linetype = \"dashed\") +\n  geom_hline(yintercept = 1, colour = \"firebrick\") +\n  geom_point(alpha = .6, size = 2) +\n  scale_colour_manual(values = c(`FALSE` = \"grey40\", `TRUE` = \"firebrick\"), guide = \"none\") +\n  labs(x = \"Logistic regression: predicted Pr(not premature)\", y = \"lm(): predicted\") +\n  theme_classic(base_size = 14)\n\n\n\n\n\n\n\n\n\nEach dot is a real person. lm() predicts a probability above 1 for 10 of them (red, up to 1.10). That’s not extrapolation: these are people in our data."
   },
   {
     "objectID": "glm-7.html#odds-briefly",
@@ -8713,5 +8713,12 @@
     "title": "GLMs: logistic and multinomial regression",
     "section": "Two multinomial notes",
     "text": "Two multinomial notes\n\nThe reference category is bookkeeping. Changing refcat changes every coefficient (they’re all “vs. the reference”) but not the predicted probabilities. Pick the reference that makes the comparisons you care about easy to read.\nOrdered categories? If the categories have a natural order (never / sometimes / often), a multinomial model throws that order away. Use an ordinal (cumulative) model instead: next deck."
+  },
+  {
+    "objectID": "glm-7.html#what-goes-wrong-with-lm",
+    "href": "glm-7.html#what-goes-wrong-with-lm",
+    "title": "GLMs: logistic and multinomial regression",
+    "section": "What goes wrong with lm()",
+    "text": "What goes wrong with lm()\n\nImpossible predictions. A straight line has no ceiling or floor, so it runs past 1 (or below 0) wherever the predictors push it far enough.\nWrong where it matters most. For the riskiest person, lm() predicts 0.42; the logistic model says 0.23. The line can’t bend, so it understates risk at one end and overstates survival at the other.\nWrong variance. A 0/1 outcome has variance p(1 − p), which changes with p, so lm()’s constant-variance assumption can’t hold.\nA GLM keeps the linear model but runs it through a link, so predictions stay in (0, 1) and bend where they should."
   }
 ]

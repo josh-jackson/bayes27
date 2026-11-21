@@ -27,33 +27,37 @@ execute:
 
 ## Why not just use `lm()`? {.smaller .nostretch}
 
-Our example: does IQ predict *not* dying prematurely (1 = no, 0 = yes)?
+Our example: does IQ, along with risky behavior, predict *not* dying prematurely (1 = no, 0 = yes)? Fit it both ways and compare each person's predicted probability:
 
 ```{r}
 #| code-fold: true
-#| fig-height: 2.8
-#| fig-width: 9
-#| out-width: "70%"
+#| fig-height: 3.3
+#| fig-width: 6.5
+#| out-width: "60%"
 #| message: false
 library(tidyverse)
-mort0 <- read.csv("mortality.csv") %>% mutate(IQ_c = IQ - mean(IQ))
-ols       <- lm(NOT.premature ~ IQ_c, data = mort0)
-logit_fit <- glm(NOT.premature ~ IQ_c, family = binomial, data = mort0)
-tibble(IQ_c = seq(-35, 35, length.out = 200)) %>%
-  mutate(`lm(): straight line` = predict(ols, newdata = .),
-         `logistic: S-curve`   = predict(logit_fit, newdata = ., type = "response")) %>%
-  pivot_longer(-IQ_c, names_to = "model", values_to = "pred") %>%
-  ggplot(aes(IQ_c, pred)) +
-  annotate("rect", xmin = min(mort0$IQ_c), xmax = max(mort0$IQ_c), ymin = -Inf, ymax = Inf, fill = "grey92") +
-  geom_hline(yintercept = c(0, 1), linetype = "dashed") +
-  geom_line(aes(colour = model), linewidth = 1) +
-  labs(x = "IQ (centered; shaded = range of our data)", y = "Predicted Pr(not premature)", colour = NULL) +
-  theme_classic(base_size = 14) + theme(legend.position = "top")
+mort0 <- read.csv("mortality.csv") %>%
+  mutate(IQ_c = IQ - mean(IQ), risky_c = Risky.behavior - mean(Risky.behavior))
+ols       <- lm(NOT.premature ~ IQ_c + risky_c, data = mort0)
+logit_fit <- glm(NOT.premature ~ IQ_c + risky_c, family = binomial, data = mort0)
+lpm <- tibble(logistic = fitted(logit_fit), lm = fitted(ols), impossible = fitted(ols) > 1)
+ggplot(lpm, aes(logistic, lm, colour = impossible)) +
+  geom_abline(linetype = "dashed") +
+  geom_hline(yintercept = 1, colour = "firebrick") +
+  geom_point(alpha = .6, size = 2) +
+  scale_colour_manual(values = c(`FALSE` = "grey40", `TRUE` = "firebrick"), guide = "none") +
+  labs(x = "Logistic regression: predicted Pr(not premature)", y = "lm(): predicted") +
+  theme_classic(base_size = 14)
 ```
 
--   `lm()` fits a straight line. Inside our data it looks fine, but push IQ higher and it predicts more than 100% survival.
--   At any IQ, a 0/1 outcome has variance p(1 − p), which changes with p, so `lm()`'s constant-variance assumption can't hold.
--   A GLM keeps the linear model but runs it through a link, so predictions stay in (0, 1).
+Each dot is a real person. `lm()` predicts a probability above 1 for `r sum(lpm$impossible)` of them (red, up to `r sprintf("%.2f", max(lpm$lm))`). That's not extrapolation: these are people in our data.
+
+## What goes wrong with `lm()` {.smaller}
+
+-   **Impossible predictions.** A straight line has no ceiling or floor, so it runs past 1 (or below 0) wherever the predictors push it far enough.
+-   **Wrong where it matters most.** For the riskiest person, `lm()` predicts `r sprintf("%.2f", min(lpm$lm))`; the logistic model says `r sprintf("%.2f", min(lpm$logistic))`. The line can't bend, so it understates risk at one end and overstates survival at the other.
+-   **Wrong variance.** A 0/1 outcome has variance p(1 − p), which changes with p, so `lm()`'s constant-variance assumption can't hold.
+-   A GLM keeps the linear model but runs it through a link, so predictions stay in (0, 1) and bend where they should.
 
 ## Two ingredients
 

@@ -223,37 +223,41 @@
 </section>
 <section id="why-not-just-use-lm" class="slide level2 smaller nostretch">
 <h2>Why not just use <code>lm()</code>?</h2>
-<p>Our example: does IQ predict <em>not</em> dying prematurely (1 = no, 0 = yes)?</p>
+<p>Our example: does IQ, along with risky behavior, predict <em>not</em> dying prematurely (1 = no, 0 = yes)? Fit it both ways and compare each person’s predicted probability:</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a aria-label="1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb1-2"><a aria-label="2"></a>mort0 <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"mortality.csv"</span>) <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">IQ_c =</span> IQ <span class="sc">-</span> <span class="fu">mean</span>(IQ))</span>
-<span id="cb1-3"><a aria-label="3"></a>ols       <span class="ot">&lt;-</span> <span class="fu">lm</span>(NOT.premature <span class="sc">~</span> IQ_c, <span class="at">data =</span> mort0)</span>
-<span id="cb1-4"><a aria-label="4"></a>logit_fit <span class="ot">&lt;-</span> <span class="fu">glm</span>(NOT.premature <span class="sc">~</span> IQ_c, <span class="at">family =</span> binomial, <span class="at">data =</span> mort0)</span>
-<span id="cb1-5"><a aria-label="5"></a><span class="fu">tibble</span>(<span class="at">IQ_c =</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="dv">35</span>, <span class="dv">35</span>, <span class="at">length.out =</span> <span class="dv">200</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb1-6"><a aria-label="6"></a>  <span class="fu">mutate</span>(<span class="st">`</span><span class="at">lm(): straight line</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">predict</span>(ols, <span class="at">newdata =</span> .),</span>
-<span id="cb1-7"><a aria-label="7"></a>         <span class="st">`</span><span class="at">logistic: S-curve</span><span class="st">`</span>   <span class="ot">=</span> <span class="fu">predict</span>(logit_fit, <span class="at">newdata =</span> ., <span class="at">type =</span> <span class="st">"response"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb1-8"><a aria-label="8"></a>  <span class="fu">pivot_longer</span>(<span class="sc">-</span>IQ_c, <span class="at">names_to =</span> <span class="st">"model"</span>, <span class="at">values_to =</span> <span class="st">"pred"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb1-9"><a aria-label="9"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(IQ_c, pred)) <span class="sc">+</span></span>
-<span id="cb1-10"><a aria-label="10"></a>  <span class="fu">annotate</span>(<span class="st">"rect"</span>, <span class="at">xmin =</span> <span class="fu">min</span>(mort0<span class="sc">$</span>IQ_c), <span class="at">xmax =</span> <span class="fu">max</span>(mort0<span class="sc">$</span>IQ_c), <span class="at">ymin =</span> <span class="sc">-</span><span class="cn">Inf</span>, <span class="at">ymax =</span> <span class="cn">Inf</span>, <span class="at">fill =</span> <span class="st">"grey92"</span>) <span class="sc">+</span></span>
-<span id="cb1-11"><a aria-label="11"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="at">linetype =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
-<span id="cb1-12"><a aria-label="12"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">colour =</span> model), <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb1-13"><a aria-label="13"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"IQ (centered; shaded = range of our data)"</span>, <span class="at">y =</span> <span class="st">"Predicted Pr(not premature)"</span>, <span class="at">colour =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
-<span id="cb1-14"><a aria-label="14"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">14</span>) <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"top"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-2"><a aria-label="2"></a>mort0 <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"mortality.csv"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb1-3"><a aria-label="3"></a>  <span class="fu">mutate</span>(<span class="at">IQ_c =</span> IQ <span class="sc">-</span> <span class="fu">mean</span>(IQ), <span class="at">risky_c =</span> Risky.behavior <span class="sc">-</span> <span class="fu">mean</span>(Risky.behavior))</span>
+<span id="cb1-4"><a aria-label="4"></a>ols       <span class="ot">&lt;-</span> <span class="fu">lm</span>(NOT.premature <span class="sc">~</span> IQ_c <span class="sc">+</span> risky_c, <span class="at">data =</span> mort0)</span>
+<span id="cb1-5"><a aria-label="5"></a>logit_fit <span class="ot">&lt;-</span> <span class="fu">glm</span>(NOT.premature <span class="sc">~</span> IQ_c <span class="sc">+</span> risky_c, <span class="at">family =</span> binomial, <span class="at">data =</span> mort0)</span>
+<span id="cb1-6"><a aria-label="6"></a>lpm <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">logistic =</span> <span class="fu">fitted</span>(logit_fit), <span class="at">lm =</span> <span class="fu">fitted</span>(ols), <span class="at">impossible =</span> <span class="fu">fitted</span>(ols) <span class="sc">&gt;</span> <span class="dv">1</span>)</span>
+<span id="cb1-7"><a aria-label="7"></a><span class="fu">ggplot</span>(lpm, <span class="fu">aes</span>(logistic, lm, <span class="at">colour =</span> impossible)) <span class="sc">+</span></span>
+<span id="cb1-8"><a aria-label="8"></a>  <span class="fu">geom_abline</span>(<span class="at">linetype =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
+<span id="cb1-9"><a aria-label="9"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">1</span>, <span class="at">colour =</span> <span class="st">"firebrick"</span>) <span class="sc">+</span></span>
+<span id="cb1-10"><a aria-label="10"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> .<span class="dv">6</span>, <span class="at">size =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb1-11"><a aria-label="11"></a>  <span class="fu">scale_colour_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">`</span><span class="at">FALSE</span><span class="st">`</span> <span class="ot">=</span> <span class="st">"grey40"</span>, <span class="st">`</span><span class="at">TRUE</span><span class="st">`</span> <span class="ot">=</span> <span class="st">"firebrick"</span>), <span class="at">guide =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
+<span id="cb1-12"><a aria-label="12"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Logistic regression: predicted Pr(not premature)"</span>, <span class="at">y =</span> <span class="st">"lm(): predicted"</span>) <span class="sc">+</span></span>
+<span id="cb1-13"><a aria-label="13"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">14</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
 <figure>
-<p><img data-src="glm-7_files/figure-revealjs/unnamed-chunk-1-1.png" style="width:70.0%"></p>
+<p><img data-src="glm-7_files/figure-revealjs/unnamed-chunk-1-1.png" style="width:60.0%"></p>
 </figure>
 </div>
 </div>
 </div>
+<p>Each dot is a real person. <code>lm()</code> predicts a probability above 1 for 10 of them (red, up to 1.10). That’s not extrapolation: these are people in our data.</p>
+</section>
+<section id="what-goes-wrong-with-lm" class="slide level2 smaller">
+<h2>What goes wrong with <code>lm()</code></h2>
 <ul>
-<li><code>lm()</code> fits a straight line. Inside our data it looks fine, but push IQ higher and it predicts more than 100% survival.</li>
-<li>At any IQ, a 0/1 outcome has variance p(1 − p), which changes with p, so <code>lm()</code>’s constant-variance assumption can’t hold.</li>
-<li>A GLM keeps the linear model but runs it through a link, so predictions stay in (0, 1).</li>
+<li><strong>Impossible predictions.</strong> A straight line has no ceiling or floor, so it runs past 1 (or below 0) wherever the predictors push it far enough.</li>
+<li><strong>Wrong where it matters most.</strong> For the riskiest person, <code>lm()</code> predicts 0.42; the logistic model says 0.23. The line can’t bend, so it understates risk at one end and overstates survival at the other.</li>
+<li><strong>Wrong variance.</strong> A 0/1 outcome has variance p(1 − p), which changes with p, so <code>lm()</code>’s constant-variance assumption can’t hold.</li>
+<li>A GLM keeps the linear model but runs it through a link, so predictions stay in (0, 1) and bend where they should.</li>
 </ul>
 </section>
 <section id="two-ingredients" class="slide level2">
