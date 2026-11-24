@@ -9,8 +9,8 @@ execute:
 
 ## This time
 
--   Counts: Poisson, negative binomial, offsets
--   Too many zeros: zero-inflated and hurdle models (mixtures)
+-   Counts: Poisson, offsets, and when the Poisson is too narrow (negative binomial)
+-   Too many zeros: zero-inflated and hurdle models (mixtures), told with a grad-school story
 -   Ordered categories: cumulative (ordered logit) models
 -   Builds on [last time](glm-7.qmd): likelihoods, links, and moving between the link and response scales
 
@@ -24,57 +24,11 @@ library(modelr)
 library(psych)
 ```
 
-## Negative binomial / Gamma Poisson
+## The Poisson
 
--   Used for count data where the variance exceeds the mean, known as overdispersion. Often for the number of failures before a specified number of successes in Bernoulli trials
-
-$$Y \sim \textrm{NB}(\mu,\phi)$$
-
-## Gamma-Poisson
-
--   The Poisson distribution has just one parameter, so its variance must equal its mean. The negative binomial distribution relaxes this assumption and estimates the shape ($\phi$) of a gamma distribution (also an exponential family distribution) to describe the Poisson rates across cases.
-
--   The gamma distribution is a non-negative, continuous, two-parameter probability distribution.
-
-## The NB as a mixture
-
-$$
-\begin{aligned}
-Y_i &\sim \textrm{Poisson}(\theta_i) \\
-\theta_i &\sim \textrm{Gamma}(\text{shape} = \phi,\ \text{rate} = \phi / \mu)
-\end{aligned}
-\quad \Longleftrightarrow \quad
-Y_i \sim \textrm{NB}(\mu, \phi)
-$$
-
--   $\mu$ is the mean count; $\phi$ (brms calls it `shape`) controls overdispersion
--   $\text{Var}(Y) = \mu + \mu^2/\phi$: small $\phi$ = lots of extra variance; as $\phi \to \infty$ it becomes a Poisson
-
-## Many gamma shapes
-
--   There are multiple ways (different parameter definitions) to define the distribution. This gets confusing. For now just notice that many forms can be taken for the gamma distribution
-
-```{r}
-#| code-fold: true
-ggplot(data = tibble(x = seq(from = 0, to = 60, by = .1)),
-       aes(x = x, y = dgamma(x, shape = 1, rate = 1))) +
-  geom_area() +
-  scale_x_continuous(NULL) +
-  scale_y_continuous(NULL, breaks = NULL) +
-  coord_cartesian(xlim = c(0, 30))
-```
-
-## Gamma with shape = 10
-
-```{r}
-#| code-fold: true
-ggplot(data = tibble(x = seq(from = 0, to = 60, by = .1)),
-       aes(x = x, y = dgamma(x, shape = 10, rate = 1))) +
-  geom_area() +
-  scale_x_continuous(NULL) +
-  scale_y_continuous(NULL, breaks = NULL) +
-  coord_cartesian(xlim = c(0, 30))
-```
+-   The default likelihood for counts (0, 1, 2, ...) with no fixed upper limit: roaches caught, emails sent, panic attacks per week.
+-   One parameter, λ: the expected count. Its **variance equals its mean**, so once you know the mean you know the spread (like the Bernoulli last week: no σ).
+-   Log link: $\log(\lambda_i)$ = the linear model, so predictions stay positive and coefficients are changes in the *log* count.
 
 ## Roach example
 
@@ -144,22 +98,6 @@ summary(glm.7)
 
 ```{r}
 predictions(glm.7,by = "treatment")
-```
-
-## Predictions on the response scale
-
-These predictions are on the original scale
-
-```{r}
-predictions(glm.7)
-```
-
-## Predictions on the link scale
-
-These predictions are on the log link scale.
-
-```{r}
-predictions(glm.7, type = "link")
 ```
 
 ## Prediction by hand {.smaller}
@@ -257,6 +195,53 @@ predictions(glm.7o, newdata = datagrid(roach1 = unique, treatment = unique)) %>%
 ```{r}
 pp_check(glm.7o)
 ```
+
+## The Poisson is too narrow
+
+-   The roach counts have mean `r round(mean(roach$y), 1)` but variance `r round(var(roach$y))`. A Poisson insists they're equal.
+-   The posterior predictive checks show it: the Poisson's simulated data are far too bunched up, and it predicts almost no zeros (the data have `r round(100 * mean(roach$y == 0))`%).
+-   This is called **overdispersion**, and it is the rule for count data in psychology, not the exception. People differ in ways the predictors don't capture.
+-   The fix: let each apartment have its own rate.
+
+## Negative binomial / Gamma Poisson
+
+-   Used for count data where the variance exceeds the mean, known as overdispersion. Often for the number of failures before a specified number of successes in Bernoulli trials
+
+$$Y \sim \textrm{NB}(\mu,\phi)$$
+
+## Gamma-Poisson
+
+-   The Poisson distribution has just one parameter, so its variance must equal its mean. The negative binomial distribution relaxes this assumption and estimates the shape ($\phi$) of a gamma distribution (also an exponential family distribution) to describe the Poisson rates across cases.
+
+-   The gamma distribution is a non-negative, continuous, two-parameter probability distribution.
+
+## The NB as a mixture
+
+$$
+\begin{aligned}
+Y_i &\sim \textrm{Poisson}(\theta_i) \\
+\theta_i &\sim \textrm{Gamma}(\text{shape} = \phi,\ \text{rate} = \phi / \mu)
+\end{aligned}
+\quad \Longleftrightarrow \quad
+Y_i \sim \textrm{NB}(\mu, \phi)
+$$
+
+-   $\mu$ is the mean count; $\phi$ (brms calls it `shape`) controls overdispersion
+-   $\text{Var}(Y) = \mu + \mu^2/\phi$: small $\phi$ = lots of extra variance; as $\phi \to \infty$ it becomes a Poisson
+
+## The gamma, two ways
+
+The gamma is a flexible positive distribution. The NB uses one to let each case's Poisson rate vary:
+
+```{r}
+#| code-fold: true
+#| fig-height: 3
+g_plot <- function(shape) ggplot(tibble(x = seq(0, 30, by = .1)), aes(x, dgamma(x, shape = shape, rate = 1))) +
+  geom_area(alpha = .6) + labs(x = NULL, y = NULL, title = paste("shape =", shape)) + theme_classic(base_size = 14)
+g_plot(1) + g_plot(10)
+```
+
+Small shape: rates vary wildly from case to case (lots of extra variance). Large shape: rates bunch together, and the NB approaches a Poisson.
 
 ## Negative binomial model
 
@@ -366,29 +351,19 @@ comparisons(glm.7, variables = "treatment", newdata = "mean")
 avg_comparisons(glm.8b, variables = "treatment")
 ```
 
-## Predictions for every row: NB {.smaller}
+## Predictions at chosen roach1 values {.smaller}
 
 ```{r}
-predictions(glm.8b)
+#| code-fold: true
+at_roach <- datagrid(model = glm.8b, roach1 = c(0, 10, 100, 450), treatment = 0:1)
+fmt <- function(p) sprintf("%.1f [%.1f, %.1f]", p$estimate, p$conf.low, p$conf.high)
+tibble(roach1 = at_roach$roach1, treatment = at_roach$treatment,
+       `NB (glm.8b)`    = fmt(predictions(glm.8b, newdata = at_roach)),
+       `Poisson (glm.7)` = fmt(predictions(glm.7, newdata = at_roach))) %>%
+  knitr::kable()
 ```
 
-## Predictions for every row: Poisson {.smaller}
-
-```{r}
-predictions(glm.7)
-```
-
-## Predictions at chosen roach1 values: NB {.smaller}
-
-```{r}
-predictions(glm.8b, newdata = datagrid(roach1 = c(0,10,100,450), treatment = unique))
-```
-
-## Predictions at chosen roach1 values: Poisson {.smaller}
-
-```{r}
-predictions(glm.7, newdata = datagrid(roach1 = c(0,10,100,450), treatment = unique))
-```
+Similar at low pretreatment counts; wildly different at 450, where the NB's estimate (and its uncertainty) explodes. Hold that thought.
 
 ## NB predictions across roach1
 
@@ -412,84 +387,86 @@ predictions(glm.7,by = c("roach1", "treatment")) %>%
   stat_lineribbon(.width = .95, alpha = .4) + ylab("roaches")
 ```
 
-## NB predictions, zoomed in
-
-```{r}
-#| code-fold: true
-predictions(glm.8b,by = c("roach1", "treatment")) %>%
-  get_draws() %>%
-  mutate(treatment = as.factor(treatment)) %>%
-  ggplot(aes(x = roach1, y = draw, color = treatment)) +
-  stat_lineribbon(.width = .95, alpha = .4) + ylab("roaches") +ylim(0,400)
-```
-
 ## Zero-inflated models
 
 Use when there are different causes for the same observation. These are **mixture models**: more than one data-generating process at once (one that makes zeros, one that makes counts).
 
-Lots of ways to get zero counts: Missed observation or the rate is low -- hard to distinguish.
+Lots of ways to get a zero count: the process never started, or it started and happened to produce nothing. The data can't tell you which for any one case.
+
+## A story: weekend emails {.smaller}
+
+We survey 400 psych grad students: *How many work emails did you send last weekend?*
+
+-   Some students keep a strict **no-weekend-email rule**. They always send 0. The rule gets more common with seniority (year 1–6): you learn.
+-   Everyone else sends a Poisson number of emails. Seniority raises that too (more projects, more co-authors), and so does a **deadline** next week.
+-   So a 0 is either a rule-keeper, or a rule-breaker who happened to send nothing.
 
 ```{r}
 #| code-fold: true
-
-prob_drink <- 0.2  # 20% of days
-rate_work  <- 1    # average 1 manuscript per day
-# sample one year of production
-n <- 365
-# simulate days monks drink
-set.seed(365)
-drink <- rbinom(n, 1, prob_drink)
-# simulate manuscripts completed
-y <- (1 - drink) * rpois(n, rate_work)
-
-x <- rnorm(n = 365, mean = 3, sd = 1)
-
-
-zips <-tibble(drink = factor(drink, levels = 1:0), y = y, x = x)
-
-x2 <- zips$y + zips$x
-
-zips <-tibble(drink = factor(drink, levels = 1:0), y = y, x = x2)
-
-
-ggplot(data = zips, aes(x = y)) +
-  geom_histogram(aes(fill = drink),
-                 binwidth = 1, linewidth = 1/10, color = "grey92") +
-  scale_fill_manual(values = 1:2) +
-  xlab("Manuscripts completed") +
-  theme(legend.position = "none")
+set.seed(2027)
+n <- 400
+emails <- tibble(year     = sample(1:6, n, replace = TRUE),   # year in the program
+                 deadline = rbinom(n, 1, .3)) %>%              # deadline next week?
+  mutate(year_c = year - 3.5,
+         rule   = rbinom(n, 1, plogis(-1 + 0.5 * year_c)),     # keeps the no-email rule?
+         lambda = exp(1 + 0.15 * year_c + 0.8 * deadline),     # expected emails, if no rule
+         emails = if_else(rule == 1, 0L, rpois(n, lambda)))
 ```
 
-## ZIP Zero inflated poisson
+## The weekend-email data
 
-p = the probability of drinking (vs working). If drinking we know no manuscripts are created. If working, manuscripts still may not be created. The count is modeled as a Poisson with rate λ, and drinking as a Bernoulli with probability p
+```{r}
+#| code-fold: true
+#| fig-height: 3.6
+emails %>%
+  mutate(who = if_else(rule == 1, "rule-keeper (always 0)", "no rule")) %>%
+  ggplot(aes(x = emails, fill = who)) +
+  geom_bar() +
+  scale_x_continuous(breaks = 0:12) +
+  labs(x = "Work emails sent last weekend", y = "Students", fill = NULL) +
+  theme_classic(base_size = 14) + theme(legend.position = "top")
+```
 
-$$\operatorname{Pr} (y = 0 | p, \lambda)  = \operatorname{Pr} (\text{drink} | p) + \operatorname{Pr} (\text{work} | p) \times \operatorname{Pr} (0 | \lambda)$$ $$= p + (1 - p) \exp (- \lambda)$$
+`r round(100 * mean(emails$emails == 0))`% zeros, but only `r round(100 * mean(emails$rule))`% of students keep the rule. In real data you'd see only the total, not the colors.
+
+## ZIP: zero-inflated Poisson
+
+*p* = the probability a student keeps the rule. Rule-keepers send no emails. Everyone else sends a Poisson(λ) number, which can also be 0.
+
+$$\operatorname{Pr} (y = 0 \mid p, \lambda)  = \operatorname{Pr} (\text{rule} \mid p) + \operatorname{Pr} (\text{no rule} \mid p) \times \operatorname{Pr} (0 \mid \lambda) = p + (1 - p) \exp (- \lambda)$$
 
 ## Zeros and non-zeros
 
-A zero (last slide) can happen two ways: the monks drank, OR they worked AND finished nothing. A count above zero can happen only one way:
+A zero (last slide) can happen two ways: a rule-keeper, OR a rule-breaker who sent nothing. A count above zero can happen only one way:
 
-$$\operatorname{Pr} (y = k \mid p, \lambda) = \operatorname{Pr} (\text{drink} \mid p) \times 0 + \operatorname{Pr} (\text{work} \mid p) \operatorname{Pr} (k \mid \lambda) = (1 - p) \frac {\lambda^k \exp (- \lambda)}{k!}, \quad k > 0$$
+$$\operatorname{Pr} (y = k \mid p, \lambda) = (1 - p) \frac {\lambda^k \exp (- \lambda)}{k!}, \quad k > 0$$
 
-Since drinking monks never produce, this is the chance the monks both work (1 − p) and finish *k* manuscripts.
+The chance the student has no rule (1 − p), times the chance of sending *k* emails.
 
-## The ZIP model
+## The ZIP model {.smaller}
 
-$$y_i  \sim \operatorname{ZIPoisson} (p_i, \lambda_i)$$ $$\operatorname{logit} (p_i)      = \alpha_p + \beta_p x_i$$ $$\log (\lambda_i)  = \alpha_\lambda + \beta_\lambda x_i$$
+$$
+\begin{aligned}
+\text{emails}_i &\sim \operatorname{ZIPoisson} (p_i, \lambda_i) \\
+\operatorname{logit} (p_i) &= \alpha_p + \beta_p\, \text{year}_i \\
+\log (\lambda_i) &= \alpha_\lambda + \beta_{\lambda 1}\, \text{year}_i + \beta_{\lambda 2}\, \text{deadline}_i
+\end{aligned}
+$$
+
+Two linear models, one for each process, each with its own link. They don't need the same predictors: deadline matters for how many emails, not for whether you keep a rule.
 
 ## Intercept-only ZIP
 
 ```{r}
 glm.9 <-
   brm(family = zero_inflated_poisson,
-      y ~ 1,
-      prior = c(prior(normal(-1.5, 1), class = Intercept),
+      emails ~ 1,
+      prior = c(prior(normal(1, 1), class = Intercept),   # log(about 3 emails)
                 prior(beta(2, 6), class = zi)),
       iter = 2000, warmup = 1000, chains = 4, cores = 4,
-      data = zips,
+      data = emails,
       backend = "cmdstanr",
-      file = "glm.9")
+      file = "glm.9w")
 ```
 
 ## Priors for zi
@@ -510,43 +487,158 @@ zip.priors %>%
 
 ## `glm.9` summary {.smaller}
 
-Note: when there are no predictors for zi, brms estimates zi directly as a probability (identity link). With predictors it uses a logit link, so interpret those coefficients like a logistic regression. The count part uses a log link: an Intercept of −.02 means λ = exp(−.02) ≈ .98 manuscripts per working day (we simulated 1).
-
 ```{r}
 summary(glm.9)
 ```
 
-## Predictors for both parts
+-   With no predictors for zi, brms estimates it directly as a probability: `r sprintf("%.2f", posterior_summary(glm.9)["zi", "Estimate"])` of students are estimated to be rule-keepers (in the simulation, `r sprintf("%.2f", mean(emails$rule))`).
+-   The count part uses a log link: λ = exp(`r sprintf("%.2f", fixef(glm.9)["Intercept", "Estimate"])`) ≈ `r sprintf("%.1f", exp(fixef(glm.9)["Intercept", "Estimate"]))` emails for students without the rule.
 
-Adding predictors. Do not necessarily need to have the same predictors for each process. One can predict the excess zeros, the other can predict the counts.
+## Predictors for both parts {.smaller}
+
+The count part gets year and deadline; the zero part gets year. With predictors, zi uses a logit link, so read its coefficients like a logistic regression.
 
 ```{r}
 glm.10 <-
-  brm(bf(y ~ 1 + x,
-      zi ~ 1 + x),
+  brm(bf(emails ~ 1 + year_c + deadline,
+         zi ~ 1 + year_c),
       family = zero_inflated_poisson,
+      prior = c(prior(normal(1, 1), class = Intercept),
+                prior(normal(0, 1), class = b),
+                prior(normal(0, 1.5), class = Intercept, dpar = zi),
+                prior(normal(0, 1), class = b, dpar = zi)),
       iter = 2000, warmup = 1000, chains = 4, cores = 4,
-      data = zips,
+      data = emails,
       backend = "cmdstanr",
-      file = "glm.10a")
+      file = "glm.10w")
 ```
 
-## `glm.10` summary
+## `glm.10` summary {.smaller}
 
 ```{r}
 summary(glm.10)
 ```
 
-Often the associations can go in different directions (because they are modeling different processes!)
-
-## Plotting both parts
+## Did we recover the story? {.smaller}
 
 ```{r}
 #| code-fold: true
-plot_predictions(glm.10, condition = "x") + labs(y = "expected manuscripts") +
-plot_predictions(glm.10, condition = "x", dpar = "zi") + labs(y = "zi: Pr(structural zero)")
+b10 <- fixef(glm.10)
+tibble(part = c("count", "count", "count", "zero (logit)", "zero (logit)"),
+       parameter = c("Intercept", "year_c", "deadline", "zi_Intercept", "zi_year_c"),
+       truth = c(1, 0.15, 0.8, -1, 0.5),
+       estimate = b10[parameter, "Estimate"],
+       lower = b10[parameter, "Q2.5"], upper = b10[parameter, "Q97.5"]) %>%
+  knitr::kable(digits = 2)
 ```
 
+-   Seniority *raises* the odds of keeping the rule (zi_year_c), and *raises* the email count among those who don't (year_c).
+-   Deadlines only matter for the count.
+-   Close to the truth, though not exact: one sample of 400 students won't land on every value (year_c is a bit low).
+
+## Plotting both parts {.nostretch}
+
+```{r}
+#| code-fold: true
+#| fig-height: 3.2
+#| fig-width: 10
+#| out-width: "100%"
+yr <- labs(x = "Year in program (centered)")
+(plot_predictions(glm.10, condition = "year_c", dpar = "zi") + yr + labs(y = "Pr(keeps the rule)")) +
+(plot_predictions(glm.10, condition = "year_c", dpar = "mu") + yr + labs(y = "Emails, if no rule")) +
+(plot_predictions(glm.10, condition = "year_c") + yr + labs(y = "Expected emails, everyone")) &
+  theme_classic(base_size = 13)
+```
+
+## Two processes, one flat average
+
+```{r}
+#| code-fold: true
+glm.10p <- brm(family = poisson, emails ~ 1 + year_c + deadline,
+               prior = c(prior(normal(1, 1), class = Intercept), prior(normal(0, 1), class = b)),
+               data = emails, backend = "cmdstanr", file = "glm.10p")
+```
+
+-   Senior students are more likely to keep the rule (left), but the ones who don't send *more* (middle).
+-   The two mostly cancel: expected emails stay about flat through the middle of the program and dip only for the most senior students (right).
+-   A plain Poisson sees only something like the right panel. Its year coefficient is `r sprintf("%.2f", fixef(glm.10p)["year_c", "Estimate"])`: "seniority doesn't matter." The mixture shows it matters twice, in opposite directions.
+
+## Hurdle models
+
+Also a mixture (two-part) model, with a different story: **every** zero comes from one process (a gate: does anything happen at all?), and once you're past the gate, a count process that can't produce 0 (a truncated Poisson).
+
+-   Zero-inflated: two kinds of zeros (rule-keepers, and rule-breakers who sent nothing).
+-   Hurdle: one kind of zero (didn't get over the hurdle); positive counts only for those who did.
+
+## Intercept-only hurdle model
+
+```{r}
+glm.11 <-
+  brm(family = hurdle_poisson,
+      emails ~ 1,
+      prior = c(prior(normal(1, 1), class = Intercept),
+                prior(beta(1, 1), class = hu)),
+      iter = 2000, warmup = 1000, chains = 4, cores = 4,
+      data = emails,
+      backend = "cmdstanr",
+      file = "glm.11w")
+```
+
+## `glm.11` summary {.smaller}
+
+```{r}
+summary(glm.11)
+```
+
+`hu` = `r sprintf("%.2f", posterior_summary(glm.11)["hu", "Estimate"])` is simply the share of *all* zeros (`r sprintf("%.2f", mean(emails$emails == 0))` in the data): in a hurdle model every zero comes from the gate. Compare `zi` = `r sprintf("%.2f", posterior_summary(glm.9)["zi", "Estimate"])` in the ZIP, which is only the rule-keepers.
+
+## Hurdle model with predictors
+
+```{r}
+glm.11x <-
+  brm(bf(emails ~ 1 + year_c + deadline,
+         hu ~ 1 + year_c + deadline),
+      family = hurdle_poisson,
+      prior = c(prior(normal(1, 1), class = Intercept),
+                prior(normal(0, 1), class = b),
+                prior(normal(0, 1.5), class = Intercept, dpar = hu),
+                prior(normal(0, 1), class = b, dpar = hu)),
+      iter = 2000, warmup = 1000, chains = 4, cores = 4,
+      data = emails,
+      backend = "cmdstanr",
+      file = "glm.11xw")
+```
+
+## `glm.11x` summary {.smaller}
+
+```{r}
+summary(glm.11x)
+```
+
+The count part matches the ZIP's. The gate (hu) is about *any* zero, so its year effect (`r sprintf("%.2f", fixef(glm.11x)["hu_year_c", "Estimate"])`) is smaller than the ZIP's rule effect (`r sprintf("%.2f", fixef(glm.10)["zi_year_c", "Estimate"])`): it mixes rule-keepers with rule-breakers who sent nothing.
+
+## Expected emails from the hurdle model
+
+```{r}
+#| code-fold: true
+#| fig-height: 3.6
+plot_predictions(glm.11x, condition = c("year_c", "deadline")) +
+  labs(x = "Year in program (centered)", y = "Expected emails", colour = "deadline", fill = "deadline") +
+  theme_classic(base_size = 14)
+```
+
+## Poisson, ZIP or hurdle? {.smaller}
+
+```{r}
+glm.10  <- add_criterion(glm.10, "loo")
+glm.10p <- add_criterion(glm.10p, "loo")
+glm.11x <- add_criterion(glm.11x, "loo")
+loo_compare(glm.10, glm.10p, glm.11x)
+```
+
+-   The plain Poisson loses badly: it can't make the zeros.
+-   ZIP vs. hurdle is close. Both fit the counts; they differ in their *story* about the zeros. Choose by theory: are some people never going to do it (zero-inflated), or does everyone face the same gate (hurdle)?
+-   And check: `pp_check(glm.10, type = "bars")` should match the spike at 0.
 
 ## Revisit roaches
 
@@ -728,105 +820,57 @@ log10_var <- function(y) log10(var(y))
 
 -   **Poisson:** simulated variances are about half the real one, and it predicts essentially *no* zeros (the data have 36%).
 -   **NB:** gets the zeros right (about 34%), but overshoots the variance, sometimes by orders of magnitude: some simulated datasets contain counts in the thousands (the real maximum is 357).
--   Why? `roach1` enters on the log scale raw, so apartments with 300+ pretreatment roaches get enormous predicted means. Using `log(roach1 + 1)` as the predictor (as in `glm.8e` above) is one fix.
+-   Why? `roach1` enters on the log scale raw, so apartments with 300+ pretreatment roaches get enormous predicted means. `glm.8e` logged roach1 but also switched to a ZIP, which loses badly. What about the NB with a logged roach1? Next.
 -   A model can win LOO and still fail a check. Do both.
 
-## Rate ratios
+## A better NB: log(roach1) {.smaller}
+
+The NB, with the offset, and with `log(roach1 + 1)` in place of raw roach1:
+
+```{r}
+#| code-fold: true
+glm.8h <-
+  brm(family = negbinomial,
+      y ~ 0 + Intercept + I(log(roach1 + 1)) + treatment + offset(log(exposure2)),
+      prior = c(prior(normal(2, 1), class = b, coef = "Intercept"),
+                prior(normal(0, .5), class = b),
+                prior(exponential(1), class = shape)),
+      iter = 2000, warmup = 1000, cores = 4, chains = 4,
+      save_pars = save_pars(all = TRUE),
+      data = roach,
+      file = "glm.8h",
+      backend = "cmdstanr")
+glm.8h <- add_criterion(glm.8h, "loo", moment_match = TRUE)
+loo_compare(glm.8b2, glm.8e, glm.8h)
+```
+
+## Checking the new NB {.smaller}
+
+```{r}
+#| code-fold: true
+#| fig-height: 3.2
+#| fig-width: 10
+(pp_check(glm.8h, type = "stat", stat = "log10_var") + ggtitle("log10(variance)")) +
+(pp_check(glm.8h, type = "stat", stat = "prop_zero") + ggtitle("share of zeros")) &
+  theme(legend.position = "none")
+yrep_8h <- posterior_predict(glm.8h)
+```
+
+-   Wins LOO, and the variance is now in the right neighborhood (simulated variances about `r sprintf("%.1f", median(apply(yrep_8h, 1, var)) / var(roach$y))` times the data's, instead of orders of magnitude). Zeros: `r round(100 * median(rowMeans(yrep_8h == 0)))`% vs. `r round(100 * mean(roach$y == 0))`% in the data.
+-   Better, not perfect: some simulated datasets still have counts in the hundreds above the real maximum. Real data rarely fit perfectly; the checks tell you where to keep an eye out.
+
+## Rate ratios {.smaller}
 
 With a log link, `exp()` of a coefficient is a **rate ratio**: the multiplicative change in the expected count. As with odds ratios, exponentiate the draws:
 
 ```{r}
-as_draws_df(glm.8b2) %>%
+as_draws_df(glm.8h) %>%
   mutate(rate_ratio = exp(b_treatment)) %>%
   median_qi(rate_ratio)
 ```
 
-Treated apartments are expected to have about `r round(100 * (1 - exp(fixef(glm.8b2)["treatment", "Estimate"])))`% fewer roaches per trap-day than control apartments with the same pretreatment count.
-
-## Hurdle models/zero augmented
-
-Also mixture (two-part) models, which specify one process for zero counts and another process for positive counts. The idea is that positive counts occur once a threshold is crossed.
-
-## Intercept-only hurdle model
-
-```{r}
-glm.11 <-
-  brm(family = hurdle_poisson,
-      y ~ 1,
-      prior = c(prior(normal(-1.5, 1), class = Intercept),
-               prior(beta(1, 1), class = hu)),
-      iter = 2000, warmup = 1000, chains = 4, cores = 4,
-      data = zips,
-      backend = "cmdstanr",
-      file = "glm.11b")
-
-```
-
-## `glm.11` summary {.smaller}
-
-```{r}
-summary(glm.11)
-```
-
-`hu` = `r sprintf("%.2f", posterior_summary(glm.11)["hu", "Estimate"])` is simply the share of *all* zeros (`r sprintf("%.2f", mean(zips$y == 0))` in the data): in a hurdle model every zero comes from the zero part. Compare `zi` ≈ .21 in the ZIP, which is only the *extra* zeros (the drinking days).
-
-## Hurdle model with a predictor
-
-```{r}
-
-glm.11x <-
-  brm(family = hurdle_poisson,
-      y ~ 1 + x,
-      prior = c(prior(normal(-1.5, 1), class = Intercept),
-               prior(normal(-1.5, 3), class = b),
-                prior(beta(1, 1), class = hu)),
-      iter = 2000, warmup = 1000, chains = 4, cores = 4,
-      data = zips,
-      backend = "cmdstanr",
-      file = "glm.11x4")
-
-```
-
-## `glm.11x` summary
-
-```{r}
-summary(glm.11x)
-```
-
-## Expected counts with tidybayes
-
-```{r}
-#| code-fold: true
-zips %>%
-  data_grid(x = seq_range(x, n = 30)) %>%
-  add_epred_draws(glm.11x) %>%
-  ggplot(aes(x = x, y = .epred)) +
-  stat_lineribbon(.width = 0.95, alpha = .4)
-```
-
-## Both parts with marginaleffects
-
-With {marginaleffects}
-
-```{r}
-#| code-fold: true
-
-plot_predictions(
-    glm.11x,
-    condition = "x") +
-    labs(y = "mu") +
-plot_predictions(
-    glm.11x,
-    dpar = "hu",
-    condition = "x") +
-    labs(y = "hu")
-```
-
-## Posterior predictive check: hurdle
-
-```{r}
-pp_check(glm.11x)
-```
+-   Treated apartments are expected to have about `r round(100 * (1 - exp(fixef(glm.8h)["treatment", "Estimate"])))`% fewer roaches per trap-day than control apartments with the same pretreatment count.
+-   With raw roach1 (`glm.8b2`) the same rate ratio was `r sprintf("%.2f", exp(fixef(glm.8b2)["treatment", "Estimate"]))`. A badly specified control variable changes the effect you care about.
 
 ## Do we need a zero model at all? {.smaller}
 
@@ -1444,6 +1488,54 @@ Say you have an exercise variable: (none, 1 time a month, 1 time a week, multipl
 Can't you just model ordinal predictors as a series of dummy variables? But what if we want to respect the inherent order?
 
 Monotonic effects, `mo(x)` in brms. Think of it as a compromise between continuous and dummy. We do not assume categories are equidistant with respect to their effect on the response variable (because then we would be using continuous). Instead, the distance between adjacent predictor categories (or integers) is estimated from the data and may vary across categories.
+
+## Monotonic effects: education {.smaller}
+
+Does education change how permissible people find the trolley actions? Education has 8 ordered levels, from elementary school to a graduate degree.
+
+$$\phi_i = \ldots + \beta_E \sum_{j=1}^{E_i - 1} \delta_j \qquad \boldsymbol\delta \sim \operatorname{Dirichlet}(2, \ldots, 2)$$
+
+-   $\beta_E$ (`bsp_moedu_o` in brms): the average change per step up the ladder, so $7 \beta_E$ is the full change from lowest to highest.
+-   $\boldsymbol\delta$ (`simo_moedu_o1`): how that full change is split across the 7 steps. They sum to 1.
+
+```{r}
+#| code-fold: true
+edu_levels <- c("Elementary School", "Middle School", "Some High School", "High School Graduate",
+                "Some College", "Bachelor's Degree", "Master's Degree", "Graduate Degree")
+trolley <- trolley %>% mutate(edu_o = factor(edu, levels = edu_levels, ordered = TRUE))
+glm.15 <-
+  brm(family = cumulative,
+      response ~ 1 + action + contact + intention + intention:action + intention:contact + mo(edu_o),
+      prior = c(prior(normal(0, 1.5), class = Intercept),
+                prior(normal(0, 0.5), class = b),
+                prior(normal(0, 0.5), class = b, coef = moedu_o),
+                prior(dirichlet(2), class = simo, coef = moedu_o1)),
+      iter = 2000, warmup = 1000, cores = 4, chains = 4,
+      data = trolley, backend = "cmdstanr",
+      file = "glm.15")   # about 20 minutes: a cumulative model on 9,930 rows
+```
+
+## What education does {.smaller .nostretch}
+
+```{r}
+#| code-fold: true
+#| fig-height: 3
+#| fig-width: 9
+#| out-width: "72%"
+steps <- paste(head(c("Elem", "Middle", "Some HS", "HS", "Some coll", "BA", "MA", "Grad"), -1),
+               "→", tail(c("Elem", "Middle", "Some HS", "HS", "Some coll", "BA", "MA", "Grad"), -1))
+as_draws_df(glm.15) %>%
+  select(starts_with("simo_moedu_o1")) %>%
+  pivot_longer(everything()) %>%
+  mutate(step = factor(steps[parse_number(str_extract(name, "\\[\\d+\\]"))], levels = rev(steps))) %>%
+  ggplot(aes(x = value, y = step)) +
+  stat_halfeye(.width = .95) +
+  labs(x = "Share of the total education effect (δ)", y = NULL) +
+  theme_classic(base_size = 14)
+```
+
+-   $\beta_E$ = `r sprintf("%.3f", fixef(glm.15)["moedu_o", "Estimate"])` per step, so from lowest to highest education the log-cumulative-odds shift by about `r sprintf("%.2f", 7 * fixef(glm.15)["moedu_o", "Estimate"])`: more education, slightly *less* permissible ratings. Small next to action or contact.
+-   How the change is spread across steps is very uncertain: only `r sum(trolley$edu == "Elementary School")` and `r sum(trolley$edu == "Middle School")` ratings come from the two lowest levels, so their δs are mostly prior.
 
 ## Extra readings
 

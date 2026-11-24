@@ -2104,7 +2104,7 @@
     "href": "glm-7b.html#this-time",
     "title": "GLMs: counts and ordinal outcomes",
     "section": "This time",
-    "text": "This time\n\nCounts: Poisson, negative binomial, offsets\nToo many zeros: zero-inflated and hurdle models (mixtures)\nOrdered categories: cumulative (ordered logit) models\nBuilds on last time: likelihoods, links, and moving between the link and response scales"
+    "text": "This time\n\nCounts: Poisson, offsets, and when the Poisson is too narrow (negative binomial)\nToo many zeros: zero-inflated and hurdle models (mixtures), told with a grad-school story\nOrdered categories: cumulative (ordered logit) models\nBuilds on last time: likelihoods, links, and moving between the link and response scales"
   },
   {
     "objectID": "glm-7b.html#negative-binomial-gamma-poisson",
@@ -2391,35 +2391,35 @@
     "href": "glm-7b.html#zero-inflated-models",
     "title": "GLMs: counts and ordinal outcomes",
     "section": "Zero-inflated models",
-    "text": "Zero-inflated models\nUse when there are different causes for the same observation. These are mixture models: more than one data-generating process at once (one that makes zeros, one that makes counts).\nLots of ways to get zero counts: Missed observation or the rate is low – hard to distinguish.\n\n\nCode\nprob_drink &lt;- 0.2  # 20% of days\nrate_work  &lt;- 1    # average 1 manuscript per day\n# sample one year of production\nn &lt;- 365\n# simulate days monks drink\nset.seed(365)\ndrink &lt;- rbinom(n, 1, prob_drink)\n# simulate manuscripts completed\ny &lt;- (1 - drink) * rpois(n, rate_work)\n\nx &lt;- rnorm(n = 365, mean = 3, sd = 1)\n\n\nzips &lt;-tibble(drink = factor(drink, levels = 1:0), y = y, x = x)\n\nx2 &lt;- zips$y + zips$x\n\nzips &lt;-tibble(drink = factor(drink, levels = 1:0), y = y, x = x2)\n\n\nggplot(data = zips, aes(x = y)) +\n  geom_histogram(aes(fill = drink),\n                 binwidth = 1, linewidth = 1/10, color = \"grey92\") +\n  scale_fill_manual(values = 1:2) +\n  xlab(\"Manuscripts completed\") +\n  theme(legend.position = \"none\")"
+    "text": "Zero-inflated models\nUse when there are different causes for the same observation. These are mixture models: more than one data-generating process at once (one that makes zeros, one that makes counts).\nLots of ways to get a zero count: the process never started, or it started and happened to produce nothing. The data can’t tell you which for any one case."
   },
   {
     "objectID": "glm-7b.html#zip-zero-inflated-poisson",
     "href": "glm-7b.html#zip-zero-inflated-poisson",
     "title": "GLMs: counts and ordinal outcomes",
-    "section": "ZIP Zero inflated poisson",
-    "text": "ZIP Zero inflated poisson\np = the probability of drinking (vs working). If drinking we know no manuscripts are created. If working, manuscripts still may not be created. The count is modeled as a Poisson with rate λ, and drinking as a Bernoulli with probability p\n\\[\\operatorname{Pr} (y = 0 | p, \\lambda)  = \\operatorname{Pr} (\\text{drink} | p) + \\operatorname{Pr} (\\text{work} | p) \\times \\operatorname{Pr} (0 | \\lambda)\\] \\[= p + (1 - p) \\exp (- \\lambda)\\]"
+    "section": "ZIP: zero-inflated Poisson",
+    "text": "ZIP: zero-inflated Poisson\np = the probability a student keeps the rule. Rule-keepers send no emails. Everyone else sends a Poisson(λ) number, which can also be 0.\n\\[\\operatorname{Pr} (y = 0 \\mid p, \\lambda)  = \\operatorname{Pr} (\\text{rule} \\mid p) + \\operatorname{Pr} (\\text{no rule} \\mid p) \\times \\operatorname{Pr} (0 \\mid \\lambda) = p + (1 - p) \\exp (- \\lambda)\\]"
   },
   {
     "objectID": "glm-7b.html#zeros-and-non-zeros",
     "href": "glm-7b.html#zeros-and-non-zeros",
     "title": "GLMs: counts and ordinal outcomes",
     "section": "Zeros and non-zeros",
-    "text": "Zeros and non-zeros\nA zero (last slide) can happen two ways: the monks drank, OR they worked AND finished nothing. A count above zero can happen only one way:\n\\[\\operatorname{Pr} (y = k \\mid p, \\lambda) = \\operatorname{Pr} (\\text{drink} \\mid p) \\times 0 + \\operatorname{Pr} (\\text{work} \\mid p) \\operatorname{Pr} (k \\mid \\lambda) = (1 - p) \\frac {\\lambda^k \\exp (- \\lambda)}{k!}, \\quad k &gt; 0\\]\nSince drinking monks never produce, this is the chance the monks both work (1 − p) and finish k manuscripts."
+    "text": "Zeros and non-zeros\nA zero (last slide) can happen two ways: a rule-keeper, OR a rule-breaker who sent nothing. A count above zero can happen only one way:\n\\[\\operatorname{Pr} (y = k \\mid p, \\lambda) = (1 - p) \\frac {\\lambda^k \\exp (- \\lambda)}{k!}, \\quad k &gt; 0\\]\nThe chance the student has no rule (1 − p), times the chance of sending k emails."
   },
   {
     "objectID": "glm-7b.html#the-zip-model",
     "href": "glm-7b.html#the-zip-model",
     "title": "GLMs: counts and ordinal outcomes",
     "section": "The ZIP model",
-    "text": "The ZIP model\n\\[y_i  \\sim \\operatorname{ZIPoisson} (p_i, \\lambda_i)\\] \\[\\operatorname{logit} (p_i)      = \\alpha_p + \\beta_p x_i\\] \\[\\log (\\lambda_i)  = \\alpha_\\lambda + \\beta_\\lambda x_i\\]"
+    "text": "The ZIP model\n\\[\n\\begin{aligned}\n\\text{emails}_i &\\sim \\operatorname{ZIPoisson} (p_i, \\lambda_i) \\\\\n\\operatorname{logit} (p_i) &= \\alpha_p + \\beta_p\\, \\text{year}_i \\\\\n\\log (\\lambda_i) &= \\alpha_\\lambda + \\beta_{\\lambda 1}\\, \\text{year}_i + \\beta_{\\lambda 2}\\, \\text{deadline}_i\n\\end{aligned}\n\\]\nTwo linear models, one for each process, each with its own link. They don’t need the same predictors: deadline matters for how many emails, not for whether you keep a rule."
   },
   {
     "objectID": "glm-7b.html#intercept-only-zip",
     "href": "glm-7b.html#intercept-only-zip",
     "title": "GLMs: counts and ordinal outcomes",
     "section": "Intercept-only ZIP",
-    "text": "Intercept-only ZIP\n\nglm.9 &lt;-\n  brm(family = zero_inflated_poisson,\n      y ~ 1,\n      prior = c(prior(normal(-1.5, 1), class = Intercept),\n                prior(beta(2, 6), class = zi)),\n      iter = 2000, warmup = 1000, chains = 4, cores = 4,\n      data = zips,\n      backend = \"cmdstanr\",\n      file = \"glm.9\")"
+    "text": "Intercept-only ZIP\n\nglm.9 &lt;-\n  brm(family = zero_inflated_poisson,\n      emails ~ 1,\n      prior = c(prior(normal(1, 1), class = Intercept),   # log(about 3 emails)\n                prior(beta(2, 6), class = zi)),\n      iter = 2000, warmup = 1000, chains = 4, cores = 4,\n      data = emails,\n      backend = \"cmdstanr\",\n      file = \"glm.9w\")"
   },
   {
     "objectID": "glm-7b.html#priors-for-zi",
@@ -2433,28 +2433,28 @@
     "href": "glm-7b.html#glm.9-summary",
     "title": "GLMs: counts and ordinal outcomes",
     "section": "glm.9 summary",
-    "text": "glm.9 summary\nNote: when there are no predictors for zi, brms estimates zi directly as a probability (identity link). With predictors it uses a logit link, so interpret those coefficients like a logistic regression. The count part uses a log link: an Intercept of −.02 means λ = exp(−.02) ≈ .98 manuscripts per working day (we simulated 1).\n\nsummary(glm.9)\n\n Family: zero_inflated_poisson \n  Links: mu = log \nFormula: y ~ 1 \n   Data: zips (Number of observations: 365) \n  Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;\n         total post-warmup draws = 4000\n\nRegression Coefficients:\n          Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nIntercept    -0.02      0.09    -0.20     0.15 1.01     1173     1363\n\nFurther Distributional Parameters:\n   Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nzi     0.21      0.06     0.10     0.32 1.01     1303     1475\n\nDraws were sampled using sample(hmc). For each parameter, Bulk_ESS\nand Tail_ESS are effective sample size measures, and Rhat is the potential\nscale reduction factor on split chains (at convergence, Rhat = 1)."
+    "text": "glm.9 summary\n\nsummary(glm.9)\n\n Family: zero_inflated_poisson \n  Links: mu = log \nFormula: emails ~ 1 \n   Data: emails (Number of observations: 400) \n  Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;\n         total post-warmup draws = 4000\n\nRegression Coefficients:\n          Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nIntercept     1.31      0.03     1.25     1.38 1.00     2819     2812\n\nFurther Distributional Parameters:\n   Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nzi     0.34      0.02     0.29     0.39 1.00     3190     2597\n\nDraws were sampled using sample(hmc). For each parameter, Bulk_ESS\nand Tail_ESS are effective sample size measures, and Rhat is the potential\nscale reduction factor on split chains (at convergence, Rhat = 1).\n\n\n\nWith no predictors for zi, brms estimates it directly as a probability: 0.34 of students are estimated to be rule-keepers (in the simulation, 0.32).\nThe count part uses a log link: λ = exp(1.31) ≈ 3.7 emails for students without the rule."
   },
   {
     "objectID": "glm-7b.html#predictors-for-both-parts",
     "href": "glm-7b.html#predictors-for-both-parts",
     "title": "GLMs: counts and ordinal outcomes",
     "section": "Predictors for both parts",
-    "text": "Predictors for both parts\nAdding predictors. Do not necessarily need to have the same predictors for each process. One can predict the excess zeros, the other can predict the counts.\n\nglm.10 &lt;-\n  brm(bf(y ~ 1 + x,\n      zi ~ 1 + x),\n      family = zero_inflated_poisson,\n      iter = 2000, warmup = 1000, chains = 4, cores = 4,\n      data = zips,\n      backend = \"cmdstanr\",\n      file = \"glm.10a\")"
+    "text": "Predictors for both parts\nThe count part gets year and deadline; the zero part gets year. With predictors, zi uses a logit link, so read its coefficients like a logistic regression.\n\nglm.10 &lt;-\n  brm(bf(emails ~ 1 + year_c + deadline,\n         zi ~ 1 + year_c),\n      family = zero_inflated_poisson,\n      prior = c(prior(normal(1, 1), class = Intercept),\n                prior(normal(0, 1), class = b),\n                prior(normal(0, 1.5), class = Intercept, dpar = zi),\n                prior(normal(0, 1), class = b, dpar = zi)),\n      iter = 2000, warmup = 1000, chains = 4, cores = 4,\n      data = emails,\n      backend = \"cmdstanr\",\n      file = \"glm.10w\")"
   },
   {
     "objectID": "glm-7b.html#glm.10-summary",
     "href": "glm-7b.html#glm.10-summary",
     "title": "GLMs: counts and ordinal outcomes",
     "section": "glm.10 summary",
-    "text": "glm.10 summary\n\nsummary(glm.10)\n\n Family: zero_inflated_poisson \n  Links: mu = log; zi = logit \nFormula: y ~ 1 + x \n         zi ~ 1 + x\n   Data: zips (Number of observations: 365) \n  Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;\n         total post-warmup draws = 4000\n\nRegression Coefficients:\n             Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nIntercept       -2.47      0.27    -2.97    -1.93 1.00     1089     1500\nzi_Intercept     3.53      2.65    -3.08     8.16 1.00     1195     1424\nx                0.53      0.05     0.43     0.62 1.00     1156     1723\nzi_x            -1.94      0.84    -3.80    -0.37 1.00     1124      958\n\nDraws were sampled using sample(hmc). For each parameter, Bulk_ESS\nand Tail_ESS are effective sample size measures, and Rhat is the potential\nscale reduction factor on split chains (at convergence, Rhat = 1).\n\n\nOften the associations can go in different directions (because they are modeling different processes!)"
+    "text": "glm.10 summary\n\nsummary(glm.10)\n\n Family: zero_inflated_poisson \n  Links: mu = log; zi = logit \nFormula: emails ~ 1 + year_c + deadline \n         zi ~ 1 + year_c\n   Data: emails (Number of observations: 400) \n  Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;\n         total post-warmup draws = 4000\n\nRegression Coefficients:\n             Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nIntercept        0.95      0.05     0.86     1.05 1.00     3331     2570\nzi_Intercept    -0.88      0.14    -1.17    -0.61 1.00     3982     3229\nyear_c           0.10      0.02     0.06     0.14 1.00     4438     3086\ndeadline         0.88      0.07     0.75     1.01 1.00     3980     3245\nzi_year_c        0.48      0.09     0.31     0.65 1.00     4112     3461\n\nDraws were sampled using sample(hmc). For each parameter, Bulk_ESS\nand Tail_ESS are effective sample size measures, and Rhat is the potential\nscale reduction factor on split chains (at convergence, Rhat = 1)."
   },
   {
     "objectID": "glm-7b.html#plotting-both-parts",
     "href": "glm-7b.html#plotting-both-parts",
     "title": "GLMs: counts and ordinal outcomes",
     "section": "Plotting both parts",
-    "text": "Plotting both parts\n\n\nCode\nplot_predictions(glm.10, condition = \"x\") + labs(y = \"expected manuscripts\") +\nplot_predictions(glm.10, condition = \"x\", dpar = \"zi\") + labs(y = \"zi: Pr(structural zero)\")"
+    "text": "Plotting both parts\n\n\nCode\nyr &lt;- labs(x = \"Year in program (centered)\")\n(plot_predictions(glm.10, condition = \"year_c\", dpar = \"zi\") + yr + labs(y = \"Pr(keeps the rule)\")) +\n(plot_predictions(glm.10, condition = \"year_c\", dpar = \"mu\") + yr + labs(y = \"Emails, if no rule\")) +\n(plot_predictions(glm.10, condition = \"year_c\") + yr + labs(y = \"Expected emails, everyone\")) &\n  theme_classic(base_size = 13)"
   },
   {
     "objectID": "glm-7b.html#revisit-roaches",
@@ -2559,14 +2559,14 @@
     "href": "glm-7b.html#what-the-checks-say",
     "title": "GLMs: counts and ordinal outcomes",
     "section": "What the checks say",
-    "text": "What the checks say\n\nPoisson: simulated variances are about half the real one, and it predicts essentially no zeros (the data have 36%).\nNB: gets the zeros right (about 34%), but overshoots the variance, sometimes by orders of magnitude: some simulated datasets contain counts in the thousands (the real maximum is 357).\nWhy? roach1 enters on the log scale raw, so apartments with 300+ pretreatment roaches get enormous predicted means. Using log(roach1 + 1) as the predictor (as in glm.8e above) is one fix.\nA model can win LOO and still fail a check. Do both."
+    "text": "What the checks say\n\nPoisson: simulated variances are about half the real one, and it predicts essentially no zeros (the data have 36%).\nNB: gets the zeros right (about 34%), but overshoots the variance, sometimes by orders of magnitude: some simulated datasets contain counts in the thousands (the real maximum is 357).\nWhy? roach1 enters on the log scale raw, so apartments with 300+ pretreatment roaches get enormous predicted means. glm.8e logged roach1 but also switched to a ZIP, which loses badly. What about the NB with a logged roach1? Next.\nA model can win LOO and still fail a check. Do both."
   },
   {
     "objectID": "glm-7b.html#rate-ratios",
     "href": "glm-7b.html#rate-ratios",
     "title": "GLMs: counts and ordinal outcomes",
     "section": "Rate ratios",
-    "text": "Rate ratios\nWith a log link, exp() of a coefficient is a rate ratio: the multiplicative change in the expected count. As with odds ratios, exponentiate the draws:\n\nas_draws_df(glm.8b2) %&gt;%\n  mutate(rate_ratio = exp(b_treatment)) %&gt;%\n  median_qi(rate_ratio)\n\n# A tibble: 1 × 6\n  rate_ratio .lower .upper .width .point .interval\n       &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;    \n1      0.547  0.348  0.843   0.95 median qi       \n\n\nTreated apartments are expected to have about 45% fewer roaches per trap-day than control apartments with the same pretreatment count."
+    "text": "Rate ratios\nWith a log link, exp() of a coefficient is a rate ratio: the multiplicative change in the expected count. As with odds ratios, exponentiate the draws:\n\nas_draws_df(glm.8h) %&gt;%\n  mutate(rate_ratio = exp(b_treatment)) %&gt;%\n  median_qi(rate_ratio)\n\n# A tibble: 1 × 6\n  rate_ratio .lower .upper .width .point .interval\n       &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;    \n1      0.362  0.239  0.549   0.95 median qi       \n\n\n\nTreated apartments are expected to have about 64% fewer roaches per trap-day than control apartments with the same pretreatment count.\nWith raw roach1 (glm.8b2) the same rate ratio was 0.55. A badly specified control variable changes the effect you care about."
   },
   {
     "objectID": "glm-7b.html#hurdle-modelszero-augmented",
@@ -2580,14 +2580,14 @@
     "href": "glm-7b.html#intercept-only-hurdle-model",
     "title": "GLMs: counts and ordinal outcomes",
     "section": "Intercept-only hurdle model",
-    "text": "Intercept-only hurdle model\n\nglm.11 &lt;-\n  brm(family = hurdle_poisson,\n      y ~ 1,\n      prior = c(prior(normal(-1.5, 1), class = Intercept),\n               prior(beta(1, 1), class = hu)),\n      iter = 2000, warmup = 1000, chains = 4, cores = 4,\n      data = zips,\n      backend = \"cmdstanr\",\n      file = \"glm.11b\")"
+    "text": "Intercept-only hurdle model\n\nglm.11 &lt;-\n  brm(family = hurdle_poisson,\n      emails ~ 1,\n      prior = c(prior(normal(1, 1), class = Intercept),\n                prior(beta(1, 1), class = hu)),\n      iter = 2000, warmup = 1000, chains = 4, cores = 4,\n      data = emails,\n      backend = \"cmdstanr\",\n      file = \"glm.11w\")"
   },
   {
     "objectID": "glm-7b.html#glm.11-summary",
     "href": "glm-7b.html#glm.11-summary",
     "title": "GLMs: counts and ordinal outcomes",
     "section": "glm.11 summary",
-    "text": "glm.11 summary\n\nsummary(glm.11)\n\n Family: hurdle_poisson \n  Links: mu = log \nFormula: y ~ 1 \n   Data: zips (Number of observations: 365) \n  Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;\n         total post-warmup draws = 4000\n\nRegression Coefficients:\n          Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nIntercept    -0.01      0.09    -0.21     0.17 1.00     3411     2508\n\nFurther Distributional Parameters:\n   Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nhu     0.51      0.03     0.46     0.56 1.00     3880     3151\n\nDraws were sampled using sample(hmc). For each parameter, Bulk_ESS\nand Tail_ESS are effective sample size measures, and Rhat is the potential\nscale reduction factor on split chains (at convergence, Rhat = 1).\n\n\nhu = 0.51 is simply the share of all zeros (0.51 in the data): in a hurdle model every zero comes from the zero part. Compare zi ≈ .21 in the ZIP, which is only the extra zeros (the drinking days)."
+    "text": "glm.11 summary\n\nsummary(glm.11)\n\n Family: hurdle_poisson \n  Links: mu = log \nFormula: emails ~ 1 \n   Data: emails (Number of observations: 400) \n  Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;\n         total post-warmup draws = 4000\n\nRegression Coefficients:\n          Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nIntercept     1.31      0.03     1.25     1.38 1.00     3958     2888\n\nFurther Distributional Parameters:\n   Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nhu     0.36      0.02     0.31     0.41 1.00     3163     2360\n\nDraws were sampled using sample(hmc). For each parameter, Bulk_ESS\nand Tail_ESS are effective sample size measures, and Rhat is the potential\nscale reduction factor on split chains (at convergence, Rhat = 1).\n\n\nhu = 0.36 is simply the share of all zeros (0.36 in the data): in a hurdle model every zero comes from the gate. Compare zi = 0.34 in the ZIP, which is only the rule-keepers."
   },
   {
     "objectID": "glm-7b.html#hurdle-model-with-a-predictor",
@@ -2601,7 +2601,7 @@
     "href": "glm-7b.html#glm.11x-summary",
     "title": "GLMs: counts and ordinal outcomes",
     "section": "glm.11x summary",
-    "text": "glm.11x summary\n\nsummary(glm.11x)\n\n Family: hurdle_poisson \n  Links: mu = log \nFormula: y ~ 1 + x \n   Data: zips (Number of observations: 365) \n  Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;\n         total post-warmup draws = 4000\n\nRegression Coefficients:\n          Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nIntercept    -3.17      0.42    -3.98    -2.37 1.00     1522     1960\nx             0.62      0.07     0.48     0.75 1.00     1622     2257\n\nFurther Distributional Parameters:\n   Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nhu     0.51      0.03     0.46     0.56 1.00     2466     2183\n\nDraws were sampled using sample(hmc). For each parameter, Bulk_ESS\nand Tail_ESS are effective sample size measures, and Rhat is the potential\nscale reduction factor on split chains (at convergence, Rhat = 1)."
+    "text": "glm.11x summary\n\nsummary(glm.11x)\n\n Family: hurdle_poisson \n  Links: mu = log; hu = logit \nFormula: emails ~ 1 + year_c + deadline \n         hu ~ 1 + year_c + deadline\n   Data: emails (Number of observations: 400) \n  Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;\n         total post-warmup draws = 4000\n\nRegression Coefficients:\n             Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nIntercept        0.96      0.05     0.85     1.05 1.00     4527     2889\nhu_Intercept    -0.64      0.13    -0.89    -0.39 1.00     5259     3011\nyear_c           0.10      0.02     0.05     0.14 1.00     5643     2937\ndeadline         0.88      0.07     0.75     1.01 1.00     5106     2967\nhu_year_c        0.34      0.07     0.21     0.47 1.00     5666     3161\nhu_deadline      0.06      0.23    -0.37     0.50 1.00     5757     2980\n\nDraws were sampled using sample(hmc). For each parameter, Bulk_ESS\nand Tail_ESS are effective sample size measures, and Rhat is the potential\nscale reduction factor on split chains (at convergence, Rhat = 1).\n\n\nThe count part matches the ZIP’s. The gate (hu) is about any zero, so its year effect (0.34) is smaller than the ZIP’s rule effect (0.48): it mixes rule-keepers with rule-breakers who sent nothing."
   },
   {
     "objectID": "glm-7b.html#expected-counts-with-tidybayes",
@@ -8734,5 +8734,117 @@
     "title": "GLMs: counts and ordinal outcomes",
     "section": "The trolley data",
     "text": "The trolley data\n\nFrom Statistical Rethinking: 9930 ratings from 331 people, each rating 30 trolley-problem scenarios.\nresponse: how morally permissible the action in the story is, 1 (forbidden) to 7 (permissible).\nThree story features (0/1): action (the person acts rather than lets something happen), intention (the harm is a means to the goal, not a side effect), contact (the person physically touches the victim).\n\n\n\nCode\ntrolley %&gt;%\n  ggplot(aes(x = response)) +\n  geom_bar() +\n  scale_x_continuous(breaks = 1:7)"
+  },
+  {
+    "objectID": "glm-7b.html#the-poisson",
+    "href": "glm-7b.html#the-poisson",
+    "title": "GLMs: counts and ordinal outcomes",
+    "section": "The Poisson",
+    "text": "The Poisson\n\nThe default likelihood for counts (0, 1, 2, …) with no fixed upper limit: roaches caught, emails sent, panic attacks per week.\nOne parameter, λ: the expected count. Its variance equals its mean, so once you know the mean you know the spread (like the Bernoulli last week: no σ).\nLog link: \\(\\log(\\lambda_i)\\) = the linear model, so predictions stay positive and coefficients are changes in the log count."
+  },
+  {
+    "objectID": "glm-7b.html#the-poisson-is-too-narrow",
+    "href": "glm-7b.html#the-poisson-is-too-narrow",
+    "title": "GLMs: counts and ordinal outcomes",
+    "section": "The Poisson is too narrow",
+    "text": "The Poisson is too narrow\n\nThe roach counts have mean 25.6 but variance 2585. A Poisson insists they’re equal.\nThe posterior predictive checks show it: the Poisson’s simulated data are far too bunched up, and it predicts almost no zeros (the data have 36%).\nThis is called overdispersion, and it is the rule for count data in psychology, not the exception. People differ in ways the predictors don’t capture.\nThe fix: let each apartment have its own rate."
+  },
+  {
+    "objectID": "glm-7b.html#the-gamma-two-ways",
+    "href": "glm-7b.html#the-gamma-two-ways",
+    "title": "GLMs: counts and ordinal outcomes",
+    "section": "The gamma, two ways",
+    "text": "The gamma, two ways\nThe gamma is a flexible positive distribution. The NB uses one to let each case’s Poisson rate vary:\n\n\nCode\ng_plot &lt;- function(shape) ggplot(tibble(x = seq(0, 30, by = .1)), aes(x, dgamma(x, shape = shape, rate = 1))) +\n  geom_area(alpha = .6) + labs(x = NULL, y = NULL, title = paste(\"shape =\", shape)) + theme_classic(base_size = 14)\ng_plot(1) + g_plot(10)\n\n\n\nSmall shape: rates vary wildly from case to case (lots of extra variance). Large shape: rates bunch together, and the NB approaches a Poisson."
+  },
+  {
+    "objectID": "glm-7b.html#predictions-at-chosen-roach1-values",
+    "href": "glm-7b.html#predictions-at-chosen-roach1-values",
+    "title": "GLMs: counts and ordinal outcomes",
+    "section": "Predictions at chosen roach1 values",
+    "text": "Predictions at chosen roach1 values\n\n\nCode\nat_roach &lt;- datagrid(model = glm.8b, roach1 = c(0, 10, 100, 450), treatment = 0:1)\nfmt &lt;- function(p) sprintf(\"%.1f [%.1f, %.1f]\", p$estimate, p$conf.low, p$conf.high)\ntibble(roach1 = at_roach$roach1, treatment = at_roach$treatment,\n       `NB (glm.8b)`    = fmt(predictions(glm.8b, newdata = at_roach)),\n       `Poisson (glm.7)` = fmt(predictions(glm.7, newdata = at_roach))) %&gt;%\n  knitr::kable()\n\n\n\n\n\nroach1\ntreatment\nNB (glm.8b)\nPoisson (glm.7)\n\n\n\n\n0\n0\n13.8 [9.6, 20.1]\n20.9 [20.1, 21.8]\n\n\n0\n1\n7.7 [5.4, 11.3]\n12.2 [11.7, 12.7]\n\n\n10\n0\n15.7 [11.1, 22.7]\n22.4 [21.5, 23.3]\n\n\n10\n1\n8.8 [6.4, 12.7]\n13.0 [12.5, 13.5]\n\n\n100\n0\n52.5 [34.4, 85.2]\n41.0 [39.6, 42.4]\n\n\n100\n1\n29.3 [20.1, 45.1]\n23.8 [23.0, 24.7]\n\n\n450\n0\n5460.9 [855.2, 51646.8]\n430.7 [404.0, 457.6]\n\n\n450\n1\n3078.9 [498.4, 27512.3]\n249.8 [233.6, 266.6]\n\n\n\n\n\nSimilar at low pretreatment counts; wildly different at 450, where the NB’s estimate (and its uncertainty) explodes. Hold that thought."
+  },
+  {
+    "objectID": "glm-7b.html#a-story-weekend-emails",
+    "href": "glm-7b.html#a-story-weekend-emails",
+    "title": "GLMs: counts and ordinal outcomes",
+    "section": "A story: weekend emails",
+    "text": "A story: weekend emails\nWe survey 400 psych grad students: How many work emails did you send last weekend?\n\nSome students keep a strict no-weekend-email rule. They always send 0. The rule gets more common with seniority (year 1–6): you learn.\nEveryone else sends a Poisson number of emails. Seniority raises that too (more projects, more co-authors), and so does a deadline next week.\nSo a 0 is either a rule-keeper, or a rule-breaker who happened to send nothing.\n\n\n\nCode\nset.seed(2027)\nn &lt;- 400\nemails &lt;- tibble(year     = sample(1:6, n, replace = TRUE),   # year in the program\n                 deadline = rbinom(n, 1, .3)) %&gt;%              # deadline next week?\n  mutate(year_c = year - 3.5,\n         rule   = rbinom(n, 1, plogis(-1 + 0.5 * year_c)),     # keeps the no-email rule?\n         lambda = exp(1 + 0.15 * year_c + 0.8 * deadline),     # expected emails, if no rule\n         emails = if_else(rule == 1, 0L, rpois(n, lambda)))"
+  },
+  {
+    "objectID": "glm-7b.html#the-weekend-email-data",
+    "href": "glm-7b.html#the-weekend-email-data",
+    "title": "GLMs: counts and ordinal outcomes",
+    "section": "The weekend-email data",
+    "text": "The weekend-email data\n\n\nCode\nemails %&gt;%\n  mutate(who = if_else(rule == 1, \"rule-keeper (always 0)\", \"no rule\")) %&gt;%\n  ggplot(aes(x = emails, fill = who)) +\n  geom_bar() +\n  scale_x_continuous(breaks = 0:12) +\n  labs(x = \"Work emails sent last weekend\", y = \"Students\", fill = NULL) +\n  theme_classic(base_size = 14) + theme(legend.position = \"top\")\n\n\n\n36% zeros, but only 32% of students keep the rule. In real data you’d see only the total, not the colors."
+  },
+  {
+    "objectID": "glm-7b.html#did-we-recover-the-story",
+    "href": "glm-7b.html#did-we-recover-the-story",
+    "title": "GLMs: counts and ordinal outcomes",
+    "section": "Did we recover the story?",
+    "text": "Did we recover the story?\n\n\nCode\nb10 &lt;- fixef(glm.10)\ntibble(part = c(\"count\", \"count\", \"count\", \"zero (logit)\", \"zero (logit)\"),\n       parameter = c(\"Intercept\", \"year_c\", \"deadline\", \"zi_Intercept\", \"zi_year_c\"),\n       truth = c(1, 0.15, 0.8, -1, 0.5),\n       estimate = b10[parameter, \"Estimate\"],\n       lower = b10[parameter, \"Q2.5\"], upper = b10[parameter, \"Q97.5\"]) %&gt;%\n  knitr::kable(digits = 2)\n\n\n\n\n\npart\nparameter\ntruth\nestimate\nlower\nupper\n\n\n\n\ncount\nIntercept\n1.00\n0.95\n0.86\n1.05\n\n\ncount\nyear_c\n0.15\n0.10\n0.06\n0.14\n\n\ncount\ndeadline\n0.80\n0.88\n0.75\n1.01\n\n\nzero (logit)\nzi_Intercept\n-1.00\n-0.88\n-1.17\n-0.61\n\n\nzero (logit)\nzi_year_c\n0.50\n0.48\n0.31\n0.65\n\n\n\n\n\n\nSeniority raises the odds of keeping the rule (zi_year_c), and raises the email count among those who don’t (year_c).\nDeadlines only matter for the count.\nClose to the truth, though not exact: one sample of 400 students won’t land on every value (year_c is a bit low)."
+  },
+  {
+    "objectID": "glm-7b.html#two-processes-one-flat-average",
+    "href": "glm-7b.html#two-processes-one-flat-average",
+    "title": "GLMs: counts and ordinal outcomes",
+    "section": "Two processes, one flat average",
+    "text": "Two processes, one flat average\n\n\nCode\nglm.10p &lt;- brm(family = poisson, emails ~ 1 + year_c + deadline,\n               prior = c(prior(normal(1, 1), class = Intercept), prior(normal(0, 1), class = b)),\n               data = emails, backend = \"cmdstanr\", file = \"glm.10p\")\n\n\n\nSenior students are more likely to keep the rule (left), but the ones who don’t send more (middle).\nThe two mostly cancel: expected emails stay about flat through the middle of the program and dip only for the most senior students (right).\nA plain Poisson sees only something like the right panel. Its year coefficient is -0.06: “seniority doesn’t matter.” The mixture shows it matters twice, in opposite directions."
+  },
+  {
+    "objectID": "glm-7b.html#hurdle-models",
+    "href": "glm-7b.html#hurdle-models",
+    "title": "GLMs: counts and ordinal outcomes",
+    "section": "Hurdle models",
+    "text": "Hurdle models\nAlso a mixture (two-part) model, with a different story: every zero comes from one process (a gate: does anything happen at all?), and once you’re past the gate, a count process that can’t produce 0 (a truncated Poisson).\n\nZero-inflated: two kinds of zeros (rule-keepers, and rule-breakers who sent nothing).\nHurdle: one kind of zero (didn’t get over the hurdle); positive counts only for those who did."
+  },
+  {
+    "objectID": "glm-7b.html#hurdle-model-with-predictors",
+    "href": "glm-7b.html#hurdle-model-with-predictors",
+    "title": "GLMs: counts and ordinal outcomes",
+    "section": "Hurdle model with predictors",
+    "text": "Hurdle model with predictors\n\nglm.11x &lt;-\n  brm(bf(emails ~ 1 + year_c + deadline,\n         hu ~ 1 + year_c + deadline),\n      family = hurdle_poisson,\n      prior = c(prior(normal(1, 1), class = Intercept),\n                prior(normal(0, 1), class = b),\n                prior(normal(0, 1.5), class = Intercept, dpar = hu),\n                prior(normal(0, 1), class = b, dpar = hu)),\n      iter = 2000, warmup = 1000, chains = 4, cores = 4,\n      data = emails,\n      backend = \"cmdstanr\",\n      file = \"glm.11xw\")"
+  },
+  {
+    "objectID": "glm-7b.html#expected-emails-from-the-hurdle-model",
+    "href": "glm-7b.html#expected-emails-from-the-hurdle-model",
+    "title": "GLMs: counts and ordinal outcomes",
+    "section": "Expected emails from the hurdle model",
+    "text": "Expected emails from the hurdle model\n\n\nCode\nplot_predictions(glm.11x, condition = c(\"year_c\", \"deadline\")) +\n  labs(x = \"Year in program (centered)\", y = \"Expected emails\", colour = \"deadline\", fill = \"deadline\") +\n  theme_classic(base_size = 14)"
+  },
+  {
+    "objectID": "glm-7b.html#poisson-zip-or-hurdle",
+    "href": "glm-7b.html#poisson-zip-or-hurdle",
+    "title": "GLMs: counts and ordinal outcomes",
+    "section": "Poisson, ZIP or hurdle?",
+    "text": "Poisson, ZIP or hurdle?\n\nglm.10  &lt;- add_criterion(glm.10, \"loo\")\nglm.10p &lt;- add_criterion(glm.10p, \"loo\")\nglm.11x &lt;- add_criterion(glm.11x, \"loo\")\nloo_compare(glm.10, glm.10p, glm.11x)\n\n   model elpd_diff se_diff p_worse       diag_diff diag_elpd\n  glm.10       0.0     0.0      NA                          \n glm.11x      -2.8     2.0    0.92 |elpd_diff| &lt; 4          \n glm.10p    -212.4    22.2    1.00                          \n\n\n\nThe plain Poisson loses badly: it can’t make the zeros.\nZIP vs. hurdle is close. Both fit the counts; they differ in their story about the zeros. Choose by theory: are some people never going to do it (zero-inflated), or does everyone face the same gate (hurdle)?\nAnd check: pp_check(glm.10, type = \"bars\") should match the spike at 0."
+  },
+  {
+    "objectID": "glm-7b.html#a-better-nb-logroach1",
+    "href": "glm-7b.html#a-better-nb-logroach1",
+    "title": "GLMs: counts and ordinal outcomes",
+    "section": "A better NB: log(roach1)",
+    "text": "A better NB: log(roach1)\nThe NB, with the offset, and with log(roach1 + 1) in place of raw roach1:\n\n\nCode\nglm.8h &lt;-\n  brm(family = negbinomial,\n      y ~ 0 + Intercept + I(log(roach1 + 1)) + treatment + offset(log(exposure2)),\n      prior = c(prior(normal(2, 1), class = b, coef = \"Intercept\"),\n                prior(normal(0, .5), class = b),\n                prior(exponential(1), class = shape)),\n      iter = 2000, warmup = 1000, cores = 4, chains = 4,\n      save_pars = save_pars(all = TRUE),\n      data = roach,\n      file = \"glm.8h\",\n      backend = \"cmdstanr\")\nglm.8h &lt;- add_criterion(glm.8h, \"loo\", moment_match = TRUE)\nloo_compare(glm.8b2, glm.8e, glm.8h)\n\n\n   model elpd_diff se_diff p_worse diag_diff diag_elpd\n  glm.8h       0.0     0.0      NA                    \n glm.8b2     -20.4    10.8    0.97                    \n  glm.8e   -3304.9   567.5    1.00"
+  },
+  {
+    "objectID": "glm-7b.html#checking-the-new-nb",
+    "href": "glm-7b.html#checking-the-new-nb",
+    "title": "GLMs: counts and ordinal outcomes",
+    "section": "Checking the new NB",
+    "text": "Checking the new NB\n\n\nCode\n(pp_check(glm.8h, type = \"stat\", stat = \"log10_var\") + ggtitle(\"log10(variance)\")) +\n(pp_check(glm.8h, type = \"stat\", stat = \"prop_zero\") + ggtitle(\"share of zeros\")) &\n  theme(legend.position = \"none\")\n\n\n\nCode\nyrep_8h &lt;- posterior_predict(glm.8h)\n\n\n\nWins LOO, and the variance is now in the right neighborhood (simulated variances about 2.8 times the data’s, instead of orders of magnitude). Zeros: 32% vs. 36% in the data.\nBetter, not perfect: some simulated datasets still have counts in the hundreds above the real maximum. Real data rarely fit perfectly; the checks tell you where to keep an eye out."
+  },
+  {
+    "objectID": "glm-7b.html#monotonic-effects-education",
+    "href": "glm-7b.html#monotonic-effects-education",
+    "title": "GLMs: counts and ordinal outcomes",
+    "section": "Monotonic effects: education",
+    "text": "Monotonic effects: education\nDoes education change how permissible people find the trolley actions? Education has 8 ordered levels, from elementary school to a graduate degree.\n\\[\\phi_i = \\ldots + \\beta_E \\sum_{j=1}^{E_i - 1} \\delta_j \\qquad \\boldsymbol\\delta \\sim \\operatorname{Dirichlet}(2, \\ldots, 2)\\]\n\n\\(\\beta_E\\) (bsp_moedu_o in brms): the average change per step up the ladder, so \\(7 \\beta_E\\) is the full change from lowest to highest.\n\\(\\boldsymbol\\delta\\) (simo_moedu_o1): how that full change is split across the 7 steps. They sum to 1.\n\n\n\nCode\nedu_levels &lt;- c(\"Elementary School\", \"Middle School\", \"Some High School\", \"High School Graduate\",\n                \"Some College\", \"Bachelor's Degree\", \"Master's Degree\", \"Graduate Degree\")\ntrolley &lt;- trolley %&gt;% mutate(edu_o = factor(edu, levels = edu_levels, ordered = TRUE))\nglm.15 &lt;-\n  brm(family = cumulative,\n      response ~ 1 + action + contact + intention + intention:action + intention:contact + mo(edu_o),\n      prior = c(prior(normal(0, 1.5), class = Intercept),\n                prior(normal(0, 0.5), class = b),\n                prior(normal(0, 0.5), class = b, coef = moedu_o),\n                prior(dirichlet(2), class = simo, coef = moedu_o1)),\n      iter = 2000, warmup = 1000, cores = 4, chains = 4,\n      data = trolley, backend = \"cmdstanr\",\n      file = \"glm.15\")   # about 20 minutes: a cumulative model on 9,930 rows"
+  },
+  {
+    "objectID": "glm-7b.html#what-education-does",
+    "href": "glm-7b.html#what-education-does",
+    "title": "GLMs: counts and ordinal outcomes",
+    "section": "What education does",
+    "text": "What education does\n\n\nCode\nsteps &lt;- paste(head(c(\"Elem\", \"Middle\", \"Some HS\", \"HS\", \"Some coll\", \"BA\", \"MA\", \"Grad\"), -1),\n               \"→\", tail(c(\"Elem\", \"Middle\", \"Some HS\", \"HS\", \"Some coll\", \"BA\", \"MA\", \"Grad\"), -1))\nas_draws_df(glm.15) %&gt;%\n  select(starts_with(\"simo_moedu_o1\")) %&gt;%\n  pivot_longer(everything()) %&gt;%\n  mutate(step = factor(steps[parse_number(str_extract(name, \"\\\\[\\\\d+\\\\]\"))], levels = rev(steps))) %&gt;%\n  ggplot(aes(x = value, y = step)) +\n  stat_halfeye(.width = .95) +\n  labs(x = \"Share of the total education effect (δ)\", y = NULL) +\n  theme_classic(base_size = 14)\n\n\n\n\n\n\n\n\n\n\n\\(\\beta_E\\) = -0.056 per step, so from lowest to highest education the log-cumulative-odds shift by about -0.39: more education, slightly less permissible ratings. Small next to action or contact.\nHow the change is spread across steps is very uncertain: only 60 and 120 ratings come from the two lowest levels, so their δs are mostly prior."
   }
 ]
