@@ -69,9 +69,9 @@ y_{ij} &\sim \text{Normal}(\mu_{ij}, \sigma) \\
 \mu_{ij} &= \beta_{0i} + \beta_{1i}X_{ij} \\
 \begin{pmatrix} \beta_{0i} \\ \beta_{1i} \end{pmatrix} &\sim \text{MVNormal}\left( \begin{pmatrix} \beta_0 \\ \beta_1 \end{pmatrix}, \Sigma \right) \\
 \Sigma &= \begin{pmatrix} \sigma_{\beta_0} & 0 \\ 0 & \sigma_{\beta_1} \end{pmatrix} R \begin{pmatrix} \sigma_{\beta_0} & 0 \\ 0 & \sigma_{\beta_1} \end{pmatrix} \\
-\beta_0, \beta_1 &\sim \text{Normal}(0, 1.5) \qquad
-\sigma_{\beta_0}, \sigma_{\beta_1} \sim \text{Half-Normal}(0, 1.5) \\
-\sigma &\sim \text{Exponential}(1) \qquad R \sim \text{LKJcorr}(2)
+\beta_0 &\sim \text{Normal}(0.2, 0.1) \qquad \beta_1 \sim \text{Normal}(0, 0.05) \\
+\sigma_{\beta_0} &\sim \text{Half-Normal}(0, 0.1) \qquad \sigma_{\beta_1} \sim \text{Half-Normal}(0, 0.05) \\
+\sigma &\sim \text{Exponential}(10) \qquad R \sim \text{LKJcorr}(2)
 \end{aligned}
 $$
 
@@ -221,14 +221,15 @@ Information needed to learn about parameters can be ranked:
 mlm.4 <-
   brm(family = gaussian,
       CON ~ 1 + time + (1 + time | ID),
-      prior = c(prior(normal(0, 1.5), class = Intercept),
-                prior(normal(0, 1.5), class = b),
-                prior(normal(0, 1.5), class = sd, coef = Intercept, group = ID),
-                prior(normal(0, 1.5), class = sd, coef = time, group = ID),
-                prior(exponential(1), class = sigma),
+      prior = c(prior(normal(0.2, 0.1), class = Intercept),   # same scale as last time
+                prior(normal(0, 0.05), class = b),
+                prior(normal(0, 0.1), class = sd, coef = Intercept, group = ID),
+                prior(normal(0, 0.05), class = sd, coef = time, group = ID),
+                prior(exponential(10), class = sigma),
                 prior(lkj(2), class = cor)),
       iter = 4000, warmup = 1000, chains = 4, cores = 4,
-      file = "mlm.4",
+      control = list(adapt_delta = .99),   # the slope SD is near 0: a funnel (Lecture 5)
+      file = "mlm.4c",
       backend = "cmdstanr",
       data = mlm)
 
@@ -263,6 +264,8 @@ p.mlm4 %>%
   x = "correlation")
 ```
 
+The posterior barely moved from the prior. With 2–4 scans per person and almost no variation in slopes (sd(time) ≈ `r sprintf("%.3f", posterior_summary(mlm.4)["sd_ID__time", "Estimate"])`), the data say almost nothing about the correlation: "correlations are hard".
+
 ## Shrinkage in two dimensions
 
 ```{r}
@@ -276,8 +279,8 @@ partially_pooled_params <-
 un_pooled_params <-
   mlm %>%
   group_by(ID, time) %>%
-  summarise(mean = mean(CON)) %>%
-  do(tidy(lm(mean ~ time, data=.))) %>%
+  summarise(mean = mean(CON), .groups = "drop_last") %>%
+  group_modify(~ tidy(lm(mean ~ time, data = .x))) %>%
   ungroup() %>%
   select(ID, term, estimate) %>%
   pivot_wider(names_from = term, values_from = estimate) %>%
@@ -347,13 +350,16 @@ mlm.4 %>%
   geom_pointinterval() + xlab("est") + ylab("ID")
 ```
 
-## Random slopes vs fixed slope
+## Random slopes vs fixed slope {.smaller}
 
 ```{r}
 mlm.3 <- add_criterion(mlm.3, "loo")
 mlm.4 <- add_criterion(mlm.4, "loo")
 loo_compare(mlm.3, mlm.4, criterion = "loo")
 ```
+
+-   The random-slopes model predicts no better: people barely differ in how their connectivity changes over time, so the extra parameters buy nothing.
+-   "Keep it maximal" is a starting point, not a rule. Here the slope SD is near 0, which also caused the divergences we fixed with `adapt_delta`. With more scans per person, or a predictor whose effect really varies, random slopes earn their keep (next: the ESM data).
 
 ## Level 2 predictors
 
@@ -388,21 +394,21 @@ $\gamma_{11}$, the cross-level interaction: does the person-level variable G pre
 
 $${Y}_{ij} = [\gamma_{00} + U_{0i} +\gamma_{01}G_{i}] + [(\gamma_{10}  + \gamma_{11}G_{i}+  U_{1i})(X_{ij})] + \varepsilon_{ij}$$
 
-## ESM data
+## ESM data {.smaller}
+
+Experience sampling: people answered short surveys several times a day for a couple of weeks. `PA`: positive affect right now (1–5); `W.other`: with other people (1) or alone (0); `ID`: the person. Reports (*j*) are nested in people (*i*).
 
 ```{r}
-esm <- read_csv("esm.csv")  # also at https://josh-jackson.github.io/bayes27/esm.csv
-esm
+esm <- read_csv("esm.csv", show_col_types = FALSE)  # also at https://josh-jackson.github.io/bayes27/esm.csv
+esm <- esm %>%
+  mutate(PA = esm.NQ11.w1, W.other = esm.ST04.w1, ID = esm.IDnum.w1)
+esm %>% select(ID, PA, W.other) %>% head(4)
 ```
 
 ## A quick lme4 fit
 
 ```{r}
 #| code-fold: true
-
-esm$PA <- esm$esm.NQ11.w1
-esm$W.other <- esm$esm.ST04.w1
-esm$ID <- esm$esm.IDnum.w1
 
 library(lme4)
 test <- lmer(PA ~ 1 + W.other  + (1 + W.other  | ID), data = esm )
@@ -456,8 +462,8 @@ un_pooled_params <-
   esm %>%
   filter((!is.na(PA))) %>%
   group_by(ID, W.other) %>%
-  summarise(mean = mean(PA)) %>%
-  do(tidy(lm(mean ~ W.other, data=.))) %>%
+  summarise(mean = mean(PA), .groups = "drop_last") %>%
+  group_modify(~ tidy(lm(mean ~ W.other, data = .x))) %>%
   ungroup() %>%
   select(ID, term, estimate) %>%
   pivot_wider(names_from = term, values_from = estimate) %>%
@@ -477,7 +483,8 @@ p2 <-
   geom_point(aes(group = ID, color = pooled)) +
   geom_line(aes(group = ID), linewidth = 1/4) +
   scale_color_manual("Pooled?",
-                     values = c("#80A0C7", "#A65141")) + xlim(0,1)
+                     values = c("#80A0C7", "#A65141")) +
+  coord_cartesian(xlim = c(-1, 1.5))   # zoom without dropping people
 p2
 ```
 
@@ -518,12 +525,12 @@ Could also grand mean center the level 2 means so that the interaction has a mea
 
 ```{r}
 esm <- esm %>%
-group_by(ID) %>%
-mutate(W.other.pm = mean(`W.other`)) %>%
-ungroup() %>%
-filter(!is.na(W.other.pm)) %>%
-mutate(W.other.pc = W.other - W.other.pm) %>%
-mutate(W.other.gmc =W.other.pm  - mean (W.other.pm))
+  group_by(ID) %>%
+  mutate(W.other.pm = mean(W.other, na.rm = TRUE)) %>%   # each person's share of reports with others
+  ungroup() %>%
+  filter(!is.na(W.other)) %>%
+  mutate(W.other.pc  = W.other - W.other.pm,            # within: this report vs. their own average
+         W.other.gmc = W.other.pm - mean(W.other.pm))   # between: their average vs. everyone's
 ```
 
 ## Separating within and between
@@ -539,7 +546,7 @@ mlm.6 <-
                 prior(exponential(1), class = sigma),
                 prior(lkj(2), class = cor)),
       iter = 4000, warmup = 1000, chains = 4, cores = 4,
-      file = "mlm.6b",
+      file = "mlm.6c",
       backend = "cmdstanr",
       data = esm)
 
@@ -553,14 +560,11 @@ summary(mlm.6)
 
 ## Within vs. between: two different effects {.smaller}
 
-```{r}
-#| code-fold: true
-fixef(mlm.6)[, c("Estimate", "Q2.5", "Q97.5")] %>% round(2)
-```
+Same `r nobs(mlm.6)` reports from `r n_distinct(mlm.6$data$ID)` people as `mlm.5`.
 
--   **Within** (`W.other.pc` = 0.33): on occasions when a person is with others (vs. alone), their positive affect is about a third of a point higher than *their own* average.
--   **Between** (`W.other.gmc` = 0.83): people who are with others a larger share of the time are happier overall. Going from 0% to 100% of occasions spent with others ≈ 0.8 points.
--   These answer different questions (does company lift *my* mood? are sociable *people* happier?), and they aren't the same size. Without centering, the model blends them into one uninterpretable number (`mlm.5`: 0.32, close to the within effect only because most of the variance in `W.other` is within people).
+-   **Within** (`W.other.pc` = `r sprintf("%.2f", fixef(mlm.6)["W.other.pc", "Estimate"])`): on occasions when a person is with others (vs. alone), their positive affect is about a third of a point higher than *their own* average.
+-   **Between** (`W.other.gmc` = `r sprintf("%.2f", fixef(mlm.6)["W.other.gmc", "Estimate"])`): people who are with others a larger share of the time are happier overall. Going from 0% to 100% of occasions spent with others ≈ `r sprintf("%.1f", fixef(mlm.6)["W.other.gmc", "Estimate"])` points.
+-   These answer different questions (does company lift *my* mood? are sociable *people* happier?), and they aren't the same size. Without centering, the model blends them into one uninterpretable number (`mlm.5`: `r sprintf("%.2f", fixef(mlm.5)["W.other", "Estimate"])`, close to the within effect only because most of the variance in `W.other` is within people).
 
 ## Shrinkage with centered predictors
 
@@ -575,8 +579,8 @@ un_pooled_params2 <-
   esm %>%
   filter((!is.na(PA))) %>%
   group_by(ID, W.other.pc) %>%
-  summarise(mean = mean(PA)) %>%
-  do(tidy(lm(mean ~ W.other.pc, data=.))) %>%
+  summarise(mean = mean(PA), .groups = "drop_last") %>%
+  group_modify(~ tidy(lm(mean ~ W.other.pc, data = .x))) %>%
   ungroup() %>%
   select(ID, term, estimate) %>%
   pivot_wider(names_from = term, values_from = estimate) %>%
@@ -597,7 +601,7 @@ p3 <-
   geom_line(aes(group = ID), linewidth = 1/4) +
   scale_color_manual("Pooled?",
                      values = c("#80A0C7", "#A65141")) +
-  xlim(0,1) + ylim(1,5)
+  coord_cartesian(xlim = c(-1, 1.5), ylim = c(1, 5))   # zoom without dropping people
 
 p3
 ```
@@ -819,9 +823,9 @@ ggplot(p226, aes(x = day01, y = N_A.std)) +
 
 Their 18 days cover only the first fifth of the study, so a line through them alone extrapolates wildly. The MLM borrows from the other 192 people's slopes and pulls theirs toward the average: it doesn't believe a 4-SD change from 18 noisy days.
 
-## Interactions
+## A cross-level interaction
 
-What about interactions?
+Does the daily link between positive and negative affect depend on how active a person is? `P_A.std` varies day to day (level 1); `steps.pm` is each person's average daily steps (level 2), so `P_A.std:steps.pm` is a cross-level interaction ($\gamma_{11}$).
 
 ```{r}
 #| code-fold: true
@@ -877,11 +881,15 @@ psych::describe(melsm$steps.pm)
 
 ```{r}
 #| code-fold: true
+#| fig-height: 3.8
  melsm %>%
   data_grid(steps.pm = seq_range(steps.pm, n = 5), P_A.std = c(-1,0,1), day01 = .5, .model = melsm) %>%
   add_epred_draws(melsm.1i, re_formula = NA) %>%
   ggplot( aes(x = steps.pm, y = N_A.std)) +
-  stat_lineribbon(aes(y = .epred, group = P_A.std, color = as.factor(P_A.std)),  .width = 0, show.legend = T)
+  stat_lineribbon(aes(y = .epred, group = P_A.std, color = as.factor(P_A.std)),  .width = 0, show.legend = T) +
+  labs(colour = "P_A.std")
 ```
+
+The three lines are nearly parallel: the interaction is `r sprintf("%.2f", fixef(melsm.1i)["P_A.std:steps.pm", "Estimate"])` [`r sprintf("%.2f", fixef(melsm.1i)["P_A.std:steps.pm", "Q2.5"])`, `r sprintf("%.2f", fixef(melsm.1i)["P_A.std:steps.pm", "Q97.5"])`]. Activity level doesn't clearly change the daily PA–NA link.
 
 
