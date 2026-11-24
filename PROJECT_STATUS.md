@@ -20,7 +20,7 @@ Read this first at the start of a session. Update it at the end of each session 
 | 7 | `glm-7.qmd` | reviewed (Nov 20) |
 | 8 | `glm-8.qmd` | reviewed (Nov 24): Poisson first, mixtures and NB, zero-inflation and hurdle with simulated email data |
 | 9 | `mlm-9.qmd` | reviewed (Nov 24): priors on CON's scale (refits mlm.1b/2b/1pb/3b), empty model fit early, shrinkage formula, slope/level-2/centering slides moved to 10 |
-| 10 | `mlm-10.qmd` | **next**: now holds the level-2/cross-level and centering slides from 9; its `mlm.4` priors are still Normal(0, 1.5) on CON (scale 0.07) |
+| 10 | `mlm-10.qmd` | fixes done (Nov 24: mlm.4c, mlm.6c refits); suggestions offered, awaiting PI |
 | 11 | `adv-11.qmd` | to review |
 | 12 | `adv-12.qmd` | to review |
 | 13 | `adv-13.qmd` | to review (cognitive/IRT; the vault schedule had this as "to build?") |
