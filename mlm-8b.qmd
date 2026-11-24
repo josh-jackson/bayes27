@@ -11,7 +11,7 @@ execute:
 -   Varying (random) slopes and the correlation between intercepts and slopes
 -   Separating within-person and between-person effects (centering)
 -   Plotting MLMs: average vs. person-specific predictions
--   Builds on [last time](mlm-8.qmd): varying intercepts, partial pooling, and the running connectivity data (`mlm.csv`)
+-   Builds on [last time](mlm-9.qmd): varying intercepts, partial pooling, and the running connectivity data (`mlm.csv`)
 
 ```{r, echo = FALSE, message = FALSE}
 library(tidyverse)

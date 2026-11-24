@@ -124,7 +124,7 @@ $$
 
 Each person's slope is a fixed part plus their own deviation: for person 16, $\beta_{1,16} = \gamma_{10} + U_{1,16}$.
 
-## Error structure
+## Error structure {.smaller}
 
 The residual structure, where the random effects are again normally distributed with a mean of zero, but this time one must also consider covariance in addition to variance.
 
@@ -221,7 +221,7 @@ Anytime you have repeated DVs you should use MLM as opposed to doing aggregation
 
 What if people had more than 1 DV, like we do with time? What do you do with multiple items, multiple trials, multiple \_\_\_\_ ?
 
-Two options: 1. Collapse and average across.
+Two options: (1) collapse and average across them, or (2) model every observation, nested in its person (MLM). The next slides show what (1) can hide.
 
 ## Example
 
@@ -312,7 +312,7 @@ $$Y_{i} = \beta_{0} + \beta_{1}X_{1} + \varepsilon_i$$
 
 $$Y_{trials, i} = \beta_{0i} + \beta_{1i}X_{trial,i} + \varepsilon_{trial,i}$$
 
-$$\beta_{0} = \gamma_{00} + U_{0i}$$ $$\beta_{1} = \gamma_{10} +\gamma_{11}Age_i+ U_{1i}$$
+$$\beta_{0i} = \gamma_{00} + U_{0i}$$ $$\beta_{1i} = \gamma_{10} +\gamma_{11}Age_i+ U_{1i}$$
 
 Our B1 coefficient indexes the stroop effect. However, people differ on this stroop effect. There is some average effect (fixed effect) that people vary around. Each person has some personal $\beta_1$, which we find using Level 1 data. From there we can also ask questions (with regressions) about that random variable.
 
@@ -322,8 +322,7 @@ Same idea with our data: each person has their own average SMN7 connectivity, an
 
 ```{r}
 #| code-fold: true
-example <- read_csv("mlm.csv")  # same data as above
-example$year <- example$week
+example <- mlm   # same data as above
 
 set.seed(11)
 ex.random <- example %>%
@@ -347,9 +346,9 @@ g2
 ```{r}
 #| code-fold: true
 library(tidybayes)
-example %>% group_by(ID) %>%
-  do(avg = tidy(lm(SMN7 ~ 1, data = .))) %>%
-  unnest(avg) %>%
+example %>%
+  group_by(ID) %>%
+  summarise(estimate = mean(SMN7)) %>%
   ggplot(aes(x = estimate)) +
   stat_dotsinterval() + xlab("person mean SMN7 connectivity") + ylab(NULL)
 ```
@@ -376,7 +375,7 @@ For standard regression, we think of error as existing in one big bucket called 
 
 For MLMs we will be breaking up ( $\varepsilon$ ) into multiple buckets. These useful "buckets" (Us) are what we refer to as random/varying effects.
 
-$$Y_{trials, i} = \beta_{0i} + \beta_{1i}X_{trial,i} + \varepsilon_{trial}$$ $$\beta_{0} = \gamma_{00} + U_{0i}$$ $$\beta_{1} = \gamma_{10} +\gamma_{11}Z_i+ U_{1i}$$
+$$Y_{trials, i} = \beta_{0i} + \beta_{1i}X_{trial,i} + \varepsilon_{trial}$$ $$\beta_{0i} = \gamma_{00} + U_{0i}$$ $$\beta_{1i} = \gamma_{10} +\gamma_{11}Z_i+ U_{1i}$$
 
 ## One bucket of error
 
@@ -410,7 +409,7 @@ If we take our simplified stroop effect model (an empty model)
 
 $$Y_{trials, i} = \beta_{0i} +  \varepsilon_{trial}$$
 
-$$\beta_{0} = \gamma_{00} + U_{0i}$$
+$$\beta_{0i} = \gamma_{00} + U_{0i}$$
 
 Where does $U_{0i}$ come from? If we calculated each by hand, through taking the average reaction time for a person i and subtracting that from the grand mean reaction time, would that equal $U_{0i}$ ?
 
@@ -451,10 +450,13 @@ ggplot(mlm, aes(x = week, y = SMN7, group = ID)) + geom_line() +  geom_point() +
 
 ```{r}
 #| code-fold: true
-
-library(viridis)
-ggplot(mlm, aes(x = week, y = SMN7, group = ID, colour = ID)) + stat_smooth(method = "lm", se = FALSE, alpha = .5) +scale_color_viridis()+  ylab("SMN7") + xlab("week") + geom_point()
+ggplot(mlm, aes(x = week, y = SMN7)) +
+  stat_smooth(aes(group = ID), method = "lm", se = FALSE, colour = "grey70", linewidth = .4) +   # no pooling
+  stat_smooth(method = "lm", se = FALSE, colour = "black", linewidth = 1.5) +                    # complete pooling
+  ylab("SMN7") + xlab("week") + theme_classic(base_size = 14)
 ```
+
+Thin grey: each person's own line (no pooling). Thick black: one line for everyone (complete pooling). Partial pooling lands in between, pulling each person toward the black line, more so for people with little data. We'll see real estimates once we fit the model.
 
 ## Partial pooling as learning
 
@@ -476,7 +478,7 @@ We now have a prior for the population of effects. We typically put a prior dire
 
 Intercept in simple regression --\> a (prior/posterior) distribution of possible scores
 
-Intercept in mlm --\> a distribution of group/clusters of intercepts. The population we are sampling from can have a distribution (mu, sigma), and that distribution is different from the observed distribution of mu (or sigma)
+Intercept in mlm --\> a distribution of group/cluster intercepts, described by its own mean ($\bar\mu$) and SD ($\sigma_0$). Those describe the *population* of people, not just the 91 we happened to sample.
 
 ## Priors with their own priors {.nostretch .smaller}
 
@@ -534,7 +536,7 @@ mlm.1 <-
       file = "mlm.1")
 ```
 
-If you think about parameters you are estimating the number of priors are simple. But in terms of what those priors represent, they are providing a prior on a prior. The intercept and the SD are both providing estimates of means. We could model this 1 parameter (anova or index coded) or 2 (mlm)
+Three priors: the `Intercept` prior is for the average person ($\bar\mu$), the `sd` prior is for how much people differ from that average ($\sigma_0$), and `sigma` is the scan-to-scan noise within a person.
 
 ## `mlm.1` summary
 
@@ -558,7 +560,12 @@ as_draws_df(mlm.1) %>%
 
 ## Reading the ICC
 
-About 60% of the variation in CON is stable differences between people; about 40% is scan-to-scan change within a person. Equivalently, two scans from the same person correlate about .6.
+```{r}
+#| echo: false
+icc_1 <- as_draws_df(mlm.1) %>% mutate(icc = sd_ID__Intercept^2 / (sd_ID__Intercept^2 + sigma^2)) %>% pull(icc)
+```
+
+About `r round(100 * median(icc_1))`% of the variation in CON is stable differences between people; about `r 100 - round(100 * median(icc_1))`% is scan-to-scan change within a person. Equivalently, two scans from the same person correlate about `r sprintf("%.2f", median(icc_1))`.
 
 ## A single-level model
 
@@ -591,9 +598,11 @@ mlm.2 <- add_criterion(mlm.2, "loo")
 loo_compare(mlm.1, mlm.2, criterion = "loo")
 ```
 
-## Same intercept, different meaning
+The MLM wins easily. Note the high-Pareto-*k* flag (Lecture 6): with only 2–4 scans per person, leaving one scan out moves that person's intercept a lot. For a final answer, use `moment_match = TRUE` or K-fold; here the gap is far too big for that to change the conclusion.
 
--   Notice how the intercept estimate is about the same in each of these models, but the MLM's interval is wider: it knows the 91 people differ, so it is less sure about the average person. Conceptually they are different too. The intercept is directly modeled in the standard regression. In the MLM it is better thought of as the map of the distribution of random effects.
+## Same intercept, different meaning {.smaller}
+
+-   Notice how the intercept estimate is about the same in each of these models, but the MLM's is less certain (posterior SD `r sprintf("%.4f", fixef(mlm.1)["Intercept", "Est.Error"])` vs. `r sprintf("%.4f", fixef(mlm.2)["Intercept", "Est.Error"])`): it knows the 91 people differ, so it is less sure about the average person. Conceptually they are different too. The intercept is directly modeled in the standard regression. In the MLM it is better thought of as the map of the distribution of random effects.
 
 -   The population is larger than what we have. This is true for almost anything we do. We sample paradigms, we sample people, we usually never have a full population under our study. Don't we want to model that variation?
 
@@ -604,9 +613,9 @@ $$\mu_{ij}  = \beta_{0[i]}$$ The [i] subscript indicates we have varying interce
 $$\beta_{0[i]} \sim \operatorname{Normal}({\bar \mu},  \sigma_0)$$
 $${\bar \mu}  \sim {\operatorname{Normal}(0, 1.5)}$$ $$\sigma_0 \sim {\operatorname{Half-Normal}(0, 1.5)}$$ $$\sigma \sim {\operatorname{Exponential}(1)}$$
 
-## An index model: one mean per person
+## An index model: one mean per person {.smaller}
 
-With mlm we treated means as coming from a population of means. And thus there was a best guess of the mean (intercept) and variation around that guess (SD). With anova we ignored the variation. But we could, in bayes, still examine that variation. Lets fit an index model, where each person gets a mean.
+With mlm we treated means as coming from a population of means. And thus there was a best guess of the mean (intercept) and variation around that guess (SD). With anova we ignored the variation. But we could, in bayes, still examine that variation. Let's fit an index model, where each person gets their own mean. (No priors given, so brms uses flat priors on all 91 means.)
 
 ```{r}
 mlm$ID.f <- as.factor(mlm$ID)
@@ -648,13 +657,13 @@ $\sigma_0$ (our random effect) can help turn on/off/adjust shrinkage.
 
 Setting SD to zero says everyone is the same. Infinite SD suggests no pooling (and major differences in pop values). In the middle gives you partial pooling.
 
-We use our prior of $\sigma_0$ plus our data to get an estimate of $\beta_{0[j]}$. This is how we accurately partial pool.
+We use our prior of $\sigma_0$ plus our data to get an estimate of each $\beta_{0[i]}$. This is how we accurately partial pool.
 
 ## Partial pooling/Shrinkage
 
-$$\text{y}_{ij}  \sim \operatorname{Normal}(\mu_i, \sigma)$$
+$$\text{y}_{ij}  \sim \operatorname{Normal}(\mu_{ij}, \sigma)$$
 
-$$\mu_i  = \beta_{0[i]}$$
+$$\mu_{ij}  = \beta_{0[i]}$$
 
 $$\beta_{0[i]} \sim \operatorname{Normal}({\bar \mu},  \sigma_0)$$
 $${\bar \mu}  \sim {\operatorname{Normal}(0, 1.5)}$$
@@ -853,6 +862,8 @@ mlm.1p <- add_criterion(mlm.1p, "loo")
 mlm.1 <- add_criterion(mlm.1, "loo")
 loo_compare(mlm.id, mlm.1p, mlm.1)
 ```
+
+Partial pooling predicts best, then no pooling, then complete pooling. The no-pooling model has many high Pareto *k*s: each person's mean rests on 2–4 scans, so it is fragile, which is exactly the overfitting partial pooling protects against.
 
 ## Level 1 predictors in brms {.smaller}
 

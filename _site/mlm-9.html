@@ -238,7 +238,7 @@
 </details>
 
 </div>
-<img data-src="mlm-8_files/figure-revealjs/unnamed-chunk-3-1.png" width="960" class="r-stretch"></section>
+<img data-src="mlm-9_files/figure-revealjs/unnamed-chunk-3-1.png" width="960" class="r-stretch"></section>
 <section id="empty-model" class="slide level2">
 <h2>Empty model</h2>
 <p>Level 1 <span class="math display">\[{Y}_{ij} = \beta_{0i}  + \varepsilon_{ij}\]</span></p>
@@ -256,7 +256,7 @@
 </details>
 
 </div>
-<img data-src="mlm-8_files/figure-revealjs/unnamed-chunk-4-1.png" width="960" class="r-stretch"><p><span class="math display">\[{Y}_{ij} = \gamma_{00} + U_{0i}  + \varepsilon_{ij}\]</span></p>
+<img data-src="mlm-9_files/figure-revealjs/unnamed-chunk-4-1.png" width="960" class="r-stretch"><p><span class="math display">\[{Y}_{ij} = \gamma_{00} + U_{0i}  + \varepsilon_{ij}\]</span></p>
 <p>Akin to ANOVA if we treat <span class="math inline">\(U_{0i}\)</span> as between subjects variance &amp; <span class="math inline">\(\varepsilon_{ij}\)</span> as within subjects variance.</p>
 </section>
 <section id="random-and-fixed-effects" class="slide level2">
@@ -298,7 +298,7 @@
 \]</span></p>
 <p>Each person’s slope is a fixed part plus their own deviation: for person 16, <span class="math inline">\(\beta_{1,16} = \gamma_{10} + U_{1,16}\)</span>.</p>
 </section>
-<section id="error-structure" class="slide level2">
+<section id="error-structure" class="slide level2 smaller">
 <h2>Error structure</h2>
 <p>The residual structure, where the random effects are again normally distributed with a mean of zero, but this time one must also consider covariance in addition to variance.</p>
 <p><span class="math display">\[\begin{pmatrix} {U}_{0i} \\ {U}_{1i} \end{pmatrix}
@@ -379,7 +379,7 @@
 <section id="aggregation-obscures-hypotheses" class="slide level2">
 <h2>1. Aggregation obscures hypotheses</h2>
 <p>What if people had more than 1 DV, like we do with time? What do you do with multiple items, multiple trials, multiple ____ ?</p>
-<p>Two options: 1. Collapse and average across.</p>
+<p>Two options: (1) collapse and average across them, or (2) model every observation, nested in its person (MLM). The next slides show what (1) can hide.</p>
 </section>
 <section id="example" class="slide level2">
 <h2>Example</h2>
@@ -404,16 +404,16 @@
 </details>
 </div>
 
-<img data-src="mlm-8_files/figure-revealjs/unnamed-chunk-6-1.png" width="960" class="r-stretch"></section>
+<img data-src="mlm-9_files/figure-revealjs/unnamed-chunk-6-1.png" width="960" class="r-stretch"></section>
 <section id="aggregating" class="slide level2">
 <h2>Aggregating</h2>
 <p>Could aggregate across group</p>
 
-<img data-src="mlm-8_files/figure-revealjs/unnamed-chunk-8-1.png" width="960" class="r-stretch"></section>
+<img data-src="mlm-9_files/figure-revealjs/unnamed-chunk-8-1.png" width="960" class="r-stretch"></section>
 <section id="separate-lines-for-each-group" class="slide level2">
 <h2>Separate lines for each group</h2>
 
-<img data-src="mlm-8_files/figure-revealjs/unnamed-chunk-9-1.png" width="960" class="r-stretch"></section>
+<img data-src="mlm-9_files/figure-revealjs/unnamed-chunk-9-1.png" width="960" class="r-stretch"></section>
 <section id="aggregation-obscures-hypotheses-1" class="slide level2">
 <h2>1. Aggregation obscures hypotheses</h2>
 <ul>
@@ -438,7 +438,7 @@
 <section id="stroop-as-an-mlm" class="slide level2 smaller">
 <h2>Stroop as an MLM</h2>
 <p><span class="math display">\[Y_{trials, i} = \beta_{0i} + \beta_{1i}X_{trial,i} + \varepsilon_{trial,i}\]</span></p>
-<p><span class="math display">\[\beta_{0} = \gamma_{00} + U_{0i}\]</span> <span class="math display">\[\beta_{1} = \gamma_{10} +\gamma_{11}Age_i+ U_{1i}\]</span></p>
+<p><span class="math display">\[\beta_{0i} = \gamma_{00} + U_{0i}\]</span> <span class="math display">\[\beta_{1i} = \gamma_{10} +\gamma_{11}Age_i+ U_{1i}\]</span></p>
 <p>Our B1 coefficient indexes the stroop effect. However, people differ on this stroop effect. There is some average effect (fixed effect) that people vary around. Each person has some personal <span class="math inline">\(\beta_1\)</span>, which we find using Level 1 data. From there we can also ask questions (with regressions) about that random variable.</p>
 </section>
 <section id="people-differ" class="slide level2">
@@ -447,43 +447,42 @@
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a aria-label="1"></a>example <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"mlm.csv"</span>)  <span class="co"># same data as above</span></span>
-<span id="cb5-2"><a aria-label="2"></a>example<span class="sc">$</span>year <span class="ot">&lt;-</span> example<span class="sc">$</span>week</span>
-<span id="cb5-3"><a aria-label="3"></a></span>
-<span id="cb5-4"><a aria-label="4"></a><span class="fu">set.seed</span>(<span class="dv">11</span>)</span>
-<span id="cb5-5"><a aria-label="5"></a>ex.random <span class="ot">&lt;-</span> example <span class="sc">%&gt;%</span></span>
-<span id="cb5-6"><a aria-label="6"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(ID) <span class="sc">%&gt;%</span></span>
-<span id="cb5-7"><a aria-label="7"></a>  <span class="fu">distinct</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb5-8"><a aria-label="8"></a>  <span class="fu">slice_sample</span>(<span class="at">n =</span> <span class="dv">3</span>)</span>
-<span id="cb5-9"><a aria-label="9"></a></span>
-<span id="cb5-10"><a aria-label="10"></a>example2 <span class="ot">&lt;-</span></span>
-<span id="cb5-11"><a aria-label="11"></a>  <span class="fu">left_join</span>(ex.random, example)</span>
-<span id="cb5-12"><a aria-label="12"></a></span>
-<span id="cb5-13"><a aria-label="13"></a>g2<span class="ot">&lt;-</span> <span class="fu">ggplot</span>(example2,</span>
-<span id="cb5-14"><a aria-label="14"></a>   <span class="fu">aes</span>(<span class="at">x =</span> week, <span class="at">y =</span> SMN7, <span class="at">group =</span> ID)) <span class="sc">+</span>  <span class="fu">geom_point</span>() <span class="sc">+</span> <span class="fu">stat_smooth</span>(<span class="at">method=</span><span class="st">"lm"</span>, <span class="at">formula=</span>y<span class="sc">~</span><span class="dv">1</span>, <span class="at">se =</span> <span class="cn">FALSE</span>) <span class="sc">+</span> <span class="fu">facet_wrap</span>( <span class="sc">~</span>ID) <span class="sc">+</span></span>
-<span id="cb5-15"><a aria-label="15"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="fu">mean</span>(example<span class="sc">$</span>SMN7)) <span class="sc">+</span>  <span class="fu">ylab</span>(<span class="st">"SMN7 connectivity"</span>) <span class="sc">+</span> <span class="fu">xlab</span>(<span class="st">"week"</span>) <span class="sc">+</span></span>
-<span id="cb5-16"><a aria-label="16"></a>  <span class="fu">geom_label</span>(<span class="at">label=</span><span class="st">"Grand mean "</span>,  <span class="at">x=</span><span class="dv">1</span>,<span class="at">y=</span><span class="fu">mean</span>(example<span class="sc">$</span>SMN7),</span>
-<span id="cb5-17"><a aria-label="17"></a>    <span class="at">label.size =</span> <span class="fl">0.15</span>)</span>
-<span id="cb5-18"><a aria-label="18"></a>g2</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a aria-label="1"></a>example <span class="ot">&lt;-</span> mlm   <span class="co"># same data as above</span></span>
+<span id="cb5-2"><a aria-label="2"></a></span>
+<span id="cb5-3"><a aria-label="3"></a><span class="fu">set.seed</span>(<span class="dv">11</span>)</span>
+<span id="cb5-4"><a aria-label="4"></a>ex.random <span class="ot">&lt;-</span> example <span class="sc">%&gt;%</span></span>
+<span id="cb5-5"><a aria-label="5"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(ID) <span class="sc">%&gt;%</span></span>
+<span id="cb5-6"><a aria-label="6"></a>  <span class="fu">distinct</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb5-7"><a aria-label="7"></a>  <span class="fu">slice_sample</span>(<span class="at">n =</span> <span class="dv">3</span>)</span>
+<span id="cb5-8"><a aria-label="8"></a></span>
+<span id="cb5-9"><a aria-label="9"></a>example2 <span class="ot">&lt;-</span></span>
+<span id="cb5-10"><a aria-label="10"></a>  <span class="fu">left_join</span>(ex.random, example)</span>
+<span id="cb5-11"><a aria-label="11"></a></span>
+<span id="cb5-12"><a aria-label="12"></a>g2<span class="ot">&lt;-</span> <span class="fu">ggplot</span>(example2,</span>
+<span id="cb5-13"><a aria-label="13"></a>   <span class="fu">aes</span>(<span class="at">x =</span> week, <span class="at">y =</span> SMN7, <span class="at">group =</span> ID)) <span class="sc">+</span>  <span class="fu">geom_point</span>() <span class="sc">+</span> <span class="fu">stat_smooth</span>(<span class="at">method=</span><span class="st">"lm"</span>, <span class="at">formula=</span>y<span class="sc">~</span><span class="dv">1</span>, <span class="at">se =</span> <span class="cn">FALSE</span>) <span class="sc">+</span> <span class="fu">facet_wrap</span>( <span class="sc">~</span>ID) <span class="sc">+</span></span>
+<span id="cb5-14"><a aria-label="14"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="fu">mean</span>(example<span class="sc">$</span>SMN7)) <span class="sc">+</span>  <span class="fu">ylab</span>(<span class="st">"SMN7 connectivity"</span>) <span class="sc">+</span> <span class="fu">xlab</span>(<span class="st">"week"</span>) <span class="sc">+</span></span>
+<span id="cb5-15"><a aria-label="15"></a>  <span class="fu">geom_label</span>(<span class="at">label=</span><span class="st">"Grand mean "</span>,  <span class="at">x=</span><span class="dv">1</span>,<span class="at">y=</span><span class="fu">mean</span>(example<span class="sc">$</span>SMN7),</span>
+<span id="cb5-16"><a aria-label="16"></a>    <span class="at">label.size =</span> <span class="fl">0.15</span>)</span>
+<span id="cb5-17"><a aria-label="17"></a>g2</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
 </div>
-<img data-src="mlm-8_files/figure-revealjs/unnamed-chunk-10-1.png" width="960" class="r-stretch"></section>
+<img data-src="mlm-9_files/figure-revealjs/unnamed-chunk-10-1.png" width="960" class="r-stretch"></section>
 <section id="distribution-of-person-means" class="slide level2">
 <h2>Distribution of person means</h2>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a aria-label="1"></a><span class="fu">library</span>(tidybayes)</span>
-<span id="cb6-2"><a aria-label="2"></a>example <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(ID) <span class="sc">%&gt;%</span></span>
-<span id="cb6-3"><a aria-label="3"></a>  <span class="fu">do</span>(<span class="at">avg =</span> <span class="fu">tidy</span>(<span class="fu">lm</span>(SMN7 <span class="sc">~</span> <span class="dv">1</span>, <span class="at">data =</span> .))) <span class="sc">%&gt;%</span></span>
-<span id="cb6-4"><a aria-label="4"></a>  <span class="fu">unnest</span>(avg) <span class="sc">%&gt;%</span></span>
+<span id="cb6-2"><a aria-label="2"></a>example <span class="sc">%&gt;%</span></span>
+<span id="cb6-3"><a aria-label="3"></a>  <span class="fu">group_by</span>(ID) <span class="sc">%&gt;%</span></span>
+<span id="cb6-4"><a aria-label="4"></a>  <span class="fu">summarise</span>(<span class="at">estimate =</span> <span class="fu">mean</span>(SMN7)) <span class="sc">%&gt;%</span></span>
 <span id="cb6-5"><a aria-label="5"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> estimate)) <span class="sc">+</span></span>
 <span id="cb6-6"><a aria-label="6"></a>  <span class="fu">stat_dotsinterval</span>() <span class="sc">+</span> <span class="fu">xlab</span>(<span class="st">"person mean SMN7 connectivity"</span>) <span class="sc">+</span> <span class="fu">ylab</span>(<span class="cn">NULL</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
 </div>
-<img data-src="mlm-8_files/figure-revealjs/unnamed-chunk-11-1.png" width="960" class="r-stretch"></section>
+<img data-src="mlm-9_files/figure-revealjs/unnamed-chunk-11-1.png" width="960" class="r-stretch"></section>
 <section id="different-levels" class="slide level2">
 <h2>3. Different levels</h2>
 <p>To sum up the first two ways to think about regression, we take a relationship that could be simplified by aggregation, and conduct regressions from regressions. (Regression inception)</p>
@@ -500,7 +499,7 @@
 <h2>4. Variance decomposition</h2>
 <p>For standard regression, we think of error as existing in one big bucket called <span class="math inline">\(\varepsilon\)</span> . Everything that we do not know goes into that bucket, from measurement error to unmeasured important factors.</p>
 <p>For MLMs we will be breaking up ( <span class="math inline">\(\varepsilon\)</span> ) into multiple buckets. These useful “buckets” (Us) are what we refer to as random/varying effects.</p>
-<p><span class="math display">\[Y_{trials, i} = \beta_{0i} + \beta_{1i}X_{trial,i} + \varepsilon_{trial}\]</span> <span class="math display">\[\beta_{0} = \gamma_{00} + U_{0i}\]</span> <span class="math display">\[\beta_{1} = \gamma_{10} +\gamma_{11}Z_i+ U_{1i}\]</span></p>
+<p><span class="math display">\[Y_{trials, i} = \beta_{0i} + \beta_{1i}X_{trial,i} + \varepsilon_{trial}\]</span> <span class="math display">\[\beta_{0i} = \gamma_{00} + U_{0i}\]</span> <span class="math display">\[\beta_{1i} = \gamma_{10} +\gamma_{11}Z_i+ U_{1i}\]</span></p>
 </section>
 <section id="one-bucket-of-error" class="slide level2">
 <h2>One bucket of error</h2>
@@ -529,7 +528,7 @@
 <h2>Where do the U’s come from?</h2>
 <p>If we take our simplified stroop effect model (an empty model)</p>
 <p><span class="math display">\[Y_{trials, i} = \beta_{0i} +  \varepsilon_{trial}\]</span></p>
-<p><span class="math display">\[\beta_{0} = \gamma_{00} + U_{0i}\]</span></p>
+<p><span class="math display">\[\beta_{0i} = \gamma_{00} + U_{0i}\]</span></p>
 <p>Where does <span class="math inline">\(U_{0i}\)</span> come from? If we calculated each by hand, through taking the average reaction time for a person i and subtracting that from the grand mean reaction time, would that equal <span class="math inline">\(U_{0i}\)</span> ?</p>
 </section>
 <section id="complete-partial-and-no-pooling" class="slide level2 smaller">
@@ -552,7 +551,7 @@
 </details>
 
 </div>
-<img data-src="mlm-8_files/figure-revealjs/unnamed-chunk-12-1.png" width="960" class="r-stretch"></section>
+<img data-src="mlm-9_files/figure-revealjs/unnamed-chunk-12-1.png" width="960" class="r-stretch"></section>
 <section id="no-pooling" class="slide level2">
 <h2>No Pooling</h2>
 <p>Everyone is unique and we cannot learn from others. Leads to overfitting</p>
@@ -563,18 +562,21 @@
 </details>
 
 </div>
-<img data-src="mlm-8_files/figure-revealjs/unnamed-chunk-13-1.png" width="960" class="r-stretch"></section>
+<img data-src="mlm-9_files/figure-revealjs/unnamed-chunk-13-1.png" width="960" class="r-stretch"></section>
 <section id="partial-pooling-aka-shrinkage-aka-regularization" class="slide level2">
 <h2>Partial pooling aka shrinkage aka regularization</h2>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a aria-label="1"></a><span class="fu">library</span>(viridis)</span>
-<span id="cb9-2"><a aria-label="2"></a><span class="fu">ggplot</span>(mlm, <span class="fu">aes</span>(<span class="at">x =</span> week, <span class="at">y =</span> SMN7, <span class="at">group =</span> ID, <span class="at">colour =</span> ID)) <span class="sc">+</span> <span class="fu">stat_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">alpha =</span> .<span class="dv">5</span>) <span class="sc">+</span><span class="fu">scale_color_viridis</span>()<span class="sc">+</span>  <span class="fu">ylab</span>(<span class="st">"SMN7"</span>) <span class="sc">+</span> <span class="fu">xlab</span>(<span class="st">"week"</span>) <span class="sc">+</span> <span class="fu">geom_point</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a aria-label="1"></a><span class="fu">ggplot</span>(mlm, <span class="fu">aes</span>(<span class="at">x =</span> week, <span class="at">y =</span> SMN7)) <span class="sc">+</span></span>
+<span id="cb9-2"><a aria-label="2"></a>  <span class="fu">stat_smooth</span>(<span class="fu">aes</span>(<span class="at">group =</span> ID), <span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">colour =</span> <span class="st">"grey70"</span>, <span class="at">linewidth =</span> .<span class="dv">4</span>) <span class="sc">+</span>   <span class="co"># no pooling</span></span>
+<span id="cb9-3"><a aria-label="3"></a>  <span class="fu">stat_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">colour =</span> <span class="st">"black"</span>, <span class="at">linewidth =</span> <span class="fl">1.5</span>) <span class="sc">+</span>                    <span class="co"># complete pooling</span></span>
+<span id="cb9-4"><a aria-label="4"></a>  <span class="fu">ylab</span>(<span class="st">"SMN7"</span>) <span class="sc">+</span> <span class="fu">xlab</span>(<span class="st">"week"</span>) <span class="sc">+</span> <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">14</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
 </div>
-<img data-src="mlm-8_files/figure-revealjs/unnamed-chunk-14-1.png" width="960" class="r-stretch"></section>
+<img data-src="mlm-9_files/figure-revealjs/unnamed-chunk-14-1.png" width="960" class="r-stretch"><p>Thin grey: each person’s own line (no pooling). Thick black: one line for everyone (complete pooling). Partial pooling lands in between, pulling each person toward the black line, more so for people with little data. We’ll see real estimates once we fit the model.</p>
+</section>
 <section id="partial-pooling-as-learning" class="slide level2">
 <h2>Partial pooling as learning</h2>
 <p>Partial pooling aka shrinkage provides the optimal amount of learning from others. Assumes people come from the same distribution but are distinct from one another.</p>
@@ -590,7 +592,7 @@
 <h2>Hyperprior</h2>
 <p>We now have a prior for the population of effects. We typically put a prior directly on parameters. Here, because we are using a multilevel model, we are interested in the population of intercepts, not just a single intercept.</p>
 <p>Intercept in simple regression –&gt; a (prior/posterior) distribution of possible scores</p>
-<p>Intercept in mlm –&gt; a distribution of group/clusters of intercepts. The population we are sampling from can have a distribution (mu, sigma), and that distribution is different from the observed distribution of mu (or sigma)</p>
+<p>Intercept in mlm –&gt; a distribution of group/cluster intercepts, described by its own mean (<span class="math inline">\(\bar\mu\)</span>) and SD (<span class="math inline">\(\sigma_0\)</span>). Those describe the <em>population</em> of people, not just the 91 we happened to sample.</p>
 </section>
 <section id="priors-with-their-own-priors" class="slide level2 nostretch smaller">
 <h2>Priors with their own priors</h2>
@@ -619,7 +621,7 @@
 <div class="cell-output-display">
 <div>
 <figure>
-<p><img data-src="mlm-8_files/figure-revealjs/unnamed-chunk-15-1.png" style="width:80.0%"></p>
+<p><img data-src="mlm-9_files/figure-revealjs/unnamed-chunk-15-1.png" style="width:80.0%"></p>
 </figure>
 </div>
 </div>
@@ -650,7 +652,7 @@
 <span id="cb11-11"><a aria-label="11"></a>      <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
 <span id="cb11-12"><a aria-label="12"></a>      <span class="at">file =</span> <span class="st">"mlm.1"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>If you think about parameters you are estimating the number of priors are simple. But in terms of what those priors represent, they are providing a prior on a prior. The intercept and the SD are both providing estimates of means. We could model this 1 parameter (anova or index coded) or 2 (mlm)</p>
+<p>Three priors: the <code>Intercept</code> prior is for the average person (<span class="math inline">\(\bar\mu\)</span>), the <code>sd</code> prior is for how much people differ from that average (<span class="math inline">\(\sigma_0\)</span>), and <code>sigma</code> is the scan-to-scan noise within a person.</p>
 </section>
 <section id="mlm.1-summary" class="slide level2">
 <h2><code>mlm.1</code> summary</h2>
@@ -702,7 +704,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </section>
 <section id="reading-the-icc" class="slide level2">
 <h2>Reading the ICC</h2>
-<p>About 60% of the variation in CON is stable differences between people; about 40% is scan-to-scan change within a person. Equivalently, two scans from the same person correlate about .6.</p>
+<p>About 59% of the variation in CON is stable differences between people; about 41% is scan-to-scan change within a person. Equivalently, two scans from the same person correlate about 0.59.</p>
 </section>
 <section id="a-single-level-model" class="slide level2">
 <h2>A single-level model</h2>
@@ -758,11 +760,12 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
  mlm.2     -58.2     8.9    1.00                         </code></pre>
 </div>
 </div>
+<p>The MLM wins easily. Note the high-Pareto-<em>k</em> flag (Lecture 6): with only 2–4 scans per person, leaving one scan out moves that person’s intercept a lot. For a final answer, use <code>moment_match = TRUE</code> or K-fold; here the gap is far too big for that to change the conclusion.</p>
 </section>
-<section id="same-intercept-different-meaning" class="slide level2">
+<section id="same-intercept-different-meaning" class="slide level2 smaller">
 <h2>Same intercept, different meaning</h2>
 <ul>
-<li><p>Notice how the intercept estimate is about the same in each of these models, but the MLM’s interval is wider: it knows the 91 people differ, so it is less sure about the average person. Conceptually they are different too. The intercept is directly modeled in the standard regression. In the MLM it is better thought of as the map of the distribution of random effects.</p></li>
+<li><p>Notice how the intercept estimate is about the same in each of these models, but the MLM’s is less certain (posterior SD 0.0068 vs.&nbsp;0.0049): it knows the 91 people differ, so it is less sure about the average person. Conceptually they are different too. The intercept is directly modeled in the standard regression. In the MLM it is better thought of as the map of the distribution of random effects.</p></li>
 <li><p>The population is larger than what we have. This is true for almost anything we do. We sample paradigms, we sample people, we usually never have a full population under our study. Don’t we want to model that variation?</p></li>
 </ul>
 </section>
@@ -770,9 +773,9 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <h2>The empty model, formally</h2>
 <p><span class="math display">\[\text{y}_{ij}  \sim \operatorname{Normal}(\mu_{ij}, \sigma)\]</span> <span class="math display">\[\mu_{ij}  = \beta_{0[i]}\]</span> The [i] subscript indicates we have varying intercepts that vary over individual i. Each parameter estimated needs a prior. <span class="math display">\[\beta_{0[i]} \sim \operatorname{Normal}({\bar \mu},  \sigma_0)\]</span> <span class="math display">\[{\bar \mu}  \sim {\operatorname{Normal}(0, 1.5)}\]</span> <span class="math display">\[\sigma_0 \sim {\operatorname{Half-Normal}(0, 1.5)}\]</span> <span class="math display">\[\sigma \sim {\operatorname{Exponential}(1)}\]</span></p>
 </section>
-<section id="an-index-model-one-mean-per-person" class="slide level2">
+<section id="an-index-model-one-mean-per-person" class="slide level2 smaller">
 <h2>An index model: one mean per person</h2>
-<p>With mlm we treated means as coming from a population of means. And thus there was a best guess of the mean (intercept) and variation around that guess (SD). With anova we ignored the variation. But we could, in bayes, still examine that variation. Lets fit an index model, where each person gets a mean.</p>
+<p>With mlm we treated means as coming from a population of means. And thus there was a best guess of the mean (intercept) and variation around that guess (SD). With anova we ignored the variation. But we could, in bayes, still examine that variation. Let’s fit an index model, where each person gets their own mean. (No priors given, so brms uses flat priors on all 91 means.)</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a aria-label="1"></a>mlm<span class="sc">$</span>ID.f <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(mlm<span class="sc">$</span>ID)</span>
 <span id="cb21-2"><a aria-label="2"></a>mlm.id <span class="ot">&lt;-</span></span>
@@ -924,12 +927,12 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <h2>Partial pooling/Shrinkage</h2>
 <p><span class="math inline">\(\sigma_0\)</span> (our random effect) can help turn on/off/adjust shrinkage.</p>
 <p>Setting SD to zero says everyone is the same. Infinite SD suggests no pooling (and major differences in pop values). In the middle gives you partial pooling.</p>
-<p>We use our prior of <span class="math inline">\(\sigma_0\)</span> plus our data to get an estimate of <span class="math inline">\(\beta_{0[j]}\)</span>. This is how we accurately partial pool.</p>
+<p>We use our prior of <span class="math inline">\(\sigma_0\)</span> plus our data to get an estimate of each <span class="math inline">\(\beta_{0[i]}\)</span>. This is how we accurately partial pool.</p>
 </section>
 <section id="partial-poolingshrinkage-1" class="slide level2">
 <h2>Partial pooling/Shrinkage</h2>
-<p><span class="math display">\[\text{y}_{ij}  \sim \operatorname{Normal}(\mu_i, \sigma)\]</span></p>
-<p><span class="math display">\[\mu_i  = \beta_{0[i]}\]</span></p>
+<p><span class="math display">\[\text{y}_{ij}  \sim \operatorname{Normal}(\mu_{ij}, \sigma)\]</span></p>
+<p><span class="math display">\[\mu_{ij}  = \beta_{0[i]}\]</span></p>
 <p><span class="math display">\[\beta_{0[i]} \sim \operatorname{Normal}({\bar \mu},  \sigma_0)\]</span> <span class="math display">\[{\bar \mu}  \sim {\operatorname{Normal}(0, 1.5)}\]</span></p>
 <p><span class="math display">\[\sigma_0 \sim {\operatorname{Half-Normal}(0, 1.5)}\]</span></p>
 <p><span class="math display">\[\sigma \sim {\operatorname{Exponential}(1)}\]</span></p>
@@ -1168,7 +1171,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </details>
 
 </div>
-<img data-src="mlm-8_files/figure-revealjs/unnamed-chunk-32-1.png" width="864" class="r-stretch"></section>
+<img data-src="mlm-9_files/figure-revealjs/unnamed-chunk-33-1.png" width="864" class="r-stretch"></section>
 <section id="person-intercepts-with-intervals" class="slide level2">
 <h2>Person intercepts with intervals</h2>
 <div class="cell">
@@ -1182,7 +1185,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </details>
 
 </div>
-<img data-src="mlm-8_files/figure-revealjs/unnamed-chunk-33-1.png" width="960" class="r-stretch"></section>
+<img data-src="mlm-9_files/figure-revealjs/unnamed-chunk-34-1.png" width="960" class="r-stretch"></section>
 <section id="forcing-complete-pooling" class="slide level2">
 <h2>Forcing complete pooling</h2>
 <p>Set prior for random effect to almost zero for complete pooling.</p>
@@ -1253,7 +1256,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </details>
 
 </div>
-<img data-src="mlm-8_files/figure-revealjs/unnamed-chunk-36-1.png" width="960" class="r-stretch"></section>
+<img data-src="mlm-9_files/figure-revealjs/unnamed-chunk-37-1.png" width="960" class="r-stretch"></section>
 <section id="no-pooling-1" class="slide level2 smaller">
 <h2>No pooling</h2>
 <p>No pooling means you are not learning from other data, which is by default not an MLM model. We already fit this fixed effects no intercept model above.</p>
@@ -1395,7 +1398,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </details>
 
 </div>
-<img data-src="mlm-8_files/figure-revealjs/unnamed-chunk-38-1.png" width="960" class="r-stretch"></section>
+<img data-src="mlm-9_files/figure-revealjs/unnamed-chunk-39-1.png" width="960" class="r-stretch"></section>
 <section id="the-mlm-picks-the-amount-of-pooling" class="slide level2">
 <h2>The MLM picks the amount of pooling</h2>
 <p>MLM will automatically create the best fitting model – balancing between over and under fitting. It identifies the value of sigma of the random effect that is ideal.</p>
@@ -1415,6 +1418,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
  mlm.1p     -58.2     8.9    1.00                          </code></pre>
 </div>
 </div>
+<p>Partial pooling predicts best, then no pooling, then complete pooling. The no-pooling model has many high Pareto <em>k</em>s: each person’s mean rests on 2–4 scans, so it is fragile, which is exactly the overfitting partial pooling protects against.</p>
 </section>
 <section id="level-1-predictors-in-brms" class="slide level2 smaller">
 <h2>Level 1 predictors in brms</h2>
