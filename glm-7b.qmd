@@ -32,7 +32,7 @@ $$Y \sim \textrm{NB}(\mu,\phi)$$
 
 ## Gamma-Poisson
 
--   The Poisson distribution has just one parameter and presumes the mean/rate is associated with the spread. The negative binomial distribution relaxes this assumption and estimates the shape ($\phi$) of a gamma distribution (also an exponential family distribution) to describe the Poisson rates across cases.
+-   The Poisson distribution has just one parameter, so its variance must equal its mean. The negative binomial distribution relaxes this assumption and estimates the shape ($\phi$) of a gamma distribution (also an exponential family distribution) to describe the Poisson rates across cases.
 
 -   The gamma distribution is a non-negative, continuous, two-parameter probability distribution.
 
@@ -92,10 +92,23 @@ roach <- read_csv("roaches.csv")  # also at https://josh-jackson.github.io/bayes
 roach
 ```
 
+## Describing the roach data
+
+```{r}
+describe(roach)
+```
+
+Mean count `r round(mean(roach$y), 1)`, variance `r round(var(roach$y))`, and `r round(100 * mean(roach$y == 0))`% zeros. A Poisson would need the variance to equal the mean.
+
 ## Poisson
 
-$$y_i  \sim \operatorname{Poisson} (\lambda_i)$$\
-$$\log (\lambda_i)  = \beta_0 + \beta_1*X_i $$
+$$
+\begin{aligned}
+y_i &\sim \operatorname{Poisson}(\lambda_i) \\
+\log(\lambda_i) &= \beta_0 + \beta_1\,\text{roach1}_i + \beta_2\,\text{treatment}_i \\
+\beta_0 &\sim \operatorname{Normal}(2, 3) \qquad \beta_1, \beta_2 \sim \operatorname{Normal}(0, 1)
+\end{aligned}
+$$
 
 ```{r}
 
@@ -315,7 +328,7 @@ pp_check(glm.8b, ndraws = 50) +
 summary(glm.8b)
 ```
 
-## NB vs Poisson predictions
+## NB vs Poisson predictions {.smaller}
 
 ```{r}
 predictions(glm.8b,by = "treatment")
@@ -324,6 +337,8 @@ predictions(glm.8b,by = "treatment")
 ```{r}
 predictions(glm.7,by = "treatment")
 ```
+
+The observed mean is `r round(mean(roach$y), 1)`. The NB's average prediction is far higher because a few apartments with 300+ pretreatment roaches get enormous predicted counts (more on that in the checks below).
 
 ## Treatment effects compared {.smaller}
 
@@ -361,12 +376,6 @@ predictions(glm.8b)
 
 ```{r}
 predictions(glm.7)
-```
-
-## The roach data
-
-```{r}
-describe(roach)
 ```
 
 ## Predictions at chosen roach1 values: NB {.smaller}
@@ -459,9 +468,11 @@ $$\operatorname{Pr} (y = 0 | p, \lambda)  = \operatorname{Pr} (\text{drink} | p)
 
 ## Zeros and non-zeros
 
-The probability of observing a zero is the probability that the monks drank, OR the probability that the monks worked AND failed to finish anything
+A zero (last slide) can happen two ways: the monks drank, OR they worked AND finished nothing. A count above zero can happen only one way:
 
-$$\operatorname{Pr} (y | y > 0, p, \lambda) = $$ $$ \operatorname{Pr} (\text{drink} | p) (0) + \operatorname{Pr} (\text{work} | p) \operatorname{Pr} (y | \lambda) = (1 - p) \frac {\lambda^y \exp (- \lambda)}{y!}$$ Since drinking monks never produce, the expression above is the chance the monks both work (1-p), and finish y manuscripts
+$$\operatorname{Pr} (y = k \mid p, \lambda) = \operatorname{Pr} (\text{drink} \mid p) \times 0 + \operatorname{Pr} (\text{work} \mid p) \operatorname{Pr} (k \mid \lambda) = (1 - p) \frac {\lambda^k \exp (- \lambda)}{k!}, \quad k > 0$$
+
+Since drinking monks never produce, this is the chance the monks both work (1 − p) and finish *k* manuscripts.
 
 ## The ZIP model
 
@@ -717,7 +728,7 @@ log10_var <- function(y) log10(var(y))
 
 -   **Poisson:** simulated variances are about half the real one, and it predicts essentially *no* zeros (the data have 36%).
 -   **NB:** gets the zeros right (about 34%), but overshoots the variance, sometimes by orders of magnitude: some simulated datasets contain counts in the thousands (the real maximum is 357).
--   Why? `roach1` enters on the log scale raw, so apartments with 300+ pretreatment roaches get enormous predicted means. Using `log(roach1 + 1)` as the predictor (as in `glm.8e` below) is one fix.
+-   Why? `roach1` enters on the log scale raw, so apartments with 300+ pretreatment roaches get enormous predicted means. Using `log(roach1 + 1)` as the predictor (as in `glm.8e` above) is one fix.
 -   A model can win LOO and still fail a check. Do both.
 
 ## Rate ratios
@@ -747,15 +758,17 @@ glm.11 <-
       iter = 2000, warmup = 1000, chains = 4, cores = 4,
       data = zips,
       backend = "cmdstanr",
-      file = "glm.11")
+      file = "glm.11b")
 
 ```
 
-## `glm.11` summary
+## `glm.11` summary {.smaller}
 
 ```{r}
 summary(glm.11)
 ```
+
+`hu` = `r sprintf("%.2f", posterior_summary(glm.11)["hu", "Estimate"])` is simply the share of *all* zeros (`r sprintf("%.2f", mean(zips$y == 0))` in the data): in a hurdle model every zero comes from the zero part. Compare `zi` ≈ .21 in the ZIP, which is only the *extra* zeros (the drinking days).
 
 ## Hurdle model with a predictor
 
@@ -770,7 +783,7 @@ glm.11x <-
       iter = 2000, warmup = 1000, chains = 4, cores = 4,
       data = zips,
       backend = "cmdstanr",
-      file = "glm.11x3")
+      file = "glm.11x4")
 
 ```
 
@@ -862,17 +875,24 @@ discrete, defined order, distance between categories is unknown
 
 common assumption is to treat differences as the same and model it as continuous with a Gaussian
 
-## Log cumulative odds link
+## The trolley data {.smaller}
+
+```{r}
+#| echo: false
+trolley <- read_csv("trolley.csv", show_col_types = FALSE)  # rethinking's Trolley data; also at https://josh-jackson.github.io/bayes27/trolley.csv
+```
+
+-   From Statistical Rethinking: `r nrow(trolley)` ratings from `r n_distinct(trolley$id)` people, each rating 30 trolley-problem scenarios.
+-   `response`: how morally permissible the action in the story is, 1 (forbidden) to 7 (permissible).
+-   Three story features (0/1): `action` (the person acts rather than lets something happen), `intention` (the harm is a means to the goal, not a side effect), `contact` (the person physically touches the victim).
 
 ```{r}
 #| code-fold: true
-
-trolley <- read_csv("trolley.csv")  # rethinking's Trolley data; also at https://josh-jackson.github.io/bayes27/trolley.csv
-p2a <-
-  trolley %>%
+#| fig-height: 3
+trolley %>%
   ggplot(aes(x = response)) +
-  geom_histogram()
-p2a
+  geom_bar() +
+  scale_x_continuous(breaks = 1:7)
 ```
 
 ## Proportion of each response
@@ -950,15 +970,30 @@ Logic:
 
 -   Why logits? Because we want to predict an ordered outcome.
 
-## Estimating the cut points
+## Estimating the cut points {.nostretch .smaller}
 
 We want to estimate the cutpoints
 
 $$\text{logit}(Pr(y_i \leq k)) = \log\left(\dfrac{Pr(y_i \leq k)}{1-Pr(y_i \leq k)}\right)$$
 
 ```{r, echo = FALSE}
-p2b +  scale_x_continuous(breaks = c(.5,2,3.5,5,6.6), labels = c(-2,-1,0,1,2)) + xlab("cumulative log odds") +  theme(axis.title.y = element_blank(), axis.text.y = element_blank())
+#| fig-height: 3
+#| fig-width: 9
+#| out-width: "75%"
+trolley %>%
+  count(response) %>%
+  mutate(cum_pr_k = cumsum(n / nrow(trolley))) %>%
+  filter(response < 7) %>%
+  ggplot(aes(x = response, y = cum_pr_k)) +
+  geom_line() + geom_point(size = 2.5) +
+  geom_text(aes(label = sprintf("logit = %.2f", qlogis(cum_pr_k))), vjust = -1, size = 4) +
+  scale_x_continuous(breaks = 1:6, labels = paste("≤", 1:6)) +
+  scale_y_continuous("cumulative proportion", limits = c(0, 1)) +
+  labs(x = "response") +
+  theme_classic(base_size = 14)
 ```
+
+Each point is one cut point: the cumulative proportion, and (label) its log cumulative odds.
 
 ## Cut points as intercepts
 
@@ -1202,7 +1237,7 @@ Each condition should add up to 1
 ```{r}
 #| code-fold: true
 trolley %>%
-  data_grid(action = c(0,1), intention = c(0,1), contact = .5) %>%
+  data_grid(action = c(0,1), intention = c(0,1), contact = 0) %>%   # no-contact stories
   mutate(x = interaction(action, intention)) %>%
   mutate(x = fct_recode(as.factor(x),
                       No_A_No_I = "0.0",
@@ -1219,7 +1254,7 @@ trolley %>%
 ```{r}
 #| code-fold: true
 trolley %>%
-  data_grid(action = .5, intention = c(0,1), contact = c(0,1)) %>%
+  data_grid(action = 0, intention = c(0,1), contact = c(0,1)) %>%   # no-action stories
   mutate(x = interaction(contact, intention)) %>%
   mutate(x = fct_recode(as.factor(x),
                       No_C_No_I = "0.0",
@@ -1346,17 +1381,19 @@ glm.14 <-
       file = "glm.14")
 ```
 
-## `glm.14` summary
+## `glm.14` summary {.smaller}
 
 ```{r}
 summary(glm.14)
 ```
 
+`disc` is 1 / SD of the latent scale, on a log link. Negative coefficients (e.g., `disc_contact:intention`) mean *more* spread in ratings for those stories: people disagree more.
+
 
 ## Predicted response distributions with unequal variances
 ```{r}
 trolley %>%
-  data_grid(action = .5, intention = c(0,1), contact = c(0,1)) %>%
+  data_grid(action = 0, intention = c(0,1), contact = c(0,1)) %>%   # no-action stories
   mutate(x = interaction(contact, intention)) %>%
   mutate(x = fct_recode(as.factor(x),
                       No_C_No_I = "0.0",
@@ -1389,7 +1426,7 @@ For many ordinal variables, the assumption of a single underlying continuous var
 sequential: years of marriage where the marriage may continue or end by divorce, but the latter can happen only if it did not happen before. For every category k there is a latent continuous variable.
 
 Adjacent category (partial credit): Sequential models model the decision between Y = k and Y > k, whereas adjacent-category models model the decision
-between Y = k and Y = k + 1. Mathematically useful, lack of ordering of the threshold parameters.
+between Y = k and Y = k + 1. Mathematically convenient, but its thresholds need not be in order.
 
 
 

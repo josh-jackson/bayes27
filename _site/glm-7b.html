@@ -223,7 +223,7 @@
 <section id="gamma-poisson" class="slide level2">
 <h2>Gamma-Poisson</h2>
 <ul>
-<li><p>The Poisson distribution has just one parameter and presumes the mean/rate is associated with the spread. The negative binomial distribution relaxes this assumption and estimates the shape (<span class="math inline">\(\phi\)</span>) of a gamma distribution (also an exponential family distribution) to describe the Poisson rates across cases.</p></li>
+<li><p>The Poisson distribution has just one parameter, so its variance must equal its mean. The negative binomial distribution relaxes this assumption and estimates the shape (<span class="math inline">\(\phi\)</span>) of a gamma distribution (also an exponential family distribution) to describe the Poisson rates across cases.</p></li>
 <li><p>The gamma distribution is a non-negative, continuous, two-parameter probability distribution.</p></li>
 </ul>
 </section>
@@ -311,21 +311,47 @@ Y_i \sim \textrm{NB}(\mu, \phi)
 </div>
 </div>
 </section>
+<section id="describing-the-roach-data" class="slide level2">
+<h2>Describing the roach data</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a aria-label="1"></a><span class="fu">describe</span>(roach)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>          vars   n  mean    sd median trimmed   mad min    max  range  skew
+y            1 262 25.65 50.85      3   12.61  4.45 0.0 357.00 357.00  3.09
+roach1       2 262 42.19 75.26      7   23.68 10.38 0.0 450.00 450.00  2.62
+treatment    3 262  0.60  0.49      1    0.63  0.00 0.0   1.00   1.00 -0.42
+senior       4 262  0.31  0.46      0    0.26  0.00 0.0   1.00   1.00  0.84
+exposure2    5 262  1.02  0.32      1    0.98  0.00 0.2   4.29   4.09  5.09
+          kurtosis   se
+y            11.49 3.14
+roach1        7.37 4.65
+treatment    -1.83 0.03
+senior       -1.30 0.03
+exposure2    43.04 0.02</code></pre>
+</div>
+</div>
+<p>Mean count 25.6, variance 2585, and 36% zeros. A Poisson would need the variance to equal the mean.</p>
+</section>
 <section id="poisson" class="slide level2">
 <h2>Poisson</h2>
-<p><span class="math display">\[y_i  \sim \operatorname{Poisson} (\lambda_i)\]</span><br>
-<span class="math display">\[\log (\lambda_i)  = \beta_0 + \beta_1*X_i \]</span></p>
+<p><span class="math display">\[
+\begin{aligned}
+y_i &amp;\sim \operatorname{Poisson}(\lambda_i) \\
+\log(\lambda_i) &amp;= \beta_0 + \beta_1\,\text{roach1}_i + \beta_2\,\text{treatment}_i \\
+\beta_0 &amp;\sim \operatorname{Normal}(2, 3) \qquad \beta_1, \beta_2 \sim \operatorname{Normal}(0, 1)
+\end{aligned}
+\]</span></p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a aria-label="1"></a>glm<span class="fl">.7</span> <span class="ot">&lt;-</span></span>
-<span id="cb5-2"><a aria-label="2"></a>  <span class="fu">brm</span>(<span class="at">family =</span> poisson,</span>
-<span id="cb5-3"><a aria-label="3"></a>      y <span class="sc">~</span> <span class="dv">0</span> <span class="sc">+</span> Intercept <span class="sc">+</span> roach1 <span class="sc">+</span> treatment,</span>
-<span id="cb5-4"><a aria-label="4"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">2</span>, <span class="dv">3</span>), <span class="at">class =</span> b, <span class="at">coef =</span> <span class="st">"Intercept"</span>),</span>
-<span id="cb5-5"><a aria-label="5"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="at">class =</span> b)),</span>
-<span id="cb5-6"><a aria-label="6"></a>      <span class="at">iter =</span> <span class="dv">2000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">cores =</span> <span class="dv">4</span>, <span class="at">chains =</span> <span class="dv">4</span>,</span>
-<span id="cb5-7"><a aria-label="7"></a>      <span class="at">sample_prior =</span> <span class="st">"yes"</span>,</span>
-<span id="cb5-8"><a aria-label="8"></a>      <span class="at">data =</span> roach,</span>
-<span id="cb5-9"><a aria-label="9"></a>      <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
-<span id="cb5-10"><a aria-label="10"></a>      <span class="at">file =</span> <span class="st">"glm.7"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a aria-label="1"></a>glm<span class="fl">.7</span> <span class="ot">&lt;-</span></span>
+<span id="cb7-2"><a aria-label="2"></a>  <span class="fu">brm</span>(<span class="at">family =</span> poisson,</span>
+<span id="cb7-3"><a aria-label="3"></a>      y <span class="sc">~</span> <span class="dv">0</span> <span class="sc">+</span> Intercept <span class="sc">+</span> roach1 <span class="sc">+</span> treatment,</span>
+<span id="cb7-4"><a aria-label="4"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">2</span>, <span class="dv">3</span>), <span class="at">class =</span> b, <span class="at">coef =</span> <span class="st">"Intercept"</span>),</span>
+<span id="cb7-5"><a aria-label="5"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="at">class =</span> b)),</span>
+<span id="cb7-6"><a aria-label="6"></a>      <span class="at">iter =</span> <span class="dv">2000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">cores =</span> <span class="dv">4</span>, <span class="at">chains =</span> <span class="dv">4</span>,</span>
+<span id="cb7-7"><a aria-label="7"></a>      <span class="at">sample_prior =</span> <span class="st">"yes"</span>,</span>
+<span id="cb7-8"><a aria-label="8"></a>      <span class="at">data =</span> roach,</span>
+<span id="cb7-9"><a aria-label="9"></a>      <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
+<span id="cb7-10"><a aria-label="10"></a>      <span class="at">file =</span> <span class="st">"glm.7"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="why-0-intercept" class="slide level2">
@@ -339,7 +365,7 @@ Y_i \sim \textrm{NB}(\mu, \phi)
 <section id="glm.7-summary" class="slide level2">
 <h2><code>glm.7</code> summary</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a aria-label="1"></a><span class="fu">summary</span>(glm<span class="fl">.7</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a aria-label="1"></a><span class="fu">summary</span>(glm<span class="fl">.7</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: poisson 
   Links: mu = log 
@@ -363,7 +389,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <section id="average-predictions-by-treatment" class="slide level2">
 <h2>Average predictions by treatment</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a aria-label="1"></a><span class="fu">predictions</span>(glm<span class="fl">.7</span>,<span class="at">by =</span> <span class="st">"treatment"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a aria-label="1"></a><span class="fu">predictions</span>(glm<span class="fl">.7</span>,<span class="at">by =</span> <span class="st">"treatment"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
  treatment Estimate 2.5 % 97.5 %
@@ -378,7 +404,7 @@ Type: response</code></pre>
 <h2>Predictions on the response scale</h2>
 <p>These predictions are on the original scale</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a aria-label="1"></a><span class="fu">predictions</span>(glm<span class="fl">.7</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a aria-label="1"></a><span class="fu">predictions</span>(glm<span class="fl">.7</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
  Estimate 2.5 % 97.5 %
@@ -401,7 +427,7 @@ Type: response</code></pre>
 <h2>Predictions on the link scale</h2>
 <p>These predictions are on the log link scale.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a aria-label="1"></a><span class="fu">predictions</span>(glm<span class="fl">.7</span>, <span class="at">type =</span> <span class="st">"link"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a aria-label="1"></a><span class="fu">predictions</span>(glm<span class="fl">.7</span>, <span class="at">type =</span> <span class="st">"link"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
  Estimate 2.5 % 97.5 %
@@ -423,7 +449,7 @@ Type: link</code></pre>
 <section id="prediction-by-hand" class="slide level2 smaller">
 <h2>Prediction by hand</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a aria-label="1"></a><span class="fu">predictions</span>(glm<span class="fl">.7</span>, <span class="at">newdata =</span> <span class="fu">datagrid</span>(<span class="at">roach1 =</span> <span class="dv">10</span>, <span class="at">treatment =</span> unique))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a aria-label="1"></a><span class="fu">predictions</span>(glm<span class="fl">.7</span>, <span class="at">newdata =</span> <span class="fu">datagrid</span>(<span class="at">roach1 =</span> <span class="dv">10</span>, <span class="at">treatment =</span> unique))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
  roach1 treatment Estimate 2.5 % 97.5 %
@@ -435,16 +461,16 @@ Type: response</code></pre>
 </div>
 <p>By hand, for roach1 = 10 in the treatment group:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a aria-label="1"></a>b <span class="ot">&lt;-</span> <span class="fu">fixef</span>(glm<span class="fl">.7</span>)[, <span class="st">"Estimate"</span>]</span>
-<span id="cb16-2"><a aria-label="2"></a>log_rate <span class="ot">&lt;-</span> b[<span class="st">"Intercept"</span>] <span class="sc">+</span> b[<span class="st">"roach1"</span>] <span class="sc">*</span> <span class="dv">10</span> <span class="sc">+</span> b[<span class="st">"treatment"</span>] <span class="sc">*</span> <span class="dv">1</span></span>
-<span id="cb16-3"><a aria-label="3"></a><span class="fu">c</span>(<span class="at">log_rate =</span> log_rate, <span class="at">rate =</span> <span class="fu">exp</span>(log_rate))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a aria-label="1"></a>b <span class="ot">&lt;-</span> <span class="fu">fixef</span>(glm<span class="fl">.7</span>)[, <span class="st">"Estimate"</span>]</span>
+<span id="cb18-2"><a aria-label="2"></a>log_rate <span class="ot">&lt;-</span> b[<span class="st">"Intercept"</span>] <span class="sc">+</span> b[<span class="st">"roach1"</span>] <span class="sc">*</span> <span class="dv">10</span> <span class="sc">+</span> b[<span class="st">"treatment"</span>] <span class="sc">*</span> <span class="dv">1</span></span>
+<span id="cb18-3"><a aria-label="3"></a><span class="fu">c</span>(<span class="at">log_rate =</span> log_rate, <span class="at">rate =</span> <span class="fu">exp</span>(log_rate))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>log_rate.Intercept     rate.Intercept 
           2.564842          12.998610 </code></pre>
 </div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a aria-label="1"></a><span class="fu">predictions</span>(glm<span class="fl">.7</span>, <span class="at">newdata =</span> <span class="fu">datagrid</span>(<span class="at">roach1 =</span> <span class="dv">10</span>, <span class="at">treatment =</span> unique), <span class="at">type =</span> <span class="st">"link"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a aria-label="1"></a><span class="fu">predictions</span>(glm<span class="fl">.7</span>, <span class="at">newdata =</span> <span class="fu">datagrid</span>(<span class="at">roach1 =</span> <span class="dv">10</span>, <span class="at">treatment =</span> unique), <span class="at">type =</span> <span class="st">"link"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
  roach1 treatment Estimate 2.5 % 97.5 %
@@ -458,28 +484,28 @@ Type: link</code></pre>
 <section id="posterior-predictive-check-poisson" class="slide level2">
 <h2>Posterior predictive check: Poisson</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a aria-label="1"></a><span class="fu">pp_check</span>(glm<span class="fl">.7</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a aria-label="1"></a><span class="fu">pp_check</span>(glm<span class="fl">.7</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 </div>
-<img data-src="glm-7b_files/figure-revealjs/unnamed-chunk-13-1.png" width="960" class="r-stretch"></section>
+<img data-src="glm-7b_files/figure-revealjs/unnamed-chunk-14-1.png" width="960" class="r-stretch"></section>
 <section id="predicted-roaches-by-pretreatment-count" class="slide level2">
 <h2>Predicted roaches by pretreatment count</h2>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a aria-label="1"></a><span class="fu">predictions</span>(glm<span class="fl">.7</span>,<span class="at">by =</span> <span class="fu">c</span>(<span class="st">"roach1"</span>, <span class="st">"treatment"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb21-2"><a aria-label="2"></a>  <span class="fu">get_draws</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb21-3"><a aria-label="3"></a>  <span class="fu">mutate</span>(<span class="at">treatment =</span> <span class="fu">as.factor</span>(treatment)) <span class="sc">%&gt;%</span></span>
-<span id="cb21-4"><a aria-label="4"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> roach1, <span class="at">y =</span> draw, <span class="at">color =</span> treatment)) <span class="sc">+</span></span>
-<span id="cb21-5"><a aria-label="5"></a>  <span class="fu">stat_lineribbon</span>(<span class="at">.width =</span> .<span class="dv">95</span>, <span class="at">alpha =</span> .<span class="dv">4</span>) <span class="sc">+</span> <span class="fu">ylab</span>(<span class="st">"roaches"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a aria-label="1"></a><span class="fu">predictions</span>(glm<span class="fl">.7</span>,<span class="at">by =</span> <span class="fu">c</span>(<span class="st">"roach1"</span>, <span class="st">"treatment"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb23-2"><a aria-label="2"></a>  <span class="fu">get_draws</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb23-3"><a aria-label="3"></a>  <span class="fu">mutate</span>(<span class="at">treatment =</span> <span class="fu">as.factor</span>(treatment)) <span class="sc">%&gt;%</span></span>
+<span id="cb23-4"><a aria-label="4"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> roach1, <span class="at">y =</span> draw, <span class="at">color =</span> treatment)) <span class="sc">+</span></span>
+<span id="cb23-5"><a aria-label="5"></a>  <span class="fu">stat_lineribbon</span>(<span class="at">.width =</span> .<span class="dv">95</span>, <span class="at">alpha =</span> .<span class="dv">4</span>) <span class="sc">+</span> <span class="fu">ylab</span>(<span class="st">"roaches"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
 </div>
-<img data-src="glm-7b_files/figure-revealjs/unnamed-chunk-14-1.png" width="960" class="r-stretch"></section>
+<img data-src="glm-7b_files/figure-revealjs/unnamed-chunk-15-1.png" width="960" class="r-stretch"></section>
 <section id="treatment-effect-at-the-mean" class="slide level2">
 <h2>Treatment effect at the mean</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a aria-label="1"></a><span class="fu">comparisons</span>(glm<span class="fl">.7</span>, <span class="at">variables =</span> <span class="st">"treatment"</span>, <span class="at">newdata =</span> <span class="st">"mean"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a aria-label="1"></a><span class="fu">comparisons</span>(glm<span class="fl">.7</span>, <span class="at">variables =</span> <span class="st">"treatment"</span>, <span class="at">newdata =</span> <span class="st">"mean"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
  Estimate 2.5 % 97.5 %
@@ -501,23 +527,23 @@ Comparison: 1 - 0</code></pre>
 <section id="poisson-with-an-offset" class="slide level2">
 <h2>Poisson with an offset</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a aria-label="1"></a>glm<span class="fl">.7</span>o <span class="ot">&lt;-</span></span>
-<span id="cb24-2"><a aria-label="2"></a>  <span class="fu">brm</span>(<span class="at">family =</span> poisson,</span>
-<span id="cb24-3"><a aria-label="3"></a>      y <span class="sc">~</span> <span class="dv">0</span> <span class="sc">+</span> Intercept <span class="sc">+</span> roach1 <span class="sc">+</span> treatment <span class="sc">+</span> <span class="fu">offset</span>(<span class="fu">log</span>(exposure2)),</span>
-<span id="cb24-4"><a aria-label="4"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">2</span>, <span class="dv">3</span>), <span class="at">class =</span> b, <span class="at">coef =</span> <span class="st">"Intercept"</span>),</span>
-<span id="cb24-5"><a aria-label="5"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="at">class =</span> b)),</span>
-<span id="cb24-6"><a aria-label="6"></a>      <span class="at">iter =</span> <span class="dv">2000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">cores =</span> <span class="dv">4</span>, <span class="at">chains =</span> <span class="dv">4</span>,</span>
-<span id="cb24-7"><a aria-label="7"></a>      <span class="at">data =</span> roach,</span>
-<span id="cb24-8"><a aria-label="8"></a>      <span class="at">save_pars =</span> <span class="fu">save_pars</span>(<span class="at">all =</span> <span class="cn">TRUE</span>), <span class="co"># for loo(moment_match = TRUE) later</span></span>
-<span id="cb24-9"><a aria-label="9"></a>      <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
-<span id="cb24-10"><a aria-label="10"></a>      <span class="at">file =</span> <span class="st">"glm.7o2"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a aria-label="1"></a>glm<span class="fl">.7</span>o <span class="ot">&lt;-</span></span>
+<span id="cb26-2"><a aria-label="2"></a>  <span class="fu">brm</span>(<span class="at">family =</span> poisson,</span>
+<span id="cb26-3"><a aria-label="3"></a>      y <span class="sc">~</span> <span class="dv">0</span> <span class="sc">+</span> Intercept <span class="sc">+</span> roach1 <span class="sc">+</span> treatment <span class="sc">+</span> <span class="fu">offset</span>(<span class="fu">log</span>(exposure2)),</span>
+<span id="cb26-4"><a aria-label="4"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">2</span>, <span class="dv">3</span>), <span class="at">class =</span> b, <span class="at">coef =</span> <span class="st">"Intercept"</span>),</span>
+<span id="cb26-5"><a aria-label="5"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="at">class =</span> b)),</span>
+<span id="cb26-6"><a aria-label="6"></a>      <span class="at">iter =</span> <span class="dv">2000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">cores =</span> <span class="dv">4</span>, <span class="at">chains =</span> <span class="dv">4</span>,</span>
+<span id="cb26-7"><a aria-label="7"></a>      <span class="at">data =</span> roach,</span>
+<span id="cb26-8"><a aria-label="8"></a>      <span class="at">save_pars =</span> <span class="fu">save_pars</span>(<span class="at">all =</span> <span class="cn">TRUE</span>), <span class="co"># for loo(moment_match = TRUE) later</span></span>
+<span id="cb26-9"><a aria-label="9"></a>      <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
+<span id="cb26-10"><a aria-label="10"></a>      <span class="at">file =</span> <span class="st">"glm.7o2"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="glm.7o-summary" class="slide level2">
 <h2><code>glm.7o</code> summary</h2>
 <p>Note the offset is not a coefficient.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a aria-label="1"></a><span class="fu">summary</span>(glm<span class="fl">.7</span>o)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a aria-label="1"></a><span class="fu">summary</span>(glm<span class="fl">.7</span>o)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: poisson 
   Links: mu = log 
@@ -543,45 +569,45 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a aria-label="1"></a><span class="fu">predictions</span>(glm<span class="fl">.7</span>o, <span class="at">newdata =</span> <span class="fu">datagrid</span>(<span class="at">roach1 =</span> unique, <span class="at">treatment =</span> unique)) <span class="sc">%&gt;%</span></span>
-<span id="cb27-2"><a aria-label="2"></a>  <span class="fu">get_draws</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb27-3"><a aria-label="3"></a>  <span class="fu">mutate</span>(<span class="at">treatment =</span> <span class="fu">as.factor</span>(treatment)) <span class="sc">%&gt;%</span></span>
-<span id="cb27-4"><a aria-label="4"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> roach1, <span class="at">y =</span> draw, <span class="at">color =</span> treatment)) <span class="sc">+</span></span>
-<span id="cb27-5"><a aria-label="5"></a>  <span class="fu">stat_lineribbon</span>(<span class="at">.width =</span> .<span class="dv">95</span>, <span class="at">alpha =</span> .<span class="dv">4</span>) <span class="sc">+</span> <span class="fu">ylab</span>(<span class="st">"roaches"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a aria-label="1"></a><span class="fu">predictions</span>(glm<span class="fl">.7</span>o, <span class="at">newdata =</span> <span class="fu">datagrid</span>(<span class="at">roach1 =</span> unique, <span class="at">treatment =</span> unique)) <span class="sc">%&gt;%</span></span>
+<span id="cb29-2"><a aria-label="2"></a>  <span class="fu">get_draws</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb29-3"><a aria-label="3"></a>  <span class="fu">mutate</span>(<span class="at">treatment =</span> <span class="fu">as.factor</span>(treatment)) <span class="sc">%&gt;%</span></span>
+<span id="cb29-4"><a aria-label="4"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> roach1, <span class="at">y =</span> draw, <span class="at">color =</span> treatment)) <span class="sc">+</span></span>
+<span id="cb29-5"><a aria-label="5"></a>  <span class="fu">stat_lineribbon</span>(<span class="at">.width =</span> .<span class="dv">95</span>, <span class="at">alpha =</span> .<span class="dv">4</span>) <span class="sc">+</span> <span class="fu">ylab</span>(<span class="st">"roaches"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
 </div>
-<img data-src="glm-7b_files/figure-revealjs/unnamed-chunk-18-1.png" width="960" class="r-stretch"></section>
+<img data-src="glm-7b_files/figure-revealjs/unnamed-chunk-19-1.png" width="960" class="r-stretch"></section>
 <section id="posterior-predictive-check-with-the-offset" class="slide level2">
 <h2>Posterior predictive check with the offset</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a aria-label="1"></a><span class="fu">pp_check</span>(glm<span class="fl">.7</span>o)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a aria-label="1"></a><span class="fu">pp_check</span>(glm<span class="fl">.7</span>o)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 </div>
-<img data-src="glm-7b_files/figure-revealjs/unnamed-chunk-19-1.png" width="960" class="r-stretch"></section>
+<img data-src="glm-7b_files/figure-revealjs/unnamed-chunk-20-1.png" width="960" class="r-stretch"></section>
 <section id="negative-binomial-model" class="slide level2">
 <h2>Negative binomial model</h2>
 <p>Negative binomial (Gamma Poisson) model</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a aria-label="1"></a>glm<span class="fl">.8</span> <span class="ot">&lt;-</span></span>
-<span id="cb29-2"><a aria-label="2"></a>  <span class="fu">brm</span>(<span class="at">family =</span> negbinomial,</span>
-<span id="cb29-3"><a aria-label="3"></a>      y <span class="sc">~</span> <span class="dv">0</span> <span class="sc">+</span> Intercept <span class="sc">+</span> roach1 <span class="sc">+</span> treatment,</span>
-<span id="cb29-4"><a aria-label="4"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">2</span>, <span class="dv">3</span>), <span class="at">class =</span> b, <span class="at">coef =</span> <span class="st">"Intercept"</span>),</span>
-<span id="cb29-5"><a aria-label="5"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="at">class =</span> b)),</span>
-<span id="cb29-6"><a aria-label="6"></a>      <span class="at">iter =</span> <span class="dv">2000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">cores =</span> <span class="dv">4</span>, <span class="at">chains =</span> <span class="dv">4</span>,</span>
-<span id="cb29-7"><a aria-label="7"></a>      <span class="at">sample_prior =</span> <span class="st">"yes"</span>,</span>
-<span id="cb29-8"><a aria-label="8"></a>      <span class="at">data =</span> roach,</span>
-<span id="cb29-9"><a aria-label="9"></a>      <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
-<span id="cb29-10"><a aria-label="10"></a>      <span class="at">file =</span> <span class="st">"glm.8"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a aria-label="1"></a>glm<span class="fl">.8</span> <span class="ot">&lt;-</span></span>
+<span id="cb31-2"><a aria-label="2"></a>  <span class="fu">brm</span>(<span class="at">family =</span> negbinomial,</span>
+<span id="cb31-3"><a aria-label="3"></a>      y <span class="sc">~</span> <span class="dv">0</span> <span class="sc">+</span> Intercept <span class="sc">+</span> roach1 <span class="sc">+</span> treatment,</span>
+<span id="cb31-4"><a aria-label="4"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">2</span>, <span class="dv">3</span>), <span class="at">class =</span> b, <span class="at">coef =</span> <span class="st">"Intercept"</span>),</span>
+<span id="cb31-5"><a aria-label="5"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="at">class =</span> b)),</span>
+<span id="cb31-6"><a aria-label="6"></a>      <span class="at">iter =</span> <span class="dv">2000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">cores =</span> <span class="dv">4</span>, <span class="at">chains =</span> <span class="dv">4</span>,</span>
+<span id="cb31-7"><a aria-label="7"></a>      <span class="at">sample_prior =</span> <span class="st">"yes"</span>,</span>
+<span id="cb31-8"><a aria-label="8"></a>      <span class="at">data =</span> roach,</span>
+<span id="cb31-9"><a aria-label="9"></a>      <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
+<span id="cb31-10"><a aria-label="10"></a>      <span class="at">file =</span> <span class="st">"glm.8"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 </section>
 <section id="glm.8-summary" class="slide level2">
 <h2><code>glm.8</code> summary</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a aria-label="1"></a><span class="fu">summary</span>(glm<span class="fl">.8</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a aria-label="1"></a><span class="fu">summary</span>(glm<span class="fl">.8</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: negbinomial 
   Links: mu = log 
@@ -609,42 +635,42 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <section id="posterior-predictive-check-nb" class="slide level2">
 <h2>Posterior predictive check: NB</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a aria-label="1"></a><span class="fu">pp_check</span>(glm<span class="fl">.8</span>, <span class="at">ndraws =</span> <span class="dv">50</span>) <span class="sc">+</span></span>
-<span id="cb32-2"><a aria-label="2"></a>  <span class="fu">coord_cartesian</span>(<span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">100</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a aria-label="1"></a><span class="fu">pp_check</span>(glm<span class="fl">.8</span>, <span class="at">ndraws =</span> <span class="dv">50</span>) <span class="sc">+</span></span>
+<span id="cb34-2"><a aria-label="2"></a>  <span class="fu">coord_cartesian</span>(<span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">100</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 </div>
-<img data-src="glm-7b_files/figure-revealjs/unnamed-chunk-22-1.png" width="960" class="r-stretch"></section>
+<img data-src="glm-7b_files/figure-revealjs/unnamed-chunk-23-1.png" width="960" class="r-stretch"></section>
 <section id="nb-with-tighter-priors" class="slide level2">
 <h2>NB with tighter priors</h2>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a aria-label="1"></a>glm<span class="fl">.8</span>b <span class="ot">&lt;-</span></span>
-<span id="cb33-2"><a aria-label="2"></a>  <span class="fu">brm</span>(<span class="at">family =</span> negbinomial,</span>
-<span id="cb33-3"><a aria-label="3"></a>      y <span class="sc">~</span> <span class="dv">0</span> <span class="sc">+</span> Intercept <span class="sc">+</span> roach1 <span class="sc">+</span> treatment,</span>
-<span id="cb33-4"><a aria-label="4"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">2</span>, <span class="dv">1</span>), <span class="at">class =</span> b, <span class="at">coef =</span> <span class="st">"Intercept"</span>),</span>
-<span id="cb33-5"><a aria-label="5"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, .<span class="dv">5</span>), <span class="at">class =</span> b),</span>
-<span id="cb33-6"><a aria-label="6"></a>                <span class="fu">prior</span>(<span class="fu">exponential</span>(<span class="dv">1</span>), <span class="at">class =</span> shape)),</span>
-<span id="cb33-7"><a aria-label="7"></a>      <span class="at">iter =</span> <span class="dv">2000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">cores =</span> <span class="dv">4</span>, <span class="at">chains =</span> <span class="dv">4</span>,</span>
-<span id="cb33-8"><a aria-label="8"></a>      <span class="at">sample_prior =</span> <span class="st">"yes"</span>,</span>
-<span id="cb33-9"><a aria-label="9"></a>      <span class="at">data =</span> roach,</span>
-<span id="cb33-10"><a aria-label="10"></a>      <span class="at">file =</span> <span class="st">"glm.8b"</span>,</span>
-<span id="cb33-11"><a aria-label="11"></a>      <span class="at">backend =</span> <span class="st">"cmdstanr"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a aria-label="1"></a>glm<span class="fl">.8</span>b <span class="ot">&lt;-</span></span>
+<span id="cb35-2"><a aria-label="2"></a>  <span class="fu">brm</span>(<span class="at">family =</span> negbinomial,</span>
+<span id="cb35-3"><a aria-label="3"></a>      y <span class="sc">~</span> <span class="dv">0</span> <span class="sc">+</span> Intercept <span class="sc">+</span> roach1 <span class="sc">+</span> treatment,</span>
+<span id="cb35-4"><a aria-label="4"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">2</span>, <span class="dv">1</span>), <span class="at">class =</span> b, <span class="at">coef =</span> <span class="st">"Intercept"</span>),</span>
+<span id="cb35-5"><a aria-label="5"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, .<span class="dv">5</span>), <span class="at">class =</span> b),</span>
+<span id="cb35-6"><a aria-label="6"></a>                <span class="fu">prior</span>(<span class="fu">exponential</span>(<span class="dv">1</span>), <span class="at">class =</span> shape)),</span>
+<span id="cb35-7"><a aria-label="7"></a>      <span class="at">iter =</span> <span class="dv">2000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">cores =</span> <span class="dv">4</span>, <span class="at">chains =</span> <span class="dv">4</span>,</span>
+<span id="cb35-8"><a aria-label="8"></a>      <span class="at">sample_prior =</span> <span class="st">"yes"</span>,</span>
+<span id="cb35-9"><a aria-label="9"></a>      <span class="at">data =</span> roach,</span>
+<span id="cb35-10"><a aria-label="10"></a>      <span class="at">file =</span> <span class="st">"glm.8b"</span>,</span>
+<span id="cb35-11"><a aria-label="11"></a>      <span class="at">backend =</span> <span class="st">"cmdstanr"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 </section>
 <section id="posterior-predictive-check-glm.8b" class="slide level2">
 <h2>Posterior predictive check: <code>glm.8b</code></h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a aria-label="1"></a><span class="fu">pp_check</span>(glm<span class="fl">.8</span>b, <span class="at">ndraws =</span> <span class="dv">50</span>) <span class="sc">+</span></span>
-<span id="cb34-2"><a aria-label="2"></a>  <span class="fu">coord_cartesian</span>(<span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">100</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a aria-label="1"></a><span class="fu">pp_check</span>(glm<span class="fl">.8</span>b, <span class="at">ndraws =</span> <span class="dv">50</span>) <span class="sc">+</span></span>
+<span id="cb36-2"><a aria-label="2"></a>  <span class="fu">coord_cartesian</span>(<span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">100</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 </div>
-<img data-src="glm-7b_files/figure-revealjs/unnamed-chunk-24-1.png" width="960" class="r-stretch"></section>
+<img data-src="glm-7b_files/figure-revealjs/unnamed-chunk-25-1.png" width="960" class="r-stretch"></section>
 <section id="glm.8b-summary" class="slide level2">
 <h2><code>glm.8b</code> summary</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a aria-label="1"></a><span class="fu">summary</span>(glm<span class="fl">.8</span>b)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb37"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a aria-label="1"></a><span class="fu">summary</span>(glm<span class="fl">.8</span>b)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: negbinomial 
   Links: mu = log 
@@ -669,10 +695,10 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </div>
 </div>
 </section>
-<section id="nb-vs-poisson-predictions" class="slide level2">
+<section id="nb-vs-poisson-predictions" class="slide level2 smaller">
 <h2>NB vs Poisson predictions</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb37"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a aria-label="1"></a><span class="fu">predictions</span>(glm<span class="fl">.8</span>b,<span class="at">by =</span> <span class="st">"treatment"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb39"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a aria-label="1"></a><span class="fu">predictions</span>(glm<span class="fl">.8</span>b,<span class="at">by =</span> <span class="st">"treatment"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
  treatment Estimate 2.5 % 97.5 %
@@ -683,7 +709,7 @@ Type: response</code></pre>
 </div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb39"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a aria-label="1"></a><span class="fu">predictions</span>(glm<span class="fl">.7</span>,<span class="at">by =</span> <span class="st">"treatment"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb41"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a aria-label="1"></a><span class="fu">predictions</span>(glm<span class="fl">.7</span>,<span class="at">by =</span> <span class="st">"treatment"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
  treatment Estimate 2.5 % 97.5 %
@@ -693,12 +719,13 @@ Type: response</code></pre>
 Type: response</code></pre>
 </div>
 </div>
+<p>The observed mean is 25.6. The NB’s average prediction is far higher because a few apartments with 300+ pretreatment roaches get enormous predicted counts (more on that in the checks below).</p>
 </section>
 <section id="treatment-effects-compared" class="slide level2 smaller">
 <h2>Treatment effects compared</h2>
 <p>The treatment effect (on the count scale) from each model, for a household with average pretreatment roaches:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb41"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a aria-label="1"></a><span class="fu">comparisons</span>(glm<span class="fl">.8</span>b, <span class="at">variables =</span> <span class="st">"treatment"</span>, <span class="at">newdata =</span> <span class="st">"mean"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb43"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a aria-label="1"></a><span class="fu">comparisons</span>(glm<span class="fl">.8</span>b, <span class="at">variables =</span> <span class="st">"treatment"</span>, <span class="at">newdata =</span> <span class="st">"mean"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
  Estimate 2.5 % 97.5 %
@@ -710,7 +737,7 @@ Comparison: 1 - 0</code></pre>
 </div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb43"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a aria-label="1"></a><span class="fu">comparisons</span>(glm<span class="fl">.7</span>, <span class="at">variables =</span> <span class="st">"treatment"</span>, <span class="at">newdata =</span> <span class="st">"mean"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb45"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a aria-label="1"></a><span class="fu">comparisons</span>(glm<span class="fl">.7</span>, <span class="at">variables =</span> <span class="st">"treatment"</span>, <span class="at">newdata =</span> <span class="st">"mean"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
  Estimate 2.5 % 97.5 %
@@ -733,7 +760,7 @@ Comparison: 1 - 0</code></pre>
 <section id="ame-for-the-nb-model" class="slide level2">
 <h2>AME for the NB model</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb45"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a aria-label="1"></a><span class="fu">avg_comparisons</span>(glm<span class="fl">.8</span>b, <span class="at">variables =</span> <span class="st">"treatment"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb47"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a aria-label="1"></a><span class="fu">avg_comparisons</span>(glm<span class="fl">.8</span>b, <span class="at">variables =</span> <span class="st">"treatment"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
  Estimate 2.5 % 97.5 %
@@ -748,7 +775,7 @@ Comparison: 1 - 0</code></pre>
 <section id="predictions-for-every-row-nb" class="slide level2 smaller">
 <h2>Predictions for every row: NB</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb47"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a aria-label="1"></a><span class="fu">predictions</span>(glm<span class="fl">.8</span>b)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb49"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a aria-label="1"></a><span class="fu">predictions</span>(glm<span class="fl">.8</span>b)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
  Estimate  2.5 % 97.5 %
@@ -770,7 +797,7 @@ Type: response</code></pre>
 <section id="predictions-for-every-row-poisson" class="slide level2 smaller">
 <h2>Predictions for every row: Poisson</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb49"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a aria-label="1"></a><span class="fu">predictions</span>(glm<span class="fl">.7</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb51"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a aria-label="1"></a><span class="fu">predictions</span>(glm<span class="fl">.7</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
  Estimate 2.5 % 97.5 %
@@ -786,26 +813,6 @@ Type: response</code></pre>
      20.9  20.1   21.8
      20.9  20.1   21.8
 Type: response</code></pre>
-</div>
-</div>
-</section>
-<section id="the-roach-data-1" class="slide level2">
-<h2>The roach data</h2>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb51"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a aria-label="1"></a><span class="fu">describe</span>(roach)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>          vars   n  mean    sd median trimmed   mad min    max  range  skew
-y            1 262 25.65 50.85      3   12.61  4.45 0.0 357.00 357.00  3.09
-roach1       2 262 42.19 75.26      7   23.68 10.38 0.0 450.00 450.00  2.62
-treatment    3 262  0.60  0.49      1    0.63  0.00 0.0   1.00   1.00 -0.42
-senior       4 262  0.31  0.46      0    0.26  0.00 0.0   1.00   1.00  0.84
-exposure2    5 262  1.02  0.32      1    0.98  0.00 0.2   4.29   4.09  5.09
-          kurtosis   se
-y            11.49 3.14
-roach1        7.37 4.65
-treatment    -1.83 0.03
-senior       -1.30 0.03
-exposure2    43.04 0.02</code></pre>
 </div>
 </div>
 </section>
@@ -935,8 +942,9 @@ Type: response</code></pre>
 </section>
 <section id="zeros-and-non-zeros" class="slide level2">
 <h2>Zeros and non-zeros</h2>
-<p>The probability of observing a zero is the probability that the monks drank, OR the probability that the monks worked AND failed to finish anything</p>
-<p><span class="math display">\[\operatorname{Pr} (y | y &gt; 0, p, \lambda) = \]</span> <span class="math display">\[ \operatorname{Pr} (\text{drink} | p) (0) + \operatorname{Pr} (\text{work} | p) \operatorname{Pr} (y | \lambda) = (1 - p) \frac {\lambda^y \exp (- \lambda)}{y!}\]</span> Since drinking monks never produce, the expression above is the chance the monks both work (1-p), and finish y manuscripts</p>
+<p>A zero (last slide) can happen two ways: the monks drank, OR they worked AND finished nothing. A count above zero can happen only one way:</p>
+<p><span class="math display">\[\operatorname{Pr} (y = k \mid p, \lambda) = \operatorname{Pr} (\text{drink} \mid p) \times 0 + \operatorname{Pr} (\text{work} \mid p) \operatorname{Pr} (k \mid \lambda) = (1 - p) \frac {\lambda^k \exp (- \lambda)}{k!}, \quad k &gt; 0\]</span></p>
+<p>Since drinking monks never produce, this is the chance the monks both work (1 − p) and finish <em>k</em> manuscripts.</p>
 </section>
 <section id="the-zip-model" class="slide level2">
 <h2>The ZIP model</h2>
@@ -1319,7 +1327,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <ul>
 <li><strong>Poisson:</strong> simulated variances are about half the real one, and it predicts essentially <em>no</em> zeros (the data have 36%).</li>
 <li><strong>NB:</strong> gets the zeros right (about 34%), but overshoots the variance, sometimes by orders of magnitude: some simulated datasets contain counts in the thousands (the real maximum is 357).</li>
-<li>Why? <code>roach1</code> enters on the log scale raw, so apartments with 300+ pretreatment roaches get enormous predicted means. Using <code>log(roach1 + 1)</code> as the predictor (as in <code>glm.8e</code> below) is one fix.</li>
+<li>Why? <code>roach1</code> enters on the log scale raw, so apartments with 300+ pretreatment roaches get enormous predicted means. Using <code>log(roach1 + 1)</code> as the predictor (as in <code>glm.8e</code> above) is one fix.</li>
 <li>A model can win LOO and still fail a check. Do both.</li>
 </ul>
 </section>
@@ -1354,10 +1362,10 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <span id="cb90-6"><a aria-label="6"></a>      <span class="at">iter =</span> <span class="dv">2000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">chains =</span> <span class="dv">4</span>, <span class="at">cores =</span> <span class="dv">4</span>,</span>
 <span id="cb90-7"><a aria-label="7"></a>      <span class="at">data =</span> zips,</span>
 <span id="cb90-8"><a aria-label="8"></a>      <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
-<span id="cb90-9"><a aria-label="9"></a>      <span class="at">file =</span> <span class="st">"glm.11"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb90-9"><a aria-label="9"></a>      <span class="at">file =</span> <span class="st">"glm.11b"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
-<section id="glm.11-summary" class="slide level2">
+<section id="glm.11-summary" class="slide level2 smaller">
 <h2><code>glm.11</code> summary</h2>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb91"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb91-1"><a aria-label="1"></a><span class="fu">summary</span>(glm<span class="fl">.11</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -1365,24 +1373,24 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <pre><code> Family: hurdle_poisson 
   Links: mu = log 
 Formula: y ~ 1 
-         autocor ~ tructure(list(), class = "formula", .Environment = &lt;environment&gt;)
    Data: zips (Number of observations: 365) 
   Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;
          total post-warmup draws = 4000
 
 Regression Coefficients:
           Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-Intercept    -0.01      0.09    -0.20     0.16 1.00     3648     3040
+Intercept    -0.01      0.09    -0.21     0.17 1.00     3411     2508
 
 Further Distributional Parameters:
    Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-hu     0.51      0.03     0.46     0.57 1.00     3263     2484
+hu     0.51      0.03     0.46     0.56 1.00     3880     3151
 
 Draws were sampled using sample(hmc). For each parameter, Bulk_ESS
 and Tail_ESS are effective sample size measures, and Rhat is the potential
 scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </div>
 </div>
+<p><code>hu</code> = 0.51 is simply the share of <em>all</em> zeros (0.51 in the data): in a hurdle model every zero comes from the zero part. Compare <code>zi</code> ≈ .21 in the ZIP, which is only the <em>extra</em> zeros (the drinking days).</p>
 </section>
 <section id="hurdle-model-with-a-predictor" class="slide level2">
 <h2>Hurdle model with a predictor</h2>
@@ -1396,7 +1404,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <span id="cb93-7"><a aria-label="7"></a>      <span class="at">iter =</span> <span class="dv">2000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">chains =</span> <span class="dv">4</span>, <span class="at">cores =</span> <span class="dv">4</span>,</span>
 <span id="cb93-8"><a aria-label="8"></a>      <span class="at">data =</span> zips,</span>
 <span id="cb93-9"><a aria-label="9"></a>      <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
-<span id="cb93-10"><a aria-label="10"></a>      <span class="at">file =</span> <span class="st">"glm.11x3"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb93-10"><a aria-label="10"></a>      <span class="at">file =</span> <span class="st">"glm.11x4"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="glm.11x-summary" class="slide level2">
@@ -1407,19 +1415,18 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <pre><code> Family: hurdle_poisson 
   Links: mu = log 
 Formula: y ~ 1 + x 
-         autocor ~ tructure(list(), class = "formula", .Environment = &lt;environment&gt;)
    Data: zips (Number of observations: 365) 
   Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;
          total post-warmup draws = 4000
 
 Regression Coefficients:
           Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-Intercept    -3.18      0.42    -4.05    -2.37 1.00     1609     1596
-x             0.62      0.07     0.48     0.76 1.00     1701     1905
+Intercept    -3.17      0.42    -3.98    -2.37 1.00     1522     1960
+x             0.62      0.07     0.48     0.75 1.00     1622     2257
 
 Further Distributional Parameters:
    Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-hu     0.51      0.03     0.46     0.56 1.00     2557     1767
+hu     0.51      0.03     0.46     0.56 1.00     2466     2183
 
 Draws were sampled using sample(hmc). For each parameter, Bulk_ESS
 and Tail_ESS are effective sample size measures, and Rhat is the potential
@@ -1526,21 +1533,24 @@ zi        0.07      0.05     0.00     0.19</code></pre>
 <p>discrete, defined order, distance between categories is unknown</p>
 <p>common assumption is to treat differences as the same and model it as continuous with a Gaussian</p>
 </section>
-<section id="log-cumulative-odds-link" class="slide level2">
-<h2>Log cumulative odds link</h2>
+<section id="the-trolley-data" class="slide level2 smaller">
+<h2>The trolley data</h2>
+<ul>
+<li>From Statistical Rethinking: 9930 ratings from 331 people, each rating 30 trolley-problem scenarios.</li>
+<li><code>response</code>: how morally permissible the action in the story is, 1 (forbidden) to 7 (permissible).</li>
+<li>Three story features (0/1): <code>action</code> (the person acts rather than lets something happen), <code>intention</code> (the harm is a means to the goal, not a side effect), <code>contact</code> (the person physically touches the victim).</li>
+</ul>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb104"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb104-1"><a aria-label="1"></a>trolley <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"trolley.csv"</span>)  <span class="co"># rethinking's Trolley data; also at https://josh-jackson.github.io/bayes27/trolley.csv</span></span>
-<span id="cb104-2"><a aria-label="2"></a>p2a <span class="ot">&lt;-</span></span>
-<span id="cb104-3"><a aria-label="3"></a>  trolley <span class="sc">%&gt;%</span></span>
-<span id="cb104-4"><a aria-label="4"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> response)) <span class="sc">+</span></span>
-<span id="cb104-5"><a aria-label="5"></a>  <span class="fu">geom_histogram</span>()</span>
-<span id="cb104-6"><a aria-label="6"></a>p2a</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb104"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb104-1"><a aria-label="1"></a>trolley <span class="sc">%&gt;%</span></span>
+<span id="cb104-2"><a aria-label="2"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> response)) <span class="sc">+</span></span>
+<span id="cb104-3"><a aria-label="3"></a>  <span class="fu">geom_bar</span>() <span class="sc">+</span></span>
+<span id="cb104-4"><a aria-label="4"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">7</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
 </div>
-<img data-src="glm-7b_files/figure-revealjs/unnamed-chunk-72-1.png" width="960" class="r-stretch"></section>
+<img data-src="glm-7b_files/figure-revealjs/unnamed-chunk-73-1.png" width="960" class="r-stretch"></section>
 <section id="proportion-of-each-response" class="slide level2">
 <h2>Proportion of each response</h2>
 <div class="cell">
@@ -1566,7 +1576,7 @@ zi        0.07      0.05     0.00     0.19</code></pre>
 </details>
 
 </div>
-<img data-src="glm-7b_files/figure-revealjs/unnamed-chunk-73-1.png" width="960" class="r-stretch"></section>
+<img data-src="glm-7b_files/figure-revealjs/unnamed-chunk-74-1.png" width="960" class="r-stretch"></section>
 <section id="cumulative-proportions" class="slide level2">
 <h2>Cumulative proportions</h2>
 <p>Cumulative proportion. Each choice is larger than the previous</p>
@@ -1594,7 +1604,7 @@ zi        0.07      0.05     0.00     0.19</code></pre>
 </details>
 
 </div>
-<img data-src="glm-7b_files/figure-revealjs/unnamed-chunk-74-1.png" width="960" class="r-stretch"></section>
+<img data-src="glm-7b_files/figure-revealjs/unnamed-chunk-75-1.png" width="960" class="r-stretch"></section>
 <section id="cumulative-probability" class="slide level2">
 <h2>Cumulative probability</h2>
 <ul>
@@ -1620,12 +1630,21 @@ zi        0.07      0.05     0.00     0.19</code></pre>
 <li><p>Why logits? Because we want to predict an ordered outcome.</p></li>
 </ul>
 </section>
-<section id="estimating-the-cut-points" class="slide level2">
+<section id="estimating-the-cut-points" class="slide level2 nostretch smaller">
 <h2>Estimating the cut points</h2>
 <p>We want to estimate the cutpoints</p>
 <p><span class="math display">\[\text{logit}(Pr(y_i \leq k)) = \log\left(\dfrac{Pr(y_i \leq k)}{1-Pr(y_i \leq k)}\right)\]</span></p>
-
-<img data-src="glm-7b_files/figure-revealjs/unnamed-chunk-75-1.png" width="960" class="r-stretch"></section>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure>
+<p><img data-src="glm-7b_files/figure-revealjs/unnamed-chunk-76-1.png" style="width:75.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Each point is one cut point: the cumulative proportion, and (label) its log cumulative odds.</p>
+</section>
 <section id="cut-points-as-intercepts" class="slide level2">
 <h2>Cut points as intercepts</h2>
 <p>We will have intercepts for each response option, each on the log-cumulative-odds scale. Run through the inverse logit, they are the cumulative probability of each outcome.</p>
@@ -1712,7 +1731,7 @@ zi        0.07      0.05     0.00     0.19</code></pre>
 </details>
 
 </div>
-<img data-src="glm-7b_files/figure-revealjs/unnamed-chunk-77-1.png" width="960" class="r-stretch"></section>
+<img data-src="glm-7b_files/figure-revealjs/unnamed-chunk-78-1.png" width="960" class="r-stretch"></section>
 <section id="the-ordered-logit-model" class="slide level2">
 <h2>The ordered logit model</h2>
 <p><span class="math display">\[
@@ -1890,7 +1909,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </details>
 
 </div>
-<img data-src="glm-7b_files/figure-revealjs/unnamed-chunk-83-1.png" width="960" class="r-stretch"></section>
+<img data-src="glm-7b_files/figure-revealjs/unnamed-chunk-84-1.png" width="960" class="r-stretch"></section>
 <section id="predicted-response-probabilities" class="slide level2 nostretch smaller">
 <h2>Predicted response probabilities</h2>
 <p>The clearest summary of an ordinal model. Action and intention each shift probability toward “forbidden” (1–3), and most of all together.</p>
@@ -1914,7 +1933,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="cell-output-display">
 <div>
 <figure>
-<p><img data-src="glm-7b_files/figure-revealjs/unnamed-chunk-84-1.png" style="width:100.0%"></p>
+<p><img data-src="glm-7b_files/figure-revealjs/unnamed-chunk-85-1.png" style="width:100.0%"></p>
 </figure>
 </div>
 </div>
@@ -2000,7 +2019,7 @@ Comparison: 1 - 0</code></pre>
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb124"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb124-1"><a aria-label="1"></a>trolley <span class="sc">%&gt;%</span></span>
-<span id="cb124-2"><a aria-label="2"></a>  <span class="fu">data_grid</span>(<span class="at">action =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>), <span class="at">intention =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>), <span class="at">contact =</span> .<span class="dv">5</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb124-2"><a aria-label="2"></a>  <span class="fu">data_grid</span>(<span class="at">action =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>), <span class="at">intention =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>), <span class="at">contact =</span> <span class="dv">0</span>) <span class="sc">%&gt;%</span>   <span class="co"># no-contact stories</span></span>
 <span id="cb124-3"><a aria-label="3"></a>  <span class="fu">mutate</span>(<span class="at">x =</span> <span class="fu">interaction</span>(action, intention)) <span class="sc">%&gt;%</span></span>
 <span id="cb124-4"><a aria-label="4"></a>  <span class="fu">mutate</span>(<span class="at">x =</span> <span class="fu">fct_recode</span>(<span class="fu">as.factor</span>(x),</span>
 <span id="cb124-5"><a aria-label="5"></a>                      <span class="at">No_A_No_I =</span> <span class="st">"0.0"</span>,</span>
@@ -2013,14 +2032,14 @@ Comparison: 1 - 0</code></pre>
 </details>
 
 </div>
-<img data-src="glm-7b_files/figure-revealjs/unnamed-chunk-87-1.png" width="960" class="r-stretch"></section>
+<img data-src="glm-7b_files/figure-revealjs/unnamed-chunk-88-1.png" width="960" class="r-stretch"></section>
 <section id="predicted-response-distributions-contact-intention" class="slide level2">
 <h2>Predicted response distributions: contact × intention</h2>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb125"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb125-1"><a aria-label="1"></a>trolley <span class="sc">%&gt;%</span></span>
-<span id="cb125-2"><a aria-label="2"></a>  <span class="fu">data_grid</span>(<span class="at">action =</span> .<span class="dv">5</span>, <span class="at">intention =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>), <span class="at">contact =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb125-2"><a aria-label="2"></a>  <span class="fu">data_grid</span>(<span class="at">action =</span> <span class="dv">0</span>, <span class="at">intention =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>), <span class="at">contact =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>)) <span class="sc">%&gt;%</span>   <span class="co"># no-action stories</span></span>
 <span id="cb125-3"><a aria-label="3"></a>  <span class="fu">mutate</span>(<span class="at">x =</span> <span class="fu">interaction</span>(contact, intention)) <span class="sc">%&gt;%</span></span>
 <span id="cb125-4"><a aria-label="4"></a>  <span class="fu">mutate</span>(<span class="at">x =</span> <span class="fu">fct_recode</span>(<span class="fu">as.factor</span>(x),</span>
 <span id="cb125-5"><a aria-label="5"></a>                      <span class="at">No_C_No_I =</span> <span class="st">"0.0"</span>,</span>
@@ -2033,7 +2052,7 @@ Comparison: 1 - 0</code></pre>
 </details>
 
 </div>
-<img data-src="glm-7b_files/figure-revealjs/unnamed-chunk-88-1.png" width="960" class="r-stretch"></section>
+<img data-src="glm-7b_files/figure-revealjs/unnamed-chunk-89-1.png" width="960" class="r-stretch"></section>
 <section id="cumulative-probabilities-by-condition" class="slide level2">
 <h2>Cumulative probabilities by condition</h2>
 <p>Think as cumulative probability cut points</p>
@@ -2099,7 +2118,7 @@ Comparison: 1 - 0</code></pre>
 </details>
 
 </div>
-<img data-src="glm-7b_files/figure-revealjs/unnamed-chunk-89-1.png" width="960" class="r-stretch"></section>
+<img data-src="glm-7b_files/figure-revealjs/unnamed-chunk-90-1.png" width="960" class="r-stretch"></section>
 <section id="why-not-treat-it-as-continuous" class="slide level2 smaller">
 <h2>Why not treat it as continuous?</h2>
 <p>The common alternative: a Gaussian regression on the 1–7 responses.</p>
@@ -2128,7 +2147,7 @@ Comparison: 1 - 0</code></pre>
 </details>
 
 </div>
-<img data-src="glm-7b_files/figure-revealjs/unnamed-chunk-91-1.png" width="960" class="r-stretch"></section>
+<img data-src="glm-7b_files/figure-revealjs/unnamed-chunk-92-1.png" width="960" class="r-stretch"></section>
 <section id="what-the-gaussian-gets-wrong" class="slide level2">
 <h2>What the Gaussian gets wrong</h2>
 <ul>
@@ -2154,7 +2173,7 @@ Comparison: 1 - 0</code></pre>
 <span id="cb129-10"><a aria-label="10"></a>      <span class="at">file =</span> <span class="st">"glm.14"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
-<section id="glm.14-summary" class="slide level2">
+<section id="glm.14-summary" class="slide level2 smaller">
 <h2><code>glm.14</code> summary</h2>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb130"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb130-1"><a aria-label="1"></a><span class="fu">summary</span>(glm<span class="fl">.14</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -2208,12 +2227,13 @@ and Tail_ESS are effective sample size measures, and Rhat is the potential
 scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </div>
 </div>
+<p><code>disc</code> is 1 / SD of the latent scale, on a log link. Negative coefficients (e.g., <code>disc_contact:intention</code>) mean <em>more</em> spread in ratings for those stories: people disagree more.</p>
 </section>
 <section id="predicted-response-distributions-with-unequal-variances" class="slide level2">
 <h2>Predicted response distributions with unequal variances</h2>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb132"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb132-1"><a aria-label="1"></a>trolley <span class="sc">%&gt;%</span></span>
-<span id="cb132-2"><a aria-label="2"></a>  <span class="fu">data_grid</span>(<span class="at">action =</span> .<span class="dv">5</span>, <span class="at">intention =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>), <span class="at">contact =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb132-2"><a aria-label="2"></a>  <span class="fu">data_grid</span>(<span class="at">action =</span> <span class="dv">0</span>, <span class="at">intention =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>), <span class="at">contact =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>)) <span class="sc">%&gt;%</span>   <span class="co"># no-action stories</span></span>
 <span id="cb132-3"><a aria-label="3"></a>  <span class="fu">mutate</span>(<span class="at">x =</span> <span class="fu">interaction</span>(contact, intention)) <span class="sc">%&gt;%</span></span>
 <span id="cb132-4"><a aria-label="4"></a>  <span class="fu">mutate</span>(<span class="at">x =</span> <span class="fu">fct_recode</span>(<span class="fu">as.factor</span>(x),</span>
 <span id="cb132-5"><a aria-label="5"></a>                      <span class="at">No_C_No_I =</span> <span class="st">"0.0"</span>,</span>
@@ -2225,7 +2245,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <span id="cb132-11"><a aria-label="11"></a>  <span class="fu">stat_slab</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 </div>
-<img data-src="glm-7b_files/figure-revealjs/unnamed-chunk-94-1.png" width="960" class="r-stretch"></section>
+<img data-src="glm-7b_files/figure-revealjs/unnamed-chunk-95-1.png" width="960" class="r-stretch"></section>
 <section id="category-specific-effects" class="slide level2">
 <h2>Category specific effects</h2>
 <p>Do you want to assume similar effects of your predictors across the range of your DV? Or does the effect occur only as certain differences between the categories?</p>
@@ -2238,7 +2258,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <h2>Sequential and Adjacent category models</h2>
 <p>For many ordinal variables, the assumption of a single underlying continuous variable, as in cumulative models, may not be appropriate.</p>
 <p>sequential: years of marriage where the marriage may continue or end by divorce, but the latter can happen only if it did not happen before. For every category k there is a latent continuous variable.</p>
-<p>Adjacent category (partial credit): Sequential models model the decision between Y = k and Y &gt; k, whereas adjacent-category models model the decision between Y = k and Y = k + 1. Mathematically useful, lack of ordering of the threshold parameters.</p>
+<p>Adjacent category (partial credit): Sequential models model the decision between Y = k and Y &gt; k, whereas adjacent-category models model the decision between Y = k and Y = k + 1. Mathematically convenient, but its thresholds need not be in order.</p>
 </section>
 <section id="adjacent-category-models" class="slide level2">
 <h2>Adjacent category models</h2>

@@ -2118,7 +2118,7 @@
     "href": "glm-7b.html#gamma-poisson",
     "title": "GLMs: counts and ordinal outcomes",
     "section": "Gamma-Poisson",
-    "text": "Gamma-Poisson\n\nThe Poisson distribution has just one parameter and presumes the mean/rate is associated with the spread. The negative binomial distribution relaxes this assumption and estimates the shape (\\(\\phi\\)) of a gamma distribution (also an exponential family distribution) to describe the Poisson rates across cases.\nThe gamma distribution is a non-negative, continuous, two-parameter probability distribution."
+    "text": "Gamma-Poisson\n\nThe Poisson distribution has just one parameter, so its variance must equal its mean. The negative binomial distribution relaxes this assumption and estimates the shape (\\(\\phi\\)) of a gamma distribution (also an exponential family distribution) to describe the Poisson rates across cases.\nThe gamma distribution is a non-negative, continuous, two-parameter probability distribution."
   },
   {
     "objectID": "glm-7b.html#the-nb-as-a-mixture",
@@ -2160,7 +2160,7 @@
     "href": "glm-7b.html#poisson",
     "title": "GLMs: counts and ordinal outcomes",
     "section": "Poisson",
-    "text": "Poisson\n\\[y_i  \\sim \\operatorname{Poisson} (\\lambda_i)\\]\n\\[\\log (\\lambda_i)  = \\beta_0 + \\beta_1*X_i \\]\n\nglm.7 &lt;-\n  brm(family = poisson,\n      y ~ 0 + Intercept + roach1 + treatment,\n      prior = c(prior(normal(2, 3), class = b, coef = \"Intercept\"),\n                prior(normal(0, 1), class = b)),\n      iter = 2000, warmup = 1000, cores = 4, chains = 4,\n      sample_prior = \"yes\",\n      data = roach,\n      backend = \"cmdstanr\",\n      file = \"glm.7\")"
+    "text": "Poisson\n\\[\n\\begin{aligned}\ny_i &\\sim \\operatorname{Poisson}(\\lambda_i) \\\\\n\\log(\\lambda_i) &= \\beta_0 + \\beta_1\\,\\text{roach1}_i + \\beta_2\\,\\text{treatment}_i \\\\\n\\beta_0 &\\sim \\operatorname{Normal}(2, 3) \\qquad \\beta_1, \\beta_2 \\sim \\operatorname{Normal}(0, 1)\n\\end{aligned}\n\\]\n\nglm.7 &lt;-\n  brm(family = poisson,\n      y ~ 0 + Intercept + roach1 + treatment,\n      prior = c(prior(normal(2, 3), class = b, coef = \"Intercept\"),\n                prior(normal(0, 1), class = b)),\n      iter = 2000, warmup = 1000, cores = 4, chains = 4,\n      sample_prior = \"yes\",\n      data = roach,\n      backend = \"cmdstanr\",\n      file = \"glm.7\")"
   },
   {
     "objectID": "glm-7b.html#why-0-intercept",
@@ -2307,7 +2307,7 @@
     "href": "glm-7b.html#nb-vs-poisson-predictions",
     "title": "GLMs: counts and ordinal outcomes",
     "section": "NB vs Poisson predictions",
-    "text": "NB vs Poisson predictions\n\npredictions(glm.8b,by = \"treatment\")\n\n\n treatment Estimate 2.5 % 97.5 %\n         0    101.5  36.3    646\n         1     39.1  18.8    141\n\nType: response\n\n\n\npredictions(glm.7,by = \"treatment\")\n\n\n treatment Estimate 2.5 % 97.5 %\n         0     34.6  33.4   35.8\n         1     19.7  19.0   20.4\n\nType: response"
+    "text": "NB vs Poisson predictions\n\npredictions(glm.8b,by = \"treatment\")\n\n\n treatment Estimate 2.5 % 97.5 %\n         0    101.5  36.3    646\n         1     39.1  18.8    141\n\nType: response\n\n\n\npredictions(glm.7,by = \"treatment\")\n\n\n treatment Estimate 2.5 % 97.5 %\n         0     34.6  33.4   35.8\n         1     19.7  19.0   20.4\n\nType: response\n\n\nThe observed mean is 25.6. The NB’s average prediction is far higher because a few apartments with 300+ pretreatment roaches get enormous predicted counts (more on that in the checks below)."
   },
   {
     "objectID": "glm-7b.html#treatment-effects-compared",
@@ -2405,7 +2405,7 @@
     "href": "glm-7b.html#zeros-and-non-zeros",
     "title": "GLMs: counts and ordinal outcomes",
     "section": "Zeros and non-zeros",
-    "text": "Zeros and non-zeros\nThe probability of observing a zero is the probability that the monks drank, OR the probability that the monks worked AND failed to finish anything\n\\[\\operatorname{Pr} (y | y &gt; 0, p, \\lambda) = \\] \\[ \\operatorname{Pr} (\\text{drink} | p) (0) + \\operatorname{Pr} (\\text{work} | p) \\operatorname{Pr} (y | \\lambda) = (1 - p) \\frac {\\lambda^y \\exp (- \\lambda)}{y!}\\] Since drinking monks never produce, the expression above is the chance the monks both work (1-p), and finish y manuscripts"
+    "text": "Zeros and non-zeros\nA zero (last slide) can happen two ways: the monks drank, OR they worked AND finished nothing. A count above zero can happen only one way:\n\\[\\operatorname{Pr} (y = k \\mid p, \\lambda) = \\operatorname{Pr} (\\text{drink} \\mid p) \\times 0 + \\operatorname{Pr} (\\text{work} \\mid p) \\operatorname{Pr} (k \\mid \\lambda) = (1 - p) \\frac {\\lambda^k \\exp (- \\lambda)}{k!}, \\quad k &gt; 0\\]\nSince drinking monks never produce, this is the chance the monks both work (1 − p) and finish k manuscripts."
   },
   {
     "objectID": "glm-7b.html#the-zip-model",
@@ -2559,7 +2559,7 @@
     "href": "glm-7b.html#what-the-checks-say",
     "title": "GLMs: counts and ordinal outcomes",
     "section": "What the checks say",
-    "text": "What the checks say\n\nPoisson: simulated variances are about half the real one, and it predicts essentially no zeros (the data have 36%).\nNB: gets the zeros right (about 34%), but overshoots the variance, sometimes by orders of magnitude: some simulated datasets contain counts in the thousands (the real maximum is 357).\nWhy? roach1 enters on the log scale raw, so apartments with 300+ pretreatment roaches get enormous predicted means. Using log(roach1 + 1) as the predictor (as in glm.8e below) is one fix.\nA model can win LOO and still fail a check. Do both."
+    "text": "What the checks say\n\nPoisson: simulated variances are about half the real one, and it predicts essentially no zeros (the data have 36%).\nNB: gets the zeros right (about 34%), but overshoots the variance, sometimes by orders of magnitude: some simulated datasets contain counts in the thousands (the real maximum is 357).\nWhy? roach1 enters on the log scale raw, so apartments with 300+ pretreatment roaches get enormous predicted means. Using log(roach1 + 1) as the predictor (as in glm.8e above) is one fix.\nA model can win LOO and still fail a check. Do both."
   },
   {
     "objectID": "glm-7b.html#rate-ratios",
@@ -2580,28 +2580,28 @@
     "href": "glm-7b.html#intercept-only-hurdle-model",
     "title": "GLMs: counts and ordinal outcomes",
     "section": "Intercept-only hurdle model",
-    "text": "Intercept-only hurdle model\n\nglm.11 &lt;-\n  brm(family = hurdle_poisson,\n      y ~ 1,\n      prior = c(prior(normal(-1.5, 1), class = Intercept),\n               prior(beta(1, 1), class = hu)),\n      iter = 2000, warmup = 1000, chains = 4, cores = 4,\n      data = zips,\n      backend = \"cmdstanr\",\n      file = \"glm.11\")"
+    "text": "Intercept-only hurdle model\n\nglm.11 &lt;-\n  brm(family = hurdle_poisson,\n      y ~ 1,\n      prior = c(prior(normal(-1.5, 1), class = Intercept),\n               prior(beta(1, 1), class = hu)),\n      iter = 2000, warmup = 1000, chains = 4, cores = 4,\n      data = zips,\n      backend = \"cmdstanr\",\n      file = \"glm.11b\")"
   },
   {
     "objectID": "glm-7b.html#glm.11-summary",
     "href": "glm-7b.html#glm.11-summary",
     "title": "GLMs: counts and ordinal outcomes",
     "section": "glm.11 summary",
-    "text": "glm.11 summary\n\nsummary(glm.11)\n\n Family: hurdle_poisson \n  Links: mu = log \nFormula: y ~ 1 \n         autocor ~ tructure(list(), class = \"formula\", .Environment = &lt;environment&gt;)\n   Data: zips (Number of observations: 365) \n  Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;\n         total post-warmup draws = 4000\n\nRegression Coefficients:\n          Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nIntercept    -0.01      0.09    -0.20     0.16 1.00     3648     3040\n\nFurther Distributional Parameters:\n   Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nhu     0.51      0.03     0.46     0.57 1.00     3263     2484\n\nDraws were sampled using sample(hmc). For each parameter, Bulk_ESS\nand Tail_ESS are effective sample size measures, and Rhat is the potential\nscale reduction factor on split chains (at convergence, Rhat = 1)."
+    "text": "glm.11 summary\n\nsummary(glm.11)\n\n Family: hurdle_poisson \n  Links: mu = log \nFormula: y ~ 1 \n   Data: zips (Number of observations: 365) \n  Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;\n         total post-warmup draws = 4000\n\nRegression Coefficients:\n          Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nIntercept    -0.01      0.09    -0.21     0.17 1.00     3411     2508\n\nFurther Distributional Parameters:\n   Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nhu     0.51      0.03     0.46     0.56 1.00     3880     3151\n\nDraws were sampled using sample(hmc). For each parameter, Bulk_ESS\nand Tail_ESS are effective sample size measures, and Rhat is the potential\nscale reduction factor on split chains (at convergence, Rhat = 1).\n\n\nhu = 0.51 is simply the share of all zeros (0.51 in the data): in a hurdle model every zero comes from the zero part. Compare zi ≈ .21 in the ZIP, which is only the extra zeros (the drinking days)."
   },
   {
     "objectID": "glm-7b.html#hurdle-model-with-a-predictor",
     "href": "glm-7b.html#hurdle-model-with-a-predictor",
     "title": "GLMs: counts and ordinal outcomes",
     "section": "Hurdle model with a predictor",
-    "text": "Hurdle model with a predictor\n\nglm.11x &lt;-\n  brm(family = hurdle_poisson,\n      y ~ 1 + x,\n      prior = c(prior(normal(-1.5, 1), class = Intercept),\n               prior(normal(-1.5, 3), class = b),\n                prior(beta(1, 1), class = hu)),\n      iter = 2000, warmup = 1000, chains = 4, cores = 4,\n      data = zips,\n      backend = \"cmdstanr\",\n      file = \"glm.11x3\")"
+    "text": "Hurdle model with a predictor\n\nglm.11x &lt;-\n  brm(family = hurdle_poisson,\n      y ~ 1 + x,\n      prior = c(prior(normal(-1.5, 1), class = Intercept),\n               prior(normal(-1.5, 3), class = b),\n                prior(beta(1, 1), class = hu)),\n      iter = 2000, warmup = 1000, chains = 4, cores = 4,\n      data = zips,\n      backend = \"cmdstanr\",\n      file = \"glm.11x4\")"
   },
   {
     "objectID": "glm-7b.html#glm.11x-summary",
     "href": "glm-7b.html#glm.11x-summary",
     "title": "GLMs: counts and ordinal outcomes",
     "section": "glm.11x summary",
-    "text": "glm.11x summary\n\nsummary(glm.11x)\n\n Family: hurdle_poisson \n  Links: mu = log \nFormula: y ~ 1 + x \n         autocor ~ tructure(list(), class = \"formula\", .Environment = &lt;environment&gt;)\n   Data: zips (Number of observations: 365) \n  Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;\n         total post-warmup draws = 4000\n\nRegression Coefficients:\n          Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nIntercept    -3.18      0.42    -4.05    -2.37 1.00     1609     1596\nx             0.62      0.07     0.48     0.76 1.00     1701     1905\n\nFurther Distributional Parameters:\n   Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nhu     0.51      0.03     0.46     0.56 1.00     2557     1767\n\nDraws were sampled using sample(hmc). For each parameter, Bulk_ESS\nand Tail_ESS are effective sample size measures, and Rhat is the potential\nscale reduction factor on split chains (at convergence, Rhat = 1)."
+    "text": "glm.11x summary\n\nsummary(glm.11x)\n\n Family: hurdle_poisson \n  Links: mu = log \nFormula: y ~ 1 + x \n   Data: zips (Number of observations: 365) \n  Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;\n         total post-warmup draws = 4000\n\nRegression Coefficients:\n          Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nIntercept    -3.17      0.42    -3.98    -2.37 1.00     1522     1960\nx             0.62      0.07     0.48     0.75 1.00     1622     2257\n\nFurther Distributional Parameters:\n   Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS\nhu     0.51      0.03     0.46     0.56 1.00     2466     2183\n\nDraws were sampled using sample(hmc). For each parameter, Bulk_ESS\nand Tail_ESS are effective sample size measures, and Rhat is the potential\nscale reduction factor on split chains (at convergence, Rhat = 1)."
   },
   {
     "objectID": "glm-7b.html#expected-counts-with-tidybayes",
@@ -2692,7 +2692,7 @@
     "href": "glm-7b.html#estimating-the-cut-points",
     "title": "GLMs: counts and ordinal outcomes",
     "section": "Estimating the cut points",
-    "text": "Estimating the cut points\nWe want to estimate the cutpoints\n\\[\\text{logit}(Pr(y_i \\leq k)) = \\log\\left(\\dfrac{Pr(y_i \\leq k)}{1-Pr(y_i \\leq k)}\\right)\\]"
+    "text": "Estimating the cut points\nWe want to estimate the cutpoints\n\\[\\text{logit}(Pr(y_i \\leq k)) = \\log\\left(\\dfrac{Pr(y_i \\leq k)}{1-Pr(y_i \\leq k)}\\right)\\]\n\n\n\n\n\n\n\n\n\nEach point is one cut point: the cumulative proportion, and (label) its log cumulative odds."
   },
   {
     "objectID": "glm-7b.html#cut-points-as-intercepts",
@@ -2811,14 +2811,14 @@
     "href": "glm-7b.html#predicted-response-distributions-action-intention",
     "title": "GLMs: counts and ordinal outcomes",
     "section": "Predicted response distributions: action × intention",
-    "text": "Predicted response distributions: action × intention\nEach condition should add up to 1\n\n\nCode\ntrolley %&gt;%\n  data_grid(action = c(0,1), intention = c(0,1), contact = .5) %&gt;%\n  mutate(x = interaction(action, intention)) %&gt;%\n  mutate(x = fct_recode(as.factor(x),\n                      No_A_No_I = \"0.0\",\n                      No_A_Y_I = \"0.1\",\n                      Y_A_No_I = \"1.0\",\n                      Y_A_Y_I = \"1.1\")) %&gt;%\n  add_epred_draws(glm.13) %&gt;%\n  ggplot(aes(x = .epred, y = .category, fill = x)) +\n  stat_slab()"
+    "text": "Predicted response distributions: action × intention\nEach condition should add up to 1\n\n\nCode\ntrolley %&gt;%\n  data_grid(action = c(0,1), intention = c(0,1), contact = 0) %&gt;%   # no-contact stories\n  mutate(x = interaction(action, intention)) %&gt;%\n  mutate(x = fct_recode(as.factor(x),\n                      No_A_No_I = \"0.0\",\n                      No_A_Y_I = \"0.1\",\n                      Y_A_No_I = \"1.0\",\n                      Y_A_Y_I = \"1.1\")) %&gt;%\n  add_epred_draws(glm.13) %&gt;%\n  ggplot(aes(x = .epred, y = .category, fill = x)) +\n  stat_slab()"
   },
   {
     "objectID": "glm-7b.html#predicted-response-distributions-contact-intention",
     "href": "glm-7b.html#predicted-response-distributions-contact-intention",
     "title": "GLMs: counts and ordinal outcomes",
     "section": "Predicted response distributions: contact × intention",
-    "text": "Predicted response distributions: contact × intention\n\n\nCode\ntrolley %&gt;%\n  data_grid(action = .5, intention = c(0,1), contact = c(0,1)) %&gt;%\n  mutate(x = interaction(contact, intention)) %&gt;%\n  mutate(x = fct_recode(as.factor(x),\n                      No_C_No_I = \"0.0\",\n                      Y_C_No_I = \"1.0\",\n                      No_C_Y_I = \"0.1\",\n                      Y_C_Y_I = \"1.1\")) %&gt;%\n  add_epred_draws(glm.13) %&gt;%\n  ggplot(aes(x = .epred, y = .category, fill = x)) +\n  stat_slab()"
+    "text": "Predicted response distributions: contact × intention\n\n\nCode\ntrolley %&gt;%\n  data_grid(action = 0, intention = c(0,1), contact = c(0,1)) %&gt;%   # no-action stories\n  mutate(x = interaction(contact, intention)) %&gt;%\n  mutate(x = fct_recode(as.factor(x),\n                      No_C_No_I = \"0.0\",\n                      Y_C_No_I = \"1.0\",\n                      No_C_Y_I = \"0.1\",\n                      Y_C_Y_I = \"1.1\")) %&gt;%\n  add_epred_draws(glm.13) %&gt;%\n  ggplot(aes(x = .epred, y = .category, fill = x)) +\n  stat_slab()"
   },
   {
     "objectID": "glm-7b.html#cumulative-probabilities-by-condition",
@@ -2853,14 +2853,14 @@
     "href": "glm-7b.html#glm.14-summary",
     "title": "GLMs: counts and ordinal outcomes",
     "section": "glm.14 summary",
-    "text": "glm.14 summary\n\nsummary(glm.14)\n\n Family: cumulative \n  Links: mu = logit; disc = log \nFormula: response ~ 1 + action + contact + intention + intention:action + intention:contact \n         disc ~ 0 + action + contact + intention + intention:action + intention:contact\n   Data: trolley (Number of observations: 9930) \n  Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;\n         total post-warmup draws = 4000\n\nRegression Coefficients:\n                       Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS\nIntercept[1]              -2.79      0.08    -2.95    -2.63 1.00     1083\nIntercept[2]              -2.03      0.07    -2.16    -1.91 1.00     1164\nIntercept[3]              -1.40      0.05    -1.50    -1.29 1.00     1331\nIntercept[4]              -0.31      0.04    -0.40    -0.22 1.00     1990\nIntercept[5]               0.38      0.05     0.29     0.47 1.00     2093\nIntercept[6]               1.31      0.06     1.20     1.42 1.00     1730\naction                    -0.49      0.06    -0.60    -0.38 1.00     1936\ncontact                   -0.36      0.07    -0.49    -0.22 1.00     2225\nintention                 -0.31      0.06    -0.42    -0.19 1.00     1745\naction:intention          -0.46      0.08    -0.63    -0.30 1.00     1844\ncontact:intention         -1.32      0.11    -1.54    -1.12 1.00     2014\ndisc_action               -0.01      0.03    -0.06     0.05 1.00     1234\ndisc_contact               0.02      0.04    -0.06     0.10 1.00     1545\ndisc_intention            -0.02      0.03    -0.09     0.04 1.00     1133\ndisc_action:intention     -0.13      0.04    -0.22    -0.05 1.00     1699\ndisc_contact:intention    -0.16      0.06    -0.28    -0.06 1.00     2050\n                       Tail_ESS\nIntercept[1]               1681\nIntercept[2]               1962\nIntercept[3]               2468\nIntercept[4]               2834\nIntercept[5]               2819\nIntercept[6]               2737\naction                     2807\ncontact                    2902\nintention                  2549\naction:intention           2528\ncontact:intention          2661\ndisc_action                2011\ndisc_contact               2294\ndisc_intention             2117\ndisc_action:intention      2536\ndisc_contact:intention     2613\n\nDraws were sampled using sample(hmc). For each parameter, Bulk_ESS\nand Tail_ESS are effective sample size measures, and Rhat is the potential\nscale reduction factor on split chains (at convergence, Rhat = 1)."
+    "text": "glm.14 summary\n\nsummary(glm.14)\n\n Family: cumulative \n  Links: mu = logit; disc = log \nFormula: response ~ 1 + action + contact + intention + intention:action + intention:contact \n         disc ~ 0 + action + contact + intention + intention:action + intention:contact\n   Data: trolley (Number of observations: 9930) \n  Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;\n         total post-warmup draws = 4000\n\nRegression Coefficients:\n                       Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS\nIntercept[1]              -2.79      0.08    -2.95    -2.63 1.00     1083\nIntercept[2]              -2.03      0.07    -2.16    -1.91 1.00     1164\nIntercept[3]              -1.40      0.05    -1.50    -1.29 1.00     1331\nIntercept[4]              -0.31      0.04    -0.40    -0.22 1.00     1990\nIntercept[5]               0.38      0.05     0.29     0.47 1.00     2093\nIntercept[6]               1.31      0.06     1.20     1.42 1.00     1730\naction                    -0.49      0.06    -0.60    -0.38 1.00     1936\ncontact                   -0.36      0.07    -0.49    -0.22 1.00     2225\nintention                 -0.31      0.06    -0.42    -0.19 1.00     1745\naction:intention          -0.46      0.08    -0.63    -0.30 1.00     1844\ncontact:intention         -1.32      0.11    -1.54    -1.12 1.00     2014\ndisc_action               -0.01      0.03    -0.06     0.05 1.00     1234\ndisc_contact               0.02      0.04    -0.06     0.10 1.00     1545\ndisc_intention            -0.02      0.03    -0.09     0.04 1.00     1133\ndisc_action:intention     -0.13      0.04    -0.22    -0.05 1.00     1699\ndisc_contact:intention    -0.16      0.06    -0.28    -0.06 1.00     2050\n                       Tail_ESS\nIntercept[1]               1681\nIntercept[2]               1962\nIntercept[3]               2468\nIntercept[4]               2834\nIntercept[5]               2819\nIntercept[6]               2737\naction                     2807\ncontact                    2902\nintention                  2549\naction:intention           2528\ncontact:intention          2661\ndisc_action                2011\ndisc_contact               2294\ndisc_intention             2117\ndisc_action:intention      2536\ndisc_contact:intention     2613\n\nDraws were sampled using sample(hmc). For each parameter, Bulk_ESS\nand Tail_ESS are effective sample size measures, and Rhat is the potential\nscale reduction factor on split chains (at convergence, Rhat = 1).\n\n\ndisc is 1 / SD of the latent scale, on a log link. Negative coefficients (e.g., disc_contact:intention) mean more spread in ratings for those stories: people disagree more."
   },
   {
     "objectID": "glm-7b.html#predicted-response-distributions-with-unequal-variances",
     "href": "glm-7b.html#predicted-response-distributions-with-unequal-variances",
     "title": "GLMs: counts and ordinal outcomes",
     "section": "Predicted response distributions with unequal variances",
-    "text": "Predicted response distributions with unequal variances\n\ntrolley %&gt;%\n  data_grid(action = .5, intention = c(0,1), contact = c(0,1)) %&gt;%\n  mutate(x = interaction(contact, intention)) %&gt;%\n  mutate(x = fct_recode(as.factor(x),\n                      No_C_No_I = \"0.0\",\n                      Y_C_No_I = \"1.0\",\n                      No_C_Y_I = \"0.1\",\n                      Y_C_Y_I = \"1.1\")) %&gt;%\n  add_epred_draws(glm.14) %&gt;%\n  ggplot(aes(x = .epred, y = .category, fill = x)) +\n  stat_slab()"
+    "text": "Predicted response distributions with unequal variances\n\ntrolley %&gt;%\n  data_grid(action = 0, intention = c(0,1), contact = c(0,1)) %&gt;%   # no-action stories\n  mutate(x = interaction(contact, intention)) %&gt;%\n  mutate(x = fct_recode(as.factor(x),\n                      No_C_No_I = \"0.0\",\n                      Y_C_No_I = \"1.0\",\n                      No_C_Y_I = \"0.1\",\n                      Y_C_Y_I = \"1.1\")) %&gt;%\n  add_epred_draws(glm.14) %&gt;%\n  ggplot(aes(x = .epred, y = .category, fill = x)) +\n  stat_slab()"
   },
   {
     "objectID": "glm-7b.html#category-specific-effects",
@@ -2874,7 +2874,7 @@
     "href": "glm-7b.html#sequential-and-adjacent-category-models",
     "title": "GLMs: counts and ordinal outcomes",
     "section": "Sequential and Adjacent category models",
-    "text": "Sequential and Adjacent category models\nFor many ordinal variables, the assumption of a single underlying continuous variable, as in cumulative models, may not be appropriate.\nsequential: years of marriage where the marriage may continue or end by divorce, but the latter can happen only if it did not happen before. For every category k there is a latent continuous variable.\nAdjacent category (partial credit): Sequential models model the decision between Y = k and Y &gt; k, whereas adjacent-category models model the decision between Y = k and Y = k + 1. Mathematically useful, lack of ordering of the threshold parameters."
+    "text": "Sequential and Adjacent category models\nFor many ordinal variables, the assumption of a single underlying continuous variable, as in cumulative models, may not be appropriate.\nsequential: years of marriage where the marriage may continue or end by divorce, but the latter can happen only if it did not happen before. For every category k there is a latent continuous variable.\nAdjacent category (partial credit): Sequential models model the decision between Y = k and Y &gt; k, whereas adjacent-category models model the decision between Y = k and Y = k + 1. Mathematically convenient, but its thresholds need not be in order."
   },
   {
     "objectID": "glm-7b.html#adjacent-category-models",
@@ -8720,5 +8720,19 @@
     "title": "GLMs: logistic and multinomial regression",
     "section": "What goes wrong with lm()",
     "text": "What goes wrong with lm()\n\nImpossible predictions. A straight line has no ceiling or floor, so it runs past 1 (or below 0) wherever the predictors push it far enough.\nWrong where it matters most. For the riskiest person, lm() predicts 0.42; the logistic model says 0.23. The line can’t bend, so it understates risk at one end and overstates survival at the other.\nWrong variance. A 0/1 outcome has variance p(1 − p), which changes with p, so lm()’s constant-variance assumption can’t hold.\nA GLM keeps the linear model but runs it through a link, so predictions stay in (0, 1) and bend where they should."
+  },
+  {
+    "objectID": "glm-7b.html#describing-the-roach-data",
+    "href": "glm-7b.html#describing-the-roach-data",
+    "title": "GLMs: counts and ordinal outcomes",
+    "section": "Describing the roach data",
+    "text": "Describing the roach data\n\ndescribe(roach)\n\n          vars   n  mean    sd median trimmed   mad min    max  range  skew\ny            1 262 25.65 50.85      3   12.61  4.45 0.0 357.00 357.00  3.09\nroach1       2 262 42.19 75.26      7   23.68 10.38 0.0 450.00 450.00  2.62\ntreatment    3 262  0.60  0.49      1    0.63  0.00 0.0   1.00   1.00 -0.42\nsenior       4 262  0.31  0.46      0    0.26  0.00 0.0   1.00   1.00  0.84\nexposure2    5 262  1.02  0.32      1    0.98  0.00 0.2   4.29   4.09  5.09\n          kurtosis   se\ny            11.49 3.14\nroach1        7.37 4.65\ntreatment    -1.83 0.03\nsenior       -1.30 0.03\nexposure2    43.04 0.02\n\n\nMean count 25.6, variance 2585, and 36% zeros. A Poisson would need the variance to equal the mean."
+  },
+  {
+    "objectID": "glm-7b.html#the-trolley-data",
+    "href": "glm-7b.html#the-trolley-data",
+    "title": "GLMs: counts and ordinal outcomes",
+    "section": "The trolley data",
+    "text": "The trolley data\n\nFrom Statistical Rethinking: 9930 ratings from 331 people, each rating 30 trolley-problem scenarios.\nresponse: how morally permissible the action in the story is, 1 (forbidden) to 7 (permissible).\nThree story features (0/1): action (the person acts rather than lets something happen), intention (the harm is a means to the goal, not a side effect), contact (the person physically touches the victim).\n\n\n\nCode\ntrolley %&gt;%\n  ggplot(aes(x = response)) +\n  geom_bar() +\n  scale_x_continuous(breaks = 1:7)"
   }
 ]
