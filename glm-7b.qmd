@@ -255,19 +255,43 @@ $$Y \sim \textrm{NB}(\mu,\phi)$$
 
 -   The gamma distribution is a non-negative, continuous, two-parameter probability distribution.
 
-## The NB as a mixture
+## The NB as a mixture {.smaller}
 
 $$
-\begin{aligned}
-Y_i &\sim \textrm{Poisson}(\theta_i) \\
-\theta_i &\sim \textrm{Gamma}(\text{shape} = \phi,\ \text{rate} = \phi / \mu)
-\end{aligned}
+Y_i \sim \textrm{Poisson}(\theta_i), \quad \theta_i \sim \textrm{Gamma}(\text{shape} = \phi,\ \text{rate} = \phi / \mu)
 \quad \Longleftrightarrow \quad
 Y_i \sim \textrm{NB}(\mu, \phi)
 $$
 
--   $\mu$ is the mean count; $\phi$ (brms calls it `shape`) controls overdispersion
--   $\text{Var}(Y) = \mu + \mu^2/\phi$: small $\phi$ = lots of extra variance; as $\phi \to \infty$ it becomes a Poisson
+Left: two steps (draw each apartment's rate, then its count). Right: one step. Why are they the same?
+
+-   We never see any apartment's rate $\theta_i$, so average the Poisson over every rate it could have, weighted by how common that rate is under the gamma:
+$$\Pr(y) = \int \textrm{Poisson}(y \mid \theta)\; \textrm{Gamma}(\theta \mid \phi, \phi/\mu)\; d\theta$$
+-   That integral can be done in closed form, and the formula that comes out *is* the negative binomial. So brms never draws the rates: it uses the NB formula directly.
+-   $\mu$ is the mean count; $\phi$ (brms: `shape`) is the gamma's shape. $\text{Var}(Y) = \mu + \mu^2/\phi$: the $\mu$ is ordinary Poisson noise, the $\mu^2/\phi$ is extra variance because apartments differ. As $\phi \to \infty$ they stop differing and it becomes a Poisson.
+
+## Seeing it {.smaller .nostretch}
+
+Do the two steps by simulation, then lay the one-step NB formula (`dnbinom()`) on top:
+
+```{r}
+#| code-fold: true
+#| fig-height: 3
+#| fig-width: 8
+#| out-width: "70%"
+set.seed(8)
+mu <- 25; phi <- 2
+theta <- rgamma(1e5, shape = phi, rate = phi / mu)   # step 1: each apartment's rate
+y     <- rpois(1e5, theta)                           # step 2: its count
+ggplot(tibble(y), aes(y)) +
+  geom_histogram(aes(y = after_stat(density)), binwidth = 1, fill = "grey70") +
+  geom_point(data = tibble(y = 0:90, p = dnbinom(0:90, mu = mu, size = phi)), aes(y, p), colour = "firebrick", size = 1.2) +
+  coord_cartesian(xlim = c(0, 90)) +
+  labs(x = "count", y = "probability", caption = "grey: gamma rates, then Poisson counts; red: dnbinom(mu = 25, size = 2)") +
+  theme_classic(base_size = 13)
+```
+
+Same distribution. (R's `dnbinom()` calls φ `size`; brms calls it `shape`.)
 
 ## How much do apartments differ? {.smaller .nostretch}
 

@@ -2125,7 +2125,7 @@
     "href": "glm-7b.html#the-nb-as-a-mixture",
     "title": "GLMs: counts and ordinal outcomes",
     "section": "The NB as a mixture",
-    "text": "The NB as a mixture\n\\[\n\\begin{aligned}\nY_i &\\sim \\textrm{Poisson}(\\theta_i) \\\\\n\\theta_i &\\sim \\textrm{Gamma}(\\text{shape} = \\phi,\\ \\text{rate} = \\phi / \\mu)\n\\end{aligned}\n\\quad \\Longleftrightarrow \\quad\nY_i \\sim \\textrm{NB}(\\mu, \\phi)\n\\]\n\n\\(\\mu\\) is the mean count; \\(\\phi\\) (brms calls it shape) controls overdispersion\n\\(\\text{Var}(Y) = \\mu + \\mu^2/\\phi\\): small \\(\\phi\\) = lots of extra variance; as \\(\\phi \\to \\infty\\) it becomes a Poisson"
+    "text": "The NB as a mixture\n\\[\nY_i \\sim \\textrm{Poisson}(\\theta_i), \\quad \\theta_i \\sim \\textrm{Gamma}(\\text{shape} = \\phi,\\ \\text{rate} = \\phi / \\mu)\n\\quad \\Longleftrightarrow \\quad\nY_i \\sim \\textrm{NB}(\\mu, \\phi)\n\\]\nLeft: two steps (draw each apartment’s rate, then its count). Right: one step. Why are they the same?\n\nWe never see any apartment’s rate \\(\\theta_i\\), so average the Poisson over every rate it could have, weighted by how common that rate is under the gamma: \\[\\Pr(y) = \\int \\textrm{Poisson}(y \\mid \\theta)\\; \\textrm{Gamma}(\\theta \\mid \\phi, \\phi/\\mu)\\; d\\theta\\]\nThat integral can be done in closed form, and the formula that comes out is the negative binomial. So brms never draws the rates: it uses the NB formula directly.\n\\(\\mu\\) is the mean count; \\(\\phi\\) (brms: shape) is the gamma’s shape. \\(\\text{Var}(Y) = \\mu + \\mu^2/\\phi\\): the \\(\\mu\\) is ordinary Poisson noise, the \\(\\mu^2/\\phi\\) is extra variance because apartments differ. As \\(\\phi \\to \\infty\\) they stop differing and it becomes a Poisson."
   },
   {
     "objectID": "glm-7b.html#many-gamma-shapes",
@@ -8874,5 +8874,12 @@
     "title": "GLMs: counts and ordinal outcomes",
     "section": "Who decides the shape?",
     "text": "Who decides the shape?\n\nThe top row is gamma distributions: how the apartments’ rates are spread out. The bottom row is the counts each produces.\nWe don’t choose φ. The model estimates it from the data, like any other parameter. It shows up as shape in the brms summary, and we give it a prior.\nHow can it tell, if we never see any apartment’s rate? From how spread out the counts are. An NB’s variance is \\(\\mu + \\mu^2/\\phi\\): if the counts vary far more than their mean, φ must be small. We never estimate each apartment’s rate; the NB likelihood averages over all of them.\nFor the roaches φ comes out small (about 0.3): apartments differ enormously."
+  },
+  {
+    "objectID": "glm-7b.html#seeing-it",
+    "href": "glm-7b.html#seeing-it",
+    "title": "GLMs: counts and ordinal outcomes",
+    "section": "Seeing it",
+    "text": "Seeing it\nDo the two steps by simulation, then lay the one-step NB formula (dnbinom()) on top:\n\n\nCode\nset.seed(8)\nmu &lt;- 25; phi &lt;- 2\ntheta &lt;- rgamma(1e5, shape = phi, rate = phi / mu)   # step 1: each apartment's rate\ny     &lt;- rpois(1e5, theta)                           # step 2: its count\nggplot(tibble(y), aes(y)) +\n  geom_histogram(aes(y = after_stat(density)), binwidth = 1, fill = \"grey70\") +\n  geom_point(data = tibble(y = 0:90, p = dnbinom(0:90, mu = mu, size = phi)), aes(y, p), colour = \"firebrick\", size = 1.2) +\n  coord_cartesian(xlim = c(0, 90)) +\n  labs(x = \"count\", y = \"probability\", caption = \"grey: gamma rates, then Poisson counts; red: dnbinom(mu = 25, size = 2)\") +\n  theme_classic(base_size = 13)\n\n\n\n\n\n\n\n\n\nSame distribution. (R’s dnbinom() calls φ size; brms calls it shape.)"
   }
 ]
