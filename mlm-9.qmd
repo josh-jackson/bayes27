@@ -93,110 +93,53 @@ $\gamma_{00}$ is considered a fixed effect, as it is what is fixed (average) acr
 :::
 :::::
 
-## Level 1 predictors
+## The empty model in brms {.smaller}
 
-Level 1 is where you have data that repeats within your grouping or clustering data. Is your cluster classrooms? Then students are level 1. Is your cluster people? Then observations are level 1.
+```{r}
+library(brms)
+mlm.1 <-
+  brm(family = gaussian,
+      CON ~ 1 + (1 | ID),
+      prior = c(prior(normal(0.2, 0.1), class = Intercept),   # CON averages about 0.2
+                prior(normal(0, 0.1), class = sd),           # people differ by less than 0.1
+                prior(exponential(10), class = sigma)),      # scan-to-scan noise, mean 0.1
+      iter = 5000, warmup = 1000, chains = 4, cores = 4,
+      sample_prior = "yes",
+      data = mlm,
+      backend = "cmdstanr",
+      file = "mlm.1b")
+```
 
-$${Y}_{ij} = \beta_{0i}  + \beta_{1i}X_{ij} + \varepsilon_{ij}$$ Notice the subscripts on X: these predictors vary across groups (*i*) and within a group (*j*). So if your grouping (*i*) is people, then *j* refers to different observations.
+Three priors, on CON's own scale (mean 0.19, SD 0.07): the `Intercept` prior is for the average person, the `sd` prior is for how much people differ from that average ($\sigma_0$), and `sigma` is the scan-to-scan noise within a person. Where these come from is the last of the six intuitions below.
 
-## Level 2 {.smaller}
+## `mlm.1` summary
 
-Level 2 takes the parameters at level 1 and decomposes them into a fixed component ( $\gamma$ ) that reflects the average and, if desired, the individual deviations around that fixed effect (U).
+```{r}
+summary(mlm.1)
+```
 
-$$
-\begin{aligned}
-\text{Level 1:}\quad Y_{ij} &= \beta_{0i} + \beta_{1i}X_{ij} + \varepsilon_{ij} \\
-\text{Level 2:}\quad \beta_{0i} &= \gamma_{00} + U_{0i} \\
-\beta_{1i} &= \gamma_{10}
-\end{aligned}
-$$
+## How much is between people? The ICC {.smaller}
 
-## Adding a random slope {.smaller}
+The intraclass correlation: the share of the total variance that is between people,
 
-$$
-\begin{aligned}
-\text{Level 1:}\quad Y_{ij} &= \beta_{0i} + \beta_{1i}X_{ij} + \varepsilon_{ij} \\
-\text{Level 2:}\quad \beta_{0i} &= \gamma_{00} + U_{0i} \\
-\beta_{1i} &= \gamma_{10} + U_{1i} \\
-\text{Combined:}\quad Y_{ij} &= \gamma_{00} + \gamma_{10}X_{ij} + U_{0i} + U_{1i}X_{ij} + \varepsilon_{ij}
-\end{aligned}
-$$
+$$\text{ICC} = \frac{\sigma_0^2}{\sigma_0^2 + \sigma^2}$$
 
-Each person's slope is a fixed part plus their own deviation: for person 16, $\beta_{1,16} = \gamma_{10} + U_{1,16}$.
+Compute it **draw by draw**, so it gets its own posterior:
 
-## Error structure {.smaller}
+```{r}
+as_draws_df(mlm.1) %>%
+  mutate(icc = sd_ID__Intercept^2 / (sd_ID__Intercept^2 + sigma^2)) %>%
+  median_qi(icc)
+```
 
-The residual structure, where the random effects are again normally distributed with a mean of zero, but this time one must also consider covariance in addition to variance.
+## Reading the ICC
 
-$$\begin{pmatrix} {U}_{0i} \\ {U}_{1i} \end{pmatrix}
-\sim N \left( \begin{pmatrix} 0 \\ 0 \end{pmatrix}, \begin{pmatrix} \tau_{00}^{2} & \tau_{01}\\ \tau_{01} & \tau_{11}^{2} \end{pmatrix} \right)$$
+```{r}
+#| echo: false
+icc_1 <- as_draws_df(mlm.1) %>% mutate(icc = sd_ID__Intercept^2 / (sd_ID__Intercept^2 + sigma^2)) %>% pull(icc)
+```
 
-Note that it is possible to have a different error structure for the random effects
-
-$${\varepsilon}_{ij} \sim N(0, \sigma^{2})$$
-
-## Multiple level 1 predictors
-
-Level 1:
-
-$${Y}_{ij} = \beta_{0i}  + \beta_{1i}X_{ij} + \beta_{2i}Z_{ij} + \varepsilon_{ij}$$ Level 2:\
-$${\beta}_{0i} = \gamma_{00} + U_{0i}$$
-
-$${\beta}_{1i} = \gamma_{10} + U_{1i}$$
-$${\beta}_{2i} = \gamma_{20} + U_{2i}$$
-
-## Level 2 predictors
-
-$$
-\begin{aligned}
-\text{Level 1:}\quad Y_{ij} &= \beta_{0i} + \beta_{1i}X_{ij} + \varepsilon_{ij} \\
-\text{Level 2:}\quad \beta_{0i} &= \gamma_{00} + \gamma_{01}G_{i} + U_{0i} \\
-\beta_{1i} &= \gamma_{10} + U_{1i}
-\end{aligned}
-$$
-
-$G_i$ is a person-level variable (it has no *j*): it can only predict person-level things, like each person's intercept.
-
-## Level 2 predictors: combined
-
-Combined $${Y}_{ij} = \gamma_{00} + \gamma_{01}G_{i}+  \gamma_{10} (X_{ij}) + U_{0i} + U_{1i}(X_{ij}) + \varepsilon_{ij}$$ $${Y}_{ij} = [\gamma_{00} + \gamma_{01}G_{i}+ U_{0i}]  + [(\gamma_{10}  + U_{1i})(X_{ij})] + \varepsilon_{ij}$$
-
-## Cross-level interactions {.smaller}
-
-$$
-\begin{aligned}
-\text{Level 1:}\quad Y_{ij} &= \beta_{0i} + \beta_{1i}X_{ij} + \varepsilon_{ij} \\
-\text{Level 2:}\quad \beta_{0i} &= \gamma_{00} + \gamma_{01}G_{i} + U_{0i} \\
-\beta_{1i} &= \gamma_{10} + \gamma_{11}G_{i} + U_{1i} \\
-\text{Combined:}\quad Y_{ij} &= \gamma_{00} + \gamma_{01}G_{i} + \gamma_{10}X_{ij} + \gamma_{11}G_{i}X_{ij} + U_{0i} + U_{1i}X_{ij} + \varepsilon_{ij}
-\end{aligned}
-$$
-
-$\gamma_{11}$, the cross-level interaction: does the person-level variable G predict how strong each person's X effect is?
-
-## Cross-level interactions: grouped
-
-$${Y}_{ij} = [\gamma_{00} + U_{0i} +\gamma_{01}G_{i}] + [(\gamma_{10}  + \gamma_{11}G_{i}+  U_{1i})(X_{ij})] + \varepsilon_{ij}$$
-
-## Centering
-
-As a rule, each level-1 predictor is usually really 2 predictor variables. It is important to separate within-group from between group variance. Failing to do so will "smush" between and within variance to level 1.
-
-Example: student SES at level 1, with schools at level 2. Some kids have more money than other kids in their school; some schools have more money than other schools.
-
-Fortunately it is easy to separate this
-
-## Centering: within and between {.smaller}
-
-Level 1: $${Y}_{ij} = \beta_{0i}  + \beta_{1i}(X_{ij}- \bar{X_i}) + \varepsilon_{ij}$$
-
-Level 2: $${\beta}_{0i} = \gamma_{00} + \gamma_{01}\bar{X_i} +   U_{0i}$$
-
-$${\beta}_{1i} = \gamma_{10} + \gamma_{11}\bar{X_i} + U_{1i}$$
-
-$\gamma_{10}$ is the *within*-person effect; $\gamma_{01}$ is the *between*-person effect.
-
-Could also grand mean center the level 2 means so that the interaction has a meaningful zero point.
+About `r round(100 * median(icc_1))`% of the variation in CON is stable differences between people; about `r 100 - round(100 * median(icc_1))`% is scan-to-scan change within a person. Equivalently, two scans from the same person correlate about `r sprintf("%.2f", median(icc_1))`.
 
 ## MLM as default and make it maximum
 
@@ -214,8 +157,6 @@ Anytime you have repeated DVs you should use MLM as opposed to doing aggregation
 4.  Variance decomposition\
 5.  Learning from other data through pooling/shrinkage
 6.  Parameters that depend on parameters
-
-
 
 ## 1. Aggregation obscures hypotheses
 
@@ -300,7 +241,6 @@ Level 1 is the smallest unit of analysis (students, waves, trials, family member
 Level 2 variables are what level 1 variables are "nested" in (people, schools, counties, families, dyads)
 
 We use the level 1 coefficients as outcomes in a level 2 regression, while level 1 is also estimating its own regression (coefficients as outcomes).
-
 
 ## Stroop example
 
@@ -470,7 +410,9 @@ In a way, this is similar to Bayesian reasoning where learning is based on how m
 
 $$\text{y}_{ij}  \sim \operatorname{Normal}(\mu_{ij}, \sigma)$$ $$\mu_{ij}  = \beta_{0[i]}$$
 
-$$\beta_{0[i]} \sim \operatorname{Normal}({\bar \mu},  \sigma_0)$$ $${\bar \mu}  \sim {\operatorname{Normal}(0, 1.5)}$$ $$\sigma_0 \sim {\operatorname{Half-Normal}(0, 1.5)}$$ $$\sigma \sim {\operatorname{Exponential}(1)}$$
+$$\beta_{0[i]} \sim \operatorname{Normal}({\bar \mu},  \sigma_0)$$ $${\bar \mu}  \sim {\operatorname{Normal}(0.2, 0.1)}$$ $$\sigma_0 \sim {\operatorname{Half-Normal}(0, 0.1)}$$ $$\sigma \sim {\operatorname{Exponential}(10)}$$
+
+This is the model we fit as `mlm.1`.
 
 ## Hyperprior
 
@@ -490,10 +432,10 @@ The person intercepts $\beta_{0[i]}$ get a prior whose parameters ($\bar\mu$, $\
 #| fig-width: 10
 #| fig-height: 4.2
 lab <- tribble(~x, ~y, ~label,
-  1.2, 3, "bar(mu) %~% Normal(0, 1.5)",
-  3.2, 3, "sigma[0] %~% HalfNormal(0, 1.5)",
+  1.2, 3, "bar(mu) %~% Normal(0.2, 0.1)",
+  3.2, 3, "sigma[0] %~% HalfNormal(0, 0.1)",
   2.2, 2, "beta[0*'['*i*']'] %~% Normal(bar(mu), sigma[0])",
-  4.2, 2, "sigma %~% Exponential(1)",
+  4.2, 2, "sigma %~% Exponential(10)",
   3.2, 1, "CON[ij] %~% Normal(beta[0*'['*i*']'], sigma)")
 arrows <- tribble(~x, ~y, ~xend, ~yend,
   1.3, 2.8, 2.0, 2.2,   3.1, 2.8, 2.4, 2.2,
@@ -508,7 +450,6 @@ ggplot() +
   xlim(-0.2, 5) + ylim(0.6, 3.4) + theme_void()
 ```
 
-
 ## Two kinds of priors
 
 If we are estimating a mean, we can divide that up into two priors:
@@ -519,54 +460,6 @@ If we are estimating a mean, we can divide that up into two priors:
 
 Fixed effect describes #1 whereas random effects describe #2
 
-## The empty model in brms {.smaller}
-
-```{r}
-library(brms)
-mlm.1 <-
-  brm(family = gaussian,
-      CON ~ 1 + (1 | ID),
-      prior = c(prior(normal(0, 1.5), class = Intercept),
-                prior(normal(0, 1.5), class = sd),
-                prior(exponential(1), class = sigma)),
-      iter = 5000, warmup = 1000, chains = 4, cores = 4,
-      sample_prior = "yes",
-      data = mlm,
-      backend = "cmdstanr",
-      file = "mlm.1")
-```
-
-Three priors: the `Intercept` prior is for the average person ($\bar\mu$), the `sd` prior is for how much people differ from that average ($\sigma_0$), and `sigma` is the scan-to-scan noise within a person.
-
-## `mlm.1` summary
-
-```{r}
-summary(mlm.1)
-```
-
-## How much is between people? The ICC {.smaller}
-
-The intraclass correlation: the share of the total variance that is between people,
-
-$$\text{ICC} = \frac{\sigma_0^2}{\sigma_0^2 + \sigma^2}$$
-
-Compute it **draw by draw**, so it gets its own posterior:
-
-```{r}
-as_draws_df(mlm.1) %>%
-  mutate(icc = sd_ID__Intercept^2 / (sd_ID__Intercept^2 + sigma^2)) %>%
-  median_qi(icc)
-```
-
-## Reading the ICC
-
-```{r}
-#| echo: false
-icc_1 <- as_draws_df(mlm.1) %>% mutate(icc = sd_ID__Intercept^2 / (sd_ID__Intercept^2 + sigma^2)) %>% pull(icc)
-```
-
-About `r round(100 * median(icc_1))`% of the variation in CON is stable differences between people; about `r 100 - round(100 * median(icc_1))`% is scan-to-scan change within a person. Equivalently, two scans from the same person correlate about `r sprintf("%.2f", median(icc_1))`.
-
 ## A single-level model
 
 Notice we have one less parameter we are estimating.
@@ -575,13 +468,13 @@ Notice we have one less parameter we are estimating.
 mlm.2 <-
   brm(family = gaussian,
       CON ~ 1 ,
-      prior = c(prior(normal(0, 1.5), class = Intercept),
-                prior(exponential(1), class = sigma)),
+      prior = c(prior(normal(0.2, 0.1), class = Intercept),
+                prior(exponential(10), class = sigma)),
       iter = 5000, warmup = 1000, chains = 4, cores = 4,
       sample_prior = "yes",
       data = mlm,
       backend = "cmdstanr",
-      file = "mlm.2")
+      file = "mlm.2b")
 ```
 
 ## `mlm.2` summary
@@ -606,13 +499,6 @@ The MLM wins easily. Note the high-Pareto-*k* flag (Lecture 6): with only 2–4 
 
 -   The population is larger than what we have. This is true for almost anything we do. We sample paradigms, we sample people, we usually never have a full population under our study. Don't we want to model that variation?
 
-## The empty model, formally {.smaller}
-
-$$\text{y}_{ij}  \sim \operatorname{Normal}(\mu_{ij}, \sigma)$$
-$$\mu_{ij}  = \beta_{0[i]}$$ The [i] subscript indicates we have varying intercepts that vary over individual i. Each parameter estimated needs a prior.
-$$\beta_{0[i]} \sim \operatorname{Normal}({\bar \mu},  \sigma_0)$$
-$${\bar \mu}  \sim {\operatorname{Normal}(0, 1.5)}$$ $$\sigma_0 \sim {\operatorname{Half-Normal}(0, 1.5)}$$ $$\sigma \sim {\operatorname{Exponential}(1)}$$
-
 ## An index model: one mean per person {.smaller}
 
 With mlm we treated means as coming from a population of means. And thus there was a best guess of the mean (intercept) and variation around that guess (SD). With anova we ignored the variation. But we could, in bayes, still examine that variation. Let's fit an index model, where each person gets their own mean. (No priors given, so brms uses flat priors on all 91 means.)
@@ -629,13 +515,13 @@ mlm.id <-
 
 ```
 
-## Fixed effects vs random effects
+## Fixed effects vs random effects {.smaller}
 
-This is similar to a "fixed effect" model, something that is popular in econometrics. It, in contrast to the random effect model, does not model random effects.
+The index model is what economists call a **fixed effects** model: one mean per person, nothing shared across people.
 
-Why do we want to model random effects? Variance decomposition which leads to increased power.
-
-Also, 1. we can include group/cluster level predictors, which fixed effect cannot. 2. it makes an assumption about whether the clusters are random or not. Psych they are almost always random (people, site, orgs) whereas for econometrics they aren't (country, state).
+-   **Why economists like it:** comparing each person only to themselves controls for *every* stable person-level confounder, measured or not. An MLM gets the same protection by person-mean centering its predictors (within vs. between effects, next lecture).
+-   **Why we usually prefer random effects:** they split the variance into between- and within-person parts, they pool (better predictions for people with little data), and they allow person-level predictors, which a fixed effects model can't estimate.
+-   In psychology the clusters are almost always a sample from a bigger population (people, sites, labs), which is exactly what random effects assume.
 
 ## `mlm.id` summary
 
@@ -659,78 +545,26 @@ Setting SD to zero says everyone is the same. Infinite SD suggests no pooling (a
 
 We use our prior of $\sigma_0$ plus our data to get an estimate of each $\beta_{0[i]}$. This is how we accurately partial pool.
 
-## Partial pooling/Shrinkage
-
-$$\text{y}_{ij}  \sim \operatorname{Normal}(\mu_{ij}, \sigma)$$
-
-$$\mu_{ij}  = \beta_{0[i]}$$
-
-$$\beta_{0[i]} \sim \operatorname{Normal}({\bar \mu},  \sigma_0)$$
-$${\bar \mu}  \sim {\operatorname{Normal}(0, 1.5)}$$
-
-$$\sigma_0 \sim {\operatorname{Half-Normal}(0, 1.5)}$$
-
-$$\sigma \sim {\operatorname{Exponential}(1)}$$
-
-## Working with the MLM posterior
-
-```{r}
-summary(mlm.1)
-```
-
-## Variables in the posterior
-
-```{r}
-library(tidybayes)
-get_variables(mlm.1)
-```
-
-## Random effects for each person
+## Pulling out the random effects {.smaller}
 
 ```{r}
 mlm.1 %>%
-  spread_draws(r_ID[ID, term])
+  spread_draws(r_ID[ID, term]) %>%   # one row per draw per person: 16,000 x 91
+  median_qi()
 ```
 
-16,000 draws (4 chains × 4,000 post-warmup iterations) × 91 people
+-   `r_ID` are the $U_{0i}$: each person's **deviation** from the fixed intercept, in CON units (like lme4's `ranef()`). `get_variables(mlm.1)` lists everything in the posterior.
+-   `[ID, term]` names the indices: person, and which effect (here only `Intercept`).
 
-## Dropping the term index
+## Each person's intercept {.smaller}
 
-```{r, warning = FALSE}
-mlm.1 %>%
-  spread_draws(r_ID[ID])
-```
-
-## Summarizing the random effects
-
-```{r}
-mlm.1 %>%
-  spread_draws(r_ID[ID, term]) %>%
- median_qi()
-```
-
-## Random effects are deviations
-
-Think back to {lme4} and `ranef` `coef` and `fixef` functions.
-
-What do each of these describe?
-
-What scale is our random effect (typically) in?
-
-## Adding the fixed effect
-
-```{r}
-mlm.1 %>%
-  spread_draws(b_Intercept, r_ID[ID, term])
-
-```
-
-## Each person's intercept
+The fixed effect plus each person's deviation (like lme4's `coef()`), computed draw by draw:
 
 ```{r}
 mlm.1 %>%
   spread_draws(b_Intercept, r_ID[ID, term]) %>%
-   mutate(person_I = b_Intercept + r_ID)
+  mutate(person_I = b_Intercept + r_ID) %>%
+  median_qi(person_I)
 ```
 
 ## Shrinkage, in one figure {.smaller}
@@ -763,6 +597,23 @@ ggplot(shrink, aes(y = ID)) +
         plot.caption = element_text(hjust = 0), legend.position = "top")
 ```
 
+## How much shrinkage? {.smaller}
+
+For the empty model, each person's estimate is (approximately) a weighted average of their own mean and the grand mean:
+
+$$\hat\beta_{0[i]} \approx w_i\, \bar y_i + (1 - w_i)\, \bar\mu \qquad w_i = \frac{n_i}{n_i + \sigma^2 / \sigma_0^2}$$
+
+```{r}
+#| echo: false
+s_e <- posterior_summary(mlm.1)["sigma", "Estimate"]
+s_0 <- posterior_summary(mlm.1)["sd_ID__Intercept", "Estimate"]
+w <- function(n) n / (n + s_e^2 / s_0^2)
+```
+
+-   Here $\sigma$ = `r sprintf("%.3f", s_e)` and $\sigma_0$ = `r sprintf("%.3f", s_0)`, so $\sigma^2/\sigma_0^2$ = `r sprintf("%.2f", s_e^2 / s_0^2)`.
+-   Someone with 2 scans keeps `r round(100 * w(2))`% of their own mean; someone with 4 scans keeps `r round(100 * w(4))`%. That's why the smaller circles in the figure moved further.
+-   More scans, or bigger differences between people ($\sigma_0$), mean less shrinkage. If people barely differed, everyone would be pulled almost all the way to the grand mean.
+
 ## Person intercepts with intervals
 
 ```{r}
@@ -783,12 +634,12 @@ Set prior for random effect to almost zero for complete pooling.
 mlm.1p <-
   brm(family = gaussian,
       CON ~ 1 + (1 | ID),
-      prior = c(prior(normal(0, 1.5), class = Intercept),
+      prior = c(prior(normal(0.2, 0.1), class = Intercept),
                 prior(normal(0, .00001), class = sd),
-                prior(exponential(1), class = sigma)),
+                prior(exponential(10), class = sigma)),
       iter = 4000, warmup = 1000, chains = 4, cores = 4,
       sample_prior = "yes",
-      file = "mlm.1p",
+      file = "mlm.1pb",
        backend = "cmdstanr",
       data = mlm)
 ```
@@ -865,16 +716,33 @@ loo_compare(mlm.id, mlm.1p, mlm.1)
 
 Partial pooling predicts best, then no pooling, then complete pooling. The no-pooling model has many high Pareto *k*s: each person's mean rests on 2–4 scans, so it is fragile, which is exactly the overfitting partial pooling protects against.
 
+## Level 1 predictors
+
+Level 1 is where you have data that repeats within your grouping or clustering data. Is your cluster classrooms? Then students are level 1. Is your cluster people? Then observations are level 1.
+
+$${Y}_{ij} = \beta_{0i}  + \beta_{1i}X_{ij} + \varepsilon_{ij}$$ Notice the subscripts on X: these predictors vary across groups (*i*) and within a group (*j*). So if your grouping (*i*) is people, then *j* refers to different observations.
+
+## Level 2 {.smaller}
+
+Level 2 takes the parameters at level 1 and decomposes them into a fixed component ( $\gamma$ ) that reflects the average and, if desired, the individual deviations around that fixed effect (U).
+
+$$
+\begin{aligned}
+\text{Level 1:}\quad Y_{ij} &= \beta_{0i} + \beta_{1i}X_{ij} + \varepsilon_{ij} \\
+\text{Level 2:}\quad \beta_{0i} &= \gamma_{00} + U_{0i} \\
+\beta_{1i} &= \gamma_{10}
+\end{aligned}
+$$
+
 ## Level 1 predictors in brms {.smaller}
 
 $$\text{y}_{ij}  \sim \operatorname{Normal}(\mu_{ij}, \sigma)$$ $$\mu_{ij}  = \beta_{0[i]} + \beta_{1}Time_{ij}$$
 
-$$\beta_{0[i]} \sim \operatorname{Normal}({\bar \mu}, \sigma_0)$$ $${\bar \mu}  \sim {\operatorname{Normal}(0, 1.5)}$$ $$\sigma_0 \sim {\operatorname{Half-Normal}(0, 1.5)}$$ $$\beta_{1} \sim {\operatorname{Normal}(0, 1.5)}$$ $$\sigma \sim {\operatorname{Exponential}(1)}$$
+$$\beta_{0[i]} \sim \operatorname{Normal}({\bar \mu}, \sigma_0)$$ $${\bar \mu}  \sim {\operatorname{Normal}(0.2, 0.1)}$$ $$\sigma_0 \sim {\operatorname{Half-Normal}(0, 0.1)}$$ $$\beta_{1} \sim {\operatorname{Normal}(0, 0.05)}$$ $$\sigma \sim {\operatorname{Exponential}(10)}$$
 
 ## A fixed slope
 
 Notice that the slope has no hyperprior (no [i], no $\sigma_1$). What does that mean? It is not random: everyone gets the same slope. People could still differ in their slopes if we added predictors of the slope (cross-level interactions), but there is no U to represent leftover random variation. To get that we need a parameter for it, and we don't have one yet.
-
 
 ## Fitting `mlm.3`
 
@@ -883,13 +751,13 @@ Notice that the slope has no hyperprior (no [i], no $\sigma_1$). What does that 
 mlm.3 <-
   brm(family = gaussian,
       CON ~ 1 + time + (1 | ID),
-      prior = c(prior(normal(0, 1.5), class = Intercept),
-                prior(normal(0, 1.5), class = b),
-                prior(normal(0, 1.5), class = sd),
-                prior(exponential(1), class = sigma)),
+      prior = c(prior(normal(0.2, 0.1), class = Intercept),
+                prior(normal(0, 0.05), class = b),           # change per unit of time
+                prior(normal(0, 0.1), class = sd),
+                prior(exponential(10), class = sigma)),
       iter = 4000, warmup = 1000, chains = 4, cores = 4,
       sample_prior = "yes",
-      file = "mlm.3",
+      file = "mlm.3b",
       backend = "cmdstanr",
       data = mlm)
 
@@ -935,3 +803,4 @@ predictions(mlm.3, newdata = tibble(time = 3), re_formula = NA)  # the average p
 
 -   For person 6, the model has their scans; for person 9999 it only knows people vary with SD $\sigma_0$, so the interval is more than twice as wide.
 -   The average person's interval is the narrowest: it's about the mean, not about any individual.
+

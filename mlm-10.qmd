@@ -9,6 +9,7 @@ execute:
 ## This time
 
 -   Varying (random) slopes and the correlation between intercepts and slopes
+-   Level-2 predictors and cross-level interactions
 -   Separating within-person and between-person effects (centering)
 -   Plotting MLMs: average vs. person-specific predictions
 -   Builds on [last time](mlm-9.qmd): varying intercepts, partial pooling, and the running connectivity data (`mlm.csv`)
@@ -23,7 +24,7 @@ library(marginaleffects)
 library(broom)
 mlm <- read.csv("mlm.csv")
 names(mlm)[names(mlm) == "group"] <- "diagnosis"  # marginaleffects reserves the name "group"
-mlm.3 <- readRDS("mlm.3.rds")  # varying intercepts + time, from last time
+mlm.3 <- readRDS("mlm.3b.rds")  # varying intercepts + time, from last time
 ```
 
 ## Introducing random slopes {.smaller}
@@ -36,13 +37,21 @@ mlm.3 <- readRDS("mlm.3.rds")  # varying intercepts + time, from last time
 
 -   This is another advantage of "keep it maximal": better estimates of the intercepts than an intercepts-only model gives
 
-## Random slopes
+## Random slopes {.smaller}
 
-Level 1: $${Y}_{ij} = \beta_{0i}  + \beta_{1i}X_{ij} + \varepsilon_{ij}$$ Level 2: $${\beta}_{0i} = \gamma_{00} + \gamma_{01}G_{i} +   U_{0i}$$
-$${\beta}_{1i} = \gamma_{10} + \gamma_{11}G_{i} + U_{1i}$$
+$$
+\begin{aligned}
+\text{Level 1:}\quad Y_{ij} &= \beta_{0i} + \beta_{1i}X_{ij} + \varepsilon_{ij} \\
+\text{Level 2:}\quad \beta_{0i} &= \gamma_{00} + U_{0i} \\
+\beta_{1i} &= \gamma_{10} + U_{1i} \\
+\text{Combined:}\quad Y_{ij} &= \gamma_{00} + \gamma_{10}X_{ij} + U_{0i} + U_{1i}X_{ij} + \varepsilon_{ij}
+\end{aligned}
+$$
+
+Each person's slope is the average slope plus their own deviation. The two deviations get a joint distribution, so they can be correlated:
 
 $$\begin{pmatrix} {U}_{0i} \\ {U}_{1i} \end{pmatrix}
-\sim N \left( \begin{pmatrix} 0 \\ 0 \end{pmatrix}, \begin{pmatrix} \tau_{00}^{2} & \tau_{01}\\ \tau_{01} & \tau_{11}^{2} \end{pmatrix} \right)$$
+\sim N \left( \begin{pmatrix} 0 \\ 0 \end{pmatrix}, \begin{pmatrix} \tau_{00}^{2} & \tau_{01}\\ \tau_{01} & \tau_{11}^{2} \end{pmatrix} \right) \qquad \varepsilon_{ij} \sim N(0, \sigma^2)$$
 
 ## Correlated features
 
@@ -346,6 +355,39 @@ mlm.4 <- add_criterion(mlm.4, "loo")
 loo_compare(mlm.3, mlm.4, criterion = "loo")
 ```
 
+## Level 2 predictors
+
+$$
+\begin{aligned}
+\text{Level 1:}\quad Y_{ij} &= \beta_{0i} + \beta_{1i}X_{ij} + \varepsilon_{ij} \\
+\text{Level 2:}\quad \beta_{0i} &= \gamma_{00} + \gamma_{01}G_{i} + U_{0i} \\
+\beta_{1i} &= \gamma_{10} + U_{1i}
+\end{aligned}
+$$
+
+$G_i$ is a person-level variable (it has no *j*): it can only predict person-level things, like each person's intercept.
+
+## Level 2 predictors: combined
+
+Combined $${Y}_{ij} = \gamma_{00} + \gamma_{01}G_{i}+  \gamma_{10} (X_{ij}) + U_{0i} + U_{1i}(X_{ij}) + \varepsilon_{ij}$$ $${Y}_{ij} = [\gamma_{00} + \gamma_{01}G_{i}+ U_{0i}]  + [(\gamma_{10}  + U_{1i})(X_{ij})] + \varepsilon_{ij}$$
+
+## Cross-level interactions {.smaller}
+
+$$
+\begin{aligned}
+\text{Level 1:}\quad Y_{ij} &= \beta_{0i} + \beta_{1i}X_{ij} + \varepsilon_{ij} \\
+\text{Level 2:}\quad \beta_{0i} &= \gamma_{00} + \gamma_{01}G_{i} + U_{0i} \\
+\beta_{1i} &= \gamma_{10} + \gamma_{11}G_{i} + U_{1i} \\
+\text{Combined:}\quad Y_{ij} &= \gamma_{00} + \gamma_{01}G_{i} + \gamma_{10}X_{ij} + \gamma_{11}G_{i}X_{ij} + U_{0i} + U_{1i}X_{ij} + \varepsilon_{ij}
+\end{aligned}
+$$
+
+$\gamma_{11}$, the cross-level interaction: does the person-level variable G predict how strong each person's X effect is?
+
+## Cross-level interactions: grouped
+
+$${Y}_{ij} = [\gamma_{00} + U_{0i} +\gamma_{01}G_{i}] + [(\gamma_{10}  + \gamma_{11}G_{i}+  U_{1i})(X_{ij})] + \varepsilon_{ij}$$
+
 ## ESM data
 
 ```{r}
@@ -451,6 +493,26 @@ mlm.5 %>%
   geom_pointinterval(alpha = .1) + xlab("est")  + theme(axis.title.y=element_blank(),
         axis.text.y=element_blank())
 ```
+
+## Centering
+
+As a rule, each level-1 predictor is usually really 2 predictor variables. It is important to separate within-group from between group variance. Failing to do so will "smush" between and within variance to level 1.
+
+Example: student SES at level 1, with schools at level 2. Some kids have more money than other kids in their school; some schools have more money than other schools.
+
+Fortunately it is easy to separate this
+
+## Centering: within and between {.smaller}
+
+Level 1: $${Y}_{ij} = \beta_{0i}  + \beta_{1i}(X_{ij}- \bar{X_i}) + \varepsilon_{ij}$$
+
+Level 2: $${\beta}_{0i} = \gamma_{00} + \gamma_{01}\bar{X_i} +   U_{0i}$$
+
+$${\beta}_{1i} = \gamma_{10} + \gamma_{11}\bar{X_i} + U_{1i}$$
+
+$\gamma_{10}$ is the *within*-person effect; $\gamma_{01}$ is the *between*-person effect.
+
+Could also grand mean center the level 2 means so that the interaction has a meaningful zero point.
 
 ## Person-mean centering
 

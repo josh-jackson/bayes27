@@ -2,7 +2,7 @@
 title: "HW 11: When the data are uncertain too"
 ---
 
-**Due:** Thursday, Apr 15 at 2:30 pm on Canvas · **Points:** 25 · **Covers:** [Advanced models 1](adv-9.qmd) (missing data and measurement error)
+**Due:** Thursday, Apr 15 at 2:30 pm on Canvas · **Points:** 25 · **Covers:** [Advanced models 1](adv-11.qmd) (missing data and measurement error)
 
 Start from the [homework template](hw-template.qmd){download="hw-template.qmd"}, use `## Q1` to `## Q4` headings, and turn in both the `.qmd` and the rendered `.html`. Points for each question are in its heading; answers in words count.
 

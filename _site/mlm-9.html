@@ -270,93 +270,75 @@
 <p><span class="math inline">\(\gamma_{00}\)</span> is considered a fixed effect, as it is what is fixed (average) across our grouping</p>
 </div></div>
 </section>
-<section id="level-1-predictors" class="slide level2">
-<h2>Level 1 predictors</h2>
-<p>Level 1 is where you have data that repeats within your grouping or clustering data. Is your cluster classrooms? Then students are level 1. Is your cluster people? Then observations are level 1.</p>
-<p><span class="math display">\[{Y}_{ij} = \beta_{0i}  + \beta_{1i}X_{ij} + \varepsilon_{ij}\]</span> Notice the subscripts on X: these predictors vary across groups (<em>i</em>) and within a group (<em>j</em>). So if your grouping (<em>i</em>) is people, then <em>j</em> refers to different observations.</p>
+<section id="the-empty-model-in-brms" class="slide level2 smaller">
+<h2>The empty model in brms</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a aria-label="1"></a><span class="fu">library</span>(brms)</span>
+<span id="cb4-2"><a aria-label="2"></a>mlm<span class="fl">.1</span> <span class="ot">&lt;-</span></span>
+<span id="cb4-3"><a aria-label="3"></a>  <span class="fu">brm</span>(<span class="at">family =</span> gaussian,</span>
+<span id="cb4-4"><a aria-label="4"></a>      CON <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> ID),</span>
+<span id="cb4-5"><a aria-label="5"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="fl">0.2</span>, <span class="fl">0.1</span>), <span class="at">class =</span> Intercept),   <span class="co"># CON averages about 0.2</span></span>
+<span id="cb4-6"><a aria-label="6"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="fl">0.1</span>), <span class="at">class =</span> sd),           <span class="co"># people differ by less than 0.1</span></span>
+<span id="cb4-7"><a aria-label="7"></a>                <span class="fu">prior</span>(<span class="fu">exponential</span>(<span class="dv">10</span>), <span class="at">class =</span> sigma)),      <span class="co"># scan-to-scan noise, mean 0.1</span></span>
+<span id="cb4-8"><a aria-label="8"></a>      <span class="at">iter =</span> <span class="dv">5000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">chains =</span> <span class="dv">4</span>, <span class="at">cores =</span> <span class="dv">4</span>,</span>
+<span id="cb4-9"><a aria-label="9"></a>      <span class="at">sample_prior =</span> <span class="st">"yes"</span>,</span>
+<span id="cb4-10"><a aria-label="10"></a>      <span class="at">data =</span> mlm,</span>
+<span id="cb4-11"><a aria-label="11"></a>      <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
+<span id="cb4-12"><a aria-label="12"></a>      <span class="at">file =</span> <span class="st">"mlm.1b"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Three priors, on CON’s own scale (mean 0.19, SD 0.07): the <code>Intercept</code> prior is for the average person, the <code>sd</code> prior is for how much people differ from that average (<span class="math inline">\(\sigma_0\)</span>), and <code>sigma</code> is the scan-to-scan noise within a person. Where these come from is the last of the six intuitions below.</p>
 </section>
-<section id="level-2" class="slide level2 smaller">
-<h2>Level 2</h2>
-<p>Level 2 takes the parameters at level 1 and decomposes them into a fixed component ( <span class="math inline">\(\gamma\)</span> ) that reflects the average and, if desired, the individual deviations around that fixed effect (U).</p>
-<p><span class="math display">\[
-\begin{aligned}
-\text{Level 1:}\quad Y_{ij} &amp;= \beta_{0i} + \beta_{1i}X_{ij} + \varepsilon_{ij} \\
-\text{Level 2:}\quad \beta_{0i} &amp;= \gamma_{00} + U_{0i} \\
-\beta_{1i} &amp;= \gamma_{10}
-\end{aligned}
-\]</span></p>
+<section id="mlm.1-summary" class="slide level2">
+<h2><code>mlm.1</code> summary</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a aria-label="1"></a><span class="fu">summary</span>(mlm<span class="fl">.1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> Family: gaussian 
+  Links: mu = identity 
+Formula: CON ~ 1 + (1 | ID) 
+   Data: mlm (Number of observations: 225) 
+  Draws: 4 chains, each with iter = 5000; warmup = 1000; thin = 1;
+         total post-warmup draws = 16000
+
+Multilevel Hyperparameters:
+~ID (Number of levels: 91) 
+              Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+sd(Intercept)     0.06      0.01     0.05     0.07 1.00     5285     7864
+
+Regression Coefficients:
+          Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+Intercept     0.19      0.01     0.18     0.20 1.00     8353     9716
+
+Further Distributional Parameters:
+      Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+sigma     0.05      0.00     0.04     0.05 1.00     9499    11030
+
+Draws were sampled using sample(hmc). For each parameter, Bulk_ESS
+and Tail_ESS are effective sample size measures, and Rhat is the potential
+scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
+</div>
+</div>
 </section>
-<section id="adding-a-random-slope" class="slide level2 smaller">
-<h2>Adding a random slope</h2>
-<p><span class="math display">\[
-\begin{aligned}
-\text{Level 1:}\quad Y_{ij} &amp;= \beta_{0i} + \beta_{1i}X_{ij} + \varepsilon_{ij} \\
-\text{Level 2:}\quad \beta_{0i} &amp;= \gamma_{00} + U_{0i} \\
-\beta_{1i} &amp;= \gamma_{10} + U_{1i} \\
-\text{Combined:}\quad Y_{ij} &amp;= \gamma_{00} + \gamma_{10}X_{ij} + U_{0i} + U_{1i}X_{ij} + \varepsilon_{ij}
-\end{aligned}
-\]</span></p>
-<p>Each person’s slope is a fixed part plus their own deviation: for person 16, <span class="math inline">\(\beta_{1,16} = \gamma_{10} + U_{1,16}\)</span>.</p>
+<section id="how-much-is-between-people-the-icc" class="slide level2 smaller">
+<h2>How much is between people? The ICC</h2>
+<p>The intraclass correlation: the share of the total variance that is between people,</p>
+<p><span class="math display">\[\text{ICC} = \frac{\sigma_0^2}{\sigma_0^2 + \sigma^2}\]</span></p>
+<p>Compute it <strong>draw by draw</strong>, so it gets its own posterior:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a aria-label="1"></a><span class="fu">as_draws_df</span>(mlm<span class="fl">.1</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb7-2"><a aria-label="2"></a>  <span class="fu">mutate</span>(<span class="at">icc =</span> sd_ID__Intercept<span class="sc">^</span><span class="dv">2</span> <span class="sc">/</span> (sd_ID__Intercept<span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span> sigma<span class="sc">^</span><span class="dv">2</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb7-3"><a aria-label="3"></a>  <span class="fu">median_qi</span>(icc)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1 × 6
+    icc .lower .upper .width .point .interval
+  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;    
+1 0.587  0.461  0.694   0.95 median qi       </code></pre>
+</div>
+</div>
 </section>
-<section id="error-structure" class="slide level2 smaller">
-<h2>Error structure</h2>
-<p>The residual structure, where the random effects are again normally distributed with a mean of zero, but this time one must also consider covariance in addition to variance.</p>
-<p><span class="math display">\[\begin{pmatrix} {U}_{0i} \\ {U}_{1i} \end{pmatrix}
-\sim N \left( \begin{pmatrix} 0 \\ 0 \end{pmatrix}, \begin{pmatrix} \tau_{00}^{2} &amp; \tau_{01}\\ \tau_{01} &amp; \tau_{11}^{2} \end{pmatrix} \right)\]</span></p>
-<p>Note that it is possible to have a different error structure for the random effects</p>
-<p><span class="math display">\[{\varepsilon}_{ij} \sim N(0, \sigma^{2})\]</span></p>
-</section>
-<section id="multiple-level-1-predictors" class="slide level2">
-<h2>Multiple level 1 predictors</h2>
-<p>Level 1:</p>
-<p><span class="math display">\[{Y}_{ij} = \beta_{0i}  + \beta_{1i}X_{ij} + \beta_{2i}Z_{ij} + \varepsilon_{ij}\]</span> Level 2:<br>
-<span class="math display">\[{\beta}_{0i} = \gamma_{00} + U_{0i}\]</span></p>
-<p><span class="math display">\[{\beta}_{1i} = \gamma_{10} + U_{1i}\]</span> <span class="math display">\[{\beta}_{2i} = \gamma_{20} + U_{2i}\]</span></p>
-</section>
-<section id="level-2-predictors" class="slide level2">
-<h2>Level 2 predictors</h2>
-<p><span class="math display">\[
-\begin{aligned}
-\text{Level 1:}\quad Y_{ij} &amp;= \beta_{0i} + \beta_{1i}X_{ij} + \varepsilon_{ij} \\
-\text{Level 2:}\quad \beta_{0i} &amp;= \gamma_{00} + \gamma_{01}G_{i} + U_{0i} \\
-\beta_{1i} &amp;= \gamma_{10} + U_{1i}
-\end{aligned}
-\]</span></p>
-<p><span class="math inline">\(G_i\)</span> is a person-level variable (it has no <em>j</em>): it can only predict person-level things, like each person’s intercept.</p>
-</section>
-<section id="level-2-predictors-combined" class="slide level2">
-<h2>Level 2 predictors: combined</h2>
-<p>Combined <span class="math display">\[{Y}_{ij} = \gamma_{00} + \gamma_{01}G_{i}+  \gamma_{10} (X_{ij}) + U_{0i} + U_{1i}(X_{ij}) + \varepsilon_{ij}\]</span> <span class="math display">\[{Y}_{ij} = [\gamma_{00} + \gamma_{01}G_{i}+ U_{0i}]  + [(\gamma_{10}  + U_{1i})(X_{ij})] + \varepsilon_{ij}\]</span></p>
-</section>
-<section id="cross-level-interactions" class="slide level2 smaller">
-<h2>Cross-level interactions</h2>
-<p><span class="math display">\[
-\begin{aligned}
-\text{Level 1:}\quad Y_{ij} &amp;= \beta_{0i} + \beta_{1i}X_{ij} + \varepsilon_{ij} \\
-\text{Level 2:}\quad \beta_{0i} &amp;= \gamma_{00} + \gamma_{01}G_{i} + U_{0i} \\
-\beta_{1i} &amp;= \gamma_{10} + \gamma_{11}G_{i} + U_{1i} \\
-\text{Combined:}\quad Y_{ij} &amp;= \gamma_{00} + \gamma_{01}G_{i} + \gamma_{10}X_{ij} + \gamma_{11}G_{i}X_{ij} + U_{0i} + U_{1i}X_{ij} + \varepsilon_{ij}
-\end{aligned}
-\]</span></p>
-<p><span class="math inline">\(\gamma_{11}\)</span>, the cross-level interaction: does the person-level variable G predict how strong each person’s X effect is?</p>
-</section>
-<section id="cross-level-interactions-grouped" class="slide level2">
-<h2>Cross-level interactions: grouped</h2>
-<p><span class="math display">\[{Y}_{ij} = [\gamma_{00} + U_{0i} +\gamma_{01}G_{i}] + [(\gamma_{10}  + \gamma_{11}G_{i}+  U_{1i})(X_{ij})] + \varepsilon_{ij}\]</span></p>
-</section>
-<section id="centering" class="slide level2">
-<h2>Centering</h2>
-<p>As a rule, each level-1 predictor is usually really 2 predictor variables. It is important to separate within-group from between group variance. Failing to do so will “smush” between and within variance to level 1.</p>
-<p>Example: student SES at level 1, with schools at level 2. Some kids have more money than other kids in their school; some schools have more money than other schools.</p>
-<p>Fortunately it is easy to separate this</p>
-</section>
-<section id="centering-within-and-between" class="slide level2 smaller">
-<h2>Centering: within and between</h2>
-<p>Level 1: <span class="math display">\[{Y}_{ij} = \beta_{0i}  + \beta_{1i}(X_{ij}- \bar{X_i}) + \varepsilon_{ij}\]</span></p>
-<p>Level 2: <span class="math display">\[{\beta}_{0i} = \gamma_{00} + \gamma_{01}\bar{X_i} +   U_{0i}\]</span></p>
-<p><span class="math display">\[{\beta}_{1i} = \gamma_{10} + \gamma_{11}\bar{X_i} + U_{1i}\]</span></p>
-<p><span class="math inline">\(\gamma_{10}\)</span> is the <em>within</em>-person effect; <span class="math inline">\(\gamma_{01}\)</span> is the <em>between</em>-person effect.</p>
-<p>Could also grand mean center the level 2 means so that the interaction has a meaningful zero point.</p>
+<section id="reading-the-icc" class="slide level2">
+<h2>Reading the ICC</h2>
+<p>About 59% of the variation in CON is stable differences between people; about 41% is scan-to-scan change within a person. Equivalently, two scans from the same person correlate about 0.59.</p>
 </section>
 <section id="mlm-as-default-and-make-it-maximum" class="slide level2">
 <h2>MLM as default and make it maximum</h2>
@@ -386,34 +368,34 @@
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a aria-label="1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb4-2"><a aria-label="2"></a><span class="fu">library</span>(broom)</span>
-<span id="cb4-3"><a aria-label="3"></a></span>
-<span id="cb4-4"><a aria-label="4"></a>simp<span class="ot">&lt;-</span> <span class="fu">tribble</span>(</span>
-<span id="cb4-5"><a aria-label="5"></a>  <span class="sc">~</span>ID, <span class="sc">~</span>group,  <span class="sc">~</span>test.score, <span class="sc">~</span>study,</span>
-<span id="cb4-6"><a aria-label="6"></a><span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">5</span>,<span class="dv">1</span>,</span>
-<span id="cb4-7"><a aria-label="7"></a><span class="dv">2</span>,<span class="dv">1</span>,<span class="dv">7</span>,<span class="dv">3</span>,</span>
-<span id="cb4-8"><a aria-label="8"></a><span class="dv">3</span>,<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">2</span>,</span>
-<span id="cb4-9"><a aria-label="9"></a><span class="dv">4</span>,<span class="dv">2</span>,<span class="dv">6</span>,<span class="dv">4</span>,</span>
-<span id="cb4-10"><a aria-label="10"></a><span class="dv">5</span>,<span class="dv">3</span>,<span class="dv">3</span>,<span class="dv">3</span>,</span>
-<span id="cb4-11"><a aria-label="11"></a><span class="dv">6</span>,<span class="dv">3</span>,<span class="dv">5</span>,<span class="dv">5</span>,</span>
-<span id="cb4-12"><a aria-label="12"></a><span class="dv">7</span>,<span class="dv">4</span>,<span class="dv">2</span>,<span class="dv">4</span>,</span>
-<span id="cb4-13"><a aria-label="13"></a><span class="dv">8</span>,<span class="dv">4</span>,<span class="dv">4</span>,<span class="dv">6</span>,</span>
-<span id="cb4-14"><a aria-label="14"></a><span class="dv">9</span>,<span class="dv">5</span>,<span class="dv">1</span>,<span class="dv">5</span>,</span>
-<span id="cb4-15"><a aria-label="15"></a><span class="dv">10</span>,<span class="dv">5</span>,<span class="dv">3</span>,<span class="dv">7</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a aria-label="1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb9-2"><a aria-label="2"></a><span class="fu">library</span>(broom)</span>
+<span id="cb9-3"><a aria-label="3"></a></span>
+<span id="cb9-4"><a aria-label="4"></a>simp<span class="ot">&lt;-</span> <span class="fu">tribble</span>(</span>
+<span id="cb9-5"><a aria-label="5"></a>  <span class="sc">~</span>ID, <span class="sc">~</span>group,  <span class="sc">~</span>test.score, <span class="sc">~</span>study,</span>
+<span id="cb9-6"><a aria-label="6"></a><span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">5</span>,<span class="dv">1</span>,</span>
+<span id="cb9-7"><a aria-label="7"></a><span class="dv">2</span>,<span class="dv">1</span>,<span class="dv">7</span>,<span class="dv">3</span>,</span>
+<span id="cb9-8"><a aria-label="8"></a><span class="dv">3</span>,<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">2</span>,</span>
+<span id="cb9-9"><a aria-label="9"></a><span class="dv">4</span>,<span class="dv">2</span>,<span class="dv">6</span>,<span class="dv">4</span>,</span>
+<span id="cb9-10"><a aria-label="10"></a><span class="dv">5</span>,<span class="dv">3</span>,<span class="dv">3</span>,<span class="dv">3</span>,</span>
+<span id="cb9-11"><a aria-label="11"></a><span class="dv">6</span>,<span class="dv">3</span>,<span class="dv">5</span>,<span class="dv">5</span>,</span>
+<span id="cb9-12"><a aria-label="12"></a><span class="dv">7</span>,<span class="dv">4</span>,<span class="dv">2</span>,<span class="dv">4</span>,</span>
+<span id="cb9-13"><a aria-label="13"></a><span class="dv">8</span>,<span class="dv">4</span>,<span class="dv">4</span>,<span class="dv">6</span>,</span>
+<span id="cb9-14"><a aria-label="14"></a><span class="dv">9</span>,<span class="dv">5</span>,<span class="dv">1</span>,<span class="dv">5</span>,</span>
+<span id="cb9-15"><a aria-label="15"></a><span class="dv">10</span>,<span class="dv">5</span>,<span class="dv">3</span>,<span class="dv">7</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 
-<img data-src="mlm-9_files/figure-revealjs/unnamed-chunk-6-1.png" width="960" class="r-stretch"></section>
+<img data-src="mlm-9_files/figure-revealjs/unnamed-chunk-10-1.png" width="960" class="r-stretch"></section>
 <section id="aggregating" class="slide level2">
 <h2>Aggregating</h2>
 <p>Could aggregate across group</p>
 
-<img data-src="mlm-9_files/figure-revealjs/unnamed-chunk-8-1.png" width="960" class="r-stretch"></section>
+<img data-src="mlm-9_files/figure-revealjs/unnamed-chunk-12-1.png" width="960" class="r-stretch"></section>
 <section id="separate-lines-for-each-group" class="slide level2">
 <h2>Separate lines for each group</h2>
 
-<img data-src="mlm-9_files/figure-revealjs/unnamed-chunk-9-1.png" width="960" class="r-stretch"></section>
+<img data-src="mlm-9_files/figure-revealjs/unnamed-chunk-13-1.png" width="960" class="r-stretch"></section>
 <section id="aggregation-obscures-hypotheses-1" class="slide level2">
 <h2>1. Aggregation obscures hypotheses</h2>
 <ul>
@@ -447,42 +429,42 @@
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a aria-label="1"></a>example <span class="ot">&lt;-</span> mlm   <span class="co"># same data as above</span></span>
-<span id="cb5-2"><a aria-label="2"></a></span>
-<span id="cb5-3"><a aria-label="3"></a><span class="fu">set.seed</span>(<span class="dv">11</span>)</span>
-<span id="cb5-4"><a aria-label="4"></a>ex.random <span class="ot">&lt;-</span> example <span class="sc">%&gt;%</span></span>
-<span id="cb5-5"><a aria-label="5"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(ID) <span class="sc">%&gt;%</span></span>
-<span id="cb5-6"><a aria-label="6"></a>  <span class="fu">distinct</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb5-7"><a aria-label="7"></a>  <span class="fu">slice_sample</span>(<span class="at">n =</span> <span class="dv">3</span>)</span>
-<span id="cb5-8"><a aria-label="8"></a></span>
-<span id="cb5-9"><a aria-label="9"></a>example2 <span class="ot">&lt;-</span></span>
-<span id="cb5-10"><a aria-label="10"></a>  <span class="fu">left_join</span>(ex.random, example)</span>
-<span id="cb5-11"><a aria-label="11"></a></span>
-<span id="cb5-12"><a aria-label="12"></a>g2<span class="ot">&lt;-</span> <span class="fu">ggplot</span>(example2,</span>
-<span id="cb5-13"><a aria-label="13"></a>   <span class="fu">aes</span>(<span class="at">x =</span> week, <span class="at">y =</span> SMN7, <span class="at">group =</span> ID)) <span class="sc">+</span>  <span class="fu">geom_point</span>() <span class="sc">+</span> <span class="fu">stat_smooth</span>(<span class="at">method=</span><span class="st">"lm"</span>, <span class="at">formula=</span>y<span class="sc">~</span><span class="dv">1</span>, <span class="at">se =</span> <span class="cn">FALSE</span>) <span class="sc">+</span> <span class="fu">facet_wrap</span>( <span class="sc">~</span>ID) <span class="sc">+</span></span>
-<span id="cb5-14"><a aria-label="14"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="fu">mean</span>(example<span class="sc">$</span>SMN7)) <span class="sc">+</span>  <span class="fu">ylab</span>(<span class="st">"SMN7 connectivity"</span>) <span class="sc">+</span> <span class="fu">xlab</span>(<span class="st">"week"</span>) <span class="sc">+</span></span>
-<span id="cb5-15"><a aria-label="15"></a>  <span class="fu">geom_label</span>(<span class="at">label=</span><span class="st">"Grand mean "</span>,  <span class="at">x=</span><span class="dv">1</span>,<span class="at">y=</span><span class="fu">mean</span>(example<span class="sc">$</span>SMN7),</span>
-<span id="cb5-16"><a aria-label="16"></a>    <span class="at">label.size =</span> <span class="fl">0.15</span>)</span>
-<span id="cb5-17"><a aria-label="17"></a>g2</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a aria-label="1"></a>example <span class="ot">&lt;-</span> mlm   <span class="co"># same data as above</span></span>
+<span id="cb10-2"><a aria-label="2"></a></span>
+<span id="cb10-3"><a aria-label="3"></a><span class="fu">set.seed</span>(<span class="dv">11</span>)</span>
+<span id="cb10-4"><a aria-label="4"></a>ex.random <span class="ot">&lt;-</span> example <span class="sc">%&gt;%</span></span>
+<span id="cb10-5"><a aria-label="5"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(ID) <span class="sc">%&gt;%</span></span>
+<span id="cb10-6"><a aria-label="6"></a>  <span class="fu">distinct</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb10-7"><a aria-label="7"></a>  <span class="fu">slice_sample</span>(<span class="at">n =</span> <span class="dv">3</span>)</span>
+<span id="cb10-8"><a aria-label="8"></a></span>
+<span id="cb10-9"><a aria-label="9"></a>example2 <span class="ot">&lt;-</span></span>
+<span id="cb10-10"><a aria-label="10"></a>  <span class="fu">left_join</span>(ex.random, example)</span>
+<span id="cb10-11"><a aria-label="11"></a></span>
+<span id="cb10-12"><a aria-label="12"></a>g2<span class="ot">&lt;-</span> <span class="fu">ggplot</span>(example2,</span>
+<span id="cb10-13"><a aria-label="13"></a>   <span class="fu">aes</span>(<span class="at">x =</span> week, <span class="at">y =</span> SMN7, <span class="at">group =</span> ID)) <span class="sc">+</span>  <span class="fu">geom_point</span>() <span class="sc">+</span> <span class="fu">stat_smooth</span>(<span class="at">method=</span><span class="st">"lm"</span>, <span class="at">formula=</span>y<span class="sc">~</span><span class="dv">1</span>, <span class="at">se =</span> <span class="cn">FALSE</span>) <span class="sc">+</span> <span class="fu">facet_wrap</span>( <span class="sc">~</span>ID) <span class="sc">+</span></span>
+<span id="cb10-14"><a aria-label="14"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="fu">mean</span>(example<span class="sc">$</span>SMN7)) <span class="sc">+</span>  <span class="fu">ylab</span>(<span class="st">"SMN7 connectivity"</span>) <span class="sc">+</span> <span class="fu">xlab</span>(<span class="st">"week"</span>) <span class="sc">+</span></span>
+<span id="cb10-15"><a aria-label="15"></a>  <span class="fu">geom_label</span>(<span class="at">label=</span><span class="st">"Grand mean "</span>,  <span class="at">x=</span><span class="dv">1</span>,<span class="at">y=</span><span class="fu">mean</span>(example<span class="sc">$</span>SMN7),</span>
+<span id="cb10-16"><a aria-label="16"></a>    <span class="at">label.size =</span> <span class="fl">0.15</span>)</span>
+<span id="cb10-17"><a aria-label="17"></a>g2</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
 </div>
-<img data-src="mlm-9_files/figure-revealjs/unnamed-chunk-10-1.png" width="960" class="r-stretch"></section>
+<img data-src="mlm-9_files/figure-revealjs/unnamed-chunk-14-1.png" width="960" class="r-stretch"></section>
 <section id="distribution-of-person-means" class="slide level2">
 <h2>Distribution of person means</h2>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a aria-label="1"></a><span class="fu">library</span>(tidybayes)</span>
-<span id="cb6-2"><a aria-label="2"></a>example <span class="sc">%&gt;%</span></span>
-<span id="cb6-3"><a aria-label="3"></a>  <span class="fu">group_by</span>(ID) <span class="sc">%&gt;%</span></span>
-<span id="cb6-4"><a aria-label="4"></a>  <span class="fu">summarise</span>(<span class="at">estimate =</span> <span class="fu">mean</span>(SMN7)) <span class="sc">%&gt;%</span></span>
-<span id="cb6-5"><a aria-label="5"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> estimate)) <span class="sc">+</span></span>
-<span id="cb6-6"><a aria-label="6"></a>  <span class="fu">stat_dotsinterval</span>() <span class="sc">+</span> <span class="fu">xlab</span>(<span class="st">"person mean SMN7 connectivity"</span>) <span class="sc">+</span> <span class="fu">ylab</span>(<span class="cn">NULL</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a aria-label="1"></a><span class="fu">library</span>(tidybayes)</span>
+<span id="cb11-2"><a aria-label="2"></a>example <span class="sc">%&gt;%</span></span>
+<span id="cb11-3"><a aria-label="3"></a>  <span class="fu">group_by</span>(ID) <span class="sc">%&gt;%</span></span>
+<span id="cb11-4"><a aria-label="4"></a>  <span class="fu">summarise</span>(<span class="at">estimate =</span> <span class="fu">mean</span>(SMN7)) <span class="sc">%&gt;%</span></span>
+<span id="cb11-5"><a aria-label="5"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> estimate)) <span class="sc">+</span></span>
+<span id="cb11-6"><a aria-label="6"></a>  <span class="fu">stat_dotsinterval</span>() <span class="sc">+</span> <span class="fu">xlab</span>(<span class="st">"person mean SMN7 connectivity"</span>) <span class="sc">+</span> <span class="fu">ylab</span>(<span class="cn">NULL</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
 </div>
-<img data-src="mlm-9_files/figure-revealjs/unnamed-chunk-11-1.png" width="960" class="r-stretch"></section>
+<img data-src="mlm-9_files/figure-revealjs/unnamed-chunk-15-1.png" width="960" class="r-stretch"></section>
 <section id="different-levels" class="slide level2">
 <h2>3. Different levels</h2>
 <p>To sum up the first two ways to think about regression, we take a relationship that could be simplified by aggregation, and conduct regressions from regressions. (Regression inception)</p>
@@ -546,36 +528,36 @@
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a aria-label="1"></a><span class="fu">ggplot</span>(mlm, <span class="fu">aes</span>(<span class="at">x =</span> week, <span class="at">y =</span> SMN7)) <span class="sc">+</span> <span class="fu">geom_point</span>() <span class="sc">+</span> <span class="fu">stat_smooth</span>(<span class="at">method=</span><span class="st">"lm"</span>) <span class="sc">+</span><span class="fu">ylab</span>(<span class="st">"SMN7"</span>) <span class="sc">+</span> <span class="fu">xlab</span>(<span class="st">"week"</span>) <span class="sc">+</span>  <span class="fu">theme</span>(<span class="at">axis.ticks.y =</span> <span class="fu">element_blank</span>(),</span>
-<span id="cb7-2"><a aria-label="2"></a>        <span class="at">axis.text.y =</span> <span class="fu">element_blank</span>())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a aria-label="1"></a><span class="fu">ggplot</span>(mlm, <span class="fu">aes</span>(<span class="at">x =</span> week, <span class="at">y =</span> SMN7)) <span class="sc">+</span> <span class="fu">geom_point</span>() <span class="sc">+</span> <span class="fu">stat_smooth</span>(<span class="at">method=</span><span class="st">"lm"</span>) <span class="sc">+</span><span class="fu">ylab</span>(<span class="st">"SMN7"</span>) <span class="sc">+</span> <span class="fu">xlab</span>(<span class="st">"week"</span>) <span class="sc">+</span>  <span class="fu">theme</span>(<span class="at">axis.ticks.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb12-2"><a aria-label="2"></a>        <span class="at">axis.text.y =</span> <span class="fu">element_blank</span>())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
 </div>
-<img data-src="mlm-9_files/figure-revealjs/unnamed-chunk-12-1.png" width="960" class="r-stretch"></section>
+<img data-src="mlm-9_files/figure-revealjs/unnamed-chunk-16-1.png" width="960" class="r-stretch"></section>
 <section id="no-pooling" class="slide level2">
 <h2>No Pooling</h2>
 <p>Everyone is unique and we cannot learn from others. Leads to overfitting</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a aria-label="1"></a><span class="fu">ggplot</span>(mlm, <span class="fu">aes</span>(<span class="at">x =</span> week, <span class="at">y =</span> SMN7, <span class="at">group =</span> ID)) <span class="sc">+</span> <span class="fu">geom_line</span>() <span class="sc">+</span>  <span class="fu">geom_point</span>() <span class="sc">+</span> <span class="fu">facet_wrap</span>( <span class="sc">~</span> ID) <span class="sc">+</span><span class="fu">ylab</span>(<span class="st">"SMN7"</span>) <span class="sc">+</span> <span class="fu">xlab</span>(<span class="st">"week"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a aria-label="1"></a><span class="fu">ggplot</span>(mlm, <span class="fu">aes</span>(<span class="at">x =</span> week, <span class="at">y =</span> SMN7, <span class="at">group =</span> ID)) <span class="sc">+</span> <span class="fu">geom_line</span>() <span class="sc">+</span>  <span class="fu">geom_point</span>() <span class="sc">+</span> <span class="fu">facet_wrap</span>( <span class="sc">~</span> ID) <span class="sc">+</span><span class="fu">ylab</span>(<span class="st">"SMN7"</span>) <span class="sc">+</span> <span class="fu">xlab</span>(<span class="st">"week"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
 </div>
-<img data-src="mlm-9_files/figure-revealjs/unnamed-chunk-13-1.png" width="960" class="r-stretch"></section>
+<img data-src="mlm-9_files/figure-revealjs/unnamed-chunk-17-1.png" width="960" class="r-stretch"></section>
 <section id="partial-pooling-aka-shrinkage-aka-regularization" class="slide level2">
 <h2>Partial pooling aka shrinkage aka regularization</h2>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a aria-label="1"></a><span class="fu">ggplot</span>(mlm, <span class="fu">aes</span>(<span class="at">x =</span> week, <span class="at">y =</span> SMN7)) <span class="sc">+</span></span>
-<span id="cb9-2"><a aria-label="2"></a>  <span class="fu">stat_smooth</span>(<span class="fu">aes</span>(<span class="at">group =</span> ID), <span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">colour =</span> <span class="st">"grey70"</span>, <span class="at">linewidth =</span> .<span class="dv">4</span>) <span class="sc">+</span>   <span class="co"># no pooling</span></span>
-<span id="cb9-3"><a aria-label="3"></a>  <span class="fu">stat_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">colour =</span> <span class="st">"black"</span>, <span class="at">linewidth =</span> <span class="fl">1.5</span>) <span class="sc">+</span>                    <span class="co"># complete pooling</span></span>
-<span id="cb9-4"><a aria-label="4"></a>  <span class="fu">ylab</span>(<span class="st">"SMN7"</span>) <span class="sc">+</span> <span class="fu">xlab</span>(<span class="st">"week"</span>) <span class="sc">+</span> <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">14</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a aria-label="1"></a><span class="fu">ggplot</span>(mlm, <span class="fu">aes</span>(<span class="at">x =</span> week, <span class="at">y =</span> SMN7)) <span class="sc">+</span></span>
+<span id="cb14-2"><a aria-label="2"></a>  <span class="fu">stat_smooth</span>(<span class="fu">aes</span>(<span class="at">group =</span> ID), <span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">colour =</span> <span class="st">"grey70"</span>, <span class="at">linewidth =</span> .<span class="dv">4</span>) <span class="sc">+</span>   <span class="co"># no pooling</span></span>
+<span id="cb14-3"><a aria-label="3"></a>  <span class="fu">stat_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">colour =</span> <span class="st">"black"</span>, <span class="at">linewidth =</span> <span class="fl">1.5</span>) <span class="sc">+</span>                    <span class="co"># complete pooling</span></span>
+<span id="cb14-4"><a aria-label="4"></a>  <span class="fu">ylab</span>(<span class="st">"SMN7"</span>) <span class="sc">+</span> <span class="fu">xlab</span>(<span class="st">"week"</span>) <span class="sc">+</span> <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">14</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
 </div>
-<img data-src="mlm-9_files/figure-revealjs/unnamed-chunk-14-1.png" width="960" class="r-stretch"><p>Thin grey: each person’s own line (no pooling). Thick black: one line for everyone (complete pooling). Partial pooling lands in between, pulling each person toward the black line, more so for people with little data. We’ll see real estimates once we fit the model.</p>
+<img data-src="mlm-9_files/figure-revealjs/unnamed-chunk-18-1.png" width="960" class="r-stretch"><p>Thin grey: each person’s own line (no pooling). Thick black: one line for everyone (complete pooling). Partial pooling lands in between, pulling each person toward the black line, more so for people with little data. We’ll see real estimates once we fit the model.</p>
 </section>
 <section id="partial-pooling-as-learning" class="slide level2">
 <h2>Partial pooling as learning</h2>
@@ -586,7 +568,8 @@
 <section id="parameters-that-depend-on-other-parameters" class="slide level2 smaller">
 <h2>6. Parameters that depend on other parameters</h2>
 <p><span class="math display">\[\text{y}_{ij}  \sim \operatorname{Normal}(\mu_{ij}, \sigma)\]</span> <span class="math display">\[\mu_{ij}  = \beta_{0[i]}\]</span></p>
-<p><span class="math display">\[\beta_{0[i]} \sim \operatorname{Normal}({\bar \mu},  \sigma_0)\]</span> <span class="math display">\[{\bar \mu}  \sim {\operatorname{Normal}(0, 1.5)}\]</span> <span class="math display">\[\sigma_0 \sim {\operatorname{Half-Normal}(0, 1.5)}\]</span> <span class="math display">\[\sigma \sim {\operatorname{Exponential}(1)}\]</span></p>
+<p><span class="math display">\[\beta_{0[i]} \sim \operatorname{Normal}({\bar \mu},  \sigma_0)\]</span> <span class="math display">\[{\bar \mu}  \sim {\operatorname{Normal}(0.2, 0.1)}\]</span> <span class="math display">\[\sigma_0 \sim {\operatorname{Half-Normal}(0, 0.1)}\]</span> <span class="math display">\[\sigma \sim {\operatorname{Exponential}(10)}\]</span></p>
+<p>This is the model we fit as <code>mlm.1</code>.</p>
 </section>
 <section id="hyperprior" class="slide level2">
 <h2>Hyperprior</h2>
@@ -600,28 +583,28 @@
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a aria-label="1"></a>lab <span class="ot">&lt;-</span> <span class="fu">tribble</span>(<span class="sc">~</span>x, <span class="sc">~</span>y, <span class="sc">~</span>label,</span>
-<span id="cb10-2"><a aria-label="2"></a>  <span class="fl">1.2</span>, <span class="dv">3</span>, <span class="st">"bar(mu) %~% Normal(0, 1.5)"</span>,</span>
-<span id="cb10-3"><a aria-label="3"></a>  <span class="fl">3.2</span>, <span class="dv">3</span>, <span class="st">"sigma[0] %~% HalfNormal(0, 1.5)"</span>,</span>
-<span id="cb10-4"><a aria-label="4"></a>  <span class="fl">2.2</span>, <span class="dv">2</span>, <span class="st">"beta[0*'['*i*']'] %~% Normal(bar(mu), sigma[0])"</span>,</span>
-<span id="cb10-5"><a aria-label="5"></a>  <span class="fl">4.2</span>, <span class="dv">2</span>, <span class="st">"sigma %~% Exponential(1)"</span>,</span>
-<span id="cb10-6"><a aria-label="6"></a>  <span class="fl">3.2</span>, <span class="dv">1</span>, <span class="st">"CON[ij] %~% Normal(beta[0*'['*i*']'], sigma)"</span>)</span>
-<span id="cb10-7"><a aria-label="7"></a>arrows <span class="ot">&lt;-</span> <span class="fu">tribble</span>(<span class="sc">~</span>x, <span class="sc">~</span>y, <span class="sc">~</span>xend, <span class="sc">~</span>yend,</span>
-<span id="cb10-8"><a aria-label="8"></a>  <span class="fl">1.3</span>, <span class="fl">2.8</span>, <span class="fl">2.0</span>, <span class="fl">2.2</span>,   <span class="fl">3.1</span>, <span class="fl">2.8</span>, <span class="fl">2.4</span>, <span class="fl">2.2</span>,</span>
-<span id="cb10-9"><a aria-label="9"></a>  <span class="fl">2.4</span>, <span class="fl">1.8</span>, <span class="fl">3.0</span>, <span class="fl">1.2</span>,   <span class="fl">4.0</span>, <span class="fl">1.8</span>, <span class="fl">3.4</span>, <span class="fl">1.2</span>)</span>
-<span id="cb10-10"><a aria-label="10"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
-<span id="cb10-11"><a aria-label="11"></a>  <span class="fu">geom_segment</span>(<span class="at">data =</span> arrows, <span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">y =</span> y, <span class="at">xend =</span> xend, <span class="at">yend =</span> yend),</span>
-<span id="cb10-12"><a aria-label="12"></a>               <span class="at">arrow =</span> <span class="fu">arrow</span>(<span class="at">length =</span> <span class="fu">unit</span>(<span class="fl">0.25</span>, <span class="st">"cm"</span>), <span class="at">type =</span> <span class="st">"closed"</span>), <span class="at">colour =</span> <span class="st">"grey50"</span>) <span class="sc">+</span></span>
-<span id="cb10-13"><a aria-label="13"></a>  <span class="fu">geom_label</span>(<span class="at">data =</span> lab, <span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">y =</span> y, <span class="at">label =</span> label), <span class="at">parse =</span> <span class="cn">TRUE</span>, <span class="at">size =</span> <span class="fl">5.5</span>,</span>
-<span id="cb10-14"><a aria-label="14"></a>             <span class="at">label.padding =</span> <span class="fu">unit</span>(<span class="fl">0.4</span>, <span class="st">"lines"</span>), <span class="at">fill =</span> <span class="st">"grey95"</span>) <span class="sc">+</span></span>
-<span id="cb10-15"><a aria-label="15"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="sc">-</span><span class="fl">0.2</span>, <span class="at">y =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">2</span>, <span class="dv">1</span>), <span class="at">label =</span> <span class="fu">c</span>(<span class="st">"hyperpriors"</span>, <span class="st">"one per person"</span>, <span class="st">"one per observation"</span>),</span>
-<span id="cb10-16"><a aria-label="16"></a>           <span class="at">hjust =</span> <span class="dv">0</span>, <span class="at">colour =</span> <span class="st">"grey40"</span>, <span class="at">size =</span> <span class="fl">4.5</span>) <span class="sc">+</span></span>
-<span id="cb10-17"><a aria-label="17"></a>  <span class="fu">xlim</span>(<span class="sc">-</span><span class="fl">0.2</span>, <span class="dv">5</span>) <span class="sc">+</span> <span class="fu">ylim</span>(<span class="fl">0.6</span>, <span class="fl">3.4</span>) <span class="sc">+</span> <span class="fu">theme_void</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a aria-label="1"></a>lab <span class="ot">&lt;-</span> <span class="fu">tribble</span>(<span class="sc">~</span>x, <span class="sc">~</span>y, <span class="sc">~</span>label,</span>
+<span id="cb15-2"><a aria-label="2"></a>  <span class="fl">1.2</span>, <span class="dv">3</span>, <span class="st">"bar(mu) %~% Normal(0.2, 0.1)"</span>,</span>
+<span id="cb15-3"><a aria-label="3"></a>  <span class="fl">3.2</span>, <span class="dv">3</span>, <span class="st">"sigma[0] %~% HalfNormal(0, 0.1)"</span>,</span>
+<span id="cb15-4"><a aria-label="4"></a>  <span class="fl">2.2</span>, <span class="dv">2</span>, <span class="st">"beta[0*'['*i*']'] %~% Normal(bar(mu), sigma[0])"</span>,</span>
+<span id="cb15-5"><a aria-label="5"></a>  <span class="fl">4.2</span>, <span class="dv">2</span>, <span class="st">"sigma %~% Exponential(10)"</span>,</span>
+<span id="cb15-6"><a aria-label="6"></a>  <span class="fl">3.2</span>, <span class="dv">1</span>, <span class="st">"CON[ij] %~% Normal(beta[0*'['*i*']'], sigma)"</span>)</span>
+<span id="cb15-7"><a aria-label="7"></a>arrows <span class="ot">&lt;-</span> <span class="fu">tribble</span>(<span class="sc">~</span>x, <span class="sc">~</span>y, <span class="sc">~</span>xend, <span class="sc">~</span>yend,</span>
+<span id="cb15-8"><a aria-label="8"></a>  <span class="fl">1.3</span>, <span class="fl">2.8</span>, <span class="fl">2.0</span>, <span class="fl">2.2</span>,   <span class="fl">3.1</span>, <span class="fl">2.8</span>, <span class="fl">2.4</span>, <span class="fl">2.2</span>,</span>
+<span id="cb15-9"><a aria-label="9"></a>  <span class="fl">2.4</span>, <span class="fl">1.8</span>, <span class="fl">3.0</span>, <span class="fl">1.2</span>,   <span class="fl">4.0</span>, <span class="fl">1.8</span>, <span class="fl">3.4</span>, <span class="fl">1.2</span>)</span>
+<span id="cb15-10"><a aria-label="10"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb15-11"><a aria-label="11"></a>  <span class="fu">geom_segment</span>(<span class="at">data =</span> arrows, <span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">y =</span> y, <span class="at">xend =</span> xend, <span class="at">yend =</span> yend),</span>
+<span id="cb15-12"><a aria-label="12"></a>               <span class="at">arrow =</span> <span class="fu">arrow</span>(<span class="at">length =</span> <span class="fu">unit</span>(<span class="fl">0.25</span>, <span class="st">"cm"</span>), <span class="at">type =</span> <span class="st">"closed"</span>), <span class="at">colour =</span> <span class="st">"grey50"</span>) <span class="sc">+</span></span>
+<span id="cb15-13"><a aria-label="13"></a>  <span class="fu">geom_label</span>(<span class="at">data =</span> lab, <span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">y =</span> y, <span class="at">label =</span> label), <span class="at">parse =</span> <span class="cn">TRUE</span>, <span class="at">size =</span> <span class="fl">5.5</span>,</span>
+<span id="cb15-14"><a aria-label="14"></a>             <span class="at">label.padding =</span> <span class="fu">unit</span>(<span class="fl">0.4</span>, <span class="st">"lines"</span>), <span class="at">fill =</span> <span class="st">"grey95"</span>) <span class="sc">+</span></span>
+<span id="cb15-15"><a aria-label="15"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="sc">-</span><span class="fl">0.2</span>, <span class="at">y =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">2</span>, <span class="dv">1</span>), <span class="at">label =</span> <span class="fu">c</span>(<span class="st">"hyperpriors"</span>, <span class="st">"one per person"</span>, <span class="st">"one per observation"</span>),</span>
+<span id="cb15-16"><a aria-label="16"></a>           <span class="at">hjust =</span> <span class="dv">0</span>, <span class="at">colour =</span> <span class="st">"grey40"</span>, <span class="at">size =</span> <span class="fl">4.5</span>) <span class="sc">+</span></span>
+<span id="cb15-17"><a aria-label="17"></a>  <span class="fu">xlim</span>(<span class="sc">-</span><span class="fl">0.2</span>, <span class="dv">5</span>) <span class="sc">+</span> <span class="fu">ylim</span>(<span class="fl">0.6</span>, <span class="fl">3.4</span>) <span class="sc">+</span> <span class="fu">theme_void</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
 <figure>
-<p><img data-src="mlm-9_files/figure-revealjs/unnamed-chunk-15-1.png" style="width:80.0%"></p>
+<p><img data-src="mlm-9_files/figure-revealjs/unnamed-chunk-19-1.png" style="width:80.0%"></p>
 </figure>
 </div>
 </div>
@@ -636,76 +619,6 @@
 </ol>
 <p>Fixed effect describes #1 whereas random effects describe #2</p>
 </section>
-<section id="the-empty-model-in-brms" class="slide level2 smaller">
-<h2>The empty model in brms</h2>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a aria-label="1"></a><span class="fu">library</span>(brms)</span>
-<span id="cb11-2"><a aria-label="2"></a>mlm<span class="fl">.1</span> <span class="ot">&lt;-</span></span>
-<span id="cb11-3"><a aria-label="3"></a>  <span class="fu">brm</span>(<span class="at">family =</span> gaussian,</span>
-<span id="cb11-4"><a aria-label="4"></a>      CON <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> ID),</span>
-<span id="cb11-5"><a aria-label="5"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="fl">1.5</span>), <span class="at">class =</span> Intercept),</span>
-<span id="cb11-6"><a aria-label="6"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="fl">1.5</span>), <span class="at">class =</span> sd),</span>
-<span id="cb11-7"><a aria-label="7"></a>                <span class="fu">prior</span>(<span class="fu">exponential</span>(<span class="dv">1</span>), <span class="at">class =</span> sigma)),</span>
-<span id="cb11-8"><a aria-label="8"></a>      <span class="at">iter =</span> <span class="dv">5000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">chains =</span> <span class="dv">4</span>, <span class="at">cores =</span> <span class="dv">4</span>,</span>
-<span id="cb11-9"><a aria-label="9"></a>      <span class="at">sample_prior =</span> <span class="st">"yes"</span>,</span>
-<span id="cb11-10"><a aria-label="10"></a>      <span class="at">data =</span> mlm,</span>
-<span id="cb11-11"><a aria-label="11"></a>      <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
-<span id="cb11-12"><a aria-label="12"></a>      <span class="at">file =</span> <span class="st">"mlm.1"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p>Three priors: the <code>Intercept</code> prior is for the average person (<span class="math inline">\(\bar\mu\)</span>), the <code>sd</code> prior is for how much people differ from that average (<span class="math inline">\(\sigma_0\)</span>), and <code>sigma</code> is the scan-to-scan noise within a person.</p>
-</section>
-<section id="mlm.1-summary" class="slide level2">
-<h2><code>mlm.1</code> summary</h2>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a aria-label="1"></a><span class="fu">summary</span>(mlm<span class="fl">.1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code> Family: gaussian 
-  Links: mu = identity 
-Formula: CON ~ 1 + (1 | ID) 
-   Data: mlm (Number of observations: 225) 
-  Draws: 4 chains, each with iter = 5000; warmup = 1000; thin = 1;
-         total post-warmup draws = 16000
-
-Multilevel Hyperparameters:
-~ID (Number of levels: 91) 
-              Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-sd(Intercept)     0.06      0.01     0.05     0.07 1.00     5761     8415
-
-Regression Coefficients:
-          Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-Intercept     0.19      0.01     0.18     0.20 1.00     8349    10553
-
-Further Distributional Parameters:
-      Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-sigma     0.05      0.00     0.04     0.05 1.00    10318    12737
-
-Draws were sampled using sample(hmc). For each parameter, Bulk_ESS
-and Tail_ESS are effective sample size measures, and Rhat is the potential
-scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
-</div>
-</div>
-</section>
-<section id="how-much-is-between-people-the-icc" class="slide level2 smaller">
-<h2>How much is between people? The ICC</h2>
-<p>The intraclass correlation: the share of the total variance that is between people,</p>
-<p><span class="math display">\[\text{ICC} = \frac{\sigma_0^2}{\sigma_0^2 + \sigma^2}\]</span></p>
-<p>Compute it <strong>draw by draw</strong>, so it gets its own posterior:</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a aria-label="1"></a><span class="fu">as_draws_df</span>(mlm<span class="fl">.1</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb14-2"><a aria-label="2"></a>  <span class="fu">mutate</span>(<span class="at">icc =</span> sd_ID__Intercept<span class="sc">^</span><span class="dv">2</span> <span class="sc">/</span> (sd_ID__Intercept<span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span> sigma<span class="sc">^</span><span class="dv">2</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb14-3"><a aria-label="3"></a>  <span class="fu">median_qi</span>(icc)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 1 × 6
-    icc .lower .upper .width .point .interval
-  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;    
-1 0.588  0.461  0.696   0.95 median qi       </code></pre>
-</div>
-</div>
-</section>
-<section id="reading-the-icc" class="slide level2">
-<h2>Reading the ICC</h2>
-<p>About 59% of the variation in CON is stable differences between people; about 41% is scan-to-scan change within a person. Equivalently, two scans from the same person correlate about 0.59.</p>
-</section>
 <section id="a-single-level-model" class="slide level2">
 <h2>A single-level model</h2>
 <p>Notice we have one less parameter we are estimating.</p>
@@ -713,13 +626,13 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a aria-label="1"></a>mlm<span class="fl">.2</span> <span class="ot">&lt;-</span></span>
 <span id="cb16-2"><a aria-label="2"></a>  <span class="fu">brm</span>(<span class="at">family =</span> gaussian,</span>
 <span id="cb16-3"><a aria-label="3"></a>      CON <span class="sc">~</span> <span class="dv">1</span> ,</span>
-<span id="cb16-4"><a aria-label="4"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="fl">1.5</span>), <span class="at">class =</span> Intercept),</span>
-<span id="cb16-5"><a aria-label="5"></a>                <span class="fu">prior</span>(<span class="fu">exponential</span>(<span class="dv">1</span>), <span class="at">class =</span> sigma)),</span>
+<span id="cb16-4"><a aria-label="4"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="fl">0.2</span>, <span class="fl">0.1</span>), <span class="at">class =</span> Intercept),</span>
+<span id="cb16-5"><a aria-label="5"></a>                <span class="fu">prior</span>(<span class="fu">exponential</span>(<span class="dv">10</span>), <span class="at">class =</span> sigma)),</span>
 <span id="cb16-6"><a aria-label="6"></a>      <span class="at">iter =</span> <span class="dv">5000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">chains =</span> <span class="dv">4</span>, <span class="at">cores =</span> <span class="dv">4</span>,</span>
 <span id="cb16-7"><a aria-label="7"></a>      <span class="at">sample_prior =</span> <span class="st">"yes"</span>,</span>
 <span id="cb16-8"><a aria-label="8"></a>      <span class="at">data =</span> mlm,</span>
 <span id="cb16-9"><a aria-label="9"></a>      <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
-<span id="cb16-10"><a aria-label="10"></a>      <span class="at">file =</span> <span class="st">"mlm.2"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb16-10"><a aria-label="10"></a>      <span class="at">file =</span> <span class="st">"mlm.2b"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="mlm.2-summary" class="slide level2">
@@ -736,11 +649,11 @@ Formula: CON ~ 1
 
 Regression Coefficients:
           Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-Intercept     0.19      0.00     0.18     0.20 1.00    16589    10784
+Intercept     0.19      0.00     0.18     0.20 1.00    15992    11017
 
 Further Distributional Parameters:
       Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-sigma     0.07      0.00     0.07     0.08 1.00    10191     9816
+sigma     0.07      0.00     0.07     0.08 1.00    10466     9696
 
 Draws were sampled using sample(hmc). For each parameter, Bulk_ESS
 and Tail_ESS are effective sample size measures, and Rhat is the potential
@@ -756,8 +669,8 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <span id="cb19-3"><a aria-label="3"></a><span class="fu">loo_compare</span>(mlm<span class="fl">.1</span>, mlm<span class="fl">.2</span>, <span class="at">criterion =</span> <span class="st">"loo"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> model elpd_diff se_diff p_worse diag_diff      diag_elpd
- mlm.1       0.0     0.0      NA           7 k_psis &gt; 0.7
- mlm.2     -58.2     8.9    1.00                         </code></pre>
+ mlm.1       0.0     0.0      NA           4 k_psis &gt; 0.7
+ mlm.2     -58.4     8.8    1.00                         </code></pre>
 </div>
 </div>
 <p>The MLM wins easily. Note the high-Pareto-<em>k</em> flag (Lecture 6): with only 2–4 scans per person, leaving one scan out moves that person’s intercept a lot. For a final answer, use <code>moment_match = TRUE</code> or K-fold; here the gap is far too big for that to change the conclusion.</p>
@@ -765,13 +678,9 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <section id="same-intercept-different-meaning" class="slide level2 smaller">
 <h2>Same intercept, different meaning</h2>
 <ul>
-<li><p>Notice how the intercept estimate is about the same in each of these models, but the MLM’s is less certain (posterior SD 0.0068 vs.&nbsp;0.0049): it knows the 91 people differ, so it is less sure about the average person. Conceptually they are different too. The intercept is directly modeled in the standard regression. In the MLM it is better thought of as the map of the distribution of random effects.</p></li>
+<li><p>Notice how the intercept estimate is about the same in each of these models, but the MLM’s is less certain (posterior SD 0.0068 vs.&nbsp;0.0050): it knows the 91 people differ, so it is less sure about the average person. Conceptually they are different too. The intercept is directly modeled in the standard regression. In the MLM it is better thought of as the map of the distribution of random effects.</p></li>
 <li><p>The population is larger than what we have. This is true for almost anything we do. We sample paradigms, we sample people, we usually never have a full population under our study. Don’t we want to model that variation?</p></li>
 </ul>
-</section>
-<section id="the-empty-model-formally" class="slide level2 smaller">
-<h2>The empty model, formally</h2>
-<p><span class="math display">\[\text{y}_{ij}  \sim \operatorname{Normal}(\mu_{ij}, \sigma)\]</span> <span class="math display">\[\mu_{ij}  = \beta_{0[i]}\]</span> The [i] subscript indicates we have varying intercepts that vary over individual i. Each parameter estimated needs a prior. <span class="math display">\[\beta_{0[i]} \sim \operatorname{Normal}({\bar \mu},  \sigma_0)\]</span> <span class="math display">\[{\bar \mu}  \sim {\operatorname{Normal}(0, 1.5)}\]</span> <span class="math display">\[\sigma_0 \sim {\operatorname{Half-Normal}(0, 1.5)}\]</span> <span class="math display">\[\sigma \sim {\operatorname{Exponential}(1)}\]</span></p>
 </section>
 <section id="an-index-model-one-mean-per-person" class="slide level2 smaller">
 <h2>An index model: one mean per person</h2>
@@ -787,11 +696,14 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <span id="cb21-8"><a aria-label="8"></a>      <span class="at">file =</span> <span class="st">"mlm.id"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
-<section id="fixed-effects-vs-random-effects" class="slide level2">
+<section id="fixed-effects-vs-random-effects" class="slide level2 smaller">
 <h2>Fixed effects vs random effects</h2>
-<p>This is similar to a “fixed effect” model, something that is popular in econometrics. It, in contrast to the random effect model, does not model random effects.</p>
-<p>Why do we want to model random effects? Variance decomposition which leads to increased power.</p>
-<p>Also, 1. we can include group/cluster level predictors, which fixed effect cannot. 2. it makes an assumption about whether the clusters are random or not. Psych they are almost always random (people, site, orgs) whereas for econometrics they aren’t (country, state).</p>
+<p>The index model is what economists call a <strong>fixed effects</strong> model: one mean per person, nothing shared across people.</p>
+<ul>
+<li><strong>Why economists like it:</strong> comparing each person only to themselves controls for <em>every</em> stable person-level confounder, measured or not. An MLM gets the same protection by person-mean centering its predictors (within vs.&nbsp;between effects, next lecture).</li>
+<li><strong>Why we usually prefer random effects:</strong> they split the variance into between- and within-person parts, they pool (better predictions for people with little data), and they allow person-level predictors, which a fixed effects model can’t estimate.</li>
+<li>In psychology the clusters are almost always a sample from a bigger population (people, sites, labs), which is exactly what random effects assume.</li>
+</ul>
 </section>
 <section id="mlm.id-summary" class="slide level2">
 <h2><code>mlm.id</code> summary</h2>
@@ -929,215 +841,57 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <p>Setting SD to zero says everyone is the same. Infinite SD suggests no pooling (and major differences in pop values). In the middle gives you partial pooling.</p>
 <p>We use our prior of <span class="math inline">\(\sigma_0\)</span> plus our data to get an estimate of each <span class="math inline">\(\beta_{0[i]}\)</span>. This is how we accurately partial pool.</p>
 </section>
-<section id="partial-poolingshrinkage-1" class="slide level2">
-<h2>Partial pooling/Shrinkage</h2>
-<p><span class="math display">\[\text{y}_{ij}  \sim \operatorname{Normal}(\mu_{ij}, \sigma)\]</span></p>
-<p><span class="math display">\[\mu_{ij}  = \beta_{0[i]}\]</span></p>
-<p><span class="math display">\[\beta_{0[i]} \sim \operatorname{Normal}({\bar \mu},  \sigma_0)\]</span> <span class="math display">\[{\bar \mu}  \sim {\operatorname{Normal}(0, 1.5)}\]</span></p>
-<p><span class="math display">\[\sigma_0 \sim {\operatorname{Half-Normal}(0, 1.5)}\]</span></p>
-<p><span class="math display">\[\sigma \sim {\operatorname{Exponential}(1)}\]</span></p>
-</section>
-<section id="working-with-the-mlm-posterior" class="slide level2">
-<h2>Working with the MLM posterior</h2>
+<section id="pulling-out-the-random-effects" class="slide level2 smaller">
+<h2>Pulling out the random effects</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a aria-label="1"></a><span class="fu">summary</span>(mlm<span class="fl">.1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code> Family: gaussian 
-  Links: mu = identity 
-Formula: CON ~ 1 + (1 | ID) 
-   Data: mlm (Number of observations: 225) 
-  Draws: 4 chains, each with iter = 5000; warmup = 1000; thin = 1;
-         total post-warmup draws = 16000
-
-Multilevel Hyperparameters:
-~ID (Number of levels: 91) 
-              Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-sd(Intercept)     0.06      0.01     0.05     0.07 1.00     5761     8415
-
-Regression Coefficients:
-          Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-Intercept     0.19      0.01     0.18     0.20 1.00     8349    10553
-
-Further Distributional Parameters:
-      Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-sigma     0.05      0.00     0.04     0.05 1.00    10318    12737
-
-Draws were sampled using sample(hmc). For each parameter, Bulk_ESS
-and Tail_ESS are effective sample size measures, and Rhat is the potential
-scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
-</div>
-</div>
-</section>
-<section id="variables-in-the-posterior" class="slide level2">
-<h2>Variables in the posterior</h2>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a aria-label="1"></a><span class="fu">library</span>(tidybayes)</span>
-<span id="cb28-2"><a aria-label="2"></a><span class="fu">get_variables</span>(mlm<span class="fl">.1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>  [1] "b_Intercept"         "sd_ID__Intercept"    "sigma"              
-  [4] "Intercept"           "r_ID[6,Intercept]"   "r_ID[29,Intercept]" 
-  [7] "r_ID[34,Intercept]"  "r_ID[36,Intercept]"  "r_ID[37,Intercept]" 
- [10] "r_ID[48,Intercept]"  "r_ID[53,Intercept]"  "r_ID[54,Intercept]" 
- [13] "r_ID[58,Intercept]"  "r_ID[61,Intercept]"  "r_ID[66,Intercept]" 
- [16] "r_ID[67,Intercept]"  "r_ID[69,Intercept]"  "r_ID[71,Intercept]" 
- [19] "r_ID[74,Intercept]"  "r_ID[75,Intercept]"  "r_ID[76,Intercept]" 
- [22] "r_ID[78,Intercept]"  "r_ID[79,Intercept]"  "r_ID[80,Intercept]" 
- [25] "r_ID[81,Intercept]"  "r_ID[82,Intercept]"  "r_ID[85,Intercept]" 
- [28] "r_ID[86,Intercept]"  "r_ID[87,Intercept]"  "r_ID[89,Intercept]" 
- [31] "r_ID[91,Intercept]"  "r_ID[92,Intercept]"  "r_ID[93,Intercept]" 
- [34] "r_ID[94,Intercept]"  "r_ID[96,Intercept]"  "r_ID[97,Intercept]" 
- [37] "r_ID[98,Intercept]"  "r_ID[99,Intercept]"  "r_ID[101,Intercept]"
- [40] "r_ID[102,Intercept]" "r_ID[103,Intercept]" "r_ID[104,Intercept]"
- [43] "r_ID[105,Intercept]" "r_ID[106,Intercept]" "r_ID[110,Intercept]"
- [46] "r_ID[112,Intercept]" "r_ID[114,Intercept]" "r_ID[115,Intercept]"
- [49] "r_ID[116,Intercept]" "r_ID[120,Intercept]" "r_ID[122,Intercept]"
- [52] "r_ID[125,Intercept]" "r_ID[127,Intercept]" "r_ID[129,Intercept]"
- [55] "r_ID[135,Intercept]" "r_ID[136,Intercept]" "r_ID[137,Intercept]"
- [58] "r_ID[140,Intercept]" "r_ID[141,Intercept]" "r_ID[142,Intercept]"
- [61] "r_ID[143,Intercept]" "r_ID[144,Intercept]" "r_ID[146,Intercept]"
- [64] "r_ID[149,Intercept]" "r_ID[150,Intercept]" "r_ID[152,Intercept]"
- [67] "r_ID[153,Intercept]" "r_ID[155,Intercept]" "r_ID[156,Intercept]"
- [70] "r_ID[159,Intercept]" "r_ID[160,Intercept]" "r_ID[162,Intercept]"
- [73] "r_ID[163,Intercept]" "r_ID[165,Intercept]" "r_ID[167,Intercept]"
- [76] "r_ID[169,Intercept]" "r_ID[171,Intercept]" "r_ID[174,Intercept]"
- [79] "r_ID[182,Intercept]" "r_ID[187,Intercept]" "r_ID[189,Intercept]"
- [82] "r_ID[190,Intercept]" "r_ID[193,Intercept]" "r_ID[194,Intercept]"
- [85] "r_ID[201,Intercept]" "r_ID[204,Intercept]" "r_ID[205,Intercept]"
- [88] "r_ID[208,Intercept]" "r_ID[209,Intercept]" "r_ID[211,Intercept]"
- [91] "r_ID[214,Intercept]" "r_ID[219,Intercept]" "r_ID[222,Intercept]"
- [94] "r_ID[223,Intercept]" "r_ID[229,Intercept]" "prior_Intercept"    
- [97] "prior_sigma"         "prior_sd_ID"         "lprior"             
-[100] "lp__"                "accept_stat__"       "treedepth__"        
-[103] "stepsize__"          "divergent__"         "n_leapfrog__"       
-[106] "energy__"           </code></pre>
-</div>
-</div>
-</section>
-<section id="random-effects-for-each-person" class="slide level2">
-<h2>Random effects for each person</h2>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a aria-label="1"></a>mlm<span class="fl">.1</span> <span class="sc">%&gt;%</span></span>
-<span id="cb30-2"><a aria-label="2"></a>  <span class="fu">spread_draws</span>(r_ID[ID, term])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 1,456,000 × 6
-# Groups:   ID, term [91]
-      ID term          r_ID .chain .iteration .draw
-   &lt;int&gt; &lt;chr&gt;        &lt;dbl&gt;  &lt;int&gt;      &lt;int&gt; &lt;int&gt;
- 1     6 Intercept  0.0133       1          1     1
- 2     6 Intercept -0.00438      1          2     2
- 3     6 Intercept  0.0214       1          3     3
- 4     6 Intercept  0.00738      1          4     4
- 5     6 Intercept -0.0173       1          5     5
- 6     6 Intercept -0.0386       1          6     6
- 7     6 Intercept  0.0233       1          7     7
- 8     6 Intercept -0.0351       1          8     8
- 9     6 Intercept  0.0346       1          9     9
-10     6 Intercept -0.0349       1         10    10
-# ℹ 1,455,990 more rows</code></pre>
-</div>
-</div>
-<p>16,000 draws (4 chains × 4,000 post-warmup iterations) × 91 people</p>
-</section>
-<section id="dropping-the-term-index" class="slide level2">
-<h2>Dropping the term index</h2>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a aria-label="1"></a>mlm<span class="fl">.1</span> <span class="sc">%&gt;%</span></span>
-<span id="cb32-2"><a aria-label="2"></a>  <span class="fu">spread_draws</span>(r_ID[ID])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 1,456,000 × 5
-# Groups:   ID [91]
-      ID     r_ID .chain .iteration .draw
-   &lt;int&gt;    &lt;dbl&gt;  &lt;int&gt;      &lt;int&gt; &lt;int&gt;
- 1     6  0.0133       1          1     1
- 2     6 -0.00438      1          2     2
- 3     6  0.0214       1          3     3
- 4     6  0.00738      1          4     4
- 5     6 -0.0173       1          5     5
- 6     6 -0.0386       1          6     6
- 7     6  0.0233       1          7     7
- 8     6 -0.0351       1          8     8
- 9     6  0.0346       1          9     9
-10     6 -0.0349       1         10    10
-# ℹ 1,455,990 more rows</code></pre>
-</div>
-</div>
-</section>
-<section id="summarizing-the-random-effects" class="slide level2">
-<h2>Summarizing the random effects</h2>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a aria-label="1"></a>mlm<span class="fl">.1</span> <span class="sc">%&gt;%</span></span>
-<span id="cb34-2"><a aria-label="2"></a>  <span class="fu">spread_draws</span>(r_ID[ID, term]) <span class="sc">%&gt;%</span></span>
-<span id="cb34-3"><a aria-label="3"></a> <span class="fu">median_qi</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a aria-label="1"></a>mlm<span class="fl">.1</span> <span class="sc">%&gt;%</span></span>
+<span id="cb26-2"><a aria-label="2"></a>  <span class="fu">spread_draws</span>(r_ID[ID, term]) <span class="sc">%&gt;%</span>   <span class="co"># one row per draw per person: 16,000 x 91</span></span>
+<span id="cb26-3"><a aria-label="3"></a>  <span class="fu">median_qi</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 91 × 8
       ID term           r_ID   .lower   .upper .width .point .interval
    &lt;int&gt; &lt;chr&gt;         &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;    
- 1     6 Intercept  0.000562 -0.0491   0.0504    0.95 median qi       
- 2    29 Intercept -0.0479   -0.106    0.0101    0.95 median qi       
- 3    34 Intercept -0.0614   -0.118   -0.00512   0.95 median qi       
- 4    36 Intercept -0.0219   -0.0784   0.0347    0.95 median qi       
- 5    37 Intercept -0.00311  -0.0523   0.0464    0.95 median qi       
- 6    48 Intercept  0.0238   -0.0266   0.0727    0.95 median qi       
- 7    53 Intercept  0.000709 -0.0557   0.0567    0.95 median qi       
- 8    54 Intercept  0.0454   -0.00412  0.0944    0.95 median qi       
- 9    58 Intercept  0.0369   -0.0122   0.0861    0.95 median qi       
-10    61 Intercept -0.0749   -0.133   -0.0166    0.95 median qi       
+ 1     6 Intercept  0.000237 -0.0488   0.0487    0.95 median qi       
+ 2    29 Intercept -0.0480   -0.105    0.00891   0.95 median qi       
+ 3    34 Intercept -0.0610   -0.119   -0.00371   0.95 median qi       
+ 4    36 Intercept -0.0223   -0.0796   0.0362    0.95 median qi       
+ 5    37 Intercept -0.00326  -0.0520   0.0459    0.95 median qi       
+ 6    48 Intercept  0.0235   -0.0271   0.0730    0.95 median qi       
+ 7    53 Intercept  0.000637 -0.0562   0.0570    0.95 median qi       
+ 8    54 Intercept  0.0452   -0.00416  0.0934    0.95 median qi       
+ 9    58 Intercept  0.0368   -0.0124   0.0865    0.95 median qi       
+10    61 Intercept -0.0747   -0.131   -0.0162    0.95 median qi       
 # ℹ 81 more rows</code></pre>
 </div>
 </div>
+<ul>
+<li><code>r_ID</code> are the <span class="math inline">\(U_{0i}\)</span>: each person’s <strong>deviation</strong> from the fixed intercept, in CON units (like lme4’s <code>ranef()</code>). <code>get_variables(mlm.1)</code> lists everything in the posterior.</li>
+<li><code>[ID, term]</code> names the indices: person, and which effect (here only <code>Intercept</code>).</li>
+</ul>
 </section>
-<section id="random-effects-are-deviations" class="slide level2">
-<h2>Random effects are deviations</h2>
-<p>Think back to {lme4} and <code>ranef</code> <code>coef</code> and <code>fixef</code> functions.</p>
-<p>What do each of these describe?</p>
-<p>What scale is our random effect (typically) in?</p>
-</section>
-<section id="adding-the-fixed-effect" class="slide level2">
-<h2>Adding the fixed effect</h2>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a aria-label="1"></a>mlm<span class="fl">.1</span> <span class="sc">%&gt;%</span></span>
-<span id="cb36-2"><a aria-label="2"></a>  <span class="fu">spread_draws</span>(b_Intercept, r_ID[ID, term])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 1,456,000 × 7
-# Groups:   ID, term [91]
-   .chain .iteration .draw b_Intercept    ID term          r_ID
-    &lt;int&gt;      &lt;int&gt; &lt;int&gt;       &lt;dbl&gt; &lt;int&gt; &lt;chr&gt;        &lt;dbl&gt;
- 1      1          1     1       0.189     6 Intercept  0.0133 
- 2      1          1     1       0.189    29 Intercept -0.0511 
- 3      1          1     1       0.189    34 Intercept -0.0897 
- 4      1          1     1       0.189    36 Intercept -0.0200 
- 5      1          1     1       0.189    37 Intercept  0.0412 
- 6      1          1     1       0.189    48 Intercept  0.0104 
- 7      1          1     1       0.189    53 Intercept  0.0844 
- 8      1          1     1       0.189    54 Intercept -0.00270
- 9      1          1     1       0.189    58 Intercept  0.0389 
-10      1          1     1       0.189    61 Intercept -0.0712 
-# ℹ 1,455,990 more rows</code></pre>
-</div>
-</div>
-</section>
-<section id="each-persons-intercept" class="slide level2">
+<section id="each-persons-intercept" class="slide level2 smaller">
 <h2>Each person’s intercept</h2>
+<p>The fixed effect plus each person’s deviation (like lme4’s <code>coef()</code>), computed draw by draw:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a aria-label="1"></a>mlm<span class="fl">.1</span> <span class="sc">%&gt;%</span></span>
-<span id="cb38-2"><a aria-label="2"></a>  <span class="fu">spread_draws</span>(b_Intercept, r_ID[ID, term]) <span class="sc">%&gt;%</span></span>
-<span id="cb38-3"><a aria-label="3"></a>   <span class="fu">mutate</span>(<span class="at">person_I =</span> b_Intercept <span class="sc">+</span> r_ID)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a aria-label="1"></a>mlm<span class="fl">.1</span> <span class="sc">%&gt;%</span></span>
+<span id="cb28-2"><a aria-label="2"></a>  <span class="fu">spread_draws</span>(b_Intercept, r_ID[ID, term]) <span class="sc">%&gt;%</span></span>
+<span id="cb28-3"><a aria-label="3"></a>  <span class="fu">mutate</span>(<span class="at">person_I =</span> b_Intercept <span class="sc">+</span> r_ID) <span class="sc">%&gt;%</span></span>
+<span id="cb28-4"><a aria-label="4"></a>  <span class="fu">median_qi</span>(person_I)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 1,456,000 × 8
-# Groups:   ID, term [91]
-   .chain .iteration .draw b_Intercept    ID term          r_ID person_I
-    &lt;int&gt;      &lt;int&gt; &lt;int&gt;       &lt;dbl&gt; &lt;int&gt; &lt;chr&gt;        &lt;dbl&gt;    &lt;dbl&gt;
- 1      1          1     1       0.189     6 Intercept  0.0133    0.203 
- 2      1          1     1       0.189    29 Intercept -0.0511    0.138 
- 3      1          1     1       0.189    34 Intercept -0.0897    0.0997
- 4      1          1     1       0.189    36 Intercept -0.0200    0.169 
- 5      1          1     1       0.189    37 Intercept  0.0412    0.230 
- 6      1          1     1       0.189    48 Intercept  0.0104    0.200 
- 7      1          1     1       0.189    53 Intercept  0.0844    0.274 
- 8      1          1     1       0.189    54 Intercept -0.00270   0.187 
- 9      1          1     1       0.189    58 Intercept  0.0389    0.228 
-10      1          1     1       0.189    61 Intercept -0.0712    0.118 
-# ℹ 1,455,990 more rows</code></pre>
+<pre><code># A tibble: 91 × 8
+      ID term      person_I .lower .upper .width .point .interval
+   &lt;int&gt; &lt;chr&gt;        &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;    
+ 1     6 Intercept    0.190 0.141   0.237   0.95 median qi       
+ 2    29 Intercept    0.141 0.0858  0.198   0.95 median qi       
+ 3    34 Intercept    0.128 0.0704  0.185   0.95 median qi       
+ 4    36 Intercept    0.167 0.111   0.225   0.95 median qi       
+ 5    37 Intercept    0.186 0.138   0.234   0.95 median qi       
+ 6    48 Intercept    0.213 0.164   0.261   0.95 median qi       
+ 7    53 Intercept    0.190 0.134   0.246   0.95 median qi       
+ 8    54 Intercept    0.235 0.186   0.282   0.95 median qi       
+ 9    58 Intercept    0.226 0.178   0.275   0.95 median qi       
+10    61 Intercept    0.115 0.0586  0.172   0.95 median qi       
+# ℹ 81 more rows</code></pre>
 </div>
 </div>
 </section>
@@ -1146,70 +900,80 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a aria-label="1"></a><span class="co"># for a paper: add ggsave("shrinkage.png", width = 6.5, height = 4.5) after the plot</span></span>
-<span id="cb40-2"><a aria-label="2"></a>raw <span class="ot">&lt;-</span> mlm <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(ID) <span class="sc">%&gt;%</span> <span class="fu">summarise</span>(<span class="at">raw =</span> <span class="fu">mean</span>(CON), <span class="at">n =</span> <span class="fu">n</span>())</span>
-<span id="cb40-3"><a aria-label="3"></a>pooled <span class="ot">&lt;-</span> mlm<span class="fl">.1</span> <span class="sc">%&gt;%</span></span>
-<span id="cb40-4"><a aria-label="4"></a>  <span class="fu">spread_draws</span>(b_Intercept, r_ID[ID, term]) <span class="sc">%&gt;%</span></span>
-<span id="cb40-5"><a aria-label="5"></a>  <span class="fu">mutate</span>(<span class="at">pooled =</span> b_Intercept <span class="sc">+</span> r_ID) <span class="sc">%&gt;%</span></span>
-<span id="cb40-6"><a aria-label="6"></a>  <span class="fu">group_by</span>(ID) <span class="sc">%&gt;%</span></span>
-<span id="cb40-7"><a aria-label="7"></a>  <span class="fu">summarise</span>(<span class="at">pooled =</span> <span class="fu">mean</span>(pooled))</span>
-<span id="cb40-8"><a aria-label="8"></a>grand <span class="ot">&lt;-</span> <span class="fu">fixef</span>(mlm<span class="fl">.1</span>)[<span class="st">"Intercept"</span>, <span class="st">"Estimate"</span>]</span>
-<span id="cb40-9"><a aria-label="9"></a>shrink <span class="ot">&lt;-</span> <span class="fu">left_join</span>(raw, pooled, <span class="at">by =</span> <span class="st">"ID"</span>) <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">ID =</span> <span class="fu">fct_reorder</span>(<span class="fu">factor</span>(ID), raw))</span>
-<span id="cb40-10"><a aria-label="10"></a></span>
-<span id="cb40-11"><a aria-label="11"></a><span class="fu">ggplot</span>(shrink, <span class="fu">aes</span>(<span class="at">y =</span> ID)) <span class="sc">+</span></span>
-<span id="cb40-12"><a aria-label="12"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> grand, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">colour =</span> <span class="st">"grey50"</span>) <span class="sc">+</span></span>
-<span id="cb40-13"><a aria-label="13"></a>  <span class="fu">geom_segment</span>(<span class="fu">aes</span>(<span class="at">x =</span> raw, <span class="at">xend =</span> pooled, <span class="at">yend =</span> ID), <span class="at">colour =</span> <span class="st">"grey60"</span>,</span>
-<span id="cb40-14"><a aria-label="14"></a>               <span class="at">arrow =</span> <span class="fu">arrow</span>(<span class="at">length =</span> <span class="fu">unit</span>(<span class="fl">0.12</span>, <span class="st">"cm"</span>), <span class="at">type =</span> <span class="st">"closed"</span>)) <span class="sc">+</span></span>
-<span id="cb40-15"><a aria-label="15"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">x =</span> raw, <span class="at">size =</span> <span class="fu">factor</span>(n)), <span class="at">shape =</span> <span class="dv">21</span>, <span class="at">fill =</span> <span class="st">"white"</span>) <span class="sc">+</span></span>
-<span id="cb40-16"><a aria-label="16"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">x =</span> pooled), <span class="at">colour =</span> <span class="st">"#4C78A8"</span>, <span class="at">size =</span> <span class="fl">1.6</span>) <span class="sc">+</span></span>
-<span id="cb40-17"><a aria-label="17"></a>  <span class="fu">scale_size_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">`</span><span class="at">2</span><span class="st">`</span> <span class="ot">=</span> <span class="fl">1.2</span>, <span class="st">`</span><span class="at">3</span><span class="st">`</span> <span class="ot">=</span> <span class="fl">2.2</span>, <span class="st">`</span><span class="at">4</span><span class="st">`</span> <span class="ot">=</span> <span class="fl">3.2</span>)) <span class="sc">+</span></span>
-<span id="cb40-18"><a aria-label="18"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"CON connectivity (person mean)"</span>, <span class="at">y =</span> <span class="st">"Person (sorted by raw mean)"</span>, <span class="at">size =</span> <span class="st">"Scans"</span>,</span>
-<span id="cb40-19"><a aria-label="19"></a>       <span class="at">caption =</span> <span class="st">"Open circles: each person's raw mean (no pooling). Blue: partially pooled estimate from the empty model.</span><span class="sc">\n</span><span class="st">Arrows show shrinkage toward the grand mean (dashed). Extreme means from people with few scans move the most."</span>) <span class="sc">+</span></span>
-<span id="cb40-20"><a aria-label="20"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">13</span>) <span class="sc">+</span></span>
-<span id="cb40-21"><a aria-label="21"></a>  <span class="fu">theme</span>(<span class="at">axis.text.y =</span> <span class="fu">element_blank</span>(), <span class="at">axis.ticks.y =</span> <span class="fu">element_blank</span>(),</span>
-<span id="cb40-22"><a aria-label="22"></a>        <span class="at">plot.caption =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="dv">0</span>), <span class="at">legend.position =</span> <span class="st">"top"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a aria-label="1"></a><span class="co"># for a paper: add ggsave("shrinkage.png", width = 6.5, height = 4.5) after the plot</span></span>
+<span id="cb30-2"><a aria-label="2"></a>raw <span class="ot">&lt;-</span> mlm <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(ID) <span class="sc">%&gt;%</span> <span class="fu">summarise</span>(<span class="at">raw =</span> <span class="fu">mean</span>(CON), <span class="at">n =</span> <span class="fu">n</span>())</span>
+<span id="cb30-3"><a aria-label="3"></a>pooled <span class="ot">&lt;-</span> mlm<span class="fl">.1</span> <span class="sc">%&gt;%</span></span>
+<span id="cb30-4"><a aria-label="4"></a>  <span class="fu">spread_draws</span>(b_Intercept, r_ID[ID, term]) <span class="sc">%&gt;%</span></span>
+<span id="cb30-5"><a aria-label="5"></a>  <span class="fu">mutate</span>(<span class="at">pooled =</span> b_Intercept <span class="sc">+</span> r_ID) <span class="sc">%&gt;%</span></span>
+<span id="cb30-6"><a aria-label="6"></a>  <span class="fu">group_by</span>(ID) <span class="sc">%&gt;%</span></span>
+<span id="cb30-7"><a aria-label="7"></a>  <span class="fu">summarise</span>(<span class="at">pooled =</span> <span class="fu">mean</span>(pooled))</span>
+<span id="cb30-8"><a aria-label="8"></a>grand <span class="ot">&lt;-</span> <span class="fu">fixef</span>(mlm<span class="fl">.1</span>)[<span class="st">"Intercept"</span>, <span class="st">"Estimate"</span>]</span>
+<span id="cb30-9"><a aria-label="9"></a>shrink <span class="ot">&lt;-</span> <span class="fu">left_join</span>(raw, pooled, <span class="at">by =</span> <span class="st">"ID"</span>) <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">ID =</span> <span class="fu">fct_reorder</span>(<span class="fu">factor</span>(ID), raw))</span>
+<span id="cb30-10"><a aria-label="10"></a></span>
+<span id="cb30-11"><a aria-label="11"></a><span class="fu">ggplot</span>(shrink, <span class="fu">aes</span>(<span class="at">y =</span> ID)) <span class="sc">+</span></span>
+<span id="cb30-12"><a aria-label="12"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> grand, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">colour =</span> <span class="st">"grey50"</span>) <span class="sc">+</span></span>
+<span id="cb30-13"><a aria-label="13"></a>  <span class="fu">geom_segment</span>(<span class="fu">aes</span>(<span class="at">x =</span> raw, <span class="at">xend =</span> pooled, <span class="at">yend =</span> ID), <span class="at">colour =</span> <span class="st">"grey60"</span>,</span>
+<span id="cb30-14"><a aria-label="14"></a>               <span class="at">arrow =</span> <span class="fu">arrow</span>(<span class="at">length =</span> <span class="fu">unit</span>(<span class="fl">0.12</span>, <span class="st">"cm"</span>), <span class="at">type =</span> <span class="st">"closed"</span>)) <span class="sc">+</span></span>
+<span id="cb30-15"><a aria-label="15"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">x =</span> raw, <span class="at">size =</span> <span class="fu">factor</span>(n)), <span class="at">shape =</span> <span class="dv">21</span>, <span class="at">fill =</span> <span class="st">"white"</span>) <span class="sc">+</span></span>
+<span id="cb30-16"><a aria-label="16"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">x =</span> pooled), <span class="at">colour =</span> <span class="st">"#4C78A8"</span>, <span class="at">size =</span> <span class="fl">1.6</span>) <span class="sc">+</span></span>
+<span id="cb30-17"><a aria-label="17"></a>  <span class="fu">scale_size_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">`</span><span class="at">2</span><span class="st">`</span> <span class="ot">=</span> <span class="fl">1.2</span>, <span class="st">`</span><span class="at">3</span><span class="st">`</span> <span class="ot">=</span> <span class="fl">2.2</span>, <span class="st">`</span><span class="at">4</span><span class="st">`</span> <span class="ot">=</span> <span class="fl">3.2</span>)) <span class="sc">+</span></span>
+<span id="cb30-18"><a aria-label="18"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"CON connectivity (person mean)"</span>, <span class="at">y =</span> <span class="st">"Person (sorted by raw mean)"</span>, <span class="at">size =</span> <span class="st">"Scans"</span>,</span>
+<span id="cb30-19"><a aria-label="19"></a>       <span class="at">caption =</span> <span class="st">"Open circles: each person's raw mean (no pooling). Blue: partially pooled estimate from the empty model.</span><span class="sc">\n</span><span class="st">Arrows show shrinkage toward the grand mean (dashed). Extreme means from people with few scans move the most."</span>) <span class="sc">+</span></span>
+<span id="cb30-20"><a aria-label="20"></a>  <span class="fu">theme_classic</span>(<span class="at">base_size =</span> <span class="dv">13</span>) <span class="sc">+</span></span>
+<span id="cb30-21"><a aria-label="21"></a>  <span class="fu">theme</span>(<span class="at">axis.text.y =</span> <span class="fu">element_blank</span>(), <span class="at">axis.ticks.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb30-22"><a aria-label="22"></a>        <span class="at">plot.caption =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="dv">0</span>), <span class="at">legend.position =</span> <span class="st">"top"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
 </div>
-<img data-src="mlm-9_files/figure-revealjs/unnamed-chunk-33-1.png" width="864" class="r-stretch"></section>
+<img data-src="mlm-9_files/figure-revealjs/unnamed-chunk-28-1.png" width="864" class="r-stretch"></section>
+<section id="how-much-shrinkage" class="slide level2 smaller">
+<h2>How much shrinkage?</h2>
+<p>For the empty model, each person’s estimate is (approximately) a weighted average of their own mean and the grand mean:</p>
+<p><span class="math display">\[\hat\beta_{0[i]} \approx w_i\, \bar y_i + (1 - w_i)\, \bar\mu \qquad w_i = \frac{n_i}{n_i + \sigma^2 / \sigma_0^2}\]</span></p>
+<ul>
+<li>Here <span class="math inline">\(\sigma\)</span> = 0.047 and <span class="math inline">\(\sigma_0\)</span> = 0.056, so <span class="math inline">\(\sigma^2/\sigma_0^2\)</span> = 0.71.</li>
+<li>Someone with 2 scans keeps 74% of their own mean; someone with 4 scans keeps 85%. That’s why the smaller circles in the figure moved further.</li>
+<li>More scans, or bigger differences between people (<span class="math inline">\(\sigma_0\)</span>), mean less shrinkage. If people barely differed, everyone would be pulled almost all the way to the grand mean.</li>
+</ul>
+</section>
 <section id="person-intercepts-with-intervals" class="slide level2">
 <h2>Person intercepts with intervals</h2>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb41"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a aria-label="1"></a>mlm<span class="fl">.1</span> <span class="sc">%&gt;%</span></span>
-<span id="cb41-2"><a aria-label="2"></a>  <span class="fu">spread_draws</span>(b_Intercept, r_ID[ID, term]) <span class="sc">%&gt;%</span></span>
-<span id="cb41-3"><a aria-label="3"></a>   <span class="fu">median_qi</span>(<span class="at">person_I =</span> b_Intercept <span class="sc">+</span> r_ID) <span class="sc">%&gt;%</span></span>
-<span id="cb41-4"><a aria-label="4"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>( <span class="at">y =</span> <span class="fu">reorder</span>(ID, person_I), <span class="at">x =</span> person_I, <span class="at">xmin =</span> .lower, <span class="at">xmax =</span> .upper)) <span class="sc">+</span></span>
-<span id="cb41-5"><a aria-label="5"></a>  <span class="fu">geom_pointinterval</span>() <span class="sc">+</span> <span class="fu">xlab</span>(<span class="st">"est"</span>) <span class="sc">+</span> <span class="fu">ylab</span>(<span class="st">"ID"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a aria-label="1"></a>mlm<span class="fl">.1</span> <span class="sc">%&gt;%</span></span>
+<span id="cb31-2"><a aria-label="2"></a>  <span class="fu">spread_draws</span>(b_Intercept, r_ID[ID, term]) <span class="sc">%&gt;%</span></span>
+<span id="cb31-3"><a aria-label="3"></a>   <span class="fu">median_qi</span>(<span class="at">person_I =</span> b_Intercept <span class="sc">+</span> r_ID) <span class="sc">%&gt;%</span></span>
+<span id="cb31-4"><a aria-label="4"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>( <span class="at">y =</span> <span class="fu">reorder</span>(ID, person_I), <span class="at">x =</span> person_I, <span class="at">xmin =</span> .lower, <span class="at">xmax =</span> .upper)) <span class="sc">+</span></span>
+<span id="cb31-5"><a aria-label="5"></a>  <span class="fu">geom_pointinterval</span>() <span class="sc">+</span> <span class="fu">xlab</span>(<span class="st">"est"</span>) <span class="sc">+</span> <span class="fu">ylab</span>(<span class="st">"ID"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
 </div>
-<img data-src="mlm-9_files/figure-revealjs/unnamed-chunk-34-1.png" width="960" class="r-stretch"></section>
+<img data-src="mlm-9_files/figure-revealjs/unnamed-chunk-30-1.png" width="960" class="r-stretch"></section>
 <section id="forcing-complete-pooling" class="slide level2">
 <h2>Forcing complete pooling</h2>
 <p>Set prior for random effect to almost zero for complete pooling.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a aria-label="1"></a>mlm<span class="fl">.1</span>p <span class="ot">&lt;-</span></span>
-<span id="cb42-2"><a aria-label="2"></a>  <span class="fu">brm</span>(<span class="at">family =</span> gaussian,</span>
-<span id="cb42-3"><a aria-label="3"></a>      CON <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> ID),</span>
-<span id="cb42-4"><a aria-label="4"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="fl">1.5</span>), <span class="at">class =</span> Intercept),</span>
-<span id="cb42-5"><a aria-label="5"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, .<span class="dv">00001</span>), <span class="at">class =</span> sd),</span>
-<span id="cb42-6"><a aria-label="6"></a>                <span class="fu">prior</span>(<span class="fu">exponential</span>(<span class="dv">1</span>), <span class="at">class =</span> sigma)),</span>
-<span id="cb42-7"><a aria-label="7"></a>      <span class="at">iter =</span> <span class="dv">4000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">chains =</span> <span class="dv">4</span>, <span class="at">cores =</span> <span class="dv">4</span>,</span>
-<span id="cb42-8"><a aria-label="8"></a>      <span class="at">sample_prior =</span> <span class="st">"yes"</span>,</span>
-<span id="cb42-9"><a aria-label="9"></a>      <span class="at">file =</span> <span class="st">"mlm.1p"</span>,</span>
-<span id="cb42-10"><a aria-label="10"></a>       <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
-<span id="cb42-11"><a aria-label="11"></a>      <span class="at">data =</span> mlm)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a aria-label="1"></a>mlm<span class="fl">.1</span>p <span class="ot">&lt;-</span></span>
+<span id="cb32-2"><a aria-label="2"></a>  <span class="fu">brm</span>(<span class="at">family =</span> gaussian,</span>
+<span id="cb32-3"><a aria-label="3"></a>      CON <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> ID),</span>
+<span id="cb32-4"><a aria-label="4"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="fl">0.2</span>, <span class="fl">0.1</span>), <span class="at">class =</span> Intercept),</span>
+<span id="cb32-5"><a aria-label="5"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, .<span class="dv">00001</span>), <span class="at">class =</span> sd),</span>
+<span id="cb32-6"><a aria-label="6"></a>                <span class="fu">prior</span>(<span class="fu">exponential</span>(<span class="dv">10</span>), <span class="at">class =</span> sigma)),</span>
+<span id="cb32-7"><a aria-label="7"></a>      <span class="at">iter =</span> <span class="dv">4000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">chains =</span> <span class="dv">4</span>, <span class="at">cores =</span> <span class="dv">4</span>,</span>
+<span id="cb32-8"><a aria-label="8"></a>      <span class="at">sample_prior =</span> <span class="st">"yes"</span>,</span>
+<span id="cb32-9"><a aria-label="9"></a>      <span class="at">file =</span> <span class="st">"mlm.1pb"</span>,</span>
+<span id="cb32-10"><a aria-label="10"></a>       <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
+<span id="cb32-11"><a aria-label="11"></a>      <span class="at">data =</span> mlm)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 </section>
 <section id="mlm.1p-summary" class="slide level2">
 <h2><code>mlm.1p</code> summary</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb43"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a aria-label="1"></a><span class="fu">summary</span>(mlm<span class="fl">.1</span>p)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a aria-label="1"></a><span class="fu">summary</span>(mlm<span class="fl">.1</span>p)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: gaussian 
   Links: mu = identity 
@@ -1221,15 +985,15 @@ Formula: CON ~ 1 + (1 | ID)
 Multilevel Hyperparameters:
 ~ID (Number of levels: 91) 
               Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-sd(Intercept)     0.00      0.00     0.00     0.00 1.00     8952     6581
+sd(Intercept)     0.00      0.00     0.00     0.00 1.00    10709     6620
 
 Regression Coefficients:
           Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-Intercept     0.19      0.00     0.18     0.20 1.00    19393     8474
+Intercept     0.19      0.00     0.18     0.20 1.00    27543     7819
 
 Further Distributional Parameters:
       Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-sigma     0.07      0.00     0.07     0.08 1.00    21537     7644
+sigma     0.07      0.00     0.07     0.08 1.00    31621     8035
 
 Draws were sampled using sample(hmc). For each parameter, Bulk_ESS
 and Tail_ESS are effective sample size measures, and Rhat is the potential
@@ -1242,26 +1006,26 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb45"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a aria-label="1"></a>mlm<span class="fl">.1</span>p <span class="sc">%&gt;%</span></span>
-<span id="cb45-2"><a aria-label="2"></a>  <span class="fu">spread_draws</span>(b_Intercept, r_ID[ID, term]) <span class="sc">%&gt;%</span></span>
-<span id="cb45-3"><a aria-label="3"></a>  <span class="fu">mutate</span>(<span class="at">person_I =</span> b_Intercept <span class="sc">+</span> r_ID) <span class="sc">%&gt;%</span></span>
-<span id="cb45-4"><a aria-label="4"></a>  <span class="fu">left_join</span>(mlm <span class="sc">%&gt;%</span> <span class="fu">select</span> (ID, CON) <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(ID) <span class="sc">%&gt;%</span>  <span class="fu">mutate</span>(<span class="at">CON =</span> <span class="fu">mean</span>(CON))) <span class="sc">%&gt;%</span></span>
-<span id="cb45-5"><a aria-label="5"></a> <span class="fu">median_qi</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb45-6"><a aria-label="6"></a><span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> ID)) <span class="sc">+</span></span>
-<span id="cb45-7"><a aria-label="7"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">y =</span> person_I), <span class="at">color =</span> <span class="st">"orange2"</span>) <span class="sc">+</span></span>
-<span id="cb45-8"><a aria-label="8"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">y =</span> CON), <span class="at">shape =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb45-9"><a aria-label="9"></a>  <span class="fu">labs</span>(<span class="at">title =</span></span>
-<span id="cb45-10"><a aria-label="10"></a>  <span class="st">"complete pooling"</span>) <span class="sc">+</span></span>
-<span id="cb45-11"><a aria-label="11"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="fu">fixef</span>(mlm<span class="fl">.1</span>)[<span class="st">"Intercept"</span>, <span class="st">"Estimate"</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a aria-label="1"></a>mlm<span class="fl">.1</span>p <span class="sc">%&gt;%</span></span>
+<span id="cb35-2"><a aria-label="2"></a>  <span class="fu">spread_draws</span>(b_Intercept, r_ID[ID, term]) <span class="sc">%&gt;%</span></span>
+<span id="cb35-3"><a aria-label="3"></a>  <span class="fu">mutate</span>(<span class="at">person_I =</span> b_Intercept <span class="sc">+</span> r_ID) <span class="sc">%&gt;%</span></span>
+<span id="cb35-4"><a aria-label="4"></a>  <span class="fu">left_join</span>(mlm <span class="sc">%&gt;%</span> <span class="fu">select</span> (ID, CON) <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(ID) <span class="sc">%&gt;%</span>  <span class="fu">mutate</span>(<span class="at">CON =</span> <span class="fu">mean</span>(CON))) <span class="sc">%&gt;%</span></span>
+<span id="cb35-5"><a aria-label="5"></a> <span class="fu">median_qi</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb35-6"><a aria-label="6"></a><span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> ID)) <span class="sc">+</span></span>
+<span id="cb35-7"><a aria-label="7"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">y =</span> person_I), <span class="at">color =</span> <span class="st">"orange2"</span>) <span class="sc">+</span></span>
+<span id="cb35-8"><a aria-label="8"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">y =</span> CON), <span class="at">shape =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb35-9"><a aria-label="9"></a>  <span class="fu">labs</span>(<span class="at">title =</span></span>
+<span id="cb35-10"><a aria-label="10"></a>  <span class="st">"complete pooling"</span>) <span class="sc">+</span></span>
+<span id="cb35-11"><a aria-label="11"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="fu">fixef</span>(mlm<span class="fl">.1</span>)[<span class="st">"Intercept"</span>, <span class="st">"Estimate"</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
 </div>
-<img data-src="mlm-9_files/figure-revealjs/unnamed-chunk-37-1.png" width="960" class="r-stretch"></section>
+<img data-src="mlm-9_files/figure-revealjs/unnamed-chunk-33-1.png" width="960" class="r-stretch"></section>
 <section id="no-pooling-1" class="slide level2 smaller">
 <h2>No pooling</h2>
 <p>No pooling means you are not learning from other data, which is by default not an MLM model. We already fit this fixed effects no intercept model above.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb46"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a aria-label="1"></a><span class="fu">summary</span>(mlm.id)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a aria-label="1"></a><span class="fu">summary</span>(mlm.id)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: gaussian 
   Links: mu = identity 
@@ -1379,26 +1143,26 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb48"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a aria-label="1"></a>data2<span class="ot">&lt;-</span>mlm <span class="sc">%&gt;%</span> <span class="fu">select</span>(ID, CON) <span class="sc">%&gt;%</span></span>
-<span id="cb48-2"><a aria-label="2"></a>  <span class="fu">group_by</span>(ID) <span class="sc">%&gt;%</span></span>
-<span id="cb48-3"><a aria-label="3"></a>  <span class="fu">mutate</span>(<span class="at">CON =</span> <span class="fu">mean</span>(CON)) <span class="sc">%&gt;%</span></span>
-<span id="cb48-4"><a aria-label="4"></a>  <span class="fu">slice</span>(<span class="dv">1</span>)</span>
-<span id="cb48-5"><a aria-label="5"></a></span>
-<span id="cb48-6"><a aria-label="6"></a>mlm.id <span class="sc">%&gt;%</span> <span class="fu">tidy_draws</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb48-7"><a aria-label="7"></a>  <span class="fu">pivot_longer</span>(b_ID.f6<span class="sc">:</span>b_ID.f229, <span class="at">names_to =</span> <span class="st">"ID"</span>, <span class="at">values_to =</span> <span class="st">"CON_I"</span>, <span class="at">names_prefix =</span> <span class="st">"b_ID.f"</span>, <span class="at">names_transform =</span> <span class="fu">list</span>(<span class="at">ID =</span> as.integer)) <span class="sc">%&gt;%</span></span>
-<span id="cb48-8"><a aria-label="8"></a><span class="fu">left_join</span>(data2) <span class="sc">%&gt;%</span></span>
-<span id="cb48-9"><a aria-label="9"></a>  <span class="fu">group_by</span>(ID) <span class="sc">%&gt;%</span></span>
-<span id="cb48-10"><a aria-label="10"></a>   <span class="fu">median_qi</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb48-11"><a aria-label="11"></a><span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> ID)) <span class="sc">+</span></span>
-<span id="cb48-12"><a aria-label="12"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">y =</span> CON_I), <span class="at">color =</span> <span class="st">"orange2"</span>) <span class="sc">+</span></span>
-<span id="cb48-13"><a aria-label="13"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">y =</span> CON), <span class="at">shape =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb48-14"><a aria-label="14"></a>  <span class="fu">labs</span>(<span class="at">title =</span></span>
-<span id="cb48-15"><a aria-label="15"></a>  <span class="st">"NO pooling"</span>) <span class="sc">+</span></span>
-<span id="cb48-16"><a aria-label="16"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="fu">fixef</span>(mlm<span class="fl">.1</span>)[<span class="st">"Intercept"</span>, <span class="st">"Estimate"</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a aria-label="1"></a>data2<span class="ot">&lt;-</span>mlm <span class="sc">%&gt;%</span> <span class="fu">select</span>(ID, CON) <span class="sc">%&gt;%</span></span>
+<span id="cb38-2"><a aria-label="2"></a>  <span class="fu">group_by</span>(ID) <span class="sc">%&gt;%</span></span>
+<span id="cb38-3"><a aria-label="3"></a>  <span class="fu">mutate</span>(<span class="at">CON =</span> <span class="fu">mean</span>(CON)) <span class="sc">%&gt;%</span></span>
+<span id="cb38-4"><a aria-label="4"></a>  <span class="fu">slice</span>(<span class="dv">1</span>)</span>
+<span id="cb38-5"><a aria-label="5"></a></span>
+<span id="cb38-6"><a aria-label="6"></a>mlm.id <span class="sc">%&gt;%</span> <span class="fu">tidy_draws</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb38-7"><a aria-label="7"></a>  <span class="fu">pivot_longer</span>(b_ID.f6<span class="sc">:</span>b_ID.f229, <span class="at">names_to =</span> <span class="st">"ID"</span>, <span class="at">values_to =</span> <span class="st">"CON_I"</span>, <span class="at">names_prefix =</span> <span class="st">"b_ID.f"</span>, <span class="at">names_transform =</span> <span class="fu">list</span>(<span class="at">ID =</span> as.integer)) <span class="sc">%&gt;%</span></span>
+<span id="cb38-8"><a aria-label="8"></a><span class="fu">left_join</span>(data2) <span class="sc">%&gt;%</span></span>
+<span id="cb38-9"><a aria-label="9"></a>  <span class="fu">group_by</span>(ID) <span class="sc">%&gt;%</span></span>
+<span id="cb38-10"><a aria-label="10"></a>   <span class="fu">median_qi</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb38-11"><a aria-label="11"></a><span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> ID)) <span class="sc">+</span></span>
+<span id="cb38-12"><a aria-label="12"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">y =</span> CON_I), <span class="at">color =</span> <span class="st">"orange2"</span>) <span class="sc">+</span></span>
+<span id="cb38-13"><a aria-label="13"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">y =</span> CON), <span class="at">shape =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb38-14"><a aria-label="14"></a>  <span class="fu">labs</span>(<span class="at">title =</span></span>
+<span id="cb38-15"><a aria-label="15"></a>  <span class="st">"NO pooling"</span>) <span class="sc">+</span></span>
+<span id="cb38-16"><a aria-label="16"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="fu">fixef</span>(mlm<span class="fl">.1</span>)[<span class="st">"Intercept"</span>, <span class="st">"Estimate"</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
 </div>
-<img data-src="mlm-9_files/figure-revealjs/unnamed-chunk-39-1.png" width="960" class="r-stretch"></section>
+<img data-src="mlm-9_files/figure-revealjs/unnamed-chunk-35-1.png" width="960" class="r-stretch"></section>
 <section id="the-mlm-picks-the-amount-of-pooling" class="slide level2">
 <h2>The MLM picks the amount of pooling</h2>
 <p>MLM will automatically create the best fitting model – balancing between over and under fitting. It identifies the value of sigma of the random effect that is ideal.</p>
@@ -1407,23 +1171,39 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <section id="comparing-no-complete-and-partial-pooling" class="slide level2">
 <h2>Comparing no, complete, and partial pooling</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb49"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a aria-label="1"></a>mlm.id <span class="ot">&lt;-</span> <span class="fu">add_criterion</span>(mlm.id, <span class="st">"loo"</span>)</span>
-<span id="cb49-2"><a aria-label="2"></a>mlm<span class="fl">.1</span>p <span class="ot">&lt;-</span> <span class="fu">add_criterion</span>(mlm<span class="fl">.1</span>p, <span class="st">"loo"</span>)</span>
-<span id="cb49-3"><a aria-label="3"></a>mlm<span class="fl">.1</span> <span class="ot">&lt;-</span> <span class="fu">add_criterion</span>(mlm<span class="fl">.1</span>, <span class="st">"loo"</span>)</span>
-<span id="cb49-4"><a aria-label="4"></a><span class="fu">loo_compare</span>(mlm.id, mlm<span class="fl">.1</span>p, mlm<span class="fl">.1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb39"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a aria-label="1"></a>mlm.id <span class="ot">&lt;-</span> <span class="fu">add_criterion</span>(mlm.id, <span class="st">"loo"</span>)</span>
+<span id="cb39-2"><a aria-label="2"></a>mlm<span class="fl">.1</span>p <span class="ot">&lt;-</span> <span class="fu">add_criterion</span>(mlm<span class="fl">.1</span>p, <span class="st">"loo"</span>)</span>
+<span id="cb39-3"><a aria-label="3"></a>mlm<span class="fl">.1</span> <span class="ot">&lt;-</span> <span class="fu">add_criterion</span>(mlm<span class="fl">.1</span>, <span class="st">"loo"</span>)</span>
+<span id="cb39-4"><a aria-label="4"></a><span class="fu">loo_compare</span>(mlm.id, mlm<span class="fl">.1</span>p, mlm<span class="fl">.1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>  model elpd_diff se_diff p_worse diag_diff       diag_elpd
-  mlm.1       0.0     0.0      NA            7 k_psis &gt; 0.7
- mlm.id     -15.3     5.7    1.00           23 k_psis &gt; 0.7
- mlm.1p     -58.2     8.9    1.00                          </code></pre>
+  mlm.1       0.0     0.0      NA            4 k_psis &gt; 0.7
+ mlm.id     -15.5     5.7    1.00           23 k_psis &gt; 0.7
+ mlm.1p     -58.4     8.8    1.00                          </code></pre>
 </div>
 </div>
 <p>Partial pooling predicts best, then no pooling, then complete pooling. The no-pooling model has many high Pareto <em>k</em>s: each person’s mean rests on 2–4 scans, so it is fragile, which is exactly the overfitting partial pooling protects against.</p>
 </section>
+<section id="level-1-predictors" class="slide level2">
+<h2>Level 1 predictors</h2>
+<p>Level 1 is where you have data that repeats within your grouping or clustering data. Is your cluster classrooms? Then students are level 1. Is your cluster people? Then observations are level 1.</p>
+<p><span class="math display">\[{Y}_{ij} = \beta_{0i}  + \beta_{1i}X_{ij} + \varepsilon_{ij}\]</span> Notice the subscripts on X: these predictors vary across groups (<em>i</em>) and within a group (<em>j</em>). So if your grouping (<em>i</em>) is people, then <em>j</em> refers to different observations.</p>
+</section>
+<section id="level-2" class="slide level2 smaller">
+<h2>Level 2</h2>
+<p>Level 2 takes the parameters at level 1 and decomposes them into a fixed component ( <span class="math inline">\(\gamma\)</span> ) that reflects the average and, if desired, the individual deviations around that fixed effect (U).</p>
+<p><span class="math display">\[
+\begin{aligned}
+\text{Level 1:}\quad Y_{ij} &amp;= \beta_{0i} + \beta_{1i}X_{ij} + \varepsilon_{ij} \\
+\text{Level 2:}\quad \beta_{0i} &amp;= \gamma_{00} + U_{0i} \\
+\beta_{1i} &amp;= \gamma_{10}
+\end{aligned}
+\]</span></p>
+</section>
 <section id="level-1-predictors-in-brms" class="slide level2 smaller">
 <h2>Level 1 predictors in brms</h2>
 <p><span class="math display">\[\text{y}_{ij}  \sim \operatorname{Normal}(\mu_{ij}, \sigma)\]</span> <span class="math display">\[\mu_{ij}  = \beta_{0[i]} + \beta_{1}Time_{ij}\]</span></p>
-<p><span class="math display">\[\beta_{0[i]} \sim \operatorname{Normal}({\bar \mu}, \sigma_0)\]</span> <span class="math display">\[{\bar \mu}  \sim {\operatorname{Normal}(0, 1.5)}\]</span> <span class="math display">\[\sigma_0 \sim {\operatorname{Half-Normal}(0, 1.5)}\]</span> <span class="math display">\[\beta_{1} \sim {\operatorname{Normal}(0, 1.5)}\]</span> <span class="math display">\[\sigma \sim {\operatorname{Exponential}(1)}\]</span></p>
+<p><span class="math display">\[\beta_{0[i]} \sim \operatorname{Normal}({\bar \mu}, \sigma_0)\]</span> <span class="math display">\[{\bar \mu}  \sim {\operatorname{Normal}(0.2, 0.1)}\]</span> <span class="math display">\[\sigma_0 \sim {\operatorname{Half-Normal}(0, 0.1)}\]</span> <span class="math display">\[\beta_{1} \sim {\operatorname{Normal}(0, 0.05)}\]</span> <span class="math display">\[\sigma \sim {\operatorname{Exponential}(10)}\]</span></p>
 </section>
 <section id="a-fixed-slope" class="slide level2">
 <h2>A fixed slope</h2>
@@ -1432,24 +1212,24 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <section id="fitting-mlm.3" class="slide level2">
 <h2>Fitting <code>mlm.3</code></h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb51"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a aria-label="1"></a>mlm<span class="fl">.3</span> <span class="ot">&lt;-</span></span>
-<span id="cb51-2"><a aria-label="2"></a>  <span class="fu">brm</span>(<span class="at">family =</span> gaussian,</span>
-<span id="cb51-3"><a aria-label="3"></a>      CON <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> time <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> ID),</span>
-<span id="cb51-4"><a aria-label="4"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="fl">1.5</span>), <span class="at">class =</span> Intercept),</span>
-<span id="cb51-5"><a aria-label="5"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="fl">1.5</span>), <span class="at">class =</span> b),</span>
-<span id="cb51-6"><a aria-label="6"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="fl">1.5</span>), <span class="at">class =</span> sd),</span>
-<span id="cb51-7"><a aria-label="7"></a>                <span class="fu">prior</span>(<span class="fu">exponential</span>(<span class="dv">1</span>), <span class="at">class =</span> sigma)),</span>
-<span id="cb51-8"><a aria-label="8"></a>      <span class="at">iter =</span> <span class="dv">4000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">chains =</span> <span class="dv">4</span>, <span class="at">cores =</span> <span class="dv">4</span>,</span>
-<span id="cb51-9"><a aria-label="9"></a>      <span class="at">sample_prior =</span> <span class="st">"yes"</span>,</span>
-<span id="cb51-10"><a aria-label="10"></a>      <span class="at">file =</span> <span class="st">"mlm.3"</span>,</span>
-<span id="cb51-11"><a aria-label="11"></a>      <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
-<span id="cb51-12"><a aria-label="12"></a>      <span class="at">data =</span> mlm)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb41"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a aria-label="1"></a>mlm<span class="fl">.3</span> <span class="ot">&lt;-</span></span>
+<span id="cb41-2"><a aria-label="2"></a>  <span class="fu">brm</span>(<span class="at">family =</span> gaussian,</span>
+<span id="cb41-3"><a aria-label="3"></a>      CON <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> time <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> ID),</span>
+<span id="cb41-4"><a aria-label="4"></a>      <span class="at">prior =</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="fl">0.2</span>, <span class="fl">0.1</span>), <span class="at">class =</span> Intercept),</span>
+<span id="cb41-5"><a aria-label="5"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="fl">0.05</span>), <span class="at">class =</span> b),           <span class="co"># change per unit of time</span></span>
+<span id="cb41-6"><a aria-label="6"></a>                <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="fl">0.1</span>), <span class="at">class =</span> sd),</span>
+<span id="cb41-7"><a aria-label="7"></a>                <span class="fu">prior</span>(<span class="fu">exponential</span>(<span class="dv">10</span>), <span class="at">class =</span> sigma)),</span>
+<span id="cb41-8"><a aria-label="8"></a>      <span class="at">iter =</span> <span class="dv">4000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">chains =</span> <span class="dv">4</span>, <span class="at">cores =</span> <span class="dv">4</span>,</span>
+<span id="cb41-9"><a aria-label="9"></a>      <span class="at">sample_prior =</span> <span class="st">"yes"</span>,</span>
+<span id="cb41-10"><a aria-label="10"></a>      <span class="at">file =</span> <span class="st">"mlm.3b"</span>,</span>
+<span id="cb41-11"><a aria-label="11"></a>      <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
+<span id="cb41-12"><a aria-label="12"></a>      <span class="at">data =</span> mlm)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="mlm.3-summary" class="slide level2">
 <h2><code>mlm.3</code> summary</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb52"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a aria-label="1"></a><span class="fu">summary</span>(mlm<span class="fl">.3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a aria-label="1"></a><span class="fu">summary</span>(mlm<span class="fl">.3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: gaussian 
   Links: mu = identity 
@@ -1461,16 +1241,16 @@ Formula: CON ~ 1 + time + (1 | ID)
 Multilevel Hyperparameters:
 ~ID (Number of levels: 91) 
               Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-sd(Intercept)     0.06      0.01     0.05     0.07 1.00     4193     7476
+sd(Intercept)     0.06      0.01     0.05     0.07 1.00     3981     6539
 
 Regression Coefficients:
           Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-Intercept     0.19      0.01     0.18     0.21 1.00     6994     8994
-time         -0.00      0.00    -0.01     0.00 1.00    14742     9789
+Intercept     0.19      0.01     0.18     0.21 1.00     6763     8555
+time         -0.00      0.00    -0.01     0.00 1.00    16220    10360
 
 Further Distributional Parameters:
       Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-sigma     0.05      0.00     0.04     0.05 1.00     8013     9414
+sigma     0.05      0.00     0.04     0.05 1.00     7401     9761
 
 Draws were sampled using sample(hmc). For each parameter, Bulk_ESS
 and Tail_ESS are effective sample size measures, and Rhat is the potential
@@ -1481,118 +1261,118 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <section id="posterior_summary" class="slide level2">
 <h2><code>posterior_summary()</code></h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb54"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a aria-label="1"></a><span class="fu">posterior_summary</span>(mlm<span class="fl">.3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb44"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a aria-label="1"></a><span class="fu">posterior_summary</span>(mlm<span class="fl">.3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>                         Estimate    Est.Error          Q2.5         Q97.5
-b_Intercept          1.940041e-01  0.007826677  1.786149e-01   0.209344725
-b_time              -2.643092e-03  0.002177587 -6.925225e-03   0.001649079
-sd_ID__Intercept     5.649883e-02  0.005517628  4.631454e-02   0.067848202
-sigma                4.734761e-02  0.002936514  4.202114e-02   0.053612102
-Intercept            1.892113e-01  0.006815445  1.758717e-01   0.202529600
-r_ID[6,Intercept]    6.894050e-03  0.025632477 -4.255819e-02   0.057214167
-r_ID[29,Intercept]  -4.317045e-02  0.029410532 -1.006675e-01   0.014857105
-r_ID[34,Intercept]  -5.496105e-02  0.029746469 -1.128902e-01   0.004024982
-r_ID[36,Intercept]  -2.075095e-02  0.029930676 -7.989738e-02   0.037928447
-r_ID[37,Intercept]   2.959034e-03  0.025584463 -4.766372e-02   0.053536242
-r_ID[48,Intercept]   2.934054e-02  0.025564624 -2.058067e-02   0.079359287
-r_ID[53,Intercept]   5.540256e-03  0.029425227 -5.144062e-02   0.062757537
-r_ID[54,Intercept]   4.985518e-02  0.025833256 -6.674044e-04   0.100699050
-r_ID[58,Intercept]   3.808043e-02  0.025174264 -1.137551e-02   0.088185725
-r_ID[61,Intercept]  -6.931222e-02  0.030108863 -1.272552e-01  -0.009055818
-r_ID[66,Intercept]   4.185027e-02  0.026067018 -9.074979e-03   0.092666637
-r_ID[67,Intercept]   1.223557e-02  0.022633214 -3.214001e-02   0.056104997
-r_ID[69,Intercept]   1.226932e-02  0.029667775 -4.596177e-02   0.071293052
-r_ID[71,Intercept]  -1.049470e-01  0.025777505 -1.555616e-01  -0.053859977
-r_ID[74,Intercept]   1.413066e-02  0.025052025 -3.610169e-02   0.063177775
-r_ID[75,Intercept]   5.966435e-02  0.029682943  9.122672e-04   0.117949300
-r_ID[76,Intercept]  -7.273943e-02  0.025845048 -1.237458e-01  -0.021956278
-r_ID[78,Intercept]   4.721165e-02  0.025409451 -2.031112e-03   0.096977370
-r_ID[79,Intercept]  -4.323185e-02  0.028792257 -9.884914e-02   0.012840262
-r_ID[80,Intercept]  -3.360304e-02  0.029631554 -9.249670e-02   0.024892937
-r_ID[81,Intercept]   4.425246e-02  0.025313321 -5.117839e-03   0.093899587
-r_ID[82,Intercept]   1.194751e-01  0.023401803  7.375427e-02   0.165049050
-r_ID[85,Intercept]  -2.656583e-02  0.029255811 -8.330911e-02   0.031289555
-r_ID[86,Intercept]  -5.658335e-02  0.029450409 -1.140732e-01   0.001370705
-r_ID[87,Intercept]  -5.910435e-02  0.029014664 -1.155641e-01  -0.002082889
-r_ID[89,Intercept]  -4.504349e-02  0.025147000 -9.468816e-02   0.004342086
-r_ID[91,Intercept]  -1.497194e-02  0.025330625 -6.443315e-02   0.034996730
-r_ID[92,Intercept]   9.446729e-03  0.025267257 -4.043862e-02   0.058558775
-r_ID[93,Intercept]   5.056990e-02  0.024888297  1.763072e-03   0.099418635
-r_ID[94,Intercept]  -5.880935e-02  0.025335247 -1.084745e-01  -0.008453616
-r_ID[96,Intercept]   2.833736e-02  0.029139238 -2.908832e-02   0.084802120
-r_ID[97,Intercept]   4.918658e-02  0.022604557  4.755043e-03   0.093747605
-r_ID[98,Intercept]  -4.283807e-02  0.022794542 -8.700858e-02   0.001808808
-r_ID[99,Intercept]  -6.916184e-03  0.022416641 -5.110949e-02   0.036865817
-r_ID[101,Intercept]  4.376512e-02  0.025457997 -5.879864e-03   0.093417747
-r_ID[102,Intercept] -2.004694e-03  0.022524556 -4.581805e-02   0.042389705
-r_ID[103,Intercept] -2.816223e-02  0.028814760 -8.433012e-02   0.028689640
-r_ID[104,Intercept] -1.368979e-02  0.028809435 -7.062960e-02   0.043247127
-r_ID[105,Intercept] -2.319347e-02  0.025247822 -7.279866e-02   0.026286165
-r_ID[106,Intercept]  5.606195e-03  0.025438938 -4.396306e-02   0.055691857
-r_ID[110,Intercept] -6.040176e-03  0.025358673 -5.521733e-02   0.043524717
-r_ID[112,Intercept] -7.817622e-02  0.025361370 -1.279663e-01  -0.028702283
-r_ID[114,Intercept] -4.693322e-02  0.025277165 -9.660709e-02   0.002394822
-r_ID[115,Intercept] -3.974349e-02  0.025565576 -8.929331e-02   0.009810768
-r_ID[116,Intercept] -3.748329e-02  0.025295803 -8.713662e-02   0.011935252
-r_ID[120,Intercept]  1.178859e-01  0.030366258  5.807562e-02   0.177008050
-r_ID[122,Intercept] -1.668675e-02  0.024795466 -6.497346e-02   0.032179132
-r_ID[125,Intercept]  3.978368e-03  0.024992491 -4.482118e-02   0.052190010
-r_ID[127,Intercept]  2.903281e-02  0.025264905 -2.036774e-02   0.077879025
-r_ID[129,Intercept] -4.621880e-02  0.029096849 -1.037195e-01   0.009960738
-r_ID[135,Intercept]  8.624209e-02  0.025337232  3.609033e-02   0.135507875
-r_ID[136,Intercept]  8.118360e-02  0.025158128  3.068991e-02   0.129971475
-r_ID[137,Intercept]  7.377812e-02  0.029745954  1.539976e-02   0.131394075
-r_ID[140,Intercept] -4.836868e-02  0.029448928 -1.060563e-01   0.009671810
-r_ID[141,Intercept]  7.081259e-04  0.028982459 -5.557317e-02   0.057309203
-r_ID[142,Intercept] -9.197605e-03  0.028776163 -6.584851e-02   0.047713220
-r_ID[143,Intercept]  8.718954e-02  0.029738077  2.829227e-02   0.145901050
-r_ID[144,Intercept] -1.220954e-02  0.028913189 -6.807766e-02   0.044226482
-r_ID[146,Intercept]  1.452549e-02  0.029340069 -4.306062e-02   0.072288810
-r_ID[149,Intercept]  2.789416e-02  0.029548885 -2.993960e-02   0.086790057
-r_ID[150,Intercept]  8.209031e-03  0.028979915 -4.894788e-02   0.064855690
-r_ID[152,Intercept]  2.224967e-02  0.029026980 -3.572727e-02   0.078511828
-r_ID[153,Intercept] -3.240322e-02  0.029044160 -8.925863e-02   0.025473330
-r_ID[155,Intercept] -3.428796e-02  0.029553408 -9.179035e-02   0.023144420
-r_ID[156,Intercept] -4.425998e-02  0.024909364 -9.350289e-02   0.004300518
-r_ID[159,Intercept] -5.022962e-02  0.029914616 -1.086059e-01   0.007938532
-r_ID[160,Intercept] -1.053689e-02  0.029425129 -6.821577e-02   0.046206875
-r_ID[162,Intercept]  1.633533e-01  0.026615499  1.104919e-01   0.215538275
-r_ID[163,Intercept] -4.218590e-02  0.029002173 -9.878897e-02   0.015978262
-r_ID[165,Intercept]  4.464695e-03  0.028710853 -5.227673e-02   0.059943440
-r_ID[167,Intercept] -4.256251e-02  0.029661510 -1.005330e-01   0.015600112
-r_ID[169,Intercept]  4.005395e-02  0.029386135 -1.658346e-02   0.097936420
-r_ID[171,Intercept]  2.740331e-02  0.029132664 -2.948522e-02   0.084146590
-r_ID[174,Intercept]  5.369041e-02  0.029363824 -4.309101e-03   0.110783450
-r_ID[182,Intercept] -2.412529e-03  0.029420442 -6.034366e-02   0.055670132
-r_ID[187,Intercept] -9.270728e-02  0.029389481 -1.513802e-01  -0.034574595
-r_ID[189,Intercept]  2.329137e-02  0.029069868 -3.304641e-02   0.080815000
-r_ID[190,Intercept] -4.737861e-02  0.029224274 -1.041065e-01   0.009797084
-r_ID[193,Intercept]  1.154276e-02  0.029087872 -4.545133e-02   0.069312787
-r_ID[194,Intercept] -5.155683e-02  0.029290674 -1.088242e-01   0.005207231
-r_ID[201,Intercept] -2.345341e-03  0.028840586 -5.877458e-02   0.053656342
-r_ID[204,Intercept]  7.145442e-02  0.029672124  1.284461e-02   0.129062150
-r_ID[205,Intercept]  1.879642e-03  0.029138166 -5.530964e-02   0.059004535
-r_ID[208,Intercept]  1.079179e-02  0.029439729 -4.773465e-02   0.068717263
-r_ID[209,Intercept]  1.712446e-02  0.029112747 -3.961543e-02   0.073931125
-r_ID[211,Intercept] -3.787819e-02  0.029070519 -9.520957e-02   0.019128560
-r_ID[214,Intercept]  6.327564e-02  0.029131964  5.922527e-03   0.119764975
-r_ID[219,Intercept]  3.069459e-02  0.028886861 -2.591263e-02   0.086664698
-r_ID[222,Intercept] -3.944546e-02  0.029764179 -9.821513e-02   0.019382500
-r_ID[223,Intercept] -1.704181e-02  0.028784857 -7.360138e-02   0.038043408
-r_ID[229,Intercept] -3.656546e-02  0.029541925 -9.487947e-02   0.021016485
-prior_Intercept     -6.942279e-03  1.503652694 -2.963533e+00   2.891599750
-prior_b              1.858277e-03  1.502695245 -2.961395e+00   2.909511000
-prior_sigma          1.009368e+00  1.010400540  2.450734e-02   3.710285250
-prior_sd_ID          1.198032e+00  0.902823225  5.271736e-02   3.347677500
-lprior              -3.336096e+00  0.002974311 -3.342360e+00  -3.330669750
-lp__                 2.300110e+02 11.128664937  2.065509e+02 250.263325000</code></pre>
+b_Intercept          1.939802e-01  0.007904832  1.786498e-01  2.094383e-01
+b_time              -2.693218e-03  0.002176131 -6.985552e-03  1.618881e-03
+sd_ID__Intercept     5.646730e-02  0.005554183  4.610360e-02  6.795974e-02
+sigma                4.727685e-02  0.002922451  4.195808e-02  5.342359e-02
+Intercept            1.890965e-01  0.006860732  1.755377e-01  2.021511e-01
+r_ID[6,Intercept]    7.158008e-03  0.025639602 -4.245583e-02  5.799094e-02
+r_ID[29,Intercept]  -4.308105e-02  0.030084603 -1.024619e-01  1.560728e-02
+r_ID[34,Intercept]  -5.515934e-02  0.030182566 -1.125416e-01  4.025704e-03
+r_ID[36,Intercept]  -2.030494e-02  0.029210388 -7.838851e-02  3.685779e-02
+r_ID[37,Intercept]   3.101315e-03  0.025836112 -4.858216e-02  5.370496e-02
+r_ID[48,Intercept]   2.957387e-02  0.025417795 -2.063948e-02  7.940590e-02
+r_ID[53,Intercept]   5.851010e-03  0.029491870 -5.186821e-02  6.371691e-02
+r_ID[54,Intercept]   5.021467e-02  0.025637491  3.629897e-04  1.009093e-01
+r_ID[58,Intercept]   3.805317e-02  0.025083994 -1.166538e-02  8.769342e-02
+r_ID[61,Intercept]  -6.926768e-02  0.029846829 -1.281235e-01 -1.027688e-02
+r_ID[66,Intercept]   4.218811e-02  0.025215404 -7.806060e-03  9.150066e-02
+r_ID[67,Intercept]   1.237942e-02  0.022784518 -3.270384e-02  5.717317e-02
+r_ID[69,Intercept]   1.210895e-02  0.029288106 -4.517183e-02  6.962211e-02
+r_ID[71,Intercept]  -1.044681e-01  0.025842076 -1.545276e-01 -5.426753e-02
+r_ID[74,Intercept]   1.386283e-02  0.025348570 -3.603575e-02  6.385222e-02
+r_ID[75,Intercept]   6.026258e-02  0.029883126  2.500986e-03  1.189401e-01
+r_ID[76,Intercept]  -7.273938e-02  0.024877064 -1.210949e-01 -2.442424e-02
+r_ID[78,Intercept]   4.740007e-02  0.025447375 -3.203306e-03  9.701248e-02
+r_ID[79,Intercept]  -4.318345e-02  0.029311092 -1.000390e-01  1.425815e-02
+r_ID[80,Intercept]  -3.356478e-02  0.029666289 -9.093031e-02  2.388964e-02
+r_ID[81,Intercept]   4.454657e-02  0.025385933 -4.868980e-03  9.422660e-02
+r_ID[82,Intercept]   1.195243e-01  0.022793466  7.423659e-02  1.649581e-01
+r_ID[85,Intercept]  -2.666822e-02  0.029148941 -8.398932e-02  2.984193e-02
+r_ID[86,Intercept]  -5.667366e-02  0.029380422 -1.135671e-01  8.957492e-04
+r_ID[87,Intercept]  -5.909042e-02  0.029366704 -1.170253e-01 -2.389357e-03
+r_ID[89,Intercept]  -4.500608e-02  0.024947251 -9.362469e-02  4.610103e-03
+r_ID[91,Intercept]  -1.520895e-02  0.024857480 -6.451736e-02  3.367417e-02
+r_ID[92,Intercept]   9.804726e-03  0.025596880 -3.922239e-02  6.056867e-02
+r_ID[93,Intercept]   5.081588e-02  0.025627509  5.366280e-05  1.015603e-01
+r_ID[94,Intercept]  -5.869828e-02  0.025180745 -1.075871e-01 -9.822773e-03
+r_ID[96,Intercept]   2.853470e-02  0.029541474 -2.865486e-02  8.528516e-02
+r_ID[97,Intercept]   4.931818e-02  0.022636504  4.818543e-03  9.373388e-02
+r_ID[98,Intercept]  -4.282837e-02  0.022575224 -8.773511e-02  1.675497e-03
+r_ID[99,Intercept]  -6.735694e-03  0.022514582 -5.074312e-02  3.682276e-02
+r_ID[101,Intercept]  4.399870e-02  0.025555613 -6.691427e-03  9.454223e-02
+r_ID[102,Intercept] -1.928061e-03  0.022353431 -4.554859e-02  4.192651e-02
+r_ID[103,Intercept] -2.811307e-02  0.029503970 -8.653163e-02  2.990469e-02
+r_ID[104,Intercept] -1.386624e-02  0.029224338 -7.076370e-02  4.370217e-02
+r_ID[105,Intercept] -2.294966e-02  0.024601244 -7.184323e-02  2.568720e-02
+r_ID[106,Intercept]  5.687993e-03  0.025138953 -4.342618e-02  5.463253e-02
+r_ID[110,Intercept] -6.311393e-03  0.024948762 -5.576325e-02  4.179773e-02
+r_ID[112,Intercept] -7.833245e-02  0.025683237 -1.281523e-01 -2.778493e-02
+r_ID[114,Intercept] -4.686984e-02  0.024727795 -9.524468e-02  7.214339e-04
+r_ID[115,Intercept] -3.959719e-02  0.025388549 -8.978572e-02  9.134381e-03
+r_ID[116,Intercept] -3.754894e-02  0.025465440 -8.706561e-02  1.246469e-02
+r_ID[120,Intercept]  1.181216e-01  0.030221336  5.822100e-02  1.779012e-01
+r_ID[122,Intercept] -1.666533e-02  0.025125619 -6.528631e-02  3.271631e-02
+r_ID[125,Intercept]  4.023006e-03  0.025149504 -4.456485e-02  5.290102e-02
+r_ID[127,Intercept]  2.894868e-02  0.025066986 -1.970476e-02  7.880638e-02
+r_ID[129,Intercept] -4.617812e-02  0.029508572 -1.041120e-01  1.227079e-02
+r_ID[135,Intercept]  8.624666e-02  0.025271758  3.645904e-02  1.352662e-01
+r_ID[136,Intercept]  8.172980e-02  0.025188503  3.278713e-02  1.316036e-01
+r_ID[137,Intercept]  7.405670e-02  0.029572816  1.647439e-02  1.325227e-01
+r_ID[140,Intercept] -4.818621e-02  0.029510910 -1.057046e-01  9.364534e-03
+r_ID[141,Intercept]  9.741904e-04  0.029501394 -5.687328e-02  5.875489e-02
+r_ID[142,Intercept] -9.755008e-03  0.028648526 -6.560131e-02  4.696250e-02
+r_ID[143,Intercept]  8.720844e-02  0.029570046  2.941744e-02  1.444025e-01
+r_ID[144,Intercept] -1.226899e-02  0.029019865 -6.973193e-02  4.460634e-02
+r_ID[146,Intercept]  1.472581e-02  0.029805621 -4.377933e-02  7.334877e-02
+r_ID[149,Intercept]  2.814240e-02  0.028833073 -2.798962e-02  8.473870e-02
+r_ID[150,Intercept]  8.100730e-03  0.028864068 -4.800824e-02  6.472528e-02
+r_ID[152,Intercept]  2.255093e-02  0.028745553 -3.445800e-02  7.854042e-02
+r_ID[153,Intercept] -3.220719e-02  0.029133426 -8.968242e-02  2.572604e-02
+r_ID[155,Intercept] -3.468760e-02  0.029603908 -9.227859e-02  2.313887e-02
+r_ID[156,Intercept] -4.405517e-02  0.025123629 -9.327428e-02  5.691368e-03
+r_ID[159,Intercept] -5.070638e-02  0.029145086 -1.082453e-01  5.861377e-03
+r_ID[160,Intercept] -1.062530e-02  0.029005905 -6.860547e-02  4.531440e-02
+r_ID[162,Intercept]  1.634478e-01  0.026465016  1.113828e-01  2.156933e-01
+r_ID[163,Intercept] -4.200883e-02  0.029722538 -1.006309e-01  1.722971e-02
+r_ID[165,Intercept]  4.812609e-03  0.029252583 -5.176814e-02  6.210146e-02
+r_ID[167,Intercept] -4.270928e-02  0.029368589 -1.007306e-01  1.464680e-02
+r_ID[169,Intercept]  4.002226e-02  0.029837694 -1.854289e-02  9.830030e-02
+r_ID[171,Intercept]  2.803636e-02  0.029347465 -2.870594e-02  8.490885e-02
+r_ID[174,Intercept]  5.366793e-02  0.029267620 -2.912416e-03  1.115478e-01
+r_ID[182,Intercept] -2.606549e-03  0.028555523 -5.853419e-02  5.307361e-02
+r_ID[187,Intercept] -9.249317e-02  0.029848406 -1.504315e-01 -3.432123e-02
+r_ID[189,Intercept]  2.308724e-02  0.029154077 -3.430814e-02  7.984145e-02
+r_ID[190,Intercept] -4.684342e-02  0.029230055 -1.034961e-01  1.105951e-02
+r_ID[193,Intercept]  1.177622e-02  0.029177140 -4.511731e-02  6.826379e-02
+r_ID[194,Intercept] -5.147346e-02  0.029106050 -1.087625e-01  4.656273e-03
+r_ID[201,Intercept] -2.460456e-03  0.029269947 -5.972231e-02  5.576753e-02
+r_ID[204,Intercept]  7.152804e-02  0.029557233  1.433132e-02  1.295695e-01
+r_ID[205,Intercept]  2.028759e-03  0.029125410 -5.539973e-02  5.929562e-02
+r_ID[208,Intercept]  1.070720e-02  0.029627591 -4.672806e-02  6.927467e-02
+r_ID[209,Intercept]  1.673004e-02  0.028799078 -4.030509e-02  7.314736e-02
+r_ID[211,Intercept] -3.755448e-02  0.028870083 -9.335001e-02  1.922199e-02
+r_ID[214,Intercept]  6.329198e-02  0.029257207  7.053255e-03  1.205685e-01
+r_ID[219,Intercept]  3.061366e-02  0.029193343 -2.762447e-02  8.756989e-02
+r_ID[222,Intercept] -3.940460e-02  0.029049950 -9.616772e-02  1.677848e-02
+r_ID[223,Intercept] -1.731293e-02  0.029078213 -7.466480e-02  3.957257e-02
+r_ID[229,Intercept] -3.629884e-02  0.028764720 -9.292588e-02  1.974601e-02
+prior_Intercept      2.001556e-01  0.100050418  4.385070e-03  3.970446e-01
+prior_b              4.942381e-04  0.050216646 -9.922124e-02  9.816627e-02
+prior_sigma          1.003457e-01  0.100463677  2.630397e-03  3.719049e-01
+prior_sd_ID          7.932647e-02  0.060179781  2.998464e-03  2.237157e-01
+lprior               7.195385e+00  0.040766202  7.109079e+00  7.267962e+00
+lp__                 2.406063e+02 11.230397723  2.172699e+02  2.615615e+02</code></pre>
 </div>
 </div>
 </section>
 <section id="whats-in-our-posterior" class="slide level2">
 <h2>What’s in our posterior?</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb56"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a aria-label="1"></a><span class="fu">get_variables</span>(mlm<span class="fl">.3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb46"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a aria-label="1"></a><span class="fu">get_variables</span>(mlm<span class="fl">.3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>  [1] "b_Intercept"         "b_time"              "sd_ID__Intercept"   
   [4] "sigma"               "Intercept"           "r_ID[6,Intercept]"  
@@ -1671,17 +1451,17 @@ lp__                 2.300110e+02 11.128664937  2.065509e+02 250.263325000</code
 <h2>A known person vs.&nbsp;a new person</h2>
 <p>CON at time = 3 for person 6 (in the data) and for someone we’ve never seen:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb58"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a aria-label="1"></a><span class="fu">predictions</span>(mlm<span class="fl">.3</span>, <span class="at">newdata =</span> <span class="fu">tibble</span>(<span class="at">ID =</span> <span class="fu">c</span>(<span class="dv">6</span>, <span class="dv">9999</span>), <span class="at">time =</span> <span class="dv">3</span>),</span>
-<span id="cb58-2"><a aria-label="2"></a>            <span class="at">allow_new_levels =</span> <span class="cn">TRUE</span>, <span class="at">sample_new_levels =</span> <span class="st">"gaussian"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb48"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a aria-label="1"></a><span class="fu">predictions</span>(mlm<span class="fl">.3</span>, <span class="at">newdata =</span> <span class="fu">tibble</span>(<span class="at">ID =</span> <span class="fu">c</span>(<span class="dv">6</span>, <span class="dv">9999</span>), <span class="at">time =</span> <span class="dv">3</span>),</span>
+<span id="cb48-2"><a aria-label="2"></a>            <span class="at">allow_new_levels =</span> <span class="cn">TRUE</span>, <span class="at">sample_new_levels =</span> <span class="st">"gaussian"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
  Estimate  2.5 % 97.5 %
-    0.193 0.1452  0.241
-    0.187 0.0764  0.298
+    0.193 0.1459  0.242
+    0.187 0.0757  0.298
 
 Type: response</code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb60"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a aria-label="1"></a><span class="fu">predictions</span>(mlm<span class="fl">.3</span>, <span class="at">newdata =</span> <span class="fu">tibble</span>(<span class="at">time =</span> <span class="dv">3</span>), <span class="at">re_formula =</span> <span class="cn">NA</span>)  <span class="co"># the average person</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb50"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a aria-label="1"></a><span class="fu">predictions</span>(mlm<span class="fl">.3</span>, <span class="at">newdata =</span> <span class="fu">tibble</span>(<span class="at">time =</span> <span class="dv">3</span>), <span class="at">re_formula =</span> <span class="cn">NA</span>)  <span class="co"># the average person</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
  Estimate 2.5 % 97.5 %
