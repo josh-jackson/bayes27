@@ -29,13 +29,12 @@ Read this first at the start of a session. Update it at the end of each session 
 - **Revision notes:** every item in `Bayes Revision Notes.md` is ticked (58 done).
 - **Homework:** `hw-1` to `hw-13` exist; see the Homework Bank for which are revised. Solutions are posted manually after due dates (`solutions/`).
 - **Site:** GitHub Pages (https://josh-jackson.github.io/bayes27/) serves the committed `_site/`.
-- **Not pushed:** 9 local commits (Lectures 7–8, Nov 20–24) are not on GitHub yet. Pushing publishes them to the live site.
+- **Pushed:** everything through Lecture 8 is on GitHub and the live site (2026-11-24).
 
 ## Next steps
-1. **PI:** decide whether to push the Lecture 7–8 commits now. Pushing publishes them to the live site.
-2. **Claude:** review Lecture 9 (`mlm-8.qmd`), then 10–14.
-3. **Claude, by 2027-01-08:** re-render the whole site with current packages and fix breakages.
-4. **PI, by 2027-01-12:** update the syllabus with 2027 dates (spring break not known yet).
+1. **Claude:** review Lecture 9 (`mlm-8.qmd`), then 10–14.
+2. **Claude, by 2027-01-08:** re-render the whole site with current packages and fix breakages.
+3. **PI, by 2027-01-12:** update the syllabus with 2027 dates (spring break not known yet).
 
 ## Session log
 - 2026-11-11 to 2026-11-24: repo created from bayes25, GitHub Pages set up, fits backup added; Lectures 1–8 reviewed and revised.
