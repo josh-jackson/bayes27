@@ -2160,7 +2160,7 @@
     "href": "glm-7b.html#poisson",
     "title": "GLMs: counts and ordinal outcomes",
     "section": "Poisson",
-    "text": "Poisson\n\\[\n\\begin{aligned}\ny_i &\\sim \\operatorname{Poisson}(\\lambda_i) \\\\\n\\log(\\lambda_i) &= \\beta_0 + \\beta_1\\,\\text{roach1}_i + \\beta_2\\,\\text{treatment}_i \\\\\n\\beta_0 &\\sim \\operatorname{Normal}(2, 3) \\qquad \\beta_1, \\beta_2 \\sim \\operatorname{Normal}(0, 1)\n\\end{aligned}\n\\]\n\nglm.7 &lt;-\n  brm(family = poisson,\n      y ~ 0 + Intercept + roach1 + treatment,\n      prior = c(prior(normal(2, 3), class = b, coef = \"Intercept\"),\n                prior(normal(0, 1), class = b)),\n      iter = 2000, warmup = 1000, cores = 4, chains = 4,\n      sample_prior = \"yes\",\n      data = roach,\n      backend = \"cmdstanr\",\n      file = \"glm.7\")"
+    "text": "Poisson\n\\[\n\\begin{aligned}\ny_i &\\sim \\operatorname{Poisson}(\\lambda_i) \\\\\n\\log(\\lambda_i) &= \\beta_0 + \\beta_1\\,\\text{roach1}_i + \\beta_2\\,\\text{treatment}_i \\\\\n\\beta_0 &\\sim \\operatorname{Normal}(2, 3) \\qquad \\beta_1, \\beta_2 \\sim \\operatorname{Normal}(0, 1)\n\\end{aligned}\n\\]\n\nglm.7 &lt;-\n  brm(family = poisson,\n      y ~ 0 + Intercept + roach1 + treatment,   # 0 + Intercept: the intercept prior is for roach1 = 0, control group\n      prior = c(prior(normal(2, 3), class = b, coef = \"Intercept\"),\n                prior(normal(0, 1), class = b)),\n      iter = 2000, warmup = 1000, cores = 4, chains = 4,\n      sample_prior = \"yes\",\n      data = roach,\n      backend = \"cmdstanr\",\n      file = \"glm.7\")"
   },
   {
     "objectID": "glm-7b.html#why-0-intercept",

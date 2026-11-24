@@ -68,7 +68,7 @@ $$
 
 glm.7 <-
   brm(family = poisson,
-      y ~ 0 + Intercept + roach1 + treatment,
+      y ~ 0 + Intercept + roach1 + treatment,   # 0 + Intercept: the intercept prior is for roach1 = 0, control group
       prior = c(prior(normal(2, 3), class = b, coef = "Intercept"),
                 prior(normal(0, 1), class = b)),
       iter = 2000, warmup = 1000, cores = 4, chains = 4,
@@ -79,14 +79,6 @@ glm.7 <-
 
 
 ```
-
-## Why 0 + Intercept?
-
--   With the default `1 + ...`, brms centers the predictors behind the scenes, so your `class = Intercept` prior is a prior for the outcome *at the predictors' means* (the summary converts it back for you).
-
--   With `0 + Intercept + ...`, the intercept is a regular coefficient (`class = b, coef = "Intercept"`), and its prior is for the outcome when all predictors are 0.
-
--   Use `0 + Intercept` when "all predictors = 0" is the value you can actually set a prior for (here: no roaches before, control group).
 
 ## `glm.7` summary
 
