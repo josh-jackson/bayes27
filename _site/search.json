@@ -2391,7 +2391,7 @@
     "href": "glm-7b.html#zero-inflated-models",
     "title": "GLMs: counts and ordinal outcomes",
     "section": "Zero-inflated models",
-    "text": "Zero-inflated models\nUse when there are different causes for the same observation. These are mixture models: more than one data-generating process at once (one that makes zeros, one that makes counts).\nLots of ways to get a zero count: the process never started, or it started and happened to produce nothing. The data can’t tell you which for any one case."
+    "text": "Zero-inflated models\nUse when there are different causes for the same observation. These are discrete mixtures (see “What’s a mixture?”): two data-generating processes at once, one that makes only zeros and one that makes counts.\nLots of ways to get a zero count: the process never started, or it started and happened to produce nothing. The data can’t tell you which for any one case."
   },
   {
     "objectID": "glm-7b.html#zip-zero-inflated-poisson",
@@ -8846,5 +8846,33 @@
     "title": "GLMs: counts and ordinal outcomes",
     "section": "What education does",
     "text": "What education does\n\n\nCode\nsteps &lt;- paste(head(c(\"Elem\", \"Middle\", \"Some HS\", \"HS\", \"Some coll\", \"BA\", \"MA\", \"Grad\"), -1),\n               \"→\", tail(c(\"Elem\", \"Middle\", \"Some HS\", \"HS\", \"Some coll\", \"BA\", \"MA\", \"Grad\"), -1))\nas_draws_df(glm.15) %&gt;%\n  select(starts_with(\"simo_moedu_o1\")) %&gt;%\n  pivot_longer(everything()) %&gt;%\n  mutate(step = factor(steps[parse_number(str_extract(name, \"\\\\[\\\\d+\\\\]\"))], levels = rev(steps))) %&gt;%\n  ggplot(aes(x = value, y = step)) +\n  stat_halfeye(.width = .95) +\n  labs(x = \"Share of the total education effect (δ)\", y = NULL) +\n  theme_classic(base_size = 14)\n\n\n\n\n\n\n\n\n\n\n\\(\\beta_E\\) = -0.056 per step, so from lowest to highest education the log-cumulative-odds shift by about -0.39: more education, slightly less permissible ratings. Small next to action or contact.\nHow the change is spread across steps is very uncertain: only 60 and 120 ratings come from the two lowest levels, so their δs are mostly prior."
+  },
+  {
+    "objectID": "glm-7b.html#whats-a-mixture",
+    "href": "glm-7b.html#whats-a-mixture",
+    "title": "GLMs: counts and ordinal outcomes",
+    "section": "What’s a mixture?",
+    "text": "What’s a mixture?\nA mixture model says the data come from combining two or more distributions: each observation comes from one of them, but we only see the combined data. Example: reaction times, where most trials are attentive (fast, consistent) and some are lapses (slow, spread out).\n\n\nCode\nrt &lt;- tibble(x = seq(200, 1600, by = 5)) %&gt;%\n  mutate(attentive = .75 * dnorm(x, 500, 60),     # 75% of trials\n         lapses    = .25 * dnorm(x, 850, 150),    # 25% of trials\n         observed  = attentive + lapses)\nggplot(rt, aes(x)) +\n  geom_area(aes(y = attentive, fill = \"attentive trials (75%)\"), alpha = .5) +\n  geom_area(aes(y = lapses, fill = \"attention lapses (25%)\"), alpha = .5) +\n  geom_line(aes(y = observed, colour = \"what we observe\"), linewidth = 1.2) +\n  scale_fill_manual(values = c(\"#0072B2\", \"#D55E00\")) + scale_colour_manual(values = \"black\") +\n  labs(x = \"Reaction time (ms)\", y = NULL, fill = NULL, colour = NULL) +\n  theme_classic(base_size = 14) + theme(axis.text.y = element_blank(), legend.position = \"right\")\n\n\n\n\n\n\n\n\n\n\nDiscrete mixture: a few component distributions (here 2). Zero-inflated models, later today.\nContinuous mixture: every case has its own value of a parameter, so infinitely many components. The negative binomial (next)."
+  },
+  {
+    "objectID": "glm-7b.html#counts-as-a-mixture",
+    "href": "glm-7b.html#counts-as-a-mixture",
+    "title": "GLMs: counts and ordinal outcomes",
+    "section": "Counts as a mixture",
+    "text": "Counts as a mixture\nThe Poisson gives every apartment with the same predictors the same rate. But apartments differ in ways we didn’t measure (clutter, neighbors, building age), so each really has its own rate.\n\n\nCode\nset.seed(8)\nrates &lt;- rgamma(5000, shape = 1, rate = 1 / 25)        # each apartment's own rate, mean 25\np_a &lt;- ggplot(tibble(y = rpois(5000, 25)), aes(y)) + geom_histogram(binwidth = 2) +\n  labs(title = \"1. One rate (25) for everyone:\\ncounts from a Poisson\", x = \"count\", y = NULL)\np_b &lt;- ggplot(tibble(rate = rates), aes(rate)) + geom_histogram(binwidth = 2, fill = \"grey60\") +\n  labs(title = \"2. Instead, rates vary across\\napartments (mean still 25)\", x = \"rate\", y = NULL)\np_c &lt;- ggplot(tibble(y = rpois(5000, rates)), aes(y)) + geom_histogram(binwidth = 2) +\n  labs(title = \"3. Counts from those rates:\\na mixture of Poissons\", x = \"count\", y = NULL)\n(p_a | p_b | p_c) & coord_cartesian(xlim = c(0, 120)) & theme_classic(base_size = 12)\n\n\n\n\n\n\n\n\n\n\nSame average count, but far more spread and far more zeros (panel 3 vs. panel 1): what the roach data look like.\nIf the rates in panel 2 follow a gamma distribution, panel 3 is a negative binomial."
+  },
+  {
+    "objectID": "glm-7b.html#how-much-do-apartments-differ",
+    "href": "glm-7b.html#how-much-do-apartments-differ",
+    "title": "GLMs: counts and ordinal outcomes",
+    "section": "How much do apartments differ?",
+    "text": "How much do apartments differ?\nThe NB’s extra parameter, the shape φ, sets how spread out the apartments’ rates are (the gamma in panel 2 of “Counts as a mixture”). Both columns have the same mean, 25 roaches:\n\n\nCode\nset.seed(8)\nsims &lt;- map_dfr(c(0.5, 10), \\(phi) {\n  rates &lt;- rgamma(5000, shape = phi, rate = phi / 25)   # gamma with mean 25 and shape phi\n  tibble(phi = phi, rate = rates, count = rpois(5000, rates))\n}) %&gt;% mutate(phi = factor(sprintf(\"shape φ = %s\", phi), levels = c(\"shape φ = 0.5\", \"shape φ = 10\")))\nrate_row  &lt;- ggplot(sims, aes(rate)) + geom_histogram(binwidth = 2, fill = \"grey60\") +\n  facet_wrap(~ phi, scales = \"free_y\") + labs(x = \"each apartment's rate\", y = NULL)\ncount_row &lt;- ggplot(sims, aes(count)) + geom_histogram(binwidth = 2) +\n  facet_wrap(~ phi, scales = \"free_y\") + labs(x = \"roaches caught\", y = NULL)\n(rate_row / count_row) & coord_cartesian(xlim = c(0, 100)) & theme_classic(base_size = 12) & theme(axis.text.y = element_blank())\n\n\n\n\n\n\n\n\n\nSmall φ: apartments differ a lot, so counts are very spread out, with many zeros. Large φ: rates bunch near 25, and the counts look like a plain Poisson."
+  },
+  {
+    "objectID": "glm-7b.html#who-decides-the-shape",
+    "href": "glm-7b.html#who-decides-the-shape",
+    "title": "GLMs: counts and ordinal outcomes",
+    "section": "Who decides the shape?",
+    "text": "Who decides the shape?\n\nThe top row is gamma distributions: how the apartments’ rates are spread out. The bottom row is the counts each produces.\nWe don’t choose φ. The model estimates it from the data, like any other parameter. It shows up as shape in the brms summary, and we give it a prior.\nHow can it tell, if we never see any apartment’s rate? From how spread out the counts are. An NB’s variance is \\(\\mu + \\mu^2/\\phi\\): if the counts vary far more than their mean, φ must be small. We never estimate each apartment’s rate; the NB likelihood averages over all of them.\nFor the roaches φ comes out small (about 0.3): apartments differ enormously."
   }
 ]
