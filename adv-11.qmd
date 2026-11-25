@@ -100,19 +100,18 @@ If we know the distribution of the broader population, we can weight (post-strat
 
 Mr = Multi-level regression aka MLM
 
-P = poststratification, with post for posterior and stratification for stratify.
+P = poststratification: stratifying *after* the data are collected. You weren't able to sample each stratum (cell) in proportion to the population, so you correct for it afterwards.
 
-You take your posterior and make predictions based on different strata
-
-Weighted average of predicted values, where weights are the population shares of each category
+1. Fit a multilevel model, so every cell (e.g., Missouri × age 35 × BA × married in the 1990s) gets a prediction, even cells with few or no respondents.
+2. Take a weighted average of those cell predictions, where the weights are each cell's share of the population.
 
 ## Weighting vs poststratifying
 
 Weighting is done all the time with data. It gives more or less "weight" to observations that are over or under sampled. Some people "count" more than others in the service of getting data that represents some population.
 
-Poststratification is similar in that it weights the posterior samples rather than the observations.
+Poststratification is similar, but it weights the model's *predictions for each cell* rather than the observations.
 
-Why is this preferred? A few reasons, but mainly one can make generalization to new groups or groups with little data. Rather than weighting those specific (potentially unrepresentative) individuals, partial pooling from other information will help with learning
+Why is this preferred? Mainly, it generalizes to groups with little or no data. Instead of leaning hard on the few (potentially unrepresentative) individuals in a rare cell, the cell's prediction borrows strength from everyone through partial pooling.
 
 ## What MrP needs
 
@@ -124,7 +123,8 @@ Don't need to even attempt a representative sample. All we need is a sample that
 
 Estimating the proportion of heterosexual women who kept their maiden name after marriage.
 
-https://www.monicaalexander.com/posts/2019-08-07-mrp/ https://bookdown.org/content/4857/models-with-memory.html#summary-bonus-post-stratification-in-an-example
+-   Monica Alexander's [MRP primer](https://www.monicaalexander.com/posts/2019-08-07-mrp/) (the source of these data)
+-   Kurz's [brms version](https://bookdown.org/content/4857/models-with-memory.html#summary-bonus-post-stratification-in-an-example)
 
 ## The survey data
 
@@ -169,11 +169,17 @@ summary(mlm.mrp)
 avg_predictions(mlm.mrp)
 ```
 
-The intercept is on the log-odds scale; `plogis()` turns it into a probability:
+This averages the predictions for the women *in the survey*, so it inherits the survey's mix of ages, education and states: it is not yet a population estimate.
+
+## The intercept is something else
+
+The intercept is a different number again. On the log-odds scale, `plogis()` turns it into a probability:
 
 ```{r}
 plogis(fixef(mlm.mrp)["Intercept", "Estimate"])
 ```
+
+That is the prediction for a woman whose age, decade, education and state effects are all 0 (the "typical" cell on the log-odds scale), not an average over anyone.
 
 
 ## Variables in the posterior
@@ -193,24 +199,9 @@ predictions(mlm.mrp,
 
 
 
-## Census proportions within age groups {.smaller}
-
-Census data we will use to make predictions. We will make predictions for every combination of variable we are interested in (state, age, decade married, edu)
-
-```{r}
-#| code-fold: true
-age_prop <-
-  cell_counts %>%
-  group_by(age_group) %>%
-  mutate(prop = n / sum(n)) %>%
-  ungroup()
-
-age_prop
-```
-
 ## Poststratifying
 
-For each age group, average the predictions over every census cell in it, weighting each cell by its share of the population:
+The census table has one row per cell (state × age × decade married × education) and its population count `n`. For each age group, average the predictions over every census cell in it, weighting each cell by its count:
 
 $$\hat p_{\text{age}} = \frac{\sum_c N_c \, \hat p_c}{\sum_c N_c}$$
 
@@ -218,18 +209,18 @@ Do it draw by draw and you get a full posterior for each age group.
 
 ## Poststratifying with marginaleffects {.smaller}
 
-{marginaleffects} does this with `wts =`:
+`wts = "n"`: within each `by` group, marginaleffects divides the counts by their sum, so they become that group's population shares.
 
 ```{r}
 pred <- predictions(mlm.mrp,
-                    newdata = age_prop,
+                    newdata = cell_counts,
                     by = "age_group",
-                    wts = "prop",
+                    wts = "n",
                     allow_new_levels = TRUE)
 pred
 ```
 
-(The long way, with `add_predicted_draws()` on all 6,058 cells × 4,000 draws, gives the same answer and builds a 24-million-row table.)
+(By hand: 6,058 cells × 4,000 draws, a 24-million-row table. Same answer.)
 
 ## Raw data vs. MLM vs. MrP
 
@@ -244,7 +235,7 @@ p1 <-
   group_by(age_group, kept_name) %>%
   summarise(n = n(), .groups = "drop_last") %>%
   mutate(prop = n / sum(n), type = factor("raw data", levels = levels)) %>%
-  filter(kept_name == 1, age_group < 80, age_group > 20) %>%
+  filter(kept_name == 1) %>%
   ggplot(aes(x = prop, y = age_group)) +
   geom_point() +
   scale_x_continuous(breaks = c(0, .5, 1), limits = c(0, 1)) +
@@ -254,7 +245,6 @@ nd <- distinct(d, age_group) %>% arrange(age_group)
 p2 <-
   predictions(mlm.mrp, newdata = nd, re_formula = ~ (1 | age_group)) %>%
   mutate(type = factor("multilevel", levels = levels)) %>%
-  filter(age_group < 80, age_group > 20) %>%
   ggplot(aes(x = estimate, xmin = conf.low, xmax = conf.high, y = age_group)) +
   geom_pointrange(color = "#4C78A8") +
   scale_x_continuous(breaks = c(0, .5, 1), limits = c(0, 1)) +
@@ -264,7 +254,6 @@ p2 <-
 p3 <-
   pred %>%
   mutate(type = factor("MrP", levels = levels)) %>%
-  filter(age_group < 80, age_group > 20) %>%
   ggplot(aes(x = estimate, xmin = conf.low, xmax = conf.high, y = age_group)) +
   geom_pointrange(color = "#E45756") +
   scale_x_continuous(breaks = c(0, .5, 1), limits = c(0, 1)) +
@@ -279,15 +268,16 @@ p3 <-
 
 ```{r}
 #| code-fold: true
- predictions(mlm.mrp,
-                 newdata = age_prop,
-                 by = "state_name",
-                wts = "prop",
-                allow_new_levels = T) %>%
+#| fig-height: 4.2
+predictions(mlm.mrp,
+            newdata = cell_counts,
+            by = "state_name",
+            wts = "n",   # each cell's share of its state's population
+            allow_new_levels = TRUE) %>%
   get_draws(shape = "rvar") |>
   sort_by(~ estimate) |>
   transform(state = factor(state_name, levels = state_name)) %>%
-ggplot(aes(y = state, xdist = rvar)) +
+  ggplot(aes(y = state, xdist = rvar)) +
   stat_slab(height = 2, color = "white") +
   labs(x = "Posterior density", y = NULL)
 ```
@@ -296,31 +286,32 @@ ggplot(aes(y = state, xdist = rvar)) +
 
 ## MrP is not limited to surveys
 
-Example (using brms) with experimental data -- can you generalize from your sample of undergraduates to other undergraduates at your university, let alone undergraduates in general, let alone young adults, to say nothing about the population of humans. https://arxiv.org/pdf/1906.11323.pdf
+Example (using brms) with experimental data: can you generalize from your sample of undergraduates to other undergraduates at your university, let alone undergraduates in general, let alone young adults, to say nothing about the population of humans? Kennedy & Gelman, [*Know your population and know your model*](https://arxiv.org/pdf/1906.11323.pdf).
 
 ## A recent example with norms
 
 https://osf.io/preprints/psyarxiv/fcm3n/
 
 
-![](mrp.png)
+![](mrp.png){height=500}
 
 
 
 ## Missing data
 
 How to solve?
+
 1. Listwise
 2. Estimation algorithm eg FIML
 3. Multiple Imputation (before you run the model)
 4. Bayesian (while you run the model).
 
 
-## brms and multiple imputation
+## Multiple imputation
 
-Each missing value is imputed N times leading to a total of N fully imputed data sets. The imputation for each dataset is similar to our predict function, using variables to make a prediction. Sometimes this is an iterative process.
+Each missing value is imputed *m* times, giving *m* complete datasets. Each imputation is a prediction from the other variables plus random noise, so the datasets differ where the data were missing.
 
-The model is then fit to  N dataset separately and results are pooled across models.
+The model is then fit to each of the *m* datasets separately and the results are pooled.
 
 Assumes the probability that a value is missing depends only on observed values and not on unobserved values (MAR)
 
@@ -368,18 +359,16 @@ pmm = predictive mean matching
 
 Once you have the 10 datasets, you run the model separately in each of them.
 
-Then you need to pool your estimates.
+Then you need to pool your estimates. In the frequentist world that takes Rubin's rules (`mice::pool()`), which combine the within- and between-dataset variances.
 
-Common issue is how to pool?
-Some options:
-mice::pool() combines them Rubin's rules.
-broom.mixed (and other packages) can take the mids object and do it for you
+In the Bayesian world it is simpler: stack the posterior draws from all *m* fits. The mixture *is* the pooled posterior.
 
 
 
 ## brm_multiple
 
-works well with mice objects, but brm_multiple also takes any list of dataframes. Helpful if you use amelia or mi.
+`brm_multiple()` fits the model to each imputed dataset and stacks the draws. It takes a `mids` object from mice, or any list of data frames (e.g., from Amelia or mi).
+
 ```{r}
 imp.1 <- brm_multiple(family = gaussian,
                       bmi ~ age*chl,
@@ -392,31 +381,49 @@ imp.1 <- brm_multiple(family = gaussian,
 
 ## `imp.1` summary {.smaller}
 
-Pooling across models is trivial in a Bayesian framework but not in frequentist.
-40 chains! 40,000 draws! (10 datasets × 4 chains × 1,000 post-warmup draws)
+40 chains, 40,000 draws (10 datasets × 4 chains × 1,000 post-warmup draws).
+
 ```{r}
 summary(imp.1)
 ```
+
+## Did each imputed fit converge?
+
+The overall R-hat is uninformative here: chains fit to *different* datasets are supposed to disagree a little. Check R-hat within each dataset instead (one row per dataset, largest R-hat across parameters):
+
+```{r}
+dr <- as_draws_array(imp.1, variable = c("b_Intercept", "b_age", "b_chl", "b_age:chl", "sigma"))
+# chains 1-4 came from dataset 1, chains 5-8 from dataset 2, ...
+sapply(1:10, \(k) max(posterior::summarise_draws(posterior::subset_draws(dr, chain = (4 * k - 3):(4 * k)), "rhat")$rhat)) |>
+  round(3)
+```
+
+All below 1.01: each imputed dataset's fit converged.
 
 
 ## `imp.1` trace plots
 
 ```{r}
 #| code-fold: true
+#| fig-height: 4.2
 plot(imp.1)
 ```
 
 
-## Revisiting Bayesian updating
+## Why not update through the imputed datasets?
 
-Remember the posterior can be thought of as a new prior for your next data acquisition. You could do this one datapoint at a time (remember globe tossing model in SR?), or a dataset at the time.
+Remember that today's posterior can be tomorrow's prior. Could we fit dataset 1, use its posterior as the prior for dataset 2, and so on?
 
-MI is sort of like that. You could instead run 1 model with a single imputed dataset, estimate the posterior, use that posterior as a prior for a new model and then iterate through the rest of the imputed datasets
+No. Sequential updating assumes each dataset is *new* data. The 10 imputed datasets are the same 25 people 10 times over, so chaining them would count every observed value 10 times and give a posterior that is far too narrow. Stacking the draws (what `brm_multiple()` does) averages over the imputations instead of adding them up.
 
 
-## Bayesian imputation within brms
+## Bayesian imputation within brms {.smaller}
 
-1) Which variables contain missingness? 2) Which variables should predict missingness 3) what imputed variables are used as predictors
+Three decisions:
+
+1. Which variables have missing values? (`| mi()` on the left)
+2. What predicts each of them? (its own formula)
+3. Where are the imputed variables used as predictors? (`mi()` on the right)
 
 Taking care of this in brms ends up creating a multivariate model!
 ```{r}
@@ -442,13 +449,13 @@ Cons: cannot impute discrete values within brms/Stan
 
 ## A parameter for every missing value
 
-parameter for each missing variable
+Each missing value gets its own parameter: `Ymi_chl[1]` is the missing cholesterol in row 1 of `nhanes`, and so on.
 
 ```{r}
 posterior_summary(imp.2)
 ```
 
-## The missing values' posteriors
+## The missing values' posteriors {.smaller}
 
 ```{r}
 #| code-fold: true
@@ -456,19 +463,20 @@ imp.2 %>%
   spread_draws(Ymi_chl[ID])
 ```
 
-4,000 draws × 10 missing chl values = 40,000 rows
+4,000 draws × 10 missing chl values = 40,000 rows. `ID` here is the row of `nhanes`.
 
 ## Imputed cholesterol values
 
 
 ```{r}
 #| code-fold: true
+#| fig-height: 4.2
 imp.2 %>%
   spread_draws(Ymi_chl[ID]) %>%
   ggplot(aes(x = Ymi_chl,
              y = reorder(ID, Ymi_chl))) +
-  stat_slab(fill = "black", alpha = 3/4, height = 1.6, slab_color = "black", slab_size = 1/4) +
-  labs(x = "Chl imputed values", y = "IDs")
+  stat_slab(fill = "black", alpha = 3/4, height = 1.6, slab_color = "black", slab_linewidth = 1/4) +
+  labs(x = "Chl imputed values", y = "Row of nhanes")
 ```
 
 
@@ -476,15 +484,18 @@ imp.2 %>%
 
 ```{r}
 #| code-fold: true
+#| fig-height: 4.2
 imp.2 %>%
   spread_draws(Ymi_bmi[ID]) %>%
   ggplot(aes(x = Ymi_bmi,
              y = reorder(ID, Ymi_bmi))) +
-  stat_slab(fill = "black", alpha = 3/4, height = 1.6, slab_color = "black", slab_size = 1/4) +
-  labs(x = "BMI imputed values", y = "IDs")
+  stat_slab(fill = "black", alpha = 3/4, height = 1.6, slab_color = "black", slab_linewidth = 1/4) +
+  labs(x = "BMI imputed values", y = "Row of nhanes")
 ```
 
-## Making our own missing data
+## Making our own missing data {.smaller}
+
+Delete 30% of happiness and 30% of school success at random (missing completely at random), so we know the right answer.
 
 ```{r}
 #| code-fold: true
@@ -518,10 +529,10 @@ summary(lm(schoool.success ~ happiness, data = MI.missing))
 
 ```{r}
 
-imp.3 <- bf(schoool.success | mi() ~ mi(happiness)) +
-        bf(happiness | mi() ~ friendship.quality + SES)
+bform.3 <- bf(schoool.success | mi() ~ mi(happiness)) +
+  bf(happiness | mi() ~ friendship.quality + SES)
 
-imp.3 <- brm(imp.3,
+imp.3 <- brm(bform.3,
     data = MI.missing,
     iter = 2000, warmup = 1000, chains = 4, cores = 4,
     backend = "cmdstanr",
@@ -555,7 +566,7 @@ tibble(approach = c("Complete data (the truth here)", "Listwise deletion", "Impu
 -   We deleted values completely at random, so neither approach is biased on average; in this particular sample both happen to land above the complete-data slope.
 -   When missingness depends on other variables (MAR), listwise deletion *is* biased; imputation that uses those variables (friendship quality and SES here) is not.
 
-## doing it the "long" way
+## Imputing the long way
 
 We could impute missing values for any variable via posterior prediction. We can set up any model with variables we think are related to the variable we want to impute. After fitting the model we can make predictions for a) people who have existing data but missing on our DV or b) completely new people who have some set of predictors.
 
@@ -714,7 +725,7 @@ $$y_i \sim \operatorname{Normal}(\theta_i, \sigma_i)$$
 We can break theta down into two components, a Mu which provides us estimates of the mean. And tau, which provides us the between study heterogeneity.
 
 $$\theta_i \sim N(\mu, \tau)$$
-Hopefully you can see that meta-analyses are multilevel models as this is a hyperprior where we need prior distributions for mu and tau
+This is a multilevel model: the $\theta_i$ are study-level "random effects" drawn from a population distribution, and we need priors (hyperpriors) for $\mu$ and $\tau$.
 
 ## The spanking data
 
@@ -737,7 +748,7 @@ $$ \begin{eqnarray} \text{d}_i & \sim & \text{Normal}(\theta_i, \sigma_i = \text
 
 ## Effect sizes with known standard errors
 
-Each d is an estimate at the population, and we already have uncertainty estimates that we can directly incorporate into the model with the se() function. This is very similar to our MI standard error of the measurement procedure.
+Each d comes with its own standard error, which we pass to the model with `se()`. This is the same idea as `mi(se_ss)` in the measurement-error models: the observed value is a noisy measure of a true value, with known noise.
 
 ```{r}
 meta.1 <-
@@ -781,11 +792,14 @@ Error in `spread()`:
 ℹ Keys are shared for 4 rows
 ```
 
-wut? Several studies contribute more than one effect size, so `study` doesn't identify a row.
+wut? The study names contain commas ("Minton, Kagan, and Levine (1971)"), and `spread_draws()` splits the bracket on commas. Look at the names in `get_variables()`: a name that is fine as data can break this parsing. (Fix: rename the levels without commas, or use `ranef()`.)
 
-## Several effects per study
+## Several effects per study {.smaller}
 
-We can account for this two ways. 1. modeling each estimate rather than study so as there is a random intercept for each value in the dataset. 2. Or, in this dataset, we can model each different DV as studies have two samples often have different DVs.
+`r nrow(spank)` effect sizes come from `r n_distinct(spank$study)` studies: many studies report more than one (different samples or different outcomes). Effects from the same study are not independent, and `(1 | study)` alone treats each study's effects as exchangeable draws around one study mean with no extra spread. Two ways to handle it:
+
+1. Give every effect size its own random intercept, `(1 | id)`, nested in study.
+2. Also model the outcome (DV) each effect measures, since studies with several effects often used several DVs.
 
 ```{r}
 
@@ -841,15 +855,15 @@ as_draws_df(meta.2) %>%
   mutate(across(where(is.numeric), \(x) round(x, 2)))
 ```
 
--   μ is the average effect of spanking in d units (positive = worse outcomes for spanked children): about .36, reliably above 0.
--   The τ's say true effects differ quite a bit between studies and between outcomes within studies.
+-   μ is the average effect of spanking in d units (positive = worse outcomes for spanked children): about `r round(fixef(meta.2)["Intercept", "Estimate"], 2)`, reliably above 0.
+-   The τ's say true effects differ quite a bit between studies (τ_study) and, less so, between effect sizes within a study (τ_effect).
 -   `new_study`: the **prediction interval** for the effect in the next study. It's much wider than μ's interval, and that is the honest answer to "what will a new study find?"
 
 ## A forest plot {.smaller}
 
 ```{r}
 #| code-fold: true
-#| fig-height: 4.6
+#| fig-height: 4.3
 #| fig-width: 9
 set.seed(1)
 shown <- spank %>% slice_sample(n = 25)
@@ -897,21 +911,21 @@ summary(meta.3)
 
 ```{r}
 #| code-fold: true
-#|
+#| fig-height: 4.2
 meta.3 %>%
   spread_draws(b_Intercept, r_outcome[outcome,]) %>%
   mutate(mu = b_Intercept + r_outcome) %>%
   ggplot(aes(x = mu, y = reorder(outcome, mu))) +
   stat_halfeye(.width = .95, size = 2/3) +
   labs(x = expression(italic("Cohen's d")),
-       y = NULL) + xlim(-.1, .8)
+       y = NULL) + coord_cartesian(xlim = c(-.1, .8))
 ```
 
 ## Effects by outcome, labeled
 
 ```{r}
 #| code-fold: true
-#|
+#| fig-height: 4.2
 ind <- meta.3 %>%
   spread_draws(b_Intercept, r_outcome[outcome,]) %>%
   mutate(mu = b_Intercept + r_outcome)
@@ -926,9 +940,9 @@ meta.3 %>%
   ggplot(aes(x = mu, y = reorder(outcome, mu))) +
   stat_halfeye(.width = .95, size = 2/3) +
   labs(x = expression(italic("Cohen's d")),
-       y = NULL) + xlim(-.1, .9)+
-    geom_text(
-    data = mutate_if(out_all_sum, is.numeric, round, 2),
+       y = NULL) + coord_cartesian(xlim = c(-.1, .9)) +
+  geom_text(
+    data = mutate(out_all_sum, across(where(is.numeric), \(x) round(x, 2))),
     aes(label = glue::glue("{mu} [{.lower}, {.upper}]"), x = Inf),
     hjust = "inward")
 
@@ -940,10 +954,9 @@ meta.3 %>%
 
 ## Meta-regression
 
-Can we predict these variables?
+Can study features explain the heterogeneity? `between` = 1 if the effect compares different children (spanked vs. not; a between-subjects comparison), 0 if it compares the same children over time (within-subjects).
 
 ```{r}
-#| code-fold: true
 meta.4 <-
   brm(family = gaussian,
       d | se(se) ~ 1 + between + (1 | study) + (1 | outcome) + (1 | id),
@@ -962,6 +975,10 @@ meta.4 <-
 ```{r}
 summary(meta.4)
 ```
+
+## Reading the meta-regression
+
+`between` is a slope like any other: between-subjects effects are `r round(fixef(meta.4)["between", "Estimate"], 2)` d units [`r round(fixef(meta.4)["between", "Q2.5"], 2)`, `r round(fixef(meta.4)["between", "Q97.5"], 2)`] different from within-subjects ones, so design type doesn't explain much. Check: the study-level τ barely moves (`r round(VarCorr(meta.3)$study$sd[1], 2)` in `meta.3`, `r round(VarCorr(meta.4)$study$sd[1], 2)` here).
 
 
 

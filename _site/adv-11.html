@@ -258,8 +258,8 @@
 <div class="cell-output cell-output-stdout">
 <pre><code>
  W.other    ID Estimate 2.5 % 97.5 %
-       0 ralph     3.14  2.19   4.14
-       1 ralph     3.46  2.65   4.34
+       0 ralph     3.14  2.17   4.17
+       1 ralph     3.45  2.62   4.35
 
 Type: response</code></pre>
 </div>
@@ -315,15 +315,17 @@ Type: response</code></pre>
 <section id="mrp-the-pieces" class="slide level2">
 <h2>MrP: the pieces</h2>
 <p>Mr = Multi-level regression aka MLM</p>
-<p>P = poststratification, with post for posterior and stratification for stratify.</p>
-<p>You take your posterior and make predictions based on different strata</p>
-<p>Weighted average of predicted values, where weights are the population shares of each category</p>
+<p>P = poststratification: stratifying <em>after</em> the data are collected. You weren’t able to sample each stratum (cell) in proportion to the population, so you correct for it afterwards.</p>
+<ol type="1">
+<li>Fit a multilevel model, so every cell (e.g., Missouri × age 35 × BA × married in the 1990s) gets a prediction, even cells with few or no respondents.</li>
+<li>Take a weighted average of those cell predictions, where the weights are each cell’s share of the population.</li>
+</ol>
 </section>
 <section id="weighting-vs-poststratifying" class="slide level2">
 <h2>Weighting vs poststratifying</h2>
 <p>Weighting is done all the time with data. It gives more or less “weight” to observations that are over or under sampled. Some people “count” more than others in the service of getting data that represents some population.</p>
-<p>Poststratification is similar in that it weights the posterior samples rather than the observations.</p>
-<p>Why is this preferred? A few reasons, but mainly one can make generalization to new groups or groups with little data. Rather than weighting those specific (potentially unrepresentative) individuals, partial pooling from other information will help with learning</p>
+<p>Poststratification is similar, but it weights the model’s <em>predictions for each cell</em> rather than the observations.</p>
+<p>Why is this preferred? Mainly, it generalizes to groups with little or no data. Instead of leaning hard on the few (potentially unrepresentative) individuals in a rare cell, the cell’s prediction borrows strength from everyone through partial pooling.</p>
 </section>
 <section id="what-mrp-needs" class="slide level2">
 <h2>What MrP needs</h2>
@@ -333,7 +335,10 @@ Type: response</code></pre>
 <section id="example-keeping-ones-name-after-marriage" class="slide level2">
 <h2>Example: keeping one’s name after marriage</h2>
 <p>Estimating the proportion of heterosexual women who kept their maiden name after marriage.</p>
-<p>https://www.monicaalexander.com/posts/2019-08-07-mrp/ https://bookdown.org/content/4857/models-with-memory.html#summary-bonus-post-stratification-in-an-example</p>
+<ul>
+<li>Monica Alexander’s <a href="https://www.monicaalexander.com/posts/2019-08-07-mrp/">MRP primer</a> (the source of these data)</li>
+<li>Kurz’s <a href="https://bookdown.org/content/4857/models-with-memory.html#summary-bonus-post-stratification-in-an-example">brms version</a></li>
+</ul>
 </section>
 <section id="the-survey-data" class="slide level2">
 <h2>The survey data</h2>
@@ -448,13 +453,18 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 Type: response</code></pre>
 </div>
 </div>
-<p>The intercept is on the log-odds scale; <code>plogis()</code> turns it into a probability:</p>
+<p>This averages the predictions for the women <em>in the survey</em>, so it inherits the survey’s mix of ages, education and states: it is not yet a population estimate.</p>
+</section>
+<section id="the-intercept-is-something-else" class="slide level2">
+<h2>The intercept is something else</h2>
+<p>The intercept is a different number again. On the log-odds scale, <code>plogis()</code> turns it into a probability:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a aria-label="1"></a><span class="fu">plogis</span>(<span class="fu">fixef</span>(mlm.mrp)[<span class="st">"Intercept"</span>, <span class="st">"Estimate"</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.3260031</code></pre>
 </div>
 </div>
+<p>That is the prediction for a woman whose age, decade, education and state effects are all 0 (the “typical” cell on the log-odds scale), not an average over anyone.</p>
 </section>
 <section id="variables-in-the-posterior" class="slide level2">
 <h2>Variables in the posterior</h2>
@@ -567,54 +577,22 @@ Type: response</code></pre>
 </div>
 </div>
 </section>
-<section id="census-proportions-within-age-groups" class="slide level2 smaller">
-<h2>Census proportions within age groups</h2>
-<p>Census data we will use to make predictions. We will make predictions for every combination of variable we are interested in (state, age, decade married, edu)</p>
-<div class="cell">
-<details class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a aria-label="1"></a>age_prop <span class="ot">&lt;-</span></span>
-<span id="cb23-2"><a aria-label="2"></a>  cell_counts <span class="sc">%&gt;%</span></span>
-<span id="cb23-3"><a aria-label="3"></a>  <span class="fu">group_by</span>(age_group) <span class="sc">%&gt;%</span></span>
-<span id="cb23-4"><a aria-label="4"></a>  <span class="fu">mutate</span>(<span class="at">prop =</span> n <span class="sc">/</span> <span class="fu">sum</span>(n)) <span class="sc">%&gt;%</span></span>
-<span id="cb23-5"><a aria-label="5"></a>  <span class="fu">ungroup</span>()</span>
-<span id="cb23-6"><a aria-label="6"></a></span>
-<span id="cb23-7"><a aria-label="7"></a>age_prop</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 6,058 × 6
-   state_name age_group decade_married educ_group     n      prop
-   &lt;chr&gt;      &lt;chr&gt;     &lt;chr&gt;          &lt;chr&gt;      &lt;dbl&gt;     &lt;dbl&gt;
- 1 alabama    25        1999           &lt;BA        19012 0.00414  
- 2 alabama    25        2009           &lt;BA        37488 0.00816  
- 3 alabama    25        1999           &gt;BA          959 0.000209 
- 4 alabama    25        2009           &gt;BA         5319 0.00116  
- 5 alabama    25        1999           BA          2986 0.000650 
- 6 alabama    25        2009           BA         14261 0.00310  
- 7 alaska     25        1999           &lt;BA         3320 0.000723 
- 8 alaska     25        2009           &lt;BA         7001 0.00152  
- 9 alaska     25        1999           &gt;BA          159 0.0000346
-10 alaska     25        2009           &gt;BA          435 0.0000947
-# ℹ 6,048 more rows</code></pre>
-</div>
-</div>
-</section>
 <section id="poststratifying" class="slide level2">
 <h2>Poststratifying</h2>
-<p>For each age group, average the predictions over every census cell in it, weighting each cell by its share of the population:</p>
+<p>The census table has one row per cell (state × age × decade married × education) and its population count <code>n</code>. For each age group, average the predictions over every census cell in it, weighting each cell by its count:</p>
 <p><span class="math display">\[\hat p_{\text{age}} = \frac{\sum_c N_c \, \hat p_c}{\sum_c N_c}\]</span></p>
 <p>Do it draw by draw and you get a full posterior for each age group.</p>
 </section>
 <section id="poststratifying-with-marginaleffects" class="slide level2 smaller">
 <h2>Poststratifying with marginaleffects</h2>
-<p>{marginaleffects} does this with <code>wts =</code>:</p>
+<p><code>wts = "n"</code>: within each <code>by</code> group, marginaleffects divides the counts by their sum, so they become that group’s population shares.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a aria-label="1"></a>pred <span class="ot">&lt;-</span> <span class="fu">predictions</span>(mlm.mrp,</span>
-<span id="cb25-2"><a aria-label="2"></a>                    <span class="at">newdata =</span> age_prop,</span>
-<span id="cb25-3"><a aria-label="3"></a>                    <span class="at">by =</span> <span class="st">"age_group"</span>,</span>
-<span id="cb25-4"><a aria-label="4"></a>                    <span class="at">wts =</span> <span class="st">"prop"</span>,</span>
-<span id="cb25-5"><a aria-label="5"></a>                    <span class="at">allow_new_levels =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb25-6"><a aria-label="6"></a>pred</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a aria-label="1"></a>pred <span class="ot">&lt;-</span> <span class="fu">predictions</span>(mlm.mrp,</span>
+<span id="cb23-2"><a aria-label="2"></a>                    <span class="at">newdata =</span> cell_counts,</span>
+<span id="cb23-3"><a aria-label="3"></a>                    <span class="at">by =</span> <span class="st">"age_group"</span>,</span>
+<span id="cb23-4"><a aria-label="4"></a>                    <span class="at">wts =</span> <span class="st">"n"</span>,</span>
+<span id="cb23-5"><a aria-label="5"></a>                    <span class="at">allow_new_levels =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb23-6"><a aria-label="6"></a>pred</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
  age_group Estimate  2.5 % 97.5 %
@@ -633,94 +611,98 @@ Type: response</code></pre>
 Type: response</code></pre>
 </div>
 </div>
-<p>(The long way, with <code>add_predicted_draws()</code> on all 6,058 cells × 4,000 draws, gives the same answer and builds a 24-million-row table.)</p>
+<p>(By hand: 6,058 cells × 4,000 draws, a 24-million-row table. Same answer.)</p>
 </section>
 <section id="raw-data-vs.-mlm-vs.-mrp" class="slide level2">
 <h2>Raw data vs.&nbsp;MLM vs.&nbsp;MrP</h2>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a aria-label="1"></a><span class="fu">library</span>(patchwork)</span>
-<span id="cb27-2"><a aria-label="2"></a>levels <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"raw data"</span>, <span class="st">"multilevel"</span>, <span class="st">"MrP"</span>)</span>
-<span id="cb27-3"><a aria-label="3"></a></span>
-<span id="cb27-4"><a aria-label="4"></a>p1 <span class="ot">&lt;-</span></span>
-<span id="cb27-5"><a aria-label="5"></a>  d <span class="sc">%&gt;%</span></span>
-<span id="cb27-6"><a aria-label="6"></a>  <span class="fu">group_by</span>(age_group, kept_name) <span class="sc">%&gt;%</span></span>
-<span id="cb27-7"><a aria-label="7"></a>  <span class="fu">summarise</span>(<span class="at">n =</span> <span class="fu">n</span>(), <span class="at">.groups =</span> <span class="st">"drop_last"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb27-8"><a aria-label="8"></a>  <span class="fu">mutate</span>(<span class="at">prop =</span> n <span class="sc">/</span> <span class="fu">sum</span>(n), <span class="at">type =</span> <span class="fu">factor</span>(<span class="st">"raw data"</span>, <span class="at">levels =</span> levels)) <span class="sc">%&gt;%</span></span>
-<span id="cb27-9"><a aria-label="9"></a>  <span class="fu">filter</span>(kept_name <span class="sc">==</span> <span class="dv">1</span>, age_group <span class="sc">&lt;</span> <span class="dv">80</span>, age_group <span class="sc">&gt;</span> <span class="dv">20</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb27-10"><a aria-label="10"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> prop, <span class="at">y =</span> age_group)) <span class="sc">+</span></span>
-<span id="cb27-11"><a aria-label="11"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
-<span id="cb27-12"><a aria-label="12"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">0</span>, .<span class="dv">5</span>, <span class="dv">1</span>), <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)) <span class="sc">+</span></span>
-<span id="cb27-13"><a aria-label="13"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>type)</span>
-<span id="cb27-14"><a aria-label="14"></a></span>
-<span id="cb27-15"><a aria-label="15"></a>nd <span class="ot">&lt;-</span> <span class="fu">distinct</span>(d, age_group) <span class="sc">%&gt;%</span> <span class="fu">arrange</span>(age_group)</span>
-<span id="cb27-16"><a aria-label="16"></a>p2 <span class="ot">&lt;-</span></span>
-<span id="cb27-17"><a aria-label="17"></a>  <span class="fu">predictions</span>(mlm.mrp, <span class="at">newdata =</span> nd, <span class="at">re_formula =</span> <span class="sc">~</span> (<span class="dv">1</span> <span class="sc">|</span> age_group)) <span class="sc">%&gt;%</span></span>
-<span id="cb27-18"><a aria-label="18"></a>  <span class="fu">mutate</span>(<span class="at">type =</span> <span class="fu">factor</span>(<span class="st">"multilevel"</span>, <span class="at">levels =</span> levels)) <span class="sc">%&gt;%</span></span>
-<span id="cb27-19"><a aria-label="19"></a>  <span class="fu">filter</span>(age_group <span class="sc">&lt;</span> <span class="dv">80</span>, age_group <span class="sc">&gt;</span> <span class="dv">20</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb27-20"><a aria-label="20"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> estimate, <span class="at">xmin =</span> conf.low, <span class="at">xmax =</span> conf.high, <span class="at">y =</span> age_group)) <span class="sc">+</span></span>
-<span id="cb27-21"><a aria-label="21"></a>  <span class="fu">geom_pointrange</span>(<span class="at">color =</span> <span class="st">"#4C78A8"</span>) <span class="sc">+</span></span>
-<span id="cb27-22"><a aria-label="22"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">0</span>, .<span class="dv">5</span>, <span class="dv">1</span>), <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)) <span class="sc">+</span></span>
-<span id="cb27-23"><a aria-label="23"></a>  <span class="fu">scale_y_discrete</span>(<span class="at">labels =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
-<span id="cb27-24"><a aria-label="24"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>type)</span>
-<span id="cb27-25"><a aria-label="25"></a></span>
-<span id="cb27-26"><a aria-label="26"></a>p3 <span class="ot">&lt;-</span></span>
-<span id="cb27-27"><a aria-label="27"></a>  pred <span class="sc">%&gt;%</span></span>
-<span id="cb27-28"><a aria-label="28"></a>  <span class="fu">mutate</span>(<span class="at">type =</span> <span class="fu">factor</span>(<span class="st">"MrP"</span>, <span class="at">levels =</span> levels)) <span class="sc">%&gt;%</span></span>
-<span id="cb27-29"><a aria-label="29"></a>  <span class="fu">filter</span>(age_group <span class="sc">&lt;</span> <span class="dv">80</span>, age_group <span class="sc">&gt;</span> <span class="dv">20</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb27-30"><a aria-label="30"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> estimate, <span class="at">xmin =</span> conf.low, <span class="at">xmax =</span> conf.high, <span class="at">y =</span> age_group)) <span class="sc">+</span></span>
-<span id="cb27-31"><a aria-label="31"></a>  <span class="fu">geom_pointrange</span>(<span class="at">color =</span> <span class="st">"#E45756"</span>) <span class="sc">+</span></span>
-<span id="cb27-32"><a aria-label="32"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">0</span>, .<span class="dv">5</span>, <span class="dv">1</span>), <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)) <span class="sc">+</span></span>
-<span id="cb27-33"><a aria-label="33"></a>  <span class="fu">scale_y_discrete</span>(<span class="at">labels =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
-<span id="cb27-34"><a aria-label="34"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>type)</span>
-<span id="cb27-35"><a aria-label="35"></a></span>
-<span id="cb27-36"><a aria-label="36"></a>(p1 <span class="sc">|</span> p2 <span class="sc">|</span> p3) <span class="sc">+</span></span>
-<span id="cb27-37"><a aria-label="37"></a>  <span class="fu">plot_annotation</span>(<span class="at">title =</span> <span class="st">"Proportion of women keeping their name after marriage, by age"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a aria-label="1"></a><span class="fu">library</span>(patchwork)</span>
+<span id="cb25-2"><a aria-label="2"></a>levels <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"raw data"</span>, <span class="st">"multilevel"</span>, <span class="st">"MrP"</span>)</span>
+<span id="cb25-3"><a aria-label="3"></a></span>
+<span id="cb25-4"><a aria-label="4"></a>p1 <span class="ot">&lt;-</span></span>
+<span id="cb25-5"><a aria-label="5"></a>  d <span class="sc">%&gt;%</span></span>
+<span id="cb25-6"><a aria-label="6"></a>  <span class="fu">group_by</span>(age_group, kept_name) <span class="sc">%&gt;%</span></span>
+<span id="cb25-7"><a aria-label="7"></a>  <span class="fu">summarise</span>(<span class="at">n =</span> <span class="fu">n</span>(), <span class="at">.groups =</span> <span class="st">"drop_last"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb25-8"><a aria-label="8"></a>  <span class="fu">mutate</span>(<span class="at">prop =</span> n <span class="sc">/</span> <span class="fu">sum</span>(n), <span class="at">type =</span> <span class="fu">factor</span>(<span class="st">"raw data"</span>, <span class="at">levels =</span> levels)) <span class="sc">%&gt;%</span></span>
+<span id="cb25-9"><a aria-label="9"></a>  <span class="fu">filter</span>(kept_name <span class="sc">==</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb25-10"><a aria-label="10"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> prop, <span class="at">y =</span> age_group)) <span class="sc">+</span></span>
+<span id="cb25-11"><a aria-label="11"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb25-12"><a aria-label="12"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">0</span>, .<span class="dv">5</span>, <span class="dv">1</span>), <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)) <span class="sc">+</span></span>
+<span id="cb25-13"><a aria-label="13"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>type)</span>
+<span id="cb25-14"><a aria-label="14"></a></span>
+<span id="cb25-15"><a aria-label="15"></a>nd <span class="ot">&lt;-</span> <span class="fu">distinct</span>(d, age_group) <span class="sc">%&gt;%</span> <span class="fu">arrange</span>(age_group)</span>
+<span id="cb25-16"><a aria-label="16"></a>p2 <span class="ot">&lt;-</span></span>
+<span id="cb25-17"><a aria-label="17"></a>  <span class="fu">predictions</span>(mlm.mrp, <span class="at">newdata =</span> nd, <span class="at">re_formula =</span> <span class="sc">~</span> (<span class="dv">1</span> <span class="sc">|</span> age_group)) <span class="sc">%&gt;%</span></span>
+<span id="cb25-18"><a aria-label="18"></a>  <span class="fu">mutate</span>(<span class="at">type =</span> <span class="fu">factor</span>(<span class="st">"multilevel"</span>, <span class="at">levels =</span> levels)) <span class="sc">%&gt;%</span></span>
+<span id="cb25-19"><a aria-label="19"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> estimate, <span class="at">xmin =</span> conf.low, <span class="at">xmax =</span> conf.high, <span class="at">y =</span> age_group)) <span class="sc">+</span></span>
+<span id="cb25-20"><a aria-label="20"></a>  <span class="fu">geom_pointrange</span>(<span class="at">color =</span> <span class="st">"#4C78A8"</span>) <span class="sc">+</span></span>
+<span id="cb25-21"><a aria-label="21"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">0</span>, .<span class="dv">5</span>, <span class="dv">1</span>), <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)) <span class="sc">+</span></span>
+<span id="cb25-22"><a aria-label="22"></a>  <span class="fu">scale_y_discrete</span>(<span class="at">labels =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb25-23"><a aria-label="23"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>type)</span>
+<span id="cb25-24"><a aria-label="24"></a></span>
+<span id="cb25-25"><a aria-label="25"></a>p3 <span class="ot">&lt;-</span></span>
+<span id="cb25-26"><a aria-label="26"></a>  pred <span class="sc">%&gt;%</span></span>
+<span id="cb25-27"><a aria-label="27"></a>  <span class="fu">mutate</span>(<span class="at">type =</span> <span class="fu">factor</span>(<span class="st">"MrP"</span>, <span class="at">levels =</span> levels)) <span class="sc">%&gt;%</span></span>
+<span id="cb25-28"><a aria-label="28"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> estimate, <span class="at">xmin =</span> conf.low, <span class="at">xmax =</span> conf.high, <span class="at">y =</span> age_group)) <span class="sc">+</span></span>
+<span id="cb25-29"><a aria-label="29"></a>  <span class="fu">geom_pointrange</span>(<span class="at">color =</span> <span class="st">"#E45756"</span>) <span class="sc">+</span></span>
+<span id="cb25-30"><a aria-label="30"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">0</span>, .<span class="dv">5</span>, <span class="dv">1</span>), <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)) <span class="sc">+</span></span>
+<span id="cb25-31"><a aria-label="31"></a>  <span class="fu">scale_y_discrete</span>(<span class="at">labels =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb25-32"><a aria-label="32"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>type)</span>
+<span id="cb25-33"><a aria-label="33"></a></span>
+<span id="cb25-34"><a aria-label="34"></a>(p1 <span class="sc">|</span> p2 <span class="sc">|</span> p3) <span class="sc">+</span></span>
+<span id="cb25-35"><a aria-label="35"></a>  <span class="fu">plot_annotation</span>(<span class="at">title =</span> <span class="st">"Proportion of women keeping their name after marriage, by age"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
 </div>
-<img data-src="adv-11_files/figure-revealjs/unnamed-chunk-16-1.png" width="960" class="r-stretch"></section>
+<img data-src="adv-11_files/figure-revealjs/unnamed-chunk-15-1.png" width="960" class="r-stretch"></section>
 <section id="mrp-estimates-by-state" class="slide level2">
 <h2>MrP estimates by state</h2>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a aria-label="1"></a> <span class="fu">predictions</span>(mlm.mrp,</span>
-<span id="cb28-2"><a aria-label="2"></a>                 <span class="at">newdata =</span> age_prop,</span>
-<span id="cb28-3"><a aria-label="3"></a>                 <span class="at">by =</span> <span class="st">"state_name"</span>,</span>
-<span id="cb28-4"><a aria-label="4"></a>                <span class="at">wts =</span> <span class="st">"prop"</span>,</span>
-<span id="cb28-5"><a aria-label="5"></a>                <span class="at">allow_new_levels =</span> T) <span class="sc">%&gt;%</span></span>
-<span id="cb28-6"><a aria-label="6"></a>  <span class="fu">get_draws</span>(<span class="at">shape =</span> <span class="st">"rvar"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb28-7"><a aria-label="7"></a>  <span class="fu">sort_by</span>(<span class="sc">~</span> estimate) <span class="sc">|&gt;</span></span>
-<span id="cb28-8"><a aria-label="8"></a>  <span class="fu">transform</span>(<span class="at">state =</span> <span class="fu">factor</span>(state_name, <span class="at">levels =</span> state_name)) <span class="sc">%&gt;%</span></span>
-<span id="cb28-9"><a aria-label="9"></a><span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">y =</span> state, <span class="at">xdist =</span> rvar)) <span class="sc">+</span></span>
-<span id="cb28-10"><a aria-label="10"></a>  <span class="fu">stat_slab</span>(<span class="at">height =</span> <span class="dv">2</span>, <span class="at">color =</span> <span class="st">"white"</span>) <span class="sc">+</span></span>
-<span id="cb28-11"><a aria-label="11"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Posterior density"</span>, <span class="at">y =</span> <span class="cn">NULL</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a aria-label="1"></a><span class="fu">predictions</span>(mlm.mrp,</span>
+<span id="cb26-2"><a aria-label="2"></a>            <span class="at">newdata =</span> cell_counts,</span>
+<span id="cb26-3"><a aria-label="3"></a>            <span class="at">by =</span> <span class="st">"state_name"</span>,</span>
+<span id="cb26-4"><a aria-label="4"></a>            <span class="at">wts =</span> <span class="st">"n"</span>,   <span class="co"># each cell's share of its state's population</span></span>
+<span id="cb26-5"><a aria-label="5"></a>            <span class="at">allow_new_levels =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb26-6"><a aria-label="6"></a>  <span class="fu">get_draws</span>(<span class="at">shape =</span> <span class="st">"rvar"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb26-7"><a aria-label="7"></a>  <span class="fu">sort_by</span>(<span class="sc">~</span> estimate) <span class="sc">|&gt;</span></span>
+<span id="cb26-8"><a aria-label="8"></a>  <span class="fu">transform</span>(<span class="at">state =</span> <span class="fu">factor</span>(state_name, <span class="at">levels =</span> state_name)) <span class="sc">%&gt;%</span></span>
+<span id="cb26-9"><a aria-label="9"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">y =</span> state, <span class="at">xdist =</span> rvar)) <span class="sc">+</span></span>
+<span id="cb26-10"><a aria-label="10"></a>  <span class="fu">stat_slab</span>(<span class="at">height =</span> <span class="dv">2</span>, <span class="at">color =</span> <span class="st">"white"</span>) <span class="sc">+</span></span>
+<span id="cb26-11"><a aria-label="11"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Posterior density"</span>, <span class="at">y =</span> <span class="cn">NULL</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
 </div>
-<img data-src="adv-11_files/figure-revealjs/unnamed-chunk-17-1.png" width="960" class="r-stretch"></section>
+<img data-src="adv-11_files/figure-revealjs/unnamed-chunk-16-1.png" width="960" class="r-stretch"></section>
 <section id="mrp-is-not-limited-to-surveys" class="slide level2">
 <h2>MrP is not limited to surveys</h2>
-<p>Example (using brms) with experimental data – can you generalize from your sample of undergraduates to other undergraduates at your university, let alone undergraduates in general, let alone young adults, to say nothing about the population of humans. https://arxiv.org/pdf/1906.11323.pdf</p>
+<p>Example (using brms) with experimental data: can you generalize from your sample of undergraduates to other undergraduates at your university, let alone undergraduates in general, let alone young adults, to say nothing about the population of humans? Kennedy &amp; Gelman, <a href="https://arxiv.org/pdf/1906.11323.pdf"><em>Know your population and know your model</em></a>.</p>
 </section>
 <section id="a-recent-example-with-norms" class="slide level2">
 <h2>A recent example with norms</h2>
 <p>https://osf.io/preprints/psyarxiv/fcm3n/</p>
-
-<img data-src="mrp.png" class="r-stretch"></section>
+<p><img data-src="mrp.png" height="500"></p>
+</section>
 <section id="missing-data" class="slide level2">
 <h2>Missing data</h2>
-<p>How to solve? 1. Listwise 2. Estimation algorithm eg FIML 3. Multiple Imputation (before you run the model) 4. Bayesian (while you run the model).</p>
+<p>How to solve?</p>
+<ol type="1">
+<li>Listwise</li>
+<li>Estimation algorithm eg FIML</li>
+<li>Multiple Imputation (before you run the model)</li>
+<li>Bayesian (while you run the model).</li>
+</ol>
 </section>
-<section id="brms-and-multiple-imputation" class="slide level2">
-<h2>brms and multiple imputation</h2>
-<p>Each missing value is imputed N times leading to a total of N fully imputed data sets. The imputation for each dataset is similar to our predict function, using variables to make a prediction. Sometimes this is an iterative process.</p>
-<p>The model is then fit to N dataset separately and results are pooled across models.</p>
+<section id="multiple-imputation" class="slide level2">
+<h2>Multiple imputation</h2>
+<p>Each missing value is imputed <em>m</em> times, giving <em>m</em> complete datasets. Each imputation is a prediction from the other variables plus random noise, so the datasets differ where the data were missing.</p>
+<p>The model is then fit to each of the <em>m</em> datasets separately and the results are pooled.</p>
 <p>Assumes the probability that a value is missing depends only on observed values and not on unobserved values (MAR)</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a aria-label="1"></a><span class="fu">library</span>(mice)  <span class="co"># multivariate imputation by chained equations</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a aria-label="1"></a><span class="fu">library</span>(mice)  <span class="co"># multivariate imputation by chained equations</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="how-chained-imputation-works" class="slide level2 smaller">
@@ -737,8 +719,8 @@ Type: response</code></pre>
 <h2>The nhanes data</h2>
 <p>National Health and Nutrition Examination Survey</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a aria-label="1"></a><span class="fu">data</span>(<span class="st">"nhanes"</span>)</span>
-<span id="cb30-2"><a aria-label="2"></a>nhanes</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a aria-label="1"></a><span class="fu">data</span>(<span class="st">"nhanes"</span>)</span>
+<span id="cb28-2"><a aria-label="2"></a>nhanes</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>   age  bmi hyp chl
 1    1   NA  NA  NA
@@ -772,13 +754,13 @@ Type: response</code></pre>
 <section id="imputing-10-datasets" class="slide level2">
 <h2>Imputing 10 datasets</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a aria-label="1"></a>nhanes.imp <span class="ot">&lt;-</span> <span class="fu">mice</span>(nhanes, <span class="at">m =</span> <span class="dv">10</span>, <span class="at">seed =</span> <span class="dv">2027</span>, <span class="at">printFlag =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a aria-label="1"></a>nhanes.imp <span class="ot">&lt;-</span> <span class="fu">mice</span>(nhanes, <span class="at">m =</span> <span class="dv">10</span>, <span class="at">seed =</span> <span class="dv">2027</span>, <span class="at">printFlag =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="the-imputed-object" class="slide level2">
 <h2>The imputed object</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a aria-label="1"></a>nhanes.imp</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a aria-label="1"></a>nhanes.imp</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Class: mids
 Number of multiple imputations:  10 
@@ -799,26 +781,26 @@ chl   1   1   1   0</code></pre>
 <section id="pooling-the-results" class="slide level2">
 <h2>Pooling the results</h2>
 <p>Once you have the 10 datasets, you run the model separately in each of them.</p>
-<p>Then you need to pool your estimates.</p>
-<p>Common issue is how to pool? Some options: mice::pool() combines them Rubin’s rules. broom.mixed (and other packages) can take the mids object and do it for you</p>
+<p>Then you need to pool your estimates. In the frequentist world that takes Rubin’s rules (<code>mice::pool()</code>), which combine the within- and between-dataset variances.</p>
+<p>In the Bayesian world it is simpler: stack the posterior draws from all <em>m</em> fits. The mixture <em>is</em> the pooled posterior.</p>
 </section>
 <section id="brm_multiple" class="slide level2">
 <h2>brm_multiple</h2>
-<p>works well with mice objects, but brm_multiple also takes any list of dataframes. Helpful if you use amelia or mi.</p>
+<p><code>brm_multiple()</code> fits the model to each imputed dataset and stacks the draws. It takes a <code>mids</code> object from mice, or any list of data frames (e.g., from Amelia or mi).</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a aria-label="1"></a>imp<span class="fl">.1</span> <span class="ot">&lt;-</span> <span class="fu">brm_multiple</span>(<span class="at">family =</span> gaussian,</span>
-<span id="cb35-2"><a aria-label="2"></a>                      bmi <span class="sc">~</span> age<span class="sc">*</span>chl,</span>
-<span id="cb35-3"><a aria-label="3"></a>                      <span class="at">data =</span> nhanes.imp,</span>
-<span id="cb35-4"><a aria-label="4"></a>                      <span class="at">cores =</span> <span class="dv">4</span>,</span>
-<span id="cb35-5"><a aria-label="5"></a>                      <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
-<span id="cb35-6"><a aria-label="6"></a>                      <span class="at">file =</span> <span class="st">"imp.1"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a aria-label="1"></a>imp<span class="fl">.1</span> <span class="ot">&lt;-</span> <span class="fu">brm_multiple</span>(<span class="at">family =</span> gaussian,</span>
+<span id="cb33-2"><a aria-label="2"></a>                      bmi <span class="sc">~</span> age<span class="sc">*</span>chl,</span>
+<span id="cb33-3"><a aria-label="3"></a>                      <span class="at">data =</span> nhanes.imp,</span>
+<span id="cb33-4"><a aria-label="4"></a>                      <span class="at">cores =</span> <span class="dv">4</span>,</span>
+<span id="cb33-5"><a aria-label="5"></a>                      <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
+<span id="cb33-6"><a aria-label="6"></a>                      <span class="at">file =</span> <span class="st">"imp.1"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="imp.1-summary" class="slide level2 smaller">
 <h2><code>imp.1</code> summary</h2>
-<p>Pooling across models is trivial in a Bayesian framework but not in frequentist. 40 chains! 40,000 draws! (10 datasets × 4 chains × 1,000 post-warmup draws)</p>
+<p>40 chains, 40,000 draws (10 datasets × 4 chains × 1,000 post-warmup draws).</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a aria-label="1"></a><span class="fu">summary</span>(imp<span class="fl">.1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a aria-label="1"></a><span class="fu">summary</span>(imp<span class="fl">.1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: gaussian 
   Links: mu = identity 
@@ -844,6 +826,20 @@ Please see ?brm_multiple for how to assess convergence of such models.</code></p
 </div>
 </div>
 </section>
+<section id="did-each-imputed-fit-converge" class="slide level2">
+<h2>Did each imputed fit converge?</h2>
+<p>The overall R-hat is uninformative here: chains fit to <em>different</em> datasets are supposed to disagree a little. Check R-hat within each dataset instead (one row per dataset, largest R-hat across parameters):</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a aria-label="1"></a>dr <span class="ot">&lt;-</span> <span class="fu">as_draws_array</span>(imp<span class="fl">.1</span>, <span class="at">variable =</span> <span class="fu">c</span>(<span class="st">"b_Intercept"</span>, <span class="st">"b_age"</span>, <span class="st">"b_chl"</span>, <span class="st">"b_age:chl"</span>, <span class="st">"sigma"</span>))</span>
+<span id="cb36-2"><a aria-label="2"></a><span class="co"># chains 1-4 came from dataset 1, chains 5-8 from dataset 2, ...</span></span>
+<span id="cb36-3"><a aria-label="3"></a><span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, \(k) <span class="fu">max</span>(posterior<span class="sc">::</span><span class="fu">summarise_draws</span>(posterior<span class="sc">::</span><span class="fu">subset_draws</span>(dr, <span class="at">chain =</span> (<span class="dv">4</span> <span class="sc">*</span> k <span class="sc">-</span> <span class="dv">3</span>)<span class="sc">:</span>(<span class="dv">4</span> <span class="sc">*</span> k)), <span class="st">"rhat"</span>)<span class="sc">$</span>rhat)) <span class="sc">|&gt;</span></span>
+<span id="cb36-4"><a aria-label="4"></a>  <span class="fu">round</span>(<span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] 1.005 1.005 1.003 1.002 1.001 1.005 1.002 1.002 1.002 1.004</code></pre>
+</div>
+</div>
+<p>All below 1.01: each imputed dataset’s fit converged.</p>
+</section>
 <section id="imp.1-trace-plots" class="slide level2">
 <h2><code>imp.1</code> trace plots</h2>
 <div class="cell">
@@ -854,15 +850,18 @@ Please see ?brm_multiple for how to assess convergence of such models.</code></p
 
 </div>
 <img data-src="adv-11_files/figure-revealjs/unnamed-chunk-24-1.png" width="960" class="r-stretch"></section>
-<section id="revisiting-bayesian-updating" class="slide level2">
-<h2>Revisiting Bayesian updating</h2>
-<p>Remember the posterior can be thought of as a new prior for your next data acquisition. You could do this one datapoint at a time (remember globe tossing model in SR?), or a dataset at the time.</p>
-<p>MI is sort of like that. You could instead run 1 model with a single imputed dataset, estimate the posterior, use that posterior as a prior for a new model and then iterate through the rest of the imputed datasets</p>
+<section id="why-not-update-through-the-imputed-datasets" class="slide level2">
+<h2>Why not update through the imputed datasets?</h2>
+<p>Remember that today’s posterior can be tomorrow’s prior. Could we fit dataset 1, use its posterior as the prior for dataset 2, and so on?</p>
+<p>No.&nbsp;Sequential updating assumes each dataset is <em>new</em> data. The 10 imputed datasets are the same 25 people 10 times over, so chaining them would count every observed value 10 times and give a posterior that is far too narrow. Stacking the draws (what <code>brm_multiple()</code> does) averages over the imputations instead of adding them up.</p>
 </section>
-<section id="bayesian-imputation-within-brms" class="slide level2">
+<section id="bayesian-imputation-within-brms" class="slide level2 smaller">
 <h2>Bayesian imputation within brms</h2>
+<p>Three decisions:</p>
 <ol type="1">
-<li>Which variables contain missingness? 2) Which variables should predict missingness 3) what imputed variables are used as predictors</li>
+<li>Which variables have missing values? (<code>| mi()</code> on the left)</li>
+<li>What predicts each of them? (its own formula)</li>
+<li>Where are the imputed variables used as predictors? (<code>mi()</code> on the right)</li>
 </ol>
 <p>Taking care of this in brms ends up creating a multivariate model!</p>
 <div class="cell">
@@ -913,7 +912,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </section>
 <section id="a-parameter-for-every-missing-value" class="slide level2">
 <h2>A parameter for every missing value</h2>
-<p>parameter for each missing variable</p>
+<p>Each missing value gets its own parameter: <code>Ymi_chl[1]</code> is the missing cholesterol in row 1 of <code>nhanes</code>, and so on.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a aria-label="1"></a><span class="fu">posterior_summary</span>(imp<span class="fl">.2</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
@@ -952,7 +951,7 @@ lp__              -2.193487e+02  4.98765668 -230.46752500 -210.86327500</code></
 </div>
 </div>
 </section>
-<section id="the-missing-values-posteriors" class="slide level2">
+<section id="the-missing-values-posteriors" class="slide level2 smaller">
 <h2>The missing values’ posteriors</h2>
 <div class="cell">
 <details class="code-fold">
@@ -978,7 +977,7 @@ lp__              -2.193487e+02  4.98765668 -230.46752500 -210.86327500</code></
 # ℹ 39,990 more rows</code></pre>
 </div>
 </div>
-<p>4,000 draws × 10 missing chl values = 40,000 rows</p>
+<p>4,000 draws × 10 missing chl values = 40,000 rows. <code>ID</code> here is the row of <code>nhanes</code>.</p>
 </section>
 <section id="imputed-cholesterol-values" class="slide level2">
 <h2>Imputed cholesterol values</h2>
@@ -989,8 +988,8 @@ lp__              -2.193487e+02  4.98765668 -230.46752500 -210.86327500</code></
 <span id="cb46-2"><a aria-label="2"></a>  <span class="fu">spread_draws</span>(Ymi_chl[ID]) <span class="sc">%&gt;%</span></span>
 <span id="cb46-3"><a aria-label="3"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> Ymi_chl,</span>
 <span id="cb46-4"><a aria-label="4"></a>             <span class="at">y =</span> <span class="fu">reorder</span>(ID, Ymi_chl))) <span class="sc">+</span></span>
-<span id="cb46-5"><a aria-label="5"></a>  <span class="fu">stat_slab</span>(<span class="at">fill =</span> <span class="st">"black"</span>, <span class="at">alpha =</span> <span class="dv">3</span><span class="sc">/</span><span class="dv">4</span>, <span class="at">height =</span> <span class="fl">1.6</span>, <span class="at">slab_color =</span> <span class="st">"black"</span>, <span class="at">slab_size =</span> <span class="dv">1</span><span class="sc">/</span><span class="dv">4</span>) <span class="sc">+</span></span>
-<span id="cb46-6"><a aria-label="6"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Chl imputed values"</span>, <span class="at">y =</span> <span class="st">"IDs"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb46-5"><a aria-label="5"></a>  <span class="fu">stat_slab</span>(<span class="at">fill =</span> <span class="st">"black"</span>, <span class="at">alpha =</span> <span class="dv">3</span><span class="sc">/</span><span class="dv">4</span>, <span class="at">height =</span> <span class="fl">1.6</span>, <span class="at">slab_color =</span> <span class="st">"black"</span>, <span class="at">slab_linewidth =</span> <span class="dv">1</span><span class="sc">/</span><span class="dv">4</span>) <span class="sc">+</span></span>
+<span id="cb46-6"><a aria-label="6"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Chl imputed values"</span>, <span class="at">y =</span> <span class="st">"Row of nhanes"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
 </div>
@@ -1004,14 +1003,15 @@ lp__              -2.193487e+02  4.98765668 -230.46752500 -210.86327500</code></
 <span id="cb47-2"><a aria-label="2"></a>  <span class="fu">spread_draws</span>(Ymi_bmi[ID]) <span class="sc">%&gt;%</span></span>
 <span id="cb47-3"><a aria-label="3"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> Ymi_bmi,</span>
 <span id="cb47-4"><a aria-label="4"></a>             <span class="at">y =</span> <span class="fu">reorder</span>(ID, Ymi_bmi))) <span class="sc">+</span></span>
-<span id="cb47-5"><a aria-label="5"></a>  <span class="fu">stat_slab</span>(<span class="at">fill =</span> <span class="st">"black"</span>, <span class="at">alpha =</span> <span class="dv">3</span><span class="sc">/</span><span class="dv">4</span>, <span class="at">height =</span> <span class="fl">1.6</span>, <span class="at">slab_color =</span> <span class="st">"black"</span>, <span class="at">slab_size =</span> <span class="dv">1</span><span class="sc">/</span><span class="dv">4</span>) <span class="sc">+</span></span>
-<span id="cb47-6"><a aria-label="6"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"BMI imputed values"</span>, <span class="at">y =</span> <span class="st">"IDs"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb47-5"><a aria-label="5"></a>  <span class="fu">stat_slab</span>(<span class="at">fill =</span> <span class="st">"black"</span>, <span class="at">alpha =</span> <span class="dv">3</span><span class="sc">/</span><span class="dv">4</span>, <span class="at">height =</span> <span class="fl">1.6</span>, <span class="at">slab_color =</span> <span class="st">"black"</span>, <span class="at">slab_linewidth =</span> <span class="dv">1</span><span class="sc">/</span><span class="dv">4</span>) <span class="sc">+</span></span>
+<span id="cb47-6"><a aria-label="6"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"BMI imputed values"</span>, <span class="at">y =</span> <span class="st">"Row of nhanes"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
 </div>
 <img data-src="adv-11_files/figure-revealjs/unnamed-chunk-30-1.png" width="960" class="r-stretch"></section>
-<section id="making-our-own-missing-data" class="slide level2">
+<section id="making-our-own-missing-data" class="slide level2 smaller">
 <h2>Making our own missing data</h2>
+<p>Delete 30% of happiness and 30% of school success at random (missing completely at random), so we know the right answer.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -1323,10 +1323,10 @@ F-statistic: 29.58 on 1 and 55 DF,  p-value: 1.274e-06</code></pre>
 <section id="imputing-during-model-fitting" class="slide level2">
 <h2>Imputing during model fitting</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb54"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a aria-label="1"></a>imp<span class="fl">.3</span> <span class="ot">&lt;-</span> <span class="fu">bf</span>(schoool.success <span class="sc">|</span> <span class="fu">mi</span>() <span class="sc">~</span> <span class="fu">mi</span>(happiness)) <span class="sc">+</span></span>
-<span id="cb54-2"><a aria-label="2"></a>        <span class="fu">bf</span>(happiness <span class="sc">|</span> <span class="fu">mi</span>() <span class="sc">~</span> friendship.quality <span class="sc">+</span> SES)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb54"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a aria-label="1"></a>bform<span class="fl">.3</span> <span class="ot">&lt;-</span> <span class="fu">bf</span>(schoool.success <span class="sc">|</span> <span class="fu">mi</span>() <span class="sc">~</span> <span class="fu">mi</span>(happiness)) <span class="sc">+</span></span>
+<span id="cb54-2"><a aria-label="2"></a>  <span class="fu">bf</span>(happiness <span class="sc">|</span> <span class="fu">mi</span>() <span class="sc">~</span> friendship.quality <span class="sc">+</span> SES)</span>
 <span id="cb54-3"><a aria-label="3"></a></span>
-<span id="cb54-4"><a aria-label="4"></a>imp<span class="fl">.3</span> <span class="ot">&lt;-</span> <span class="fu">brm</span>(imp<span class="fl">.3</span>,</span>
+<span id="cb54-4"><a aria-label="4"></a>imp<span class="fl">.3</span> <span class="ot">&lt;-</span> <span class="fu">brm</span>(bform<span class="fl">.3</span>,</span>
 <span id="cb54-5"><a aria-label="5"></a>    <span class="at">data =</span> MI.missing,</span>
 <span id="cb54-6"><a aria-label="6"></a>    <span class="at">iter =</span> <span class="dv">2000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">chains =</span> <span class="dv">4</span>, <span class="at">cores =</span> <span class="dv">4</span>,</span>
 <span id="cb54-7"><a aria-label="7"></a>    <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
@@ -1430,8 +1430,8 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <li>When missingness depends on other variables (MAR), listwise deletion <em>is</em> biased; imputation that uses those variables (friendship quality and SES here) is not.</li>
 </ul>
 </section>
-<section id="doing-it-the-long-way" class="slide level2">
-<h2>doing it the “long” way</h2>
+<section id="imputing-the-long-way" class="slide level2">
+<h2>Imputing the long way</h2>
 <p>We could impute missing values for any variable via posterior prediction. We can set up any model with variables we think are related to the variable we want to impute. After fitting the model we can make predictions for a) people who have existing data but missing on our DV or b) completely new people who have some set of predictors.</p>
 </section>
 <section id="measurement-error" class="slide level2">
@@ -1670,7 +1670,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <section id="studies-vary-around-a-population-effect" class="slide level2 smaller">
 <h2>Studies vary around a population effect</h2>
 <p><span class="math display">\[y_i \sim \operatorname{Normal}(\theta_i, \sigma_i)\]</span> We can break theta down into two components, a Mu which provides us estimates of the mean. And tau, which provides us the between study heterogeneity.</p>
-<p><span class="math display">\[\theta_i \sim N(\mu, \tau)\]</span> Hopefully you can see that meta-analyses are multilevel models as this is a hyperprior where we need prior distributions for mu and tau</p>
+<p><span class="math display">\[\theta_i \sim N(\mu, \tau)\]</span> This is a multilevel model: the <span class="math inline">\(\theta_i\)</span> are study-level “random effects” drawn from a population distribution, and we need priors (hyperpriors) for <span class="math inline">\(\mu\)</span> and <span class="math inline">\(\tau\)</span>.</p>
 </section>
 <section id="the-spanking-data" class="slide level2">
 <h2>The spanking data</h2>
@@ -2030,7 +2030,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </section>
 <section id="effect-sizes-with-known-standard-errors" class="slide level2">
 <h2>Effect sizes with known standard errors</h2>
-<p>Each d is an estimate at the population, and we already have uncertainty estimates that we can directly incorporate into the model with the se() function. This is very similar to our MI standard error of the measurement procedure.</p>
+<p>Each d comes with its own standard error, which we pass to the model with <code>se()</code>. This is the same idea as <code>mi(se_ss)</code> in the measurement-error models: the observed value is a noisy measure of a true value, with known noise.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb72"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb72-1"><a aria-label="1"></a>meta<span class="fl">.1</span> <span class="ot">&lt;-</span></span>
 <span id="cb72-2"><a aria-label="2"></a>  <span class="fu">brm</span>(<span class="at">family =</span> gaussian,</span>
@@ -2200,11 +2200,15 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 Error in `spread()`:
 ! Each row of output must be identified by a unique combination of keys.
 ℹ Keys are shared for 4 rows</code></pre>
-<p>wut? Several studies contribute more than one effect size, so <code>study</code> doesn’t identify a row.</p>
+<p>wut? The study names contain commas (“Minton, Kagan, and Levine (1971)”), and <code>spread_draws()</code> splits the bracket on commas. Look at the names in <code>get_variables()</code>: a name that is fine as data can break this parsing. (Fix: rename the levels without commas, or use <code>ranef()</code>.)</p>
 </section>
-<section id="several-effects-per-study" class="slide level2">
+<section id="several-effects-per-study" class="slide level2 smaller">
 <h2>Several effects per study</h2>
-<p>We can account for this two ways. 1. modeling each estimate rather than study so as there is a random intercept for each value in the dataset. 2. Or, in this dataset, we can model each different DV as studies have two samples often have different DVs.</p>
+<p>111 effect sizes come from 90 studies: many studies report more than one (different samples or different outcomes). Effects from the same study are not independent, and <code>(1 | study)</code> alone treats each study’s effects as exchangeable draws around one study mean with no extra spread. Two ways to handle it:</p>
+<ol type="1">
+<li>Give every effect size its own random intercept, <code>(1 | id)</code>, nested in study.</li>
+<li>Also model the outcome (DV) each effect measures, since studies with several effects often used several DVs.</li>
+</ol>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb79"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb79-1"><a aria-label="1"></a>spank <span class="ot">&lt;-</span> spank <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">id =</span> <span class="fu">row_number</span>())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
@@ -2509,8 +2513,8 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </div>
 </div>
 <ul>
-<li>μ is the average effect of spanking in d units (positive = worse outcomes for spanked children): about .36, reliably above 0.</li>
-<li>The τ’s say true effects differ quite a bit between studies and between outcomes within studies.</li>
+<li>μ is the average effect of spanking in d units (positive = worse outcomes for spanked children): about 0.36, reliably above 0.</li>
+<li>The τ’s say true effects differ quite a bit between studies (τ_study) and, less so, between effect sizes within a study (τ_effect).</li>
 <li><code>new_study</code>: the <strong>prediction interval</strong> for the effect in the next study. It’s much wider than μ’s interval, and that is the honest answer to “what will a new study find?”</li>
 </ul>
 </section>
@@ -2595,14 +2599,13 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb91"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb91-1"><a aria-label="1"></a><span class="co">#|</span></span>
-<span id="cb91-2"><a aria-label="2"></a>meta<span class="fl">.3</span> <span class="sc">%&gt;%</span></span>
-<span id="cb91-3"><a aria-label="3"></a>  <span class="fu">spread_draws</span>(b_Intercept, r_outcome[outcome,]) <span class="sc">%&gt;%</span></span>
-<span id="cb91-4"><a aria-label="4"></a>  <span class="fu">mutate</span>(<span class="at">mu =</span> b_Intercept <span class="sc">+</span> r_outcome) <span class="sc">%&gt;%</span></span>
-<span id="cb91-5"><a aria-label="5"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> mu, <span class="at">y =</span> <span class="fu">reorder</span>(outcome, mu))) <span class="sc">+</span></span>
-<span id="cb91-6"><a aria-label="6"></a>  <span class="fu">stat_halfeye</span>(<span class="at">.width =</span> .<span class="dv">95</span>, <span class="at">size =</span> <span class="dv">2</span><span class="sc">/</span><span class="dv">3</span>) <span class="sc">+</span></span>
-<span id="cb91-7"><a aria-label="7"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="fu">expression</span>(<span class="fu">italic</span>(<span class="st">"Cohen's d"</span>)),</span>
-<span id="cb91-8"><a aria-label="8"></a>       <span class="at">y =</span> <span class="cn">NULL</span>) <span class="sc">+</span> <span class="fu">xlim</span>(<span class="sc">-</span>.<span class="dv">1</span>, .<span class="dv">8</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb91"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb91-1"><a aria-label="1"></a>meta<span class="fl">.3</span> <span class="sc">%&gt;%</span></span>
+<span id="cb91-2"><a aria-label="2"></a>  <span class="fu">spread_draws</span>(b_Intercept, r_outcome[outcome,]) <span class="sc">%&gt;%</span></span>
+<span id="cb91-3"><a aria-label="3"></a>  <span class="fu">mutate</span>(<span class="at">mu =</span> b_Intercept <span class="sc">+</span> r_outcome) <span class="sc">%&gt;%</span></span>
+<span id="cb91-4"><a aria-label="4"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> mu, <span class="at">y =</span> <span class="fu">reorder</span>(outcome, mu))) <span class="sc">+</span></span>
+<span id="cb91-5"><a aria-label="5"></a>  <span class="fu">stat_halfeye</span>(<span class="at">.width =</span> .<span class="dv">95</span>, <span class="at">size =</span> <span class="dv">2</span><span class="sc">/</span><span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb91-6"><a aria-label="6"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="fu">expression</span>(<span class="fu">italic</span>(<span class="st">"Cohen's d"</span>)),</span>
+<span id="cb91-7"><a aria-label="7"></a>       <span class="at">y =</span> <span class="cn">NULL</span>) <span class="sc">+</span> <span class="fu">coord_cartesian</span>(<span class="at">xlim =</span> <span class="fu">c</span>(<span class="sc">-</span>.<span class="dv">1</span>, .<span class="dv">8</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
 </div>
@@ -2612,36 +2615,33 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb92"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb92-1"><a aria-label="1"></a><span class="co">#|</span></span>
-<span id="cb92-2"><a aria-label="2"></a>ind <span class="ot">&lt;-</span> meta<span class="fl">.3</span> <span class="sc">%&gt;%</span></span>
-<span id="cb92-3"><a aria-label="3"></a>  <span class="fu">spread_draws</span>(b_Intercept, r_outcome[outcome,]) <span class="sc">%&gt;%</span></span>
-<span id="cb92-4"><a aria-label="4"></a>  <span class="fu">mutate</span>(<span class="at">mu =</span> b_Intercept <span class="sc">+</span> r_outcome)</span>
-<span id="cb92-5"><a aria-label="5"></a></span>
-<span id="cb92-6"><a aria-label="6"></a>out_all_sum <span class="ot">&lt;-</span> ind <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(outcome) <span class="sc">%&gt;%</span></span>
-<span id="cb92-7"><a aria-label="7"></a>      <span class="fu">mean_qi</span>(mu)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb92"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb92-1"><a aria-label="1"></a>ind <span class="ot">&lt;-</span> meta<span class="fl">.3</span> <span class="sc">%&gt;%</span></span>
+<span id="cb92-2"><a aria-label="2"></a>  <span class="fu">spread_draws</span>(b_Intercept, r_outcome[outcome,]) <span class="sc">%&gt;%</span></span>
+<span id="cb92-3"><a aria-label="3"></a>  <span class="fu">mutate</span>(<span class="at">mu =</span> b_Intercept <span class="sc">+</span> r_outcome)</span>
+<span id="cb92-4"><a aria-label="4"></a></span>
+<span id="cb92-5"><a aria-label="5"></a>out_all_sum <span class="ot">&lt;-</span> ind <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(outcome) <span class="sc">%&gt;%</span></span>
+<span id="cb92-6"><a aria-label="6"></a>      <span class="fu">mean_qi</span>(mu)</span>
+<span id="cb92-7"><a aria-label="7"></a></span>
 <span id="cb92-8"><a aria-label="8"></a></span>
-<span id="cb92-9"><a aria-label="9"></a></span>
-<span id="cb92-10"><a aria-label="10"></a>meta<span class="fl">.3</span> <span class="sc">%&gt;%</span></span>
-<span id="cb92-11"><a aria-label="11"></a>  <span class="fu">spread_draws</span>(b_Intercept, r_outcome[outcome,]) <span class="sc">%&gt;%</span></span>
-<span id="cb92-12"><a aria-label="12"></a>  <span class="fu">mutate</span>(<span class="at">mu =</span> b_Intercept <span class="sc">+</span> r_outcome) <span class="sc">%&gt;%</span></span>
-<span id="cb92-13"><a aria-label="13"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> mu, <span class="at">y =</span> <span class="fu">reorder</span>(outcome, mu))) <span class="sc">+</span></span>
-<span id="cb92-14"><a aria-label="14"></a>  <span class="fu">stat_halfeye</span>(<span class="at">.width =</span> .<span class="dv">95</span>, <span class="at">size =</span> <span class="dv">2</span><span class="sc">/</span><span class="dv">3</span>) <span class="sc">+</span></span>
-<span id="cb92-15"><a aria-label="15"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="fu">expression</span>(<span class="fu">italic</span>(<span class="st">"Cohen's d"</span>)),</span>
-<span id="cb92-16"><a aria-label="16"></a>       <span class="at">y =</span> <span class="cn">NULL</span>) <span class="sc">+</span> <span class="fu">xlim</span>(<span class="sc">-</span>.<span class="dv">1</span>, .<span class="dv">9</span>)<span class="sc">+</span></span>
-<span id="cb92-17"><a aria-label="17"></a>    <span class="fu">geom_text</span>(</span>
-<span id="cb92-18"><a aria-label="18"></a>    <span class="at">data =</span> <span class="fu">mutate_if</span>(out_all_sum, is.numeric, round, <span class="dv">2</span>),</span>
-<span id="cb92-19"><a aria-label="19"></a>    <span class="fu">aes</span>(<span class="at">label =</span> glue<span class="sc">::</span><span class="fu">glue</span>(<span class="st">"{mu} [{.lower}, {.upper}]"</span>), <span class="at">x =</span> <span class="cn">Inf</span>),</span>
-<span id="cb92-20"><a aria-label="20"></a>    <span class="at">hjust =</span> <span class="st">"inward"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb92-9"><a aria-label="9"></a>meta<span class="fl">.3</span> <span class="sc">%&gt;%</span></span>
+<span id="cb92-10"><a aria-label="10"></a>  <span class="fu">spread_draws</span>(b_Intercept, r_outcome[outcome,]) <span class="sc">%&gt;%</span></span>
+<span id="cb92-11"><a aria-label="11"></a>  <span class="fu">mutate</span>(<span class="at">mu =</span> b_Intercept <span class="sc">+</span> r_outcome) <span class="sc">%&gt;%</span></span>
+<span id="cb92-12"><a aria-label="12"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> mu, <span class="at">y =</span> <span class="fu">reorder</span>(outcome, mu))) <span class="sc">+</span></span>
+<span id="cb92-13"><a aria-label="13"></a>  <span class="fu">stat_halfeye</span>(<span class="at">.width =</span> .<span class="dv">95</span>, <span class="at">size =</span> <span class="dv">2</span><span class="sc">/</span><span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb92-14"><a aria-label="14"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="fu">expression</span>(<span class="fu">italic</span>(<span class="st">"Cohen's d"</span>)),</span>
+<span id="cb92-15"><a aria-label="15"></a>       <span class="at">y =</span> <span class="cn">NULL</span>) <span class="sc">+</span> <span class="fu">coord_cartesian</span>(<span class="at">xlim =</span> <span class="fu">c</span>(<span class="sc">-</span>.<span class="dv">1</span>, .<span class="dv">9</span>)) <span class="sc">+</span></span>
+<span id="cb92-16"><a aria-label="16"></a>  <span class="fu">geom_text</span>(</span>
+<span id="cb92-17"><a aria-label="17"></a>    <span class="at">data =</span> <span class="fu">mutate</span>(out_all_sum, <span class="fu">across</span>(<span class="fu">where</span>(is.numeric), \(x) <span class="fu">round</span>(x, <span class="dv">2</span>))),</span>
+<span id="cb92-18"><a aria-label="18"></a>    <span class="fu">aes</span>(<span class="at">label =</span> glue<span class="sc">::</span><span class="fu">glue</span>(<span class="st">"{mu} [{.lower}, {.upper}]"</span>), <span class="at">x =</span> <span class="cn">Inf</span>),</span>
+<span id="cb92-19"><a aria-label="19"></a>    <span class="at">hjust =</span> <span class="st">"inward"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 
 </div>
 <img data-src="adv-11_files/figure-revealjs/unnamed-chunk-59-1.png" width="960" class="r-stretch"></section>
 <section id="meta-regression" class="slide level2">
 <h2>Meta-regression</h2>
-<p>Can we predict these variables?</p>
+<p>Can study features explain the heterogeneity? <code>between</code> = 1 if the effect compares different children (spanked vs.&nbsp;not; a between-subjects comparison), 0 if it compares the same children over time (within-subjects).</p>
 <div class="cell">
-<details class="code-fold">
-<summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb93"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb93-1"><a aria-label="1"></a>meta<span class="fl">.4</span> <span class="ot">&lt;-</span></span>
 <span id="cb93-2"><a aria-label="2"></a>  <span class="fu">brm</span>(<span class="at">family =</span> gaussian,</span>
 <span id="cb93-3"><a aria-label="3"></a>      d <span class="sc">|</span> <span class="fu">se</span>(se) <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> between <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> study) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> outcome) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> id),</span>
@@ -2651,7 +2651,6 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <span id="cb93-7"><a aria-label="7"></a>      <span class="at">data =</span> spank,</span>
 <span id="cb93-8"><a aria-label="8"></a>      <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
 <span id="cb93-9"><a aria-label="9"></a>      <span class="at">file =</span> <span class="st">"meta.4"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
 </div>
 </section>
 <section id="meta.4-summary" class="slide level2">
@@ -2693,6 +2692,10 @@ and Tail_ESS are effective sample size measures, and Rhat is the potential
 scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </div>
 </div>
+</section>
+<section id="reading-the-meta-regression" class="slide level2">
+<h2>Reading the meta-regression</h2>
+<p><code>between</code> is a slope like any other: between-subjects effects are -0.07 d units [-0.2, 0.06] different from within-subjects ones, so design type doesn’t explain much. Check: the study-level τ barely moves (0.23 in <code>meta.3</code>, 0.23 here).</p>
 
 
 </section>
