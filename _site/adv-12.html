@@ -222,8 +222,9 @@
 <section id="multivariate-mlms" class="slide level2">
 <h2>Multivariate MLMs</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a aria-label="1"></a>mlm <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"mlm.csv"</span>)  <span class="co"># the connectivity data from the MLM lectures</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a aria-label="1"></a>mlm <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"mlm.csv"</span>)  <span class="co"># also at https://josh-jackson.github.io/bayes27/mlm.csv</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
+<p>New data: resting-state brain connectivity for 91 people (Parkinson’s disease and controls), each scanned 2–4 times. <code>CON</code> and <code>DAN</code> are connectivity scores for two brain networks; <code>time</code> is time since the first scan (0–6). Scans (<em>j</em>) are nested in people (<em>i</em>).</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a aria-label="1"></a>mv<span class="fl">.1</span> <span class="ot">&lt;-</span></span>
 <span id="cb2-2"><a aria-label="2"></a>  <span class="fu">brm</span>(<span class="at">family =</span> gaussian,</span>

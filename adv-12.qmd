@@ -34,8 +34,10 @@ We've already done one of these: the multinomial (categorical) logistic model.
 ## Multivariate MLMs
 
 ```{r}
-mlm <- read.csv("mlm.csv")  # the connectivity data from the MLM lectures
+mlm <- read.csv("mlm.csv")  # also at https://josh-jackson.github.io/bayes27/mlm.csv
 ```
+
+New data: resting-state brain connectivity for 91 people (Parkinson's disease and controls), each scanned 2–4 times. `CON` and `DAN` are connectivity scores for two brain networks; `time` is time since the first scan (0–6). Scans (*j*) are nested in people (*i*).
 
 
 ```{r}

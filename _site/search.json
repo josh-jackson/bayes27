@@ -7396,7 +7396,7 @@
     "href": "adv-12.html#multivariate-mlms",
     "title": "Advanced models 2: multivariate and distributional models",
     "section": "Multivariate MLMs",
-    "text": "Multivariate MLMs\n\nmlm &lt;- read.csv(\"mlm.csv\")  # the connectivity data from the MLM lectures\n\n\nmv.1 &lt;-\n  brm(family = gaussian,\n      mvbind(CON, DAN) ~ 1 + time + (1 + time | ID),\n      prior = c(prior(normal(0, 1.5), class = Intercept),\n                prior(normal(0, 1.5), class = b),\n                prior(lkj(2), class = cor),\n                prior(lkj(2), class = rescor)),\n      iter = 4000, warmup = 1000, chains = 4, cores = 4,\n      file = \"mv.1\",\n      backend = \"cmdstanr\",\n      data = mlm)"
+    "text": "Multivariate MLMs\n\nmlm &lt;- read.csv(\"mlm.csv\")  # also at https://josh-jackson.github.io/bayes27/mlm.csv\n\nNew data: resting-state brain connectivity for 91 people (Parkinson’s disease and controls), each scanned 2–4 times. CON and DAN are connectivity scores for two brain networks; time is time since the first scan (0–6). Scans (j) are nested in people (i).\n\nmv.1 &lt;-\n  brm(family = gaussian,\n      mvbind(CON, DAN) ~ 1 + time + (1 + time | ID),\n      prior = c(prior(normal(0, 1.5), class = Intercept),\n                prior(normal(0, 1.5), class = b),\n                prior(lkj(2), class = cor),\n                prior(lkj(2), class = rescor)),\n      iter = 4000, warmup = 1000, chains = 4, cores = 4,\n      file = \"mv.1\",\n      backend = \"cmdstanr\",\n      data = mlm)"
   },
   {
     "objectID": "adv-12.html#mv.1-summary",
