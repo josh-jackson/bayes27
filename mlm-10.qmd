@@ -2,6 +2,7 @@
 title: "Multilevel models 2: varying slopes, centering, and plotting"
 format: revealjs
 slide-number: true
+fig-height: 4.2
 execute:
   echo: true
 ---
@@ -12,7 +13,7 @@ execute:
 -   Level-2 predictors and cross-level interactions
 -   Separating within-person and between-person effects (centering)
 -   Plotting MLMs: average vs. person-specific predictions
--   Builds on [last time](mlm-9.qmd): varying intercepts, partial pooling, and the running connectivity data (`mlm.csv`)
+-   Builds on [last time](mlm-9.qmd): varying intercepts, partial pooling, and the Stroop data (`stroop.csv`)
 
 ```{r, echo = FALSE, message = FALSE}
 library(tidyverse)
@@ -22,9 +23,8 @@ library(brms)
 library(modelr)
 library(marginaleffects)
 library(broom)
-mlm <- read.csv("mlm.csv")
-names(mlm)[names(mlm) == "group"] <- "diagnosis"  # marginaleffects reserves the name "group"
-mlm.3 <- readRDS("mlm.3b.rds")  # varying intercepts + time, from last time
+st <- read.csv("stroop.csv")   # also at https://josh-jackson.github.io/bayes27/stroop.csv
+st.3 <- readRDS("st.3.rds")    # varying intercepts + a fixed Stroop effect, from last time
 ```
 
 ## Introducing random slopes {.smaller}
@@ -69,11 +69,13 @@ y_{ij} &\sim \text{Normal}(\mu_{ij}, \sigma) \\
 \mu_{ij} &= \beta_{0i} + \beta_{1i}X_{ij} \\
 \begin{pmatrix} \beta_{0i} \\ \beta_{1i} \end{pmatrix} &\sim \text{MVNormal}\left( \begin{pmatrix} \beta_0 \\ \beta_1 \end{pmatrix}, \Sigma \right) \\
 \Sigma &= \begin{pmatrix} \sigma_{\beta_0} & 0 \\ 0 & \sigma_{\beta_1} \end{pmatrix} R \begin{pmatrix} \sigma_{\beta_0} & 0 \\ 0 & \sigma_{\beta_1} \end{pmatrix} \\
-\beta_0 &\sim \text{Normal}(0.2, 0.1) \qquad \beta_1 \sim \text{Normal}(0, 0.05) \\
-\sigma_{\beta_0} &\sim \text{Half-Normal}(0, 0.1) \qquad \sigma_{\beta_1} \sim \text{Half-Normal}(0, 0.05) \\
-\sigma &\sim \text{Exponential}(10) \qquad R \sim \text{LKJcorr}(2)
+\beta_0 &\sim \text{Normal}(650, 150) \qquad \beta_1 \sim \text{Normal}(0, 100) \\
+\sigma_{\beta_0} &\sim \text{Half-Normal}(0, 100) \qquad \sigma_{\beta_1} \sim \text{Half-Normal}(0, 100) \\
+\sigma &\sim \text{Exponential}(0.01) \qquad R \sim \text{LKJcorr}(2)
 \end{aligned}
 $$
+
+For the Stroop data: $X_{ij}$ = 1 for an incongruent trial, so $\beta_{0i}$ is person *i*'s congruent RT and $\beta_{1i}$ is their Stroop effect (ms).
 
 ## The covariance matrix
 
@@ -202,8 +204,8 @@ detach(package:MASS, unload=TRUE)
 
 ```{r}
 get_prior(family = gaussian,
-      CON ~ 1 + time + (1 + time | ID),
-      data = mlm)
+      rt ~ 1 + congruency + (1 + congruency | id),
+      data = st)
 ```
 
 ## What's hard to learn
@@ -214,79 +216,74 @@ Information needed to learn about parameters can be ranked:
 2.  SDs are medium
 3.  Correlations are hard
 
-## Fitting random slopes: `mlm.4`
+## Fitting random slopes: `st.4`
 
 ```{r}
-
-mlm.4 <-
+st.4 <-
   brm(family = gaussian,
-      CON ~ 1 + time + (1 + time | ID),
-      prior = c(prior(normal(0.2, 0.1), class = Intercept),   # same scale as last time
-                prior(normal(0, 0.05), class = b),
-                prior(normal(0, 0.1), class = sd, coef = Intercept, group = ID),
-                prior(normal(0, 0.05), class = sd, coef = time, group = ID),
-                prior(exponential(10), class = sigma),
-                prior(lkj(2), class = cor)),
-      iter = 4000, warmup = 1000, chains = 4, cores = 4,
-      control = list(adapt_delta = .99),   # the slope SD is near 0: a funnel (Lecture 5)
-      file = "mlm.4c",
+      rt ~ 1 + congruency + (1 + congruency | id),
+      prior = c(prior(normal(650, 150), class = Intercept),   # same priors as last time, in ms
+                prior(normal(0, 100), class = b),             # the average Stroop effect
+                prior(normal(0, 100), class = sd),            # how much people's intercepts AND Stroop effects differ
+                prior(exponential(0.01), class = sigma),
+                prior(lkj(2), class = cor)),                  # the intercept-slope correlation
+      iter = 3000, warmup = 1000, chains = 4, cores = 4,
+      file = "st.4",
       backend = "cmdstanr",
-      data = mlm)
-
+      data = st)
 ```
 
-## `mlm.4` summary
+## `st.4` summary {.smaller}
 
 ```{r}
-summary(mlm.4)
+summary(st.4)
 ```
 
-## Correlation: prior vs posterior
+## Correlation: prior vs posterior {.smaller}
 
 ```{r}
 #| code-fold: true
-p.mlm4 <- as_draws_df(mlm.4)
+#| fig-height: 3
+p.st4 <- as_draws_df(st.4)
 
 r_2 <- tibble(V2 = rlkjcorr_marginal(1000, K = 2, eta = 2))  # from {ggdist}
 
-p.mlm4 %>%
+p.st4 %>%
   ggplot() +
   geom_density(data = r_2, aes(x = V2),
                color = "transparent", fill = "blue", alpha = 3/4) +
-  geom_density(aes(x = cor_ID__Intercept__time),
+  geom_density(aes(x = cor_id__Intercept__congruencyincongruent),
                color = "transparent", fill = "grey", alpha = 9/10) +
-  annotate(geom = "text", x = -0.15, y = 1.1,
+  annotate(geom = "text", x = .53, y = 3.7,
            label = "posterior", color = "black", family = "Courier") +
-  annotate(geom = "text", x = .2, y = 1.35,
+  annotate(geom = "text", x = -.6, y = .95,
            label = "prior", color = "blue", alpha = 2/3, family = "Courier") +
   scale_y_continuous(NULL, breaks = NULL) +
   labs(subtitle = "Correlation between intercepts\nand slopes, prior and posterior",
   x = "correlation")
 ```
 
-The posterior barely moved from the prior. With 2–4 scans per person and almost no variation in slopes (sd(time) ≈ `r sprintf("%.3f", posterior_summary(mlm.4)["sd_ID__time", "Estimate"])`), the data say almost nothing about the correlation: "correlations are hard".
+The data moved the correlation well away from the prior: about `r sprintf("%.2f", posterior_summary(st.4)["cor_id__Intercept__congruencyincongruent", "Estimate"])`. People who are slower on congruent trials also have bigger Stroop effects. Still, look how wide it is with 100 people: "correlations are hard".
 
-## Shrinkage in two dimensions
+## Shrinkage in two dimensions {.smaller}
 
 ```{r}
 #| code-fold: true
+#| fig-height: 3.4
 library(broom)
 partially_pooled_params <-
-  coef(mlm.4)$ID [ , 1, 1:2] %>%
-  as_tibble(rownames = "ID")
+  coef(st.4)$id[ , 1, 1:2] %>%
+  as_tibble(rownames = "id")
 
-
-un_pooled_params <-
-  mlm %>%
-  group_by(ID, time) %>%
-  summarise(mean = mean(CON), .groups = "drop_last") %>%
-  group_modify(~ tidy(lm(mean ~ time, data = .x))) %>%
+un_pooled_params <-          # a separate lm() for each person
+  st %>%
+  group_by(id) %>%
+  group_modify(~ tidy(lm(rt ~ congruency, data = .x))) %>%
   ungroup() %>%
-  select(ID, term, estimate) %>%
+  select(id, term, estimate) %>%
   pivot_wider(names_from = term, values_from = estimate) %>%
-  mutate(Intercept = `(Intercept)`) %>%
-  select(-`(Intercept)`) %>%
-  mutate(ID = as.character(ID))
+  rename(Intercept = `(Intercept)`) %>%
+  mutate(id = as.character(id))
 
 params <-
   # `bind_rows()` will stack the second tibble below the first
@@ -295,7 +292,7 @@ params <-
   mutate(pooled = rep(c("partially", "not"), each = nrow(.)/2))
 
 p1 <-
-  ggplot(data = params, aes(x = time, y = Intercept)) +
+  ggplot(data = params, aes(x = congruencyincongruent, y = Intercept)) +
   stat_ellipse(geom = "polygon", type = "norm", level = 1/10, linewidth = 0, alpha = 1/20, fill = "#E7CDC2") +
   stat_ellipse(geom = "polygon", type = "norm", level = 2/10, linewidth = 0, alpha = 1/20, fill = "#E7CDC2") +
   stat_ellipse(geom = "polygon", type = "norm", level = 3/10, linewidth = 0, alpha = 1/20, fill = "#E7CDC2") +
@@ -306,60 +303,114 @@ p1 <-
   stat_ellipse(geom = "polygon", type = "norm", level = 8/10, linewidth = 0, alpha = 1/20, fill = "#E7CDC2") +
   stat_ellipse(geom = "polygon", type = "norm", level = 9/10, linewidth = 0, alpha = 1/20, fill = "#E7CDC2") +
   stat_ellipse(geom = "polygon", type = "norm", level = .99,  linewidth = 0, alpha = 1/20, fill = "#E7CDC2") +
-  geom_point(aes(group = ID, color = pooled)) +
-  geom_line(aes(group = ID), linewidth = 1/4) +
+  geom_point(aes(group = id, color = pooled)) +
+  geom_line(aes(group = id), linewidth = 1/4) +
   scale_color_manual("Pooled?",
                      values = c("#80A0C7", "#A65141")) +
-  coord_cartesian(xlim = range(params$time),
-                  ylim = range(params$Intercept))
+  labs(x = "Stroop effect (ms)", y = "Congruent RT (ms)")
 p1
 ```
 
-## Variables in `mlm.4`
-
-```{r}
-get_variables(mlm.4)
-```
+Each line joins a person's own `lm()` estimates to their MLM estimates. The Stroop effects shrink much more than the intercepts did last time: an effect is a difference between two noisy means of about 27 trials each.
 
 ## Random slope draws
 
-```{r}
-mlm.4 %>%
-  spread_draws(r_ID[ID,term])
-```
-
-## Each person's slope
+`get_variables(st.4)` lists everything; the person deviations are `r_id[id, term]`, now with two terms per person:
 
 ```{r}
-mlm.4 %>%
-  spread_draws(b_time, r_ID[ID, term]) %>%
-  filter(term == "time") %>%
-  mutate(person_t = b_time + r_ID) %>%
- median_qi()
+st.4 %>%
+  spread_draws(r_id[id, term])
 ```
 
-## Person slopes with intervals
+## Each person's Stroop effect {.smaller}
+
+The fixed effect plus each person's deviation, draw by draw:
+
+```{r}
+st.4 %>%
+  spread_draws(b_congruencyincongruent, r_id[id, term]) %>%
+  filter(term == "congruencyincongruent") %>%
+  median_qi(stroop_i = b_congruencyincongruent + r_id)
+```
+
+## How different are people's Stroop effects?
+
+```{r}
+#| echo: false
+g10 <- fixef(st.4)["congruencyincongruent", "Estimate"]
+s1  <- posterior_summary(st.4)["sd_id__congruencyincongruent", "Estimate"]
+raw_eff <- st %>% group_by(id, congruency) %>% summarise(m = mean(rt), .groups = "drop") %>%
+  pivot_wider(names_from = congruency, values_from = m) %>% mutate(eff = incongruent - congruent)
+```
+
+-   Average Stroop effect $\gamma_{10}$ ≈ `r round(g10)` ms; SD across people $\sigma_{\beta_1}$ ≈ `r round(s1)` ms.
+-   So the middle 95% of people's true Stroop effects run from about `r round(g10 - 1.96 * s1)` to `r round(g10 + 1.96 * s1)` ms.
+-   The raw per-person effects are more spread out (SD `r round(sd(raw_eff$eff))` ms): they include trial-to-trial noise. $\sigma_{\beta_1}$ is the spread of the *true* effects.
+
+## Person Stroop effects with intervals
 
 ```{r}
 #| code-fold: true
-mlm.4 %>%
-  spread_draws(b_time, r_ID[ID, term]) %>%
-  filter(term == "time") %>%
-  median_qi(person_t = b_time + r_ID) %>%
-  ggplot(aes( y = reorder(ID, person_t), x = person_t, xmin = .lower, xmax = .upper)) +
-  geom_pointinterval() + xlab("est") + ylab("ID")
+#| fig-height: 4.2
+st.4 %>%
+  spread_draws(b_congruencyincongruent, r_id[id, term]) %>%
+  filter(term == "congruencyincongruent") %>%
+  median_qi(stroop_i = b_congruencyincongruent + r_id) %>%
+  ggplot(aes(y = reorder(id, stroop_i), x = stroop_i, xmin = .lower, xmax = .upper)) +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  geom_pointinterval() + labs(x = "Stroop effect (ms)", y = "Person") +
+  theme_classic(base_size = 13) + theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
 ```
 
 ## Random slopes vs fixed slope {.smaller}
 
 ```{r}
-mlm.3 <- add_criterion(mlm.3, "loo")
-mlm.4 <- add_criterion(mlm.4, "loo")
-loo_compare(mlm.3, mlm.4, criterion = "loo")
+st.3 <- add_criterion(st.3, "loo")
+st.4 <- add_criterion(st.4, "loo")
+lc <- loo_compare(st.3, st.4, criterion = "loo")
+lc
 ```
 
--   The random-slopes model predicts no better: people barely differ in how their connectivity changes over time, so the extra parameters buy nothing.
--   "Keep it maximal" is a starting point, not a rule. Here the slope SD is near 0, which also caused the divergences we fixed with `adapt_delta`. With more scans per person, or a predictor whose effect really varies, random slopes earn their keep (next: the ESM data).
+-   The random-slopes model predicts better by `r round(-lc[2, "elpd_diff"])` elpd (SE `r round(lc[2, "se_diff"])`): people really do differ in their Stroop effect, so giving each person their own slope pays off.
+-   "Keep it maximal" is a starting point, not a rule. If a slope barely varies, its SD sits near 0, LOO shows no gain and the sampler may struggle (raise `adapt_delta`). Here the slope varies a lot.
+
+## Two level-1 predictors: does depletion change the Stroop effect? {.smaller}
+
+The study's real question: after the hard ("deplete") task, is the Stroop effect bigger? Both `congruency` and `condition` vary within a person, so both get random slopes.
+
+```{r}
+st.5 <-
+  brm(family = gaussian,
+      rt ~ 1 + congruency * condition + (1 + congruency + condition | id),
+      prior = c(prior(normal(650, 150), class = Intercept),
+                prior(normal(0, 100), class = b),
+                prior(normal(0, 100), class = sd),
+                prior(exponential(0.01), class = sigma),
+                prior(lkj(2), class = cor)),
+      iter = 3000, warmup = 1000, chains = 4, cores = 4,
+      file = "st.5",
+      backend = "cmdstanr",
+      data = st)
+```
+
+## `st.5` summary {.smaller}
+
+```{r}
+summary(st.5)
+```
+
+## Reading `st.5` {.smaller}
+
+```{r}
+#| echo: false
+f5 <- fixef(st.5)
+ci <- function(term) sprintf("%.0f [%.0f, %.0f]", f5[term, "Estimate"], f5[term, "Q2.5"], f5[term, "Q97.5"])
+```
+
+-   **Stroop effect after the easy task:** `r ci("congruencyincongruent")` ms.
+-   **Depletion × congruency:** `r ci("congruencyincongruent:conditiondeplete")` ms. The interval sits around 0: no clear sign that depletion changes the Stroop effect in these data.
+-   **Depletion overall:** `r ci("conditiondeplete")` ms, if anything a little *faster* after the hard task, but people differ a lot (`sd(conditiondeplete)` ≈ `r round(posterior_summary(st.5)["sd_id__conditiondeplete", "Estimate"])` ms).
+-   Three random effects means a 3 × 3 correlation matrix (three correlations). We left the interaction out of the random part; `(1 + congruency * condition | id)` would add a fourth SD and three more correlations.
 
 ## Level 2 predictors
 
@@ -395,6 +446,8 @@ $\gamma_{11}$, the cross-level interaction: does the person-level variable G pre
 $${Y}_{ij} = [\gamma_{00} + U_{0i} +\gamma_{01}G_{i}] + [(\gamma_{10}  + \gamma_{11}G_{i}+  U_{1i})(X_{ij})] + \varepsilon_{ij}$$
 
 ## ESM data {.smaller}
+
+Our Stroop subset has no person-level variables, so for level-2 predictors and centering we switch to a dataset that has them.
 
 Experience sampling: people answered short surveys several times a day for a couple of weeks. `PA`: positive affect right now (1–5); `W.other`: with other people (1) or alone (0); `ID`: the person. Reports (*j*) are nested in people (*i*).
 
@@ -491,6 +544,7 @@ p2
 ## Person-specific slopes for being with others
 
 ```{r}
+#| fig-height: 3.8
 #| code-fold: true
 mlm.5 %>%
   spread_draws(b_W.other, r_ID[ID, term]) %>%
@@ -645,6 +699,7 @@ distinct(record_id) %>%
 Participants filled out daily affective measures and physical activity
 
 ```{r}
+#| fig-height: 3.4
 #| code-fold: true
 melsm %>%
     count(record_id) %>%
@@ -661,6 +716,7 @@ Participant level
 
 
 ```{r}
+#| fig-height: 3.8
 #| code-fold: true
 set.seed(16)
 melsm %>%
@@ -777,7 +833,7 @@ re_formula formula helps us focus on either the average trajectory (gammas) or t
 ```{r}
 #| code-fold: true
 #| fig-width: 9
-#| fig-height: 4.6
+#| fig-height: 4.1
 # for a paper: add ggsave("trajectories.png", width = 6.5, height = 4) after the plot
 avg <- predictions(melsm.1, newdata = datagrid(day01 = seq(0, 1, by = .05)), re_formula = NA)
 people <- predictions(melsm.1, newdata = datagrid(record_id = unique, day01 = c(0, 1)))
@@ -881,7 +937,7 @@ psych::describe(melsm$steps.pm)
 
 ```{r}
 #| code-fold: true
-#| fig-height: 3.8
+#| fig-height: 3.2
  melsm %>%
   data_grid(steps.pm = seq_range(steps.pm, n = 5), P_A.std = c(-1,0,1), day01 = .5, .model = melsm) %>%
   add_epred_draws(melsm.1i, re_formula = NA) %>%
