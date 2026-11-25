@@ -16,16 +16,29 @@ $${Y}_{i} = b_{0} + b_{1}X_{i} +  ... +\epsilon_{i}$$
 
 $${Y}_{ij} = b_{0} + b_{1}X_{ij} + ... +\epsilon_{ij}$$ where *i* refers to the cluster or group (e.g., a person) and *j* to the observations within it
 
-## Our running example {.smaller}
+## Our running example: the Stroop task {.smaller}
 
 ```{r}
-mlm <- read.csv("mlm.csv")  # also at https://josh-jackson.github.io/bayes27/mlm.csv
-names(mlm)[names(mlm) == "group"] <- "diagnosis"  # marginaleffects reserves the name "group"
+st <- read.csv("stroop.csv")  # also at https://josh-jackson.github.io/bayes27/stroop.csv
+head(st)
 ```
 
--   91 people (people with Parkinson's disease, `diagnosis = "PD"`, and controls, `"CTRL"`), each scanned 2–4 times: 225 rows in all.
--   `CON` and `SMN7` are resting-state connectivity scores for two brain networks; `time` is time since the first scan (0–6); `week` is a finer-grained version of it.
--   Observations (*j*) are nested in people (*i*). Some examples below are conceptual (a Stroop task, students in schools); whenever there's a plot, it's these data.
+-   Lin, Saunders, Friese, Evans & Inzlicht (2020, *Psychological Science*), Study 1: an ego-depletion study. Each person did a hard ("deplete") and an easy ("control") task, each followed by a Stroop task.
+-   Our subset: 100 random participants, the first 30 Stroop trials after each task, correct trials only (`r nrow(st)` trials). `rt` is reaction time in ms; `congruency` is whether the word and ink color matched.
+-   Trials (*j*) are nested in people (*i*).
+
+```{r}
+#| code-fold: true
+#| eval: false
+# how stroop.csv was made (the full data are in the afex package)
+data(stroop, package = "afex")
+set.seed(2027)
+keep <- sample(unique(as.character(stroop$pno[stroop$study == "1"])), 100)
+stroop %>%
+  filter(pno %in% keep, trialnum <= 30, acc == 1, !is.na(rt)) %>%
+  mutate(id = as.integer(factor(pno, levels = keep)), rt = round(rt * 1000)) %>%
+  select(id, condition, trial = trialnum, congruency, rt)
+```
 
 ```{r, echo = FALSE}
 library(tidyverse)
@@ -34,25 +47,26 @@ library(ggdist)
 library(brms)
 library(modelr)
 library(marginaleffects)
-# keep every row for a random sample of `size` groups
-sample_n_of <- function(data, size, ...) {
-  keys <- data %>% distinct(...) %>% slice_sample(n = size)
-  semi_join(data, keys, by = names(keys))
-}
 ```
 
-## Twenty people, twenty lines
+## Twenty people, twenty Stroop effects {.smaller}
 
 ```{r}
 #| code-fold: true
-
+#| fig-width: 9
+#| fig-height: 3.6
 set.seed(114)
-mlm %>%
-  sample_n_of(20, ID) %>%
-ggplot(aes(x = week, y = CON, group = ID, fill = ID)) + geom_point(aes(color = factor(ID))) + stat_smooth(aes(color = factor(ID)),method = "lm", se = FALSE) +
-  xlab("week") + ylab("CON connectivity") + theme(legend.position = "none")
-
+st %>%
+  filter(id %in% sample(unique(id), 20)) %>%
+  group_by(id, congruency) %>%
+  summarise(rt = mean(rt), .groups = "drop") %>%
+  ggplot(aes(x = congruency, y = rt, group = id, colour = factor(id))) +
+  geom_line() + geom_point() +
+  labs(x = NULL, y = "Mean RT (ms)") +
+  theme_classic(base_size = 14) + theme(legend.position = "none")
 ```
+
+Everyone is slower on incongruent trials, but people differ in how fast they are overall *and* in how big their Stroop effect is. Today: the first of those (intercepts). Next time: the second (slopes).
 
 ## Empty model
 
@@ -63,19 +77,23 @@ Level 2 $${\beta}_{0i} = \gamma_{00} + U_{0i}$$
 $${U}_{0i} \sim N(0, \tau_{00}^{2})$$
 $${\varepsilon}_{ij} \sim N(0, \sigma^{2})$$
 
-## The empty model, pictured
+## The empty model, pictured {.smaller}
 
 ```{r}
 #| code-fold: true
-
-mlm %>%
-  sample_n_of(8, ID) %>%
-ggplot(aes(x = week, y = CON, group = ID)) + geom_point(aes(color = factor(ID))) + stat_smooth(aes(color = factor(ID)), method = "lm", formula=y~1, se = FALSE) + xlab("week") + ylab("CON connectivity") + theme(legend.position = "none")
+#| fig-height: 3
+set.seed(7)
+eight <- st %>% filter(id %in% sample(unique(id), 8))
+ggplot(eight, aes(x = factor(id), y = rt)) +
+  geom_jitter(width = .15, alpha = .3, size = 1) +
+  stat_summary(fun = mean, geom = "crossbar", width = .6, colour = "#4C78A8") +   # each person's mean
+  geom_hline(yintercept = mean(st$rt), linetype = "dashed") +                     # grand mean
+  labs(x = "Person", y = "RT (ms)") + theme_classic(base_size = 14)
 ```
 
 $${Y}_{ij} = \gamma_{00} + U_{0i}  + \varepsilon_{ij}$$
 
-Akin to ANOVA if we treat $U_{0i}$ as between subjects variance & $\varepsilon_{ij}$ as within subjects variance.
+Dashed: $\gamma_{00}$. Blue bars: each person's mean, $\gamma_{00} + U_{0i}$. Dots around a bar: $\varepsilon_{ij}$. Akin to ANOVA if we treat $U_{0i}$ as between-subjects variance and $\varepsilon_{ij}$ as within-subjects variance.
 
 ## Random and fixed effects
 
@@ -96,26 +114,25 @@ $\gamma_{00}$ is considered a fixed effect, as it is what is fixed (average) acr
 ## The empty model in brms {.smaller}
 
 ```{r}
-library(brms)
-mlm.1 <-
+st.1 <-
   brm(family = gaussian,
-      CON ~ 1 + (1 | ID),
-      prior = c(prior(normal(0.2, 0.1), class = Intercept),   # CON averages about 0.2
-                prior(normal(0, 0.1), class = sd),           # people differ by less than 0.1
-                prior(exponential(10), class = sigma)),      # scan-to-scan noise, mean 0.1
-      iter = 5000, warmup = 1000, chains = 4, cores = 4,
+      rt ~ 1 + (1 | id),
+      prior = c(prior(normal(650, 150), class = Intercept),   # Stroop RTs average 600-700 ms
+                prior(normal(0, 100), class = sd),            # people's averages differ by up to ~200 ms
+                prior(exponential(0.01), class = sigma)),     # trial-to-trial noise, mean 100 ms
+      iter = 3000, warmup = 1000, chains = 4, cores = 4,
       sample_prior = "yes",
-      data = mlm,
+      data = st,
       backend = "cmdstanr",
-      file = "mlm.1b")
+      file = "st.1")
 ```
 
-Three priors, on CON's own scale (mean 0.19, SD 0.07): the `Intercept` prior is for the average person, the `sd` prior is for how much people differ from that average ($\sigma_0$), and `sigma` is the scan-to-scan noise within a person. Where these come from is the last of the six intuitions below.
+Three priors, in milliseconds: the `Intercept` prior is for the average person, the `sd` prior is for how much people differ from that average ($\sigma_0$), and `sigma` is the trial-to-trial noise within a person. Where these come from is the last of the six intuitions below.
 
-## `mlm.1` summary
+## `st.1` summary
 
 ```{r}
-summary(mlm.1)
+summary(st.1)
 ```
 
 ## How much is between people? The ICC {.smaller}
@@ -127,8 +144,8 @@ $$\text{ICC} = \frac{\sigma_0^2}{\sigma_0^2 + \sigma^2}$$
 Compute it **draw by draw**, so it gets its own posterior:
 
 ```{r}
-as_draws_df(mlm.1) %>%
-  mutate(icc = sd_ID__Intercept^2 / (sd_ID__Intercept^2 + sigma^2)) %>%
+as_draws_df(st.1) %>%
+  mutate(icc = sd_id__Intercept^2 / (sd_id__Intercept^2 + sigma^2)) %>%
   median_qi(icc)
 ```
 
@@ -136,10 +153,12 @@ as_draws_df(mlm.1) %>%
 
 ```{r}
 #| echo: false
-icc_1 <- as_draws_df(mlm.1) %>% mutate(icc = sd_ID__Intercept^2 / (sd_ID__Intercept^2 + sigma^2)) %>% pull(icc)
+icc_1 <- as_draws_df(st.1) %>% mutate(icc = sd_id__Intercept^2 / (sd_id__Intercept^2 + sigma^2)) %>% pull(icc)
 ```
 
-About `r round(100 * median(icc_1))`% of the variation in CON is stable differences between people; about `r 100 - round(100 * median(icc_1))`% is scan-to-scan change within a person. Equivalently, two scans from the same person correlate about `r sprintf("%.2f", median(icc_1))`.
+About `r round(100 * median(icc_1))`% of the variation in RT is stable differences between people; about `r 100 - round(100 * median(icc_1))`% is trial-to-trial variation within a person. Equivalently, two trials from the same person correlate about `r sprintf("%.2f", median(icc_1))`.
+
+Single trials are noisy: that's why reaction-time studies use many trials per person.
 
 ## MLM as default and make it maximum
 
@@ -160,7 +179,7 @@ Anytime you have repeated DVs you should use MLM as opposed to doing aggregation
 
 ## 1. Aggregation obscures hypotheses
 
-What if people had more than 1 DV, like we do with time? What do you do with multiple items, multiple trials, multiple \_\_\_\_ ?
+What if people had more than 1 DV, like our Stroop trials? What do you do with multiple items, multiple trials, multiple \_\_\_\_ ?
 
 Two options: (1) collapse and average across them, or (2) model every observation, nested in its person (MLM). The next slides show what (1) can hide.
 
@@ -186,6 +205,7 @@ simp<- tribble(
 ```
 
 ```{r, echo=FALSE}
+#| fig-height: 4
 simp %>%
 ggplot(aes(x=study, y=test.score)) +
     geom_point(aes(colour = factor(group)))
@@ -206,6 +226,7 @@ simp.1<- tribble(
 ```
 
 ```{r, echo=FALSE}
+#| fig-height: 4
 simp.1 %>%
 ggplot(aes(x=study, y=test.score)) +
     geom_point() +
@@ -258,39 +279,32 @@ Our B1 coefficient indexes the stroop effect. However, people differ on this str
 
 ## People differ
 
-Same idea with our data: each person has their own average SMN7 connectivity, and people vary around the grand mean.
+Same idea with our data: each person has their own average RT, and people vary around the grand mean.
 
 ```{r}
 #| code-fold: true
-example <- mlm   # same data as above
-
+#| fig-height: 3.2
 set.seed(11)
-ex.random <- example %>%
-  dplyr::select(ID) %>%
-  distinct() %>%
-  slice_sample(n = 3)
-
-example2 <-
-  left_join(ex.random, example)
-
-g2<- ggplot(example2,
-   aes(x = week, y = SMN7, group = ID)) +  geom_point() + stat_smooth(method="lm", formula=y~1, se = FALSE) + facet_wrap( ~ID) +
-  geom_hline(yintercept = mean(example$SMN7)) +  ylab("SMN7 connectivity") + xlab("week") +
-  geom_label(label="Grand mean ",  x=1,y=mean(example$SMN7),
-    label.size = 0.15)
-g2
+three <- st %>% filter(id %in% sample(unique(id), 3))
+ggplot(three, aes(x = trial, y = rt)) +
+  geom_point(alpha = .4) +
+  geom_hline(aes(yintercept = m), data = three %>% group_by(id) %>% summarise(m = mean(rt)), colour = "#4C78A8", linewidth = 1) +
+  geom_hline(yintercept = mean(st$rt), linetype = "dashed") +
+  facet_wrap(~ id, labeller = label_both) +
+  labs(x = "Trial", y = "RT (ms)", caption = "Blue: the person's mean. Dashed: the grand mean.") +
+  theme_classic(base_size = 13)
 ```
 
 ## Distribution of person means
 
 ```{r}
 #| code-fold: true
-library(tidybayes)
-example %>%
-  group_by(ID) %>%
-  summarise(estimate = mean(SMN7)) %>%
+#| fig-height: 3.6
+st %>%
+  group_by(id) %>%
+  summarise(estimate = mean(rt)) %>%
   ggplot(aes(x = estimate)) +
-  stat_dotsinterval() + xlab("person mean SMN7 connectivity") + ylab(NULL)
+  stat_dotsinterval() + xlab("Person's mean RT (ms)") + ylab(NULL) + theme_classic(base_size = 14)
 ```
 
 ## 3. Different levels
@@ -319,13 +333,13 @@ $$Y_{trials, i} = \beta_{0i} + \beta_{1i}X_{trial,i} + \varepsilon_{trial}$$ $$\
 
 ## One bucket of error
 
-![](btw.png)
+![](btw.png){height=440}
 
 Assume a simple intercept only model where we aggregate across types of trials.
 
 ## Person-specific buckets
 
-![](win.png)
+![](win.png){height=440}
 
 A MLM intercept only model takes what was previously chalked up to error and reassigns it into person specific "buckets"
 
@@ -365,38 +379,46 @@ Where does $U_{0i}$ come from? If we calculated each by hand, through taking the
 
 ## Complete pooling
 
-Ignores any dependency. Doesn't learn from others, assumes everyone is the same. Underfits the model.
+Ignores any dependency. Doesn't learn from others, assumes everyone is the same: one mean for all. Underfits the model.
+
+```{r}
+#| echo: false
+set.seed(3)
+pool_ids <- sample(unique(st$id), 30)
+pool_dat <- st %>% filter(id %in% pool_ids) %>% mutate(id = fct_reorder(factor(id), rt))
+pool_base <- ggplot(pool_dat, aes(x = id, y = rt)) +
+  geom_jitter(width = .15, alpha = .15, size = .8) +
+  labs(x = "Person (30 of 100, sorted by mean RT)", y = "RT (ms)") +
+  theme_classic(base_size = 14) + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
+```
 
 ```{r}
 #| code-fold: true
-
-ggplot(mlm, aes(x = week, y = SMN7)) + geom_point() + stat_smooth(method="lm") +ylab("SMN7") + xlab("week") +  theme(axis.ticks.y = element_blank(),
-        axis.text.y = element_blank())
-
+#| fig-height: 3.2
+pool_base + geom_hline(yintercept = mean(st$rt), colour = "black", linewidth = 1.2)
 ```
 
-## No Pooling
+## No pooling
 
-Everyone is unique and we cannot learn from others. Leads to overfitting
+Everyone is unique and we cannot learn from others: each person's own mean. Leads to overfitting.
 
 ```{r}
 #| code-fold: true
-
-ggplot(mlm, aes(x = week, y = SMN7, group = ID)) + geom_line() +  geom_point() + facet_wrap( ~ ID) +ylab("SMN7") + xlab("week")
-
+#| fig-height: 3.2
+pool_base + stat_summary(fun = mean, geom = "crossbar", width = .6, colour = "#D55E00")
 ```
 
-## Partial pooling aka shrinkage aka regularization
+## Partial pooling aka shrinkage aka regularization {.smaller}
 
 ```{r}
 #| code-fold: true
-ggplot(mlm, aes(x = week, y = SMN7)) +
-  stat_smooth(aes(group = ID), method = "lm", se = FALSE, colour = "grey70", linewidth = .4) +   # no pooling
-  stat_smooth(method = "lm", se = FALSE, colour = "black", linewidth = 1.5) +                    # complete pooling
-  ylab("SMN7") + xlab("week") + theme_classic(base_size = 14)
+#| fig-height: 3
+pool_base +
+  geom_hline(yintercept = mean(st$rt), colour = "black", linewidth = 1.2) +
+  stat_summary(fun = mean, geom = "crossbar", width = .6, colour = "#D55E00")
 ```
 
-Thin grey: each person's own line (no pooling). Thick black: one line for everyone (complete pooling). Partial pooling lands in between, pulling each person toward the black line, more so for people with little data. We'll see real estimates once we fit the model.
+Orange: each person's own mean (no pooling). Black: one mean for everyone (complete pooling). Partial pooling lands in between, pulling each person toward the black line, more so for people with little data. We'll see real estimates once we fit the model.
 
 ## Partial pooling as learning
 
@@ -410,9 +432,9 @@ In a way, this is similar to Bayesian reasoning where learning is based on how m
 
 $$\text{y}_{ij}  \sim \operatorname{Normal}(\mu_{ij}, \sigma)$$ $$\mu_{ij}  = \beta_{0[i]}$$
 
-$$\beta_{0[i]} \sim \operatorname{Normal}({\bar \mu},  \sigma_0)$$ $${\bar \mu}  \sim {\operatorname{Normal}(0.2, 0.1)}$$ $$\sigma_0 \sim {\operatorname{Half-Normal}(0, 0.1)}$$ $$\sigma \sim {\operatorname{Exponential}(10)}$$
+$$\beta_{0[i]} \sim \operatorname{Normal}({\bar \mu},  \sigma_0)$$ $${\bar \mu}  \sim {\operatorname{Normal}(650, 150)}$$ $$\sigma_0 \sim {\operatorname{Half-Normal}(0, 100)}$$ $$\sigma \sim {\operatorname{Exponential}(0.01)}$$
 
-This is the model we fit as `mlm.1`.
+This is the model we fit as `st.1`.
 
 ## Hyperprior
 
@@ -420,7 +442,7 @@ We now have a prior for the population of effects. We typically put a prior dire
 
 Intercept in simple regression --\> a (prior/posterior) distribution of possible scores
 
-Intercept in mlm --\> a distribution of group/cluster intercepts, described by its own mean ($\bar\mu$) and SD ($\sigma_0$). Those describe the *population* of people, not just the 91 we happened to sample.
+Intercept in mlm --\> a distribution of group/cluster intercepts, described by its own mean ($\bar\mu$) and SD ($\sigma_0$). Those describe the *population* of people, not just the 100 we happened to sample.
 
 ## Priors with their own priors {.nostretch .smaller}
 
@@ -432,11 +454,11 @@ The person intercepts $\beta_{0[i]}$ get a prior whose parameters ($\bar\mu$, $\
 #| fig-width: 10
 #| fig-height: 4.2
 lab <- tribble(~x, ~y, ~label,
-  1.2, 3, "bar(mu) %~% Normal(0.2, 0.1)",
-  3.2, 3, "sigma[0] %~% HalfNormal(0, 0.1)",
+  1.2, 3, "bar(mu) %~% Normal(650, 150)",
+  3.2, 3, "sigma[0] %~% HalfNormal(0, 100)",
   2.2, 2, "beta[0*'['*i*']'] %~% Normal(bar(mu), sigma[0])",
-  4.2, 2, "sigma %~% Exponential(10)",
-  3.2, 1, "CON[ij] %~% Normal(beta[0*'['*i*']'], sigma)")
+  4.2, 2, "sigma %~% Exponential(0.01)",
+  3.2, 1, "RT[ij] %~% Normal(beta[0*'['*i*']'], sigma)")
 arrows <- tribble(~x, ~y, ~xend, ~yend,
   1.3, 2.8, 2.0, 2.2,   3.1, 2.8, 2.4, 2.2,
   2.4, 1.8, 3.0, 1.2,   4.0, 1.8, 3.4, 1.2)
@@ -445,7 +467,7 @@ ggplot() +
                arrow = arrow(length = unit(0.25, "cm"), type = "closed"), colour = "grey50") +
   geom_label(data = lab, aes(x = x, y = y, label = label), parse = TRUE, size = 5.5,
              label.padding = unit(0.4, "lines"), fill = "grey95") +
-  annotate("text", x = -0.2, y = c(3, 2, 1), label = c("hyperpriors", "one per person", "one per observation"),
+  annotate("text", x = -0.2, y = c(3, 2, 1), label = c("hyperpriors", "one per person", "one per trial"),
            hjust = 0, colour = "grey40", size = 4.5) +
   xlim(-0.2, 5) + ylim(0.6, 3.4) + theme_void()
 ```
@@ -465,54 +487,52 @@ Fixed effect describes #1 whereas random effects describe #2
 Notice we have one less parameter we are estimating.
 
 ```{r}
-mlm.2 <-
+st.2 <-
   brm(family = gaussian,
-      CON ~ 1 ,
-      prior = c(prior(normal(0.2, 0.1), class = Intercept),
-                prior(exponential(10), class = sigma)),
-      iter = 5000, warmup = 1000, chains = 4, cores = 4,
-      sample_prior = "yes",
-      data = mlm,
+      rt ~ 1 ,
+      prior = c(prior(normal(650, 150), class = Intercept),
+                prior(exponential(0.01), class = sigma)),
+      iter = 3000, warmup = 1000, chains = 4, cores = 4,
+      data = st,
       backend = "cmdstanr",
-      file = "mlm.2b")
+      file = "st.2")
 ```
 
-## `mlm.2` summary
+## `st.2` summary
 
 ```{r}
-summary(mlm.2)
+summary(st.2)
 ```
 
 ## Comparing the two
 
 ```{r}
-mlm.1 <- add_criterion(mlm.1, "loo")
-mlm.2 <- add_criterion(mlm.2, "loo")
-loo_compare(mlm.1, mlm.2, criterion = "loo")
+st.1 <- add_criterion(st.1, "loo")
+st.2 <- add_criterion(st.2, "loo")
+loo_compare(st.1, st.2, criterion = "loo")
 ```
 
-The MLM wins easily. Note the high-Pareto-*k* flag (Lecture 6): with only 2–4 scans per person, leaving one scan out moves that person's intercept a lot. For a final answer, use `moment_match = TRUE` or K-fold; here the gap is far too big for that to change the conclusion.
+The MLM wins by a mile: knowing *who* produced a trial helps predict its RT.
 
 ## Same intercept, different meaning {.smaller}
 
--   Notice how the intercept estimate is about the same in each of these models, but the MLM's is less certain (posterior SD `r sprintf("%.4f", fixef(mlm.1)["Intercept", "Est.Error"])` vs. `r sprintf("%.4f", fixef(mlm.2)["Intercept", "Est.Error"])`): it knows the 91 people differ, so it is less sure about the average person. Conceptually they are different too. The intercept is directly modeled in the standard regression. In the MLM it is better thought of as the map of the distribution of random effects.
+-   Notice how the intercept estimate is about the same in each of these models, but the MLM's is less certain (posterior SD `r sprintf("%.1f", fixef(st.1)["Intercept", "Est.Error"])` vs. `r sprintf("%.1f", fixef(st.2)["Intercept", "Est.Error"])` ms): it knows the 100 people differ, so it is less sure about the average person. Conceptually they are different too. The intercept is directly modeled in the standard regression. In the MLM it is better thought of as the map of the distribution of random effects.
 
 -   The population is larger than what we have. This is true for almost anything we do. We sample paradigms, we sample people, we usually never have a full population under our study. Don't we want to model that variation?
 
 ## An index model: one mean per person {.smaller}
 
-With mlm we treated means as coming from a population of means. And thus there was a best guess of the mean (intercept) and variation around that guess (SD). With anova we ignored the variation. But we could, in bayes, still examine that variation. Let's fit an index model, where each person gets their own mean. (No priors given, so brms uses flat priors on all 91 means.)
+With mlm we treated means as coming from a population of means. And thus there was a best guess of the mean (intercept) and variation around that guess (SD). With anova we ignored the variation. But we could, in bayes, still examine that variation. Let's fit an index model, where each person gets their own mean. (No priors given, so brms uses flat priors on all 100 means.)
 
 ```{r}
-mlm$ID.f <- as.factor(mlm$ID)
-mlm.id <-
+st$id.f <- factor(st$id)
+st.id <-
   brm(family = gaussian,
-      CON ~ 0 + ID.f ,
-      iter = 4000, warmup = 1000, chains = 2, cores = 4,
-      data = mlm,
+      rt ~ 0 + id.f ,
+      iter = 3000, warmup = 1000, chains = 4, cores = 4,
+      data = st,
       backend = "cmdstanr",
-      file = "mlm.id")
-
+      file = "st.id")
 ```
 
 ## Fixed effects vs random effects {.smaller}
@@ -523,18 +543,19 @@ The index model is what economists call a **fixed effects** model: one mean per 
 -   **Why we usually prefer random effects:** they split the variance into between- and within-person parts, they pool (better predictions for people with little data), and they allow person-level predictors, which a fixed effects model can't estimate.
 -   In psychology the clusters are almost always a sample from a bigger population (people, sites, labs), which is exactly what random effects assume.
 
-## `mlm.id` summary
+## `st.id` summary
 
 ```{r}
-summary(mlm.id)
+summary(st.id)
 ```
 
 ## Person means from the index model
 
 ```{r, warning = FALSE}
-as_draws_df(mlm.id) %>%
-  pivot_longer(starts_with("b_ID.f"), names_to="ID") %>%
-  summarise(mean=mean(value), sd=sd(value))
+as_draws_df(st.id) %>%
+  pivot_longer(starts_with("b_id.f"), names_to = "id") %>%
+  group_by(id) %>%
+  summarise(mean = mean(value), sd = sd(value))
 ```
 
 ## Partial pooling/Shrinkage
@@ -548,22 +569,22 @@ We use our prior of $\sigma_0$ plus our data to get an estimate of each $\beta_{
 ## Pulling out the random effects {.smaller}
 
 ```{r}
-mlm.1 %>%
-  spread_draws(r_ID[ID, term]) %>%   # one row per draw per person: 16,000 x 91
+st.1 %>%
+  spread_draws(r_id[id, term]) %>%   # one row per draw per person: 8,000 x 100
   median_qi()
 ```
 
--   `r_ID` are the $U_{0i}$: each person's **deviation** from the fixed intercept, in CON units (like lme4's `ranef()`). `get_variables(mlm.1)` lists everything in the posterior.
--   `[ID, term]` names the indices: person, and which effect (here only `Intercept`).
+-   `r_id` are the $U_{0i}$: each person's **deviation** from the fixed intercept, in ms (like lme4's `ranef()`). `get_variables(st.1)` lists everything in the posterior.
+-   `[id, term]` names the indices: person, and which effect (here only `Intercept`).
 
 ## Each person's intercept {.smaller}
 
 The fixed effect plus each person's deviation (like lme4's `coef()`), computed draw by draw:
 
 ```{r}
-mlm.1 %>%
-  spread_draws(b_Intercept, r_ID[ID, term]) %>%
-  mutate(person_I = b_Intercept + r_ID) %>%
+st.1 %>%
+  spread_draws(b_Intercept, r_id[id, term]) %>%
+  mutate(person_I = b_Intercept + r_id) %>%
   median_qi(person_I)
 ```
 
@@ -572,29 +593,27 @@ mlm.1 %>%
 ```{r}
 #| code-fold: true
 #| fig-width: 9
-#| fig-height: 4.6
+#| fig-height: 4.2
 # for a paper: add ggsave("shrinkage.png", width = 6.5, height = 4.5) after the plot
-raw <- mlm %>% group_by(ID) %>% summarise(raw = mean(CON), n = n())
-pooled <- mlm.1 %>%
-  spread_draws(b_Intercept, r_ID[ID, term]) %>%
-  mutate(pooled = b_Intercept + r_ID) %>%
-  group_by(ID) %>%
+raw <- st %>% group_by(id) %>% summarise(raw = mean(rt), n = n())
+pooled <- st.1 %>%
+  spread_draws(b_Intercept, r_id[id, term]) %>%
+  mutate(pooled = b_Intercept + r_id) %>%
+  group_by(id) %>%
   summarise(pooled = mean(pooled))
-grand <- fixef(mlm.1)["Intercept", "Estimate"]
-shrink <- left_join(raw, pooled, by = "ID") %>% mutate(ID = fct_reorder(factor(ID), raw))
+grand <- fixef(st.1)["Intercept", "Estimate"]
+shrink <- left_join(raw, pooled, by = "id") %>% mutate(id = fct_reorder(factor(id), raw))
 
-ggplot(shrink, aes(y = ID)) +
+ggplot(shrink, aes(y = id)) +
   geom_vline(xintercept = grand, linetype = "dashed", colour = "grey50") +
-  geom_segment(aes(x = raw, xend = pooled, yend = ID), colour = "grey60",
+  geom_segment(aes(x = raw, xend = pooled, yend = id), colour = "grey60",
                arrow = arrow(length = unit(0.12, "cm"), type = "closed")) +
-  geom_point(aes(x = raw, size = factor(n)), shape = 21, fill = "white") +
+  geom_point(aes(x = raw), shape = 21, fill = "white", size = 2) +
   geom_point(aes(x = pooled), colour = "#4C78A8", size = 1.6) +
-  scale_size_manual(values = c(`2` = 1.2, `3` = 2.2, `4` = 3.2)) +
-  labs(x = "CON connectivity (person mean)", y = "Person (sorted by raw mean)", size = "Scans",
-       caption = "Open circles: each person's raw mean (no pooling). Blue: partially pooled estimate from the empty model.\nArrows show shrinkage toward the grand mean (dashed). Extreme means from people with few scans move the most.") +
+  labs(x = "Mean RT (ms)", y = "Person (sorted by raw mean)",
+       caption = "Open circles: each person's raw mean (no pooling). Blue: partially pooled estimate from the empty model.\nArrows show shrinkage toward the grand mean (dashed): small here, and biggest for the most extreme people.") +
   theme_classic(base_size = 13) +
-  theme(axis.text.y = element_blank(), axis.ticks.y = element_blank(),
-        plot.caption = element_text(hjust = 0), legend.position = "top")
+  theme(axis.text.y = element_blank(), axis.ticks.y = element_blank(), plot.caption = element_text(hjust = 0))
 ```
 
 ## How much shrinkage? {.smaller}
@@ -605,24 +624,26 @@ $$\hat\beta_{0[i]} \approx w_i\, \bar y_i + (1 - w_i)\, \bar\mu \qquad w_i = \fr
 
 ```{r}
 #| echo: false
-s_e <- posterior_summary(mlm.1)["sigma", "Estimate"]
-s_0 <- posterior_summary(mlm.1)["sd_ID__Intercept", "Estimate"]
+s_e <- posterior_summary(st.1)["sigma", "Estimate"]
+s_0 <- posterior_summary(st.1)["sd_id__Intercept", "Estimate"]
 w <- function(n) n / (n + s_e^2 / s_0^2)
 ```
 
--   Here $\sigma$ = `r sprintf("%.3f", s_e)` and $\sigma_0$ = `r sprintf("%.3f", s_0)`, so $\sigma^2/\sigma_0^2$ = `r sprintf("%.2f", s_e^2 / s_0^2)`.
--   Someone with 2 scans keeps `r round(100 * w(2))`% of their own mean; someone with 4 scans keeps `r round(100 * w(4))`%. That's why the smaller circles in the figure moved further.
--   More scans, or bigger differences between people ($\sigma_0$), mean less shrinkage. If people barely differed, everyone would be pulled almost all the way to the grand mean.
+-   Here $\sigma$ = `r round(s_e)` ms and $\sigma_0$ = `r round(s_0)` ms, so $\sigma^2/\sigma_0^2$ = `r sprintf("%.1f", s_e^2 / s_0^2)`.
+-   With `r min(raw$n)` to `r max(raw$n)` trials each, people keep `r round(100 * w(min(raw$n)))`–`r round(100 * w(max(raw$n)))`% of their own mean: little shrinkage. With only 5 trials, they'd keep `r round(100 * w(5))`%.
+-   More trials, or bigger differences between people ($\sigma_0$), mean less shrinkage. Next time the Stroop *effect* (a difference between two noisy means) shrinks much more.
 
 ## Person intercepts with intervals
 
 ```{r}
+#| fig-height: 4.2
 #| code-fold: true
-mlm.1 %>%
-  spread_draws(b_Intercept, r_ID[ID, term]) %>%
-   median_qi(person_I = b_Intercept + r_ID) %>%
-  ggplot(aes( y = reorder(ID, person_I), x = person_I, xmin = .lower, xmax = .upper)) +
-  geom_pointinterval() + xlab("est") + ylab("ID")
+st.1 %>%
+  spread_draws(b_Intercept, r_id[id, term]) %>%
+  median_qi(person_I = b_Intercept + r_id) %>%
+  ggplot(aes(y = reorder(id, person_I), x = person_I, xmin = .lower, xmax = .upper)) +
+  geom_pointinterval() + labs(x = "Mean RT (ms)", y = "Person") +
+  theme_classic(base_size = 13) + theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
 ```
 
 ## Forcing complete pooling
@@ -631,72 +652,62 @@ Set prior for random effect to almost zero for complete pooling.
 
 ```{r}
 #| code-fold: true
-mlm.1p <-
+st.1p <-
   brm(family = gaussian,
-      CON ~ 1 + (1 | ID),
-      prior = c(prior(normal(0.2, 0.1), class = Intercept),
+      rt ~ 1 + (1 | id),
+      prior = c(prior(normal(650, 150), class = Intercept),
                 prior(normal(0, .00001), class = sd),
-                prior(exponential(10), class = sigma)),
-      iter = 4000, warmup = 1000, chains = 4, cores = 4,
-      sample_prior = "yes",
-      file = "mlm.1pb",
-       backend = "cmdstanr",
-      data = mlm)
+                prior(exponential(0.01), class = sigma)),
+      iter = 3000, warmup = 1000, chains = 4, cores = 4,
+      file = "st.1p",
+      backend = "cmdstanr",
+      data = st)
 ```
 
-## `mlm.1p` summary
+## `st.1p` summary
 
 ```{r}
-summary(mlm.1p)
+summary(st.1p)
 ```
 
 ## Complete pooling, pictured
 
 ```{r}
 #| code-fold: true
-mlm.1p %>%
-  spread_draws(b_Intercept, r_ID[ID, term]) %>%
-  mutate(person_I = b_Intercept + r_ID) %>%
-  left_join(mlm %>% select (ID, CON) %>% group_by(ID) %>%  mutate(CON = mean(CON))) %>%
- median_qi() %>%
-ggplot(aes(x = ID)) +
-  geom_point(aes(y = person_I), color = "orange2") +
-  geom_point(aes(y = CON), shape = 1) +
-  labs(title =
-  "complete pooling") +
-  geom_hline(yintercept = fixef(mlm.1)["Intercept", "Estimate"])
-
+#| fig-height: 3.8
+st.1p %>%
+  spread_draws(b_Intercept, r_id[id, term]) %>%
+  median_qi(person_I = b_Intercept + r_id) %>%
+  left_join(st %>% group_by(id) %>% summarise(raw = mean(rt)), by = "id") %>%
+  ggplot(aes(x = reorder(factor(id), raw))) +
+  geom_point(aes(y = person_I), colour = "orange2") +
+  geom_point(aes(y = raw), shape = 1) +
+  geom_hline(yintercept = fixef(st.1)["Intercept", "Estimate"]) +
+  labs(title = "complete pooling", x = "Person (sorted by raw mean)", y = "RT (ms)") +
+  theme_classic(base_size = 13) + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
 ```
 
 ## No pooling {.smaller}
 
-No pooling means you are not learning from other data, which is by default not an MLM model. We already fit this fixed effects no intercept model above.
-
-```{r}
-summary(mlm.id)
-```
+No pooling means you are not learning from other data, which is by default not an MLM model. We already fit this fixed effects model above (`st.id`).
 
 ## No pooling, pictured
 
 ```{r}
 #| code-fold: true
-data2<-mlm %>% select(ID, CON) %>%
-  group_by(ID) %>%
-  mutate(CON = mean(CON)) %>%
-  slice(1)
-
-mlm.id %>% tidy_draws() %>%
-  pivot_longer(b_ID.f6:b_ID.f229, names_to = "ID", values_to = "CON_I", names_prefix = "b_ID.f", names_transform = list(ID = as.integer)) %>%
-left_join(data2) %>%
-  group_by(ID) %>%
-   median_qi() %>%
-ggplot(aes(x = ID)) +
-  geom_point(aes(y = CON_I), color = "orange2") +
-  geom_point(aes(y = CON), shape = 1) +
-  labs(title =
-  "NO pooling") +
-  geom_hline(yintercept = fixef(mlm.1)["Intercept", "Estimate"])
-
+#| fig-height: 3.8
+as_draws_df(st.id) %>%
+  pivot_longer(starts_with("b_id.f"), names_to = "id", names_prefix = "b_id.f",
+               names_transform = list(id = as.integer), values_to = "rt_i") %>%
+  group_by(id) %>%
+  median_qi(rt_i) %>%
+  left_join(st %>% group_by(id) %>% summarise(raw = mean(rt)), by = "id") %>%
+  ggplot(aes(x = reorder(factor(id), raw))) +
+  geom_point(aes(y = rt_i), colour = "orange2") +
+  geom_point(aes(y = raw), shape = 1) +
+  geom_hline(yintercept = fixef(st.1)["Intercept", "Estimate"]) +
+  labs(title = "NO pooling", x = "Person (sorted by raw mean)", y = "RT (ms)") +
+  theme_classic(base_size = 13) + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
 ```
 
 ## The MLM picks the amount of pooling
@@ -705,16 +716,17 @@ MLM will automatically create the best fitting model -- balancing between over a
 
 This "knob" can be manually turned to different values and we can look at the fit of the model via LOO or WAIC. But we don't need to!
 
-## Comparing no, complete, and partial pooling
+## Comparing no, complete, and partial pooling {.smaller}
 
 ```{r}
-mlm.id <- add_criterion(mlm.id, "loo")
-mlm.1p <- add_criterion(mlm.1p, "loo")
-mlm.1 <- add_criterion(mlm.1, "loo")
-loo_compare(mlm.id, mlm.1p, mlm.1)
+st.id <- add_criterion(st.id, "loo")
+st.1p <- add_criterion(st.1p, "loo")
+st.1  <- add_criterion(st.1, "loo")
+loo_compare(st.id, st.1p, st.1)
 ```
 
-Partial pooling predicts best, then no pooling, then complete pooling. The no-pooling model has many high Pareto *k*s: each person's mean rests on 2–4 scans, so it is fragile, which is exactly the overfitting partial pooling protects against.
+-   Complete pooling is far worse: people really do differ.
+-   Partial pooling and no pooling are close: with ~53 trials each, people's means are already well estimated, so there is little to pool. With few trials per person (or noisy effects, next time) partial pooling pulls clearly ahead.
 
 ## Level 1 predictors
 
@@ -736,50 +748,39 @@ $$
 
 ## Level 1 predictors in brms {.smaller}
 
-$$\text{y}_{ij}  \sim \operatorname{Normal}(\mu_{ij}, \sigma)$$ $$\mu_{ij}  = \beta_{0[i]} + \beta_{1}Time_{ij}$$
+Our level-1 predictor: whether the trial is incongruent (1) or congruent (0).
 
-$$\beta_{0[i]} \sim \operatorname{Normal}({\bar \mu}, \sigma_0)$$ $${\bar \mu}  \sim {\operatorname{Normal}(0.2, 0.1)}$$ $$\sigma_0 \sim {\operatorname{Half-Normal}(0, 0.1)}$$ $$\beta_{1} \sim {\operatorname{Normal}(0, 0.05)}$$ $$\sigma \sim {\operatorname{Exponential}(10)}$$
+$$\text{rt}_{ij}  \sim \operatorname{Normal}(\mu_{ij}, \sigma)$$ $$\mu_{ij}  = \beta_{0[i]} + \beta_{1}\,\text{Incongruent}_{ij}$$
+
+$$\beta_{0[i]} \sim \operatorname{Normal}({\bar \mu}, \sigma_0)$$ $${\bar \mu}  \sim {\operatorname{Normal}(650, 150)}$$ $$\sigma_0 \sim {\operatorname{Half-Normal}(0, 100)}$$ $$\beta_{1} \sim {\operatorname{Normal}(0, 100)}$$ $$\sigma \sim {\operatorname{Exponential}(0.01)}$$
 
 ## A fixed slope
 
-Notice that the slope has no hyperprior (no [i], no $\sigma_1$). What does that mean? It is not random: everyone gets the same slope. People could still differ in their slopes if we added predictors of the slope (cross-level interactions), but there is no U to represent leftover random variation. To get that we need a parameter for it, and we don't have one yet.
+Notice that the slope has no hyperprior (no [i], no $\sigma_1$). What does that mean? It is not random: everyone gets the same Stroop effect. People could still differ in their slopes if we added predictors of the slope (cross-level interactions), but there is no U to represent leftover random variation. To get that we need a parameter for it, and we don't have one yet (next time).
 
-## Fitting `mlm.3`
+## Fitting `st.3`
 
 ```{r}
-
-mlm.3 <-
+st.3 <-
   brm(family = gaussian,
-      CON ~ 1 + time + (1 | ID),
-      prior = c(prior(normal(0.2, 0.1), class = Intercept),
-                prior(normal(0, 0.05), class = b),           # change per unit of time
-                prior(normal(0, 0.1), class = sd),
-                prior(exponential(10), class = sigma)),
-      iter = 4000, warmup = 1000, chains = 4, cores = 4,
-      sample_prior = "yes",
-      file = "mlm.3b",
+      rt ~ 1 + congruency + (1 | id),
+      prior = c(prior(normal(650, 150), class = Intercept),
+                prior(normal(0, 100), class = b),            # the Stroop effect, in ms
+                prior(normal(0, 100), class = sd),
+                prior(exponential(0.01), class = sigma)),
+      iter = 3000, warmup = 1000, chains = 4, cores = 4,
+      file = "st.3",
       backend = "cmdstanr",
-      data = mlm)
-
+      data = st)
 ```
 
-## `mlm.3` summary
+## `st.3` summary
 
 ```{r}
-summary(mlm.3)
+summary(st.3)
 ```
 
-## `posterior_summary()`
-
-```{r}
-posterior_summary(mlm.3)
-```
-
-## What's in our posterior?
-
-```{r}
-get_variables(mlm.3)
-```
+The Stroop effect: incongruent trials are about `r round(fixef(st.3)["congruencyincongruent", "Estimate"])` ms slower, for everyone (a fixed slope).
 
 ## Three kinds of prediction {.smaller}
 
@@ -791,16 +792,17 @@ get_variables(mlm.3)
 
 ## A known person vs. a new person {.smaller}
 
-CON at time = 3 for person 6 (in the data) and for someone we've never seen:
+An incongruent trial for person 6 (in the data) and for someone we've never seen:
 
 ```{r}
-predictions(mlm.3, newdata = tibble(ID = c(6, 9999), time = 3),
+predictions(st.3, newdata = tibble(id = c(6, 9999), congruency = "incongruent"),
             allow_new_levels = TRUE, sample_new_levels = "gaussian")
-predictions(mlm.3, newdata = tibble(time = 3), re_formula = NA)  # the average person
+predictions(st.3, newdata = tibble(congruency = "incongruent"), re_formula = NA)  # the average person
 ```
 
 ## Why is the new person so uncertain?
 
--   For person 6, the model has their scans; for person 9999 it only knows people vary with SD $\sigma_0$, so the interval is more than twice as wide.
+-   For person 6, the model has their trials; for person 9999 it only knows people vary with SD $\sigma_0$ (about `r round(posterior_summary(st.3)["sd_id__Intercept", "Estimate"])` ms), so the interval is far wider.
 -   The average person's interval is the narrowest: it's about the mean, not about any individual.
+-   None of these is a prediction for a single *trial*: that would add the trial-to-trial noise $\sigma$ (`predict()`/`posterior_predict()`).
 
